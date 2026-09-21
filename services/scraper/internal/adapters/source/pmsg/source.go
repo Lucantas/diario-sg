@@ -1,10 +1,15 @@
 // Package pmsg implementa ports.EditionSource para o site do Diário Oficial
 // da Prefeitura de São Gonçalo (https://do.pmsg.rj.gov.br/).
 //
-// ATENÇÃO: a extração abaixo é genérica (procura links para PDF e datas no
-// texto/URL). Antes de ir para produção, inspecione o HTML real do site e
-// ajuste ListEditions/parseListing. Veja também o spider proposto no Querido
-// Diário: https://github.com/okfn-brasil/querido-diario/issues/1210
+// Estrutura real do site (docs/parser-findings.md):
+//   - os PDFs ficam em URLs determinísticas: diario/AAAA_MM_DD.pdf (200 quando
+//     há edição, 500 quando não há);
+//   - a "Busca Específica" (POST index com DataInicial, DataFinal, Termo) lista
+//     as edições do período que contêm o termo, 5 por página, com links
+//     href="diario/AAAA_MM_DD.pdf" e paginação por ?NumeroPagina=N.
+//
+// Listamos com um termo presente no cabeçalho de toda página ("Gonçalo"),
+// percorremos a paginação e montamos as URLs. O site não exige JavaScript.
 package pmsg
 
 import (
@@ -14,91 +19,158 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/domain"
 )
 
-const userAgent = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
+const (
+	userAgent = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
+	// Termo que aparece no cabeçalho de todas as páginas de toda edição.
+	listingTerm  = "Gonçalo"
+	maxPages     = 50
+	maxHTMLBytes = 10 << 20
+)
 
 type Source struct {
 	baseURL *url.URL
 	http    *http.Client
-	delay   time.Duration // pausa entre downloads: seja gentil com o site
+	delay   time.Duration
+	last    time.Time
 }
 
 func New(baseURL string) (*Source, error) {
 	u, err := url.Parse(baseURL)
-	if err != nil {
-		return nil, fmt.Errorf("SOURCE_URL inválida: %w", err)
+	if err != nil || u.Host == "" {
+		return nil, fmt.Errorf("SOURCE_URL inválida: %q", baseURL)
 	}
 	return &Source{baseURL: u, http: &http.Client{Timeout: 60 * time.Second}, delay: 2 * time.Second}, nil
 }
 
 var (
-	linkRe = regexp.MustCompile(`(?is)<a[^>]+href="([^"]+\.pdf)"[^>]*>(.*?)</a>`)
-	dateBR = regexp.MustCompile(`(\d{2})[/.-](\d{2})[/.-](\d{4})`)
-	dateIS = regexp.MustCompile(`(\d{4})[/.-](\d{2})[/.-](\d{2})`)
-	numRe  = regexp.MustCompile(`(?i)edi(?:ç|c)(?:ã|a)o\s*(?:n[º°o.]*\s*)?(\d+)`)
-	tagRe  = regexp.MustCompile(`<[^>]+>`)
+	editionLinkRe = regexp.MustCompile(`href="diario/(\d{4})_(\d{2})_(\d{2})\.pdf"`)
+	pageLinkRe    = regexp.MustCompile(`NumeroPagina=(\d+)`)
 )
 
+// ListEditions consulta a busca do site para o período e devolve uma edição
+// por data encontrada, da mais antiga para a mais recente.
 func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain.Edition, error) {
-	// TODO(ajustar): se o site paginar ou filtrar por data via querystring,
-	// itere aqui sobre as páginas/datas entre from e to.
-	body, err := s.get(ctx, s.baseURL.String())
-	if err != nil {
-		return nil, err
-	}
-	defer body.Close()
-	html, err := io.ReadAll(io.LimitReader(body, 10<<20))
-	if err != nil {
-		return nil, err
-	}
+	from, to = dayStart(from), dayStart(to)
+	seen := map[time.Time]bool{}
+	pending := []int{1}
+	visited := map[int]bool{}
+	for len(pending) > 0 && len(visited) < maxPages {
+		page := pending[0]
+		pending = pending[1:]
+		if visited[page] {
+			continue
+		}
+		visited[page] = true
 
-	var out []domain.Edition
-	for _, e := range s.parseListing(string(html)) {
-		if !e.PublishedAt.Before(dayStart(from)) && !e.PublishedAt.After(to) {
-			out = append(out, e)
+		html, err := s.listingPage(ctx, from, to, page)
+		if err != nil {
+			return nil, err
+		}
+		dates, pages := parseListing(html)
+		for _, d := range dates {
+			if !d.Before(from) && !d.After(to) {
+				seen[d] = true
+			}
+		}
+		for _, p := range pages {
+			if !visited[p] {
+				pending = append(pending, p)
+			}
 		}
 	}
+
+	out := make([]domain.Edition, 0, len(seen))
+	for d := range seen {
+		out = append(out, domain.Edition{PublishedAt: d, URL: EditionURL(s.baseURL, d)})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].PublishedAt.Before(out[j].PublishedAt) })
 	return out, nil
 }
 
-func (s *Source) parseListing(html string) []domain.Edition {
-	var out []domain.Edition
-	for _, m := range linkRe.FindAllStringSubmatch(html, -1) {
-		href, text := m[1], stripTags(m[2])
-		abs, err := s.baseURL.Parse(href)
-		if err != nil {
-			continue
-		}
-		published, ok := findDate(text + " " + href)
-		if !ok {
-			continue
-		}
-		e := domain.Edition{PublishedAt: published, URL: abs.String()}
-		if n := numRe.FindStringSubmatch(text); n != nil {
-			e.Number = n[1]
-		}
-		out = append(out, e)
+// listingPage faz a busca (POST na primeira página, GET nas seguintes, como
+// o paginador do site) e devolve o HTML.
+func (s *Source) listingPage(ctx context.Context, from, to time.Time, page int) (string, error) {
+	form := url.Values{
+		"DataInicial":    {from.Format(time.DateOnly)},
+		"DataFinal":      {to.Format(time.DateOnly)},
+		"Termo":          {listingTerm},
+		"PesquisarTermo": {"Pesquisar"},
 	}
-	return out
+	var req *http.Request
+	var err error
+	target := s.baseURL.ResolveReference(&url.URL{Path: "index"})
+	if page == 1 {
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, target.String(), strings.NewReader(form.Encode()))
+		if err == nil {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		}
+	} else {
+		form.Set("NumeroPagina", strconv.Itoa(page))
+		target.RawQuery = form.Encode()
+		req, err = http.NewRequestWithContext(ctx, http.MethodGet, target.String(), nil)
+	}
+	if err != nil {
+		return "", err
+	}
+	body, err := s.do(ctx, req)
+	if err != nil {
+		return "", fmt.Errorf("listar página %d: %w", page, err)
+	}
+	defer body.Close()
+	html, err := io.ReadAll(io.LimitReader(body, maxHTMLBytes))
+	if err != nil {
+		return "", err
+	}
+	return string(html), nil
+}
+
+// parseListing extrai as datas das edições e os números das outras páginas.
+func parseListing(html string) (dates []time.Time, pages []int) {
+	seenDate := map[time.Time]bool{}
+	for _, m := range editionLinkRe.FindAllStringSubmatch(html, -1) {
+		d, err := time.Parse(time.DateOnly, m[1]+"-"+m[2]+"-"+m[3])
+		if err != nil || seenDate[d] {
+			continue
+		}
+		seenDate[d] = true
+		dates = append(dates, d)
+	}
+	seenPage := map[int]bool{}
+	for _, m := range pageLinkRe.FindAllStringSubmatch(html, -1) {
+		n, err := strconv.Atoi(m[1])
+		if err != nil || n < 1 || seenPage[n] {
+			continue
+		}
+		seenPage[n] = true
+		pages = append(pages, n)
+	}
+	return dates, pages
 }
 
 func (s *Source) Download(ctx context.Context, e domain.Edition) (io.ReadCloser, error) {
-	select {
-	case <-time.After(s.delay):
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, e.URL, nil)
+	if err != nil {
+		return nil, err
 	}
-	return s.get(ctx, e.URL)
+	body, err := s.do(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
 }
 
-func (s *Source) get(ctx context.Context, u string) (io.ReadCloser, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
-	if err != nil {
+// do executa uma requisição respeitando a pausa entre chamadas (o caso de
+// uso é sequencial: nunca há mais de uma requisição em andamento).
+func (s *Source) do(ctx context.Context, req *http.Request) (io.ReadCloser, error) {
+	if err := s.throttle(ctx); err != nil {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", userAgent)
@@ -108,25 +180,22 @@ func (s *Source) get(ctx context.Context, u string) (io.ReadCloser, error) {
 	}
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
-		return nil, fmt.Errorf("GET %s: status %d", u, resp.StatusCode)
+		return nil, fmt.Errorf("%s %s: status %d", req.Method, req.URL, resp.StatusCode)
 	}
 	return resp.Body, nil
 }
 
-func stripTags(s string) string { return strings.TrimSpace(tagRe.ReplaceAllString(s, " ")) }
-
-func findDate(s string) (time.Time, bool) {
-	if m := dateBR.FindStringSubmatch(s); m != nil {
-		if t, err := time.Parse("02/01/2006", m[1]+"/"+m[2]+"/"+m[3]); err == nil {
-			return t, true
+func (s *Source) throttle(ctx context.Context) error {
+	wait := s.delay - time.Since(s.last)
+	if !s.last.IsZero() && wait > 0 {
+		select {
+		case <-time.After(wait):
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
-	if m := dateIS.FindStringSubmatch(s); m != nil {
-		if t, err := time.Parse("2006-01-02", m[1]+"-"+m[2]+"-"+m[3]); err == nil {
-			return t, true
-		}
-	}
-	return time.Time{}, false
+	s.last = time.Now()
+	return nil
 }
 
 func dayStart(t time.Time) time.Time {
