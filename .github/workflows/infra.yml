@@ -1,0 +1,73 @@
+# Infraestrutura como código:
+#   PR em infra/**           -> plan em dev (resultado no resumo do job)
+#   push na main em infra/** -> apply em dev
+#   manual (workflow_dispatch) -> plan/apply no ambiente escolhido
+# Proteja o Environment "prod" com revisores obrigatórios no GitHub.
+name: Infra
+
+on:
+  pull_request:
+    paths: ['infra/**', '.github/workflows/infra.yml']
+  push:
+    branches: [main]
+    paths: ['infra/**', '.github/workflows/infra.yml']
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [dev, prod]
+        default: dev
+      action:
+        type: choice
+        options: [plan, apply]
+        default: plan
+
+permissions:
+  contents: read
+  id-token: write # necessário para o Workload Identity Federation
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    concurrency:
+      group: terraform-${{ inputs.environment || 'dev' }}
+      cancel-in-progress: false # nunca interromper um apply no meio
+    env:
+      ENV_DIR: infra/envs/${{ inputs.environment || 'dev' }}
+      TF_IN_AUTOMATION: 'true'
+      TF_VAR_project_id: ${{ vars.GCP_PROJECT_ID }}
+      TF_VAR_region: ${{ vars.GCP_REGION }}
+      TF_VAR_deployer_sa_email: ${{ vars.DEPLOYER_SA }}
+      TF_VAR_email_from: ${{ vars.EMAIL_FROM }}
+      TF_VAR_public_web_url: ${{ vars.PUBLIC_WEB_URL }}
+      TF_VAR_neon_api_key: ${{ secrets.NEON_API_KEY }}
+      TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.TERRAFORM_SA }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: init
+        run: terraform -chdir=$ENV_DIR init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: plan
+        run: |
+          terraform -chdir=$ENV_DIR plan -input=false -out=tfplan
+          {
+            echo '### Terraform plan (${{ inputs.environment || 'dev' }})'
+            echo '```'
+            terraform -chdir=$ENV_DIR show -no-color tfplan | tail -c 60000
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: apply
+        if: github.event_name == 'push' || inputs.action == 'apply'
+        run: terraform -chdir=$ENV_DIR apply -input=false tfplan

@@ -1,0 +1,20 @@
+# Go
+/bin/
+*.test
+coverage.out
+
+# Node
+node_modules/
+dist/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Ambiente local
+.env
+.DS_Store

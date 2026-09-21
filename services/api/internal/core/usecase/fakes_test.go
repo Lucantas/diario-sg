@@ -1,0 +1,80 @@
+package usecase
+
+import (
+	"context"
+	"io"
+	"strings"
+
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
+)
+
+// Fakes em memória: os casos de uso são testados sem banco, rede ou nuvem.
+
+type memGazettes struct {
+	byChecksum map[string]string
+	saved      map[string]domain.Gazette
+	acts       map[string][]domain.Act
+}
+
+func newMemGazettes() *memGazettes {
+	return &memGazettes{byChecksum: map[string]string{}, saved: map[string]domain.Gazette{}, acts: map[string][]domain.Act{}}
+}
+func (m *memGazettes) FindIDByChecksum(_ context.Context, c string) (string, bool, error) {
+	id, ok := m.byChecksum[c]
+	return id, ok, nil
+}
+func (m *memGazettes) SaveWithActs(_ context.Context, g *domain.Gazette, acts []domain.Act) error {
+	g.ID = "g-" + g.Checksum
+	m.byChecksum[g.Checksum] = g.ID
+	m.saved[g.ID] = *g
+	m.acts[g.ID] = acts
+	return nil
+}
+func (m *memGazettes) FindByID(_ context.Context, id string) (domain.Gazette, error) {
+	g, ok := m.saved[id]
+	if !ok {
+		return g, domain.ErrNotFound
+	}
+	return g, nil
+}
+
+type memStorage struct{}
+
+func (memStorage) Get(context.Context, string) (io.ReadCloser, error) {
+	return io.NopCloser(strings.NewReader("PDF")), nil
+}
+
+type fixedExtractor struct{ text string }
+
+func (f fixedExtractor) Extract(context.Context, io.Reader) (string, error) { return f.text, nil }
+
+type lineParser struct{}
+
+func (lineParser) Parse(text string) []domain.Act {
+	var out []domain.Act
+	for i, l := range strings.Split(strings.TrimSpace(text), "\n") {
+		out = append(out, domain.Act{Type: domain.ActOutro, Title: l, Body: l, Position: i})
+	}
+	return out
+}
+
+type recPublisher struct{ indexed []string }
+
+func (r *recPublisher) GazetteIndexed(_ context.Context, id string, _ int) error {
+	r.indexed = append(r.indexed, id)
+	return nil
+}
+
+type recNotifier struct {
+	confirmations int
+	matches       int
+}
+
+func (r *recNotifier) SendConfirmation(context.Context, domain.Subscription) error {
+	r.confirmations++
+	return nil
+}
+func (r *recNotifier) SendMatches(context.Context, domain.Subscription, domain.Gazette, []domain.ActHit) error {
+	r.matches++
+	return nil
+}

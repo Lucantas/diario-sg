@@ -1,0 +1,120 @@
+# Entrega contínua das aplicações:
+#   push na main           -> dev
+#   release publicada (tag) -> prod
+#   manual                  -> ambiente escolhido
+# Fluxo: build+push das imagens -> migrations -> deploy -> smoke test.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ['pkg/**', 'services/**', 'apps/**', '.github/workflows/deploy.yml']
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [dev, prod]
+        default: dev
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  target:
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.pick.outputs.env }}
+    steps:
+      - id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then echo "env=prod" >> "$GITHUB_OUTPUT";
+          elif [ -n "${{ inputs.environment }}" ]; then echo "env=${{ inputs.environment }}" >> "$GITHUB_OUTPUT";
+          else echo "env=dev" >> "$GITHUB_OUTPUT"; fi
+
+  build:
+    needs: target
+    runs-on: ubuntu-latest
+    environment: ${{ needs.target.outputs.env }}
+    strategy:
+      matrix:
+        image:
+          - { name: api, dockerfile: services/api/Dockerfile }
+          - { name: scraper, dockerfile: services/scraper/Dockerfile }
+          - { name: web, dockerfile: apps/web/Dockerfile }
+    env:
+      REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/containers
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.image.dockerfile }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ matrix.image.name }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
+
+  migrate:
+    needs: [target, build]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.target.outputs.env }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/api/go.mod
+          cache-dependency-path: '**/go.sum'
+      - name: aplicar migrations
+        working-directory: services/api
+        run: |
+          DATABASE_URL="$(gcloud secrets versions access latest --secret="diario-${{ needs.target.outputs.env }}-database-url")"
+          echo "::add-mask::$DATABASE_URL"
+          export DATABASE_URL
+          go run ./cmd/migrate
+
+  deploy:
+    needs: [target, migrate]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.target.outputs.env }}
+    env:
+      REGION: ${{ vars.GCP_REGION }}
+      PREFIX: diario-${{ needs.target.outputs.env }}
+      REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/containers
+      TAG: ${{ github.sha }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # Só a imagem muda; o restante da configuração pertence ao Terraform.
+      - name: worker
+        run: gcloud run deploy $PREFIX-worker --image $REGISTRY/api:$TAG --region $REGION --quiet
+      - name: api
+        run: gcloud run deploy $PREFIX-api --image $REGISTRY/api:$TAG --region $REGION --quiet
+      - name: web
+        run: gcloud run deploy $PREFIX-web --image $REGISTRY/web:$TAG --region $REGION --quiet
+      - name: scraper (job)
+        run: gcloud run jobs update $PREFIX-scraper --image $REGISTRY/scraper:$TAG --region $REGION --quiet
+
+      - name: smoke test
+        run: |
+          API_URL="$(gcloud run services describe $PREFIX-api --region $REGION --format='value(status.url)')"
+          curl -fsS --retry 5 --retry-delay 3 "$API_URL/healthz"
+          curl -fsS "$API_URL/v1/acts?limit=1" > /dev/null
