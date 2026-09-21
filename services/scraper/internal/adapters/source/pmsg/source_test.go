@@ -2,10 +2,12 @@ package pmsg
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -132,5 +134,23 @@ func TestDownloadRejectsMissingEdition(t *testing.T) {
 func TestNewRejectsURLWithoutHost(t *testing.T) {
 	if _, err := New("diario"); err == nil {
 		t.Error("esperava erro para URL sem host")
+	}
+}
+
+// Servidor cuja listagem nunca acaba: cada página aponta para a seguinte.
+func TestListEditionsFailsInsteadOfTruncatingSilently(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		page := 1
+		if n := r.URL.Query().Get("NumeroPagina"); n != "" {
+			fmt.Sscan(n, &page)
+		}
+		fmt.Fprintf(w, `<a href="diario/2026_01_%02d.pdf">x</a><a href="index?NumeroPagina=%d">next</a>`, page%28+1, page+1)
+	}))
+	defer srv.Close()
+	s, _ := New(srv.URL + "/")
+	s.delay = 0
+	_, err := s.ListEditions(context.Background(), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC))
+	if err == nil || !strings.Contains(err.Error(), "páginas") {
+		t.Fatalf("esperava erro por excesso de páginas, veio %v", err)
 	}
 }

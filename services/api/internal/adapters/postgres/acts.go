@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"strings"
 
 	"github.com/lib/pq"
 
@@ -24,7 +23,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
-		WHERE ($1 = '' OR `+strings.ReplaceAll(matchClause, "$LIKE", "$7")+`)
+		WHERE ($1 = '' OR `+matchFor("$1", "$7")+`)
 		  AND ($2 = '' OR a.type = $2)
 		  AND ($3::date IS NULL OR g.published_at >= $3::date)
 		  AND ($4::date IS NULL OR g.published_at <= $4::date)
@@ -61,7 +60,7 @@ func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) 
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $2) q
-		WHERE a.gazette_id = $1 AND `+strings.ReplaceAll(matchClause, "$LIKE", "$3")+`
+		WHERE a.gazette_id = $1 AND $2 <> '' AND `+matchFor("$2", "$3")+`
 		ORDER BY ts_rank(a.search, q) DESC
 		LIMIT 20`, gazetteID, query, likePattern(query))
 	if err != nil {

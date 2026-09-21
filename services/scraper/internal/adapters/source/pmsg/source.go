@@ -87,6 +87,11 @@ func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain
 		}
 	}
 
+	if len(pending) > 0 {
+		return nil, fmt.Errorf("listagem passou de %d páginas para %s..%s; reduza a janela",
+			maxPages, from.Format(time.DateOnly), to.Format(time.DateOnly))
+	}
+
 	out := make([]domain.Edition, 0, len(seen))
 	for d := range seen {
 		out = append(out, domain.Edition{PublishedAt: d, URL: EditionURL(s.baseURL, d)})

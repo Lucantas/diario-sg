@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActType, CompanyResponse, getCompany } from "./api";
-import { Result } from "./App";
+import { Result } from "./components";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
 // Linha do tempo de uma empresa: todos os atos em que o CNPJ apareceu.
