@@ -18,3 +18,7 @@ crash.log
 # Ambiente local
 .env
 .DS_Store
+
+# Edições reais baixadas para testes (contêm dados pessoais)
+services/api/testdata/editions/*.pdf
+services/api/testdata/editions/*.txt

@@ -1,0 +1,155 @@
+# Como o Diário Oficial de São Gonçalo estrutura os atos
+
+Achados de 7 edições reais (2024-03-15, 2026-03-31, 2026-06-30, 2026-08-31,
+2026-09-16, 2026-09-17, 2026-09-18; 8 a 23 páginas cada), baixadas de
+`https://do.pmsg.rj.gov.br/diario/AAAA_MM_DD.pdf` e extraídas com
+`pdftotext` (poppler 26.05). Reproduza com `./scripts/fetch-editions.sh`.
+Os textos ficam em `services/api/testdata/editions/` e não são versionados
+(contêm nomes de pessoas físicas).
+
+## O site
+
+- Home (`/`) tem dois formulários POST. "Busca Rápida" (`BuscaRapida=AAAA-MM-DD`)
+  responde com um `<script>window.open('diario/AAAA_MM_DD.pdf','_blank')</script>`
+  quando existe edição e com nada quando não existe. "Busca Específica"
+  (`DataInicial`, `DataFinal`, `Termo`, `PesquisarTermo=Pesquisar`, action `index`)
+  exige um termo e devolve um card por edição com o link
+  `href="diario/AAAA_MM_DD.pdf"` e o texto `DD/MM/AAAA`; 5 por página, paginação
+  via `GET index?NumeroPagina=N&Termo=...&DataInicial=...&DataFinal=...&PesquisarTermo=Pesquisar`.
+- A URL do PDF é determinística por data. `HEAD` responde 200 com
+  `Content-Length` quando há edição e **500** (não 404) quando não há
+  (sábados, domingos, feriados).
+- Não há número de edição na URL nem na listagem; ele só aparece dentro do PDF
+  (`EDIÇÃO N°1.771`).
+- `https://servicos.pmsg.rj.gov.br/diario_oficial.php` apenas redireciona para o
+  portal WordPress `www.pmsg.rj.gov.br`, que linka para `do.pmsg.rj.gov.br`.
+  O certificado desse host não envia a cadeia completa (curl falha sem `-k`).
+- Nada exige JavaScript. Sem `robots.txt` restritivo observado; sem bloqueio ao
+  User-Agent identificado.
+
+## pdftotext: `-layout` quebra as colunas
+
+O miolo do Diário é diagramado em **duas colunas**. Com `-layout` (o padrão do
+adapter original) as duas colunas saem lado a lado na mesma linha, e um ato à
+esquerda é misturado com outro à direita — títulos como
+`DECRETO Nº 441/2026 3.3.90.31.00 127 1.501.0000.0000 0,00 3.000,00`.
+Sem `-layout` (modo de leitura) o poppler reconstrói a ordem das colunas e
+cada ato sai inteiro. O adapter passou a usar o modo de leitura.
+
+Efeitos colaterais do modo de leitura:
+
+- Linhas justificadas com espaçamento largo saem **uma palavra por linha**
+  (`TERMO\nDE\nAPREENSÃO\nADMINISTRATIVA\nNº\n202/SEMMATRAN/...`,
+  `ASSOCIAÇÃO\nDO\nFUNDO\nDE`). Acontece com títulos curtos centralizados e
+  com texto justificado em coluna estreita.
+- Tabelas (anexos de decreto orçamentário, atas de registro de preços, listas
+  de nomeação) saem célula por linha, fora de ordem: muitas linhas só com
+  dígitos (809 nas 7 edições), `0,00`, códigos `3.3.90.39.00`.
+- Cabeçalho de página vira duas linhas fixas: `DIÁRIO OFICIAL ELETRÔNICO DO
+  MUNICÍPIO DE SÃO GONÇALO D.O.E. | PODER EXECUTIVO | ANO VII | Nº 1.771 EM 18
+  DE SETEMBRO DE 2026` e, no rodapé, o número da página seguido de
+  `https://do.pmsg.rj.gov.br/`. Em 2024 o cabeçalho usava `N.º` em vez de `Nº`.
+- Anexos com página própria (fotos de animais apreendidos, quadros) trazem
+  um cabeçalho diferente (`ESTADO DO RIO DE JANEIRO / PREFEITURA MUNICIPAL DE
+  SÃO GONÇALO / SECRETARIA ...` e linhas de `_____`).
+- Ocasionalmente um cabeçalho de ato **não sai** no texto (em 2024-03-15 o
+  `DECRETO N.º 104/2024` está ausente; a ementa vem colada ao anexo do decreto
+  anterior). Sem OCR não há como recuperar.
+
+## Estrutura de uma edição
+
+1. **Capa**: 1 a 2 páginas de notícias institucionais (manchetes em caixa alta,
+   texto corrido), sem atos.
+2. **Expediente**: lista `SECRETARIA MUNICIPAL DE ... / NOME DO SECRETÁRIO`
+   (todos os titulares, em toda edição). Não é ato; se indexado, todo nome de
+   secretário casaria com todas as edições.
+3. **`ATOS DO PREFEITO`**: decretos e portarias assinados pelo prefeito.
+4. **Seções por órgão**, cada uma aberta por uma linha só com a **sigla** em
+   caixa alta: `SEMAD`, `SEMED`, `SEMCI`, `SMTC`, `SEMAS`, `SEOP`, `FMS`,
+   `FUNASG`, `CONGES`, `SEMMATRAN`, `SEMEL`, `SEMCOM`, `SEMCON`, `SEMPAD`,
+   `SEMFA`, `SEMTRAN`, `FAELSG`, `CMAS`, `CMDCA`. Às vezes a sigla vem seguida
+   do nome por extenso (`SMTC\nSECRETARIA MUNICIPAL DE TURISMO E CULTURA`).
+5. **`Continuação do D.O.E. em DD/MM/AAAA`**: anexo de 1 página, coluna única,
+   rodapé `D.O.E. - DD/MM/AAAA   1/1`, com as **portarias de pessoal** em
+   formato abreviado. Frequentemente começa no meio de uma portaria (o
+   cabeçalho ficou fora do PDF) e termina com um `Port. nº N/AAAA` sem corpo.
+
+## Cabeçalhos de ato (linha própria, caixa alta)
+
+| Família | Formas vistas | Ocorrências (7 ed.) |
+| --- | --- | --- |
+| Despacho | `DESPACHO`, `DESPACHO DO SECRETÁRIO`, `DESPACHO DA PRESIDENTE` | 128 |
+| Portaria | `PORTARIA Nº 1490/2026`, `PORTARIA - SEI Nº 1004/SEMAD/SUBRH/CIF/2026`, `PORTARIA – SEI N° ...`, `PORTARIA N. º 12/2026`, `PORTARIA Nº 45/FMS/2026`, `PORTARIA FUNASG N° 049/2026`, `PORTARIA Nº 022 /CONGES/FUNASG/2026`, `PORTARIA Nº 3/2026/SEMPAD/PMSG` | 50 |
+| Portaria abreviada (anexo de pessoal) | `Port. nº 1497/2026`, `Port.nº`, `Port nº` | 36 |
+| Extrato | `EXTRATO DA ATA DE REGISTRO DE PREÇOS Nº 004/SEMEL/2026`, `EXTRATO DE CONTRATO 015/SEMPAD/2026`, `EXTRATO DO CONTRATO DE COMODATO DE IMÓVEL`, `EXTRATO DO QUINTO TERMO ADITIVO DE PRORROGAÇÃO AO\nCONTRATO DE LOCAÇÃO 006/2020.`, `EXTRATO DE INEXIGIBILIDADE DE LICITAÇÃO`, `EXTRATO DA HOMOLOGAÇÃO - PREGÃO ELETRÔNICO – SRP FMS Nº 9.2026` | 47 |
+| Decreto | `DECRETO Nº 441/2026`, `DECRETO N.º 102/2024`, `DECRETO N. º 12/2026` | 17 |
+| Edital | `EDITAL DE CONVOCAÇÃO 05/SUBRH/SEMAD/2026`, `EDITAL DE CONVOCAÇÃO`, `EDITAL DE CONVOCAÇÃO N.º 03/2026/FUNASG` | 20 |
+| Resolução | `RESOLUÇÃO Nº 071/SEMMATRAN/2026`, `RESOLUÇÃO Nº 004/2026-SEOP`, `RESOLUÇÃO CMDCA Nº 004, DE 12 DE MARÇO DE 2026.` | 9 |
+| Aviso | `AVISO DE LICITAÇÃO SRP`, `AVISO DE LICITAÇÃO`, `AVISO DE DISPENSA ELETRÔNICA N° 19/2026` | 5 |
+| Ata | `ATA DA REUNIÃO ORDINÁRIA Nº 3`, `ATA DA SESSÃO PÚBLICA DE RECEBIMENTO DOS ENVELOPES E`, `ATA DA 2ª AUDIÊNCIA PÚBLICA ...` | 5 |
+| Termo | `TERMO DE APROVAÇÃO DE PRESTAÇÃO DE CONTAS SEM\nRESSALVA`, `TERMO DE COOPERAÇÃO TÉCNICA 01/SEMCON/2026.`, `TERMO DE APREENSÃO ADMINISTRATIVA Nº:` (frequentemente uma palavra por linha) | 14 |
+| Outros | `CHAMAMENTO PÚBLICO Nº 04/2026`, `NOTIFICAÇÃO Nº 191/SEMMATRAN/MA/GAB/2026`, `CONCESSÃO DE LICENÇA`, `CONTRATO Nº 12/2026`, `PREGÃO ELETRÔNICO ...`, `CONVOCAÇÃO`, `RESULTADO PRELIMINAR`, `AUTORIZAÇÃO`, `LEI Nº. 1650/2026`, `DESIGNA OS FISCAIS DO CONTRATO ...` | — |
+
+Observações:
+
+- O número vem como `Nº`, `N°`, `N.º`, `N. º`, `Nº.`, `nº`, `no` (sem símbolo)
+  ou nada. Formato `NNN/AAAA` ou `NNN/SIGLA/AAAA` ou `NNN/AAAA/SIGLA`.
+- Cabeçalhos longos quebram em 2 linhas (`EXTRATO DO QUINTO TERMO ADITIVO DE
+  PRORROGAÇÃO AO` + `CONTRATO DE LOCAÇÃO 006/2020.`).
+- `ANEXO DECRETO Nº 441/2026` e `ANEXO I` **não** abrem ato novo: pertencem ao
+  ato anterior.
+- Palavras de cabeçalho também aparecem no meio do corpo, mas em caixa
+  baixa/mista (`Portaria nº 240/SUBRH/SEMAD/2018`, `Decreto nº 151`), o que
+  permite exigir caixa alta no início da linha.
+
+## Como aparecem nomes, cargos, matrículas
+
+- **Portaria do prefeito (formal)**: `PORTARIA Nº 1490/2026` / `O PREFEITO
+  MUNICIPAL DE SÃO GONÇALO, no uso das atribuições...` / `RESOLVE:` /
+  `Exonerar a pedido, a contar de 16 de setembro de 2026, NOME EM CAIXA ALTA –
+  Mat.: 70432, do cargo em comissão Chefe de Departamento de Esportes - Símbolo
+  CC-1, da (o) Fundação de ...`.
+- **Portaria abreviada (anexo)**: `Port. nº 1498/2026` / `Nomeia:` /
+  `a contar de 18 de setembro de 2026, NOME EM CAIXA ALTA - CPF: 943.***.***-20,
+  para exercer o cargo em comissão de ... - Símbolo CC-1, na(o) Secretaria ...`.
+  Verbos vistos após `Port. nº`: `Nomeia:` (18), `Exonera:` (8), `Exonera a
+  pedido:` (1), `Torna sem efeito:` (2), `Designa`. Nomeações coletivas vêm em
+  tabela `MAT. / NOME / CARGO / SIMB.` (célula por linha).
+- **CPF sempre mascarado** (`153.***.***-60`); **matrícula** como `Mat.: 131360`,
+  `MAT.: 24886`, `matrícula 22.685`, `matrícula nº 131.252`.
+- Portarias da SEMAD (readaptação, averbação, licença) escrevem o nome em caixa
+  mista no meio da frase: `Readaptar, pelo período de 01 (um) ano, Nome Sobrenome,
+  matrícula 22.685, ocupante do cargo efetivo Professor Docente II`.
+- **Assinatura** fecha quase todo ato: `São Gonçalo, 17 de setembro de 2026.` /
+  `NOME DO SIGNATÁRIO` / `Cargo`. Serve como fim de ato quando o próximo
+  cabeçalho não é reconhecido.
+- Nomes de secretários repetem-se em todo ato assinado (assinatura) e no
+  expediente.
+
+## CNPJ, valores, contratos, processos
+
+| Campo | Formatos (com frequência nas 7 edições) | Regularidade |
+| --- | --- | --- |
+| CNPJ | `CNPJ: 12.345.678/0001-90` (20), `CNPJ n° ...` (7), `CNPJ nº ...` (3), `CNPJ/CPF: ...` (3), `CNPJ ...` (2), `inscrita sob o CNPJ n° ...`. Variações: `12.345.678/0001- 90` (espaço), `12.345678/0001-90` (ponto faltando), `-901` (dígito a mais por erro). 57 ocorrências no formato padrão. | Alta: regex funciona. Não há CNPJ sem pontuação. |
+| Valor | `R$ 59.571,78` (dominante), `R$59,00` (sem espaço), `R$ 1` (cabeçalho `VALOR (R$ 1)` de tabela: **não** é valor), valores por extenso entre parênteses. Em atas de registro de preços há dezenas de valores unitários por ato. | Alta para o número; a **semântica** (mensal, global, unitário, por exercício) só está no rótulo anterior (`VALOR MENSAL:`, `VALOR GLOBAL:`). |
+| Contrato | `CONTRATO N° 12/2026`, `CONTRATO Nº 12/2026.`, `Contrato SEMCOM Nº 07/2023`, `CONTRATO 015/SEMPAD/2026`, `CONTRATO DE LOCAÇÃO 006/2020`, `TERMO ADITIVO ... AO CONTRATO ...` | Média: sigla opcional no meio; número pode não ter `Nº`. |
+| Processo | `Processo SEI! nº 03.05511/2026-8` (97), `PROCESSO nº: 1613/2026` (16), `Processo nº 9841/2026` (15), `Processo Administrativo nº 8.189/2025` (13), `PROCESSO SEI: 03.01508/2026-9` (11), `Processo no 9841/2026`, `Processo: 1613/2026`, `PROCEDIMENTO ADMINISTRATIVO Nº 9720/2026`, `SEI53.01067/2026-4` (sem espaço, em tabela) | Alta para os dois formatos (`NN.NNNNN/AAAA-D` do SEI e `NNNN/AAAA` legado). |
+
+## Decisões tomadas no parser (ver `services/api/internal/adapters/parser`)
+
+1. Extrair sem `-layout`.
+2. Remover ruído de página (cabeçalho/rodapé, número de página seguido da URL).
+3. Descartar capa e expediente: tudo antes de `ATOS DO PREFEITO` (ou do primeiro
+   cabeçalho reconhecido, quando a seção não existe).
+4. Linhas só com sigla de órgão em caixa alta abrem seção: encerram o ato
+   anterior e não entram no próximo.
+5. Juntar sequências de linhas de uma palavra em caixa alta que começam com uma
+   palavra de cabeçalho (`TERMO` `DE` `APREENSÃO` ...) antes de casar os regex.
+6. Classificar pelo cabeçalho e, para portarias, pelo verbo nas primeiras
+   linhas do corpo (`Nomeia`/`Nomear` → nomeação; `Exonera`/`Exonerar` →
+   exoneração; `Torna sem efeito` continua portaria).
+7. Tipos novos no domínio porque a taxonomia original não cobria o que existe
+   de fato: `despacho`, `resolucao`, `edital`, `ata`.
+
+Os números do parser (atos por edição, % em `outro`, erros conhecidos) estão em
+`docs/fase-1-relatorio.md`.
