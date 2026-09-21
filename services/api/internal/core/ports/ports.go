@@ -21,6 +21,10 @@ type ActRepository interface {
 	Search(ctx context.Context, f domain.ActFilter) (hits []domain.ActHit, total int, err error)
 	SearchInGazette(ctx context.Context, gazetteID, query string) ([]domain.ActHit, error)
 	ListByGazette(ctx context.Context, gazetteID string) ([]domain.Act, error)
+	// ReportByEntity lista os atos em que uma entidade normalizada aparece,
+	// do mais recente ao mais antigo, com soma dos valores e contagem por tipo.
+	ReportByEntity(ctx context.Context, kind domain.EntityKind, normalized string) (domain.CompanyReport, error)
+	CountByMonth(ctx context.Context, f domain.ActFilter) ([]domain.MonthCount, error)
 }
 
 type SubscriptionRepository interface {
@@ -49,6 +53,14 @@ type TextExtractor interface {
 // futuro pode ser um modelo de ML/LLM sem mudar o caso de uso.
 type ActParser interface {
 	Parse(text string) []domain.Act
+}
+
+// EntityExtractor encontra campos (CNPJ, valores, contratos, processos) no
+// corpo de um ato. Separado do ActParser porque segmentar e extrair evoluem
+// em ritmos diferentes: na fase 2 este adapter pode virar um modelo sem
+// tocar na segmentação.
+type EntityExtractor interface {
+	Extract(body string) []domain.Entity
 }
 
 type EventPublisher interface {

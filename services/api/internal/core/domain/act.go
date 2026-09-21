@@ -38,6 +38,7 @@ type Act struct {
 	Title     string
 	Body      string
 	Position  int
+	Entities  []Entity
 }
 
 // ActHit é um ato encontrado numa busca, com contexto da edição.

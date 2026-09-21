@@ -45,6 +45,23 @@ type gazetteDTO struct {
 	Acts          []actDTO `json:"acts"`
 }
 
+type companyResponse struct {
+	CNPJ            string         `json:"cnpj"`
+	TotalValueCents int64          `json:"total_value_cents"`
+	CountByType     map[string]int `json:"count_by_type"`
+	Acts            []actHitDTO    `json:"acts"`
+}
+
+type monthCountDTO struct {
+	Month string `json:"month"`
+	Count int    `json:"count"`
+}
+
+type statsResponse struct {
+	Group string          `json:"group"`
+	Items []monthCountDTO `json:"items"`
+}
+
 type subscribeRequest struct {
 	Email string `json:"email"`
 	Query string `json:"query"`
@@ -80,7 +97,8 @@ func writeError(w http.ResponseWriter, err error, log *slog.Logger) {
 	case errors.Is(err, domain.ErrNotFound):
 		status, msg = http.StatusNotFound, err.Error()
 	case errors.Is(err, domain.ErrInvalidEmail), errors.Is(err, domain.ErrInvalidQuery),
-		errors.Is(err, domain.ErrInvalidFilter), errors.Is(err, domain.ErrInvalidInput):
+		errors.Is(err, domain.ErrInvalidFilter), errors.Is(err, domain.ErrInvalidInput),
+		errors.Is(err, domain.ErrInvalidCNPJ):
 		status, msg = http.StatusBadRequest, err.Error()
 	case errors.Is(err, domain.ErrSubscriptionCancelled):
 		status, msg = http.StatusConflict, err.Error()

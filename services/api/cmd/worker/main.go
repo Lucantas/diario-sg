@@ -12,6 +12,7 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/entities"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/parser"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pdf"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
@@ -57,7 +58,7 @@ func run(l *slog.Logger) error {
 	acts := postgres.NewActRepo(db)
 
 	h := &events.PushHandler{
-		Index: usecase.NewIndexGazette(gazettes, storage, pdf.New(), parser.New(), publisher),
+		Index: usecase.NewIndexGazette(gazettes, storage, pdf.New(), parser.New(), entities.New(), publisher),
 		Match: usecase.NewMatchSubscriptions(gazettes, acts, postgres.NewSubscriptionRepo(db),
 			postgres.NewNotificationLog(db), notifier),
 		Log: l,

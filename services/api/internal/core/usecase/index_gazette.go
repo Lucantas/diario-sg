@@ -25,12 +25,13 @@ type IndexGazette struct {
 	storage   ports.FileStorage
 	extractor ports.TextExtractor
 	parser    ports.ActParser
+	entities  ports.EntityExtractor
 	publisher ports.EventPublisher
 	now       func() time.Time
 }
 
-func NewIndexGazette(g ports.GazetteRepository, s ports.FileStorage, e ports.TextExtractor, p ports.ActParser, pub ports.EventPublisher) *IndexGazette {
-	return &IndexGazette{gazettes: g, storage: s, extractor: e, parser: p, publisher: pub, now: time.Now}
+func NewIndexGazette(g ports.GazetteRepository, s ports.FileStorage, e ports.TextExtractor, p ports.ActParser, x ports.EntityExtractor, pub ports.EventPublisher) *IndexGazette {
+	return &IndexGazette{gazettes: g, storage: s, extractor: e, parser: p, entities: x, publisher: pub, now: time.Now}
 }
 
 func (uc *IndexGazette) Execute(ctx context.Context, in IndexGazetteInput) error {
@@ -58,6 +59,9 @@ func (uc *IndexGazette) Execute(ctx context.Context, in IndexGazetteInput) error
 	}
 
 	acts := uc.parser.Parse(text)
+	for i := range acts {
+		acts[i].Entities = uc.entities.Extract(acts[i].Body)
+	}
 	g := &domain.Gazette{
 		EditionNumber: in.EditionNumber,
 		PublishedAt:   in.PublishedAt,

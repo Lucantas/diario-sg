@@ -48,6 +48,8 @@ func run(l *slog.Logger) error {
 	api := &httpapi.API{
 		Search:        usecase.NewSearchActs(acts),
 		Gazette:       usecase.NewGetGazette(gazettes, acts),
+		Company:       usecase.NewGetCompany(acts),
+		Stats:         usecase.NewActStats(acts),
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), notifier),
 		Log:           l,
 	}

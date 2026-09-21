@@ -24,6 +24,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/entities"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/parser"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
@@ -36,7 +37,8 @@ Dispõe sobre o horário das repartições.
 PORTARIA Nº 2.345/2026
 O PREFEITO resolve NOMEAR Fulana de Tal para Assessora da Secretaria de Saúde.
 EXTRATO DO CONTRATO Nº 55/2026
-Contratada: Empresa Exemplo LTDA, CNPJ: 12.345.678/0001-90. Objeto: fornecimento de medicamentos.
+Contratada: Empresa Exemplo LTDA, CNPJ: 12.345.678/0001-90. Objeto: fornecimento de medicamentos. Valor: R$ 120.000,00.
+Contrato nº 55/2026. Processo Administrativo nº 8.189/2025.
 PORTARIA Nº 2.346/2026
 Resolve EXONERAR JOSÉ DA SILVA do cargo de Diretor de Conservação.`
 
@@ -89,7 +91,7 @@ func TestEndToEnd(t *testing.T) {
 	notifier := email.NewNotifier(box, "https://web.exemplo")
 
 	// 1. Indexação (duas vezes: tem que ser idempotente)
-	idx := usecase.NewIndexGazette(gaz, textStore{}, passthroughExtractor{}, parser.New(), pub)
+	idx := usecase.NewIndexGazette(gaz, textStore{}, passthroughExtractor{}, parser.New(), entities.New(), pub)
 	in := usecase.IndexGazetteInput{EditionNumber: "1", PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
 		SourceURL: "https://exemplo/1.pdf", StoragePath: "1.pdf", Checksum: strings.Repeat("b", 64)}
 	for i := 0; i < 2; i++ {
@@ -99,6 +101,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Gazette: usecase.NewGetGazette(gaz, acts),
+		Company: usecase.NewGetCompany(acts), Stats: usecase.NewActStats(acts),
 		Subscriptions: usecase.NewSubscriptions(subs, notifier), Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	defer srv.Close()
@@ -123,6 +126,41 @@ func TestEndToEnd(t *testing.T) {
 	getJSON(t, srv.URL+"/v1/acts?q=345.678/0001", &res)
 	if res.Total != 1 || res.Items[0].Type != "contrato" || !strings.Contains(res.Items[0].Snippet, "⟦345.678/0001⟧") {
 		t.Fatalf("busca por substring inesperada: %+v", res)
+	}
+
+	// 2d. Linha do tempo por CNPJ (formatado ou só dígitos) e estatísticas por mês
+	var company struct {
+		CNPJ            string         `json:"cnpj"`
+		TotalValueCents int64          `json:"total_value_cents"`
+		CountByType     map[string]int `json:"count_by_type"`
+		Acts            []struct{ Type, Snippet string }
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/12.345.678%2F0001-90", &company)
+	if company.CNPJ != "12345678000190" || company.TotalValueCents != 12000000 || company.CountByType["contrato"] != 1 ||
+		len(company.Acts) != 1 || !strings.Contains(company.Acts[0].Snippet, "⟦12.345.678/0001-90⟧") {
+		t.Fatalf("relatório por CNPJ inesperado: %+v", company)
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/12345678000190", &company)
+	if len(company.Acts) != 1 {
+		t.Fatalf("CNPJ só com dígitos deveria dar o mesmo resultado: %+v", company)
+	}
+	if r, err := http.Get(srv.URL + "/v1/entities/cnpj/123"); err != nil || r.StatusCode != http.StatusBadRequest {
+		t.Fatalf("CNPJ inválido deve dar 400: %v %v", r, err)
+	}
+	var stats struct {
+		Group string
+		Items []struct {
+			Month string
+			Count int
+		}
+	}
+	getJSON(t, srv.URL+"/v1/stats/acts?group=month", &stats)
+	if stats.Group != "month" || len(stats.Items) != 1 || stats.Items[0].Month != "2026-09" || stats.Items[0].Count != 4 {
+		t.Fatalf("estatísticas inesperadas: %+v", stats)
+	}
+	getJSON(t, srv.URL+"/v1/stats/acts?type=contrato&from=2026-09-01&to=2026-09-30", &stats)
+	if len(stats.Items) != 1 || stats.Items[0].Count != 1 {
+		t.Fatalf("estatísticas filtradas inesperadas: %+v", stats)
 	}
 
 	// 3. Inscrição -> confirmação -> alerta (sem duplicar)

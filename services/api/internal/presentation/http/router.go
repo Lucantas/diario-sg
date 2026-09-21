@@ -14,6 +14,8 @@ import (
 type API struct {
 	Search        *usecase.SearchActs
 	Gazette       *usecase.GetGazette
+	Company       *usecase.GetCompany
+	Stats         *usecase.ActStats
 	Subscriptions *usecase.Subscriptions
 	Log           *slog.Logger
 }
@@ -27,6 +29,8 @@ func (a *API) Routes() http.Handler {
 	})
 	mux.HandleFunc("GET /v1/acts", a.searchActs)
 	mux.HandleFunc("GET /v1/gazettes/{id}", a.getGazette)
+	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
+	mux.HandleFunc("GET /v1/stats/acts", a.actStats)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 	// Confirmação e cancelamento são POST (disparados por um botão no site)
 	// para que robôs que pré-visualizam links de e-mail não os acionem.
@@ -36,20 +40,10 @@ func (a *API) Routes() http.Handler {
 }
 
 func (a *API) searchActs(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	f := domain.ActFilter{Query: q.Get("q"), Type: domain.ActType(q.Get("type"))}
-	f.Limit, _ = strconv.Atoi(q.Get("limit"))
-	f.Offset, _ = strconv.Atoi(q.Get("offset"))
-	var err error
-	if f.From, err = parseDate(q.Get("from")); err != nil {
-		writeError(w, domain.ErrInvalidFilter, a.Log)
+	f, ok := a.filterFromQuery(w, r)
+	if !ok {
 		return
 	}
-	if f.To, err = parseDate(q.Get("to")); err != nil {
-		writeError(w, domain.ErrInvalidFilter, a.Log)
-		return
-	}
-
 	res, err := a.Search.Execute(r.Context(), f)
 	if err != nil {
 		writeError(w, err, a.Log)
@@ -74,6 +68,64 @@ func (a *API) getGazette(w http.ResponseWriter, r *http.Request) {
 		out.Acts = append(out.Acts, actDTO{ID: act.ID, Type: string(act.Type), Title: act.Title, Body: act.Body, Position: act.Position})
 	}
 	writeJSON(w, http.StatusOK, out)
+}
+
+func (a *API) getCompany(w http.ResponseWriter, r *http.Request) {
+	report, err := a.Company.Execute(r.Context(), r.PathValue("cnpj"))
+	if err != nil {
+		writeError(w, err, a.Log)
+		return
+	}
+	out := companyResponse{CNPJ: report.CNPJ, TotalValueCents: report.TotalCents,
+		CountByType: make(map[string]int, len(report.CountByType)), Acts: make([]actHitDTO, 0, len(report.Acts))}
+	for t, n := range report.CountByType {
+		out.CountByType[string(t)] = n
+	}
+	for _, h := range report.Acts {
+		out.Acts = append(out.Acts, toHitDTO(h))
+	}
+	writeJSON(w, http.StatusOK, out)
+}
+
+const statsGroupMonth = "month"
+
+func (a *API) actStats(w http.ResponseWriter, r *http.Request) {
+	if g := r.URL.Query().Get("group"); g != "" && g != statsGroupMonth {
+		writeError(w, domain.ErrInvalidFilter, a.Log)
+		return
+	}
+	f, ok := a.filterFromQuery(w, r)
+	if !ok {
+		return
+	}
+	counts, err := a.Stats.Execute(r.Context(), f)
+	if err != nil {
+		writeError(w, err, a.Log)
+		return
+	}
+	out := statsResponse{Group: statsGroupMonth, Items: make([]monthCountDTO, 0, len(counts))}
+	for _, c := range counts {
+		out.Items = append(out.Items, monthCountDTO{Month: c.Month.Format("2006-01"), Count: c.Count})
+	}
+	writeJSON(w, http.StatusOK, out)
+}
+
+// filterFromQuery lê q, type, from, to, limit e offset da querystring.
+func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.ActFilter, bool) {
+	q := r.URL.Query()
+	f := domain.ActFilter{Query: q.Get("q"), Type: domain.ActType(q.Get("type"))}
+	f.Limit, _ = strconv.Atoi(q.Get("limit"))
+	f.Offset, _ = strconv.Atoi(q.Get("offset"))
+	var err error
+	if f.From, err = parseDate(q.Get("from")); err != nil {
+		writeError(w, domain.ErrInvalidFilter, a.Log)
+		return f, false
+	}
+	if f.To, err = parseDate(q.Get("to")); err != nil {
+		writeError(w, domain.ErrInvalidFilter, a.Log)
+		return f, false
+	}
+	return f, true
 }
 
 func (a *API) subscribe(w http.ResponseWriter, r *http.Request) {
