@@ -108,12 +108,18 @@ func TestEndToEnd(t *testing.T) {
 
 	// 2. Busca textual em português (stemming: "medicamento" acha "medicamentos")
 	var res struct {
-		Items []struct{ Type, Snippet string } `json:"items"`
-		Total int                              `json:"total"`
+		Items []struct {
+			Type, Snippet string
+			CNPJs         []string `json:"cnpjs"`
+		} `json:"items"`
+		Total int `json:"total"`
 	}
 	getJSON(t, srv.URL+"/v1/acts?q=medicamento", &res)
 	if res.Total != 1 || res.Items[0].Type != "contrato" || !strings.Contains(res.Items[0].Snippet, "⟦") {
 		t.Fatalf("busca inesperada: %+v", res)
+	}
+	if len(res.Items[0].CNPJs) != 1 || res.Items[0].CNPJs[0] != "12.345.678/0001-90" {
+		t.Fatalf("resultado deve listar os CNPJs do ato: %+v", res.Items[0])
 	}
 
 	// 2b. Nome sem acento encontra o nome acentuado em caixa alta

@@ -123,46 +123,32 @@ export function Result({ hit }: { hit: ActHit }) {
     <li className="result">
       <p className="meta">
         <span className={`tag tag-${hit.type}`}>{TYPE_LABEL[hit.type]}</span>
-        Edição {hit.edition_number || "s/n"}, {date}
+        <a href={hit.source_url} target="_blank" rel="noopener" title="Abrir o PDF da edição original">
+          Edição {hit.edition_number || "s/n"}, {date}
+        </a>
       </p>
       <h2>{hit.title}</h2>
       <p className="snippet"><Highlighted text={hit.snippet} /></p>
+      {hit.cnpjs.length > 0 && (
+        <p className="cnpjs">
+          Empresas citadas:{" "}
+          {hit.cnpjs.map((c) => (
+            <a key={c} className="cnpj" href={`/empresa/${c}`} title="Ver todos os atos desta empresa">{c}</a>
+          ))}
+        </p>
+      )}
     </li>
   );
 }
 
-const CNPJ_RE = /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/g;
-
 // A API marca os termos encontrados com ⟦ ⟧; renderizamos sem usar HTML cru.
-// CNPJs viram links para a página da empresa.
 export function Highlighted({ text }: { text: string }) {
   const parts = text.split(/(⟦[^⟧]*⟧)/g);
   return (
     <>
       {parts.map((p, i) =>
-        p.startsWith("⟦")
-          ? <mark key={i}><WithCnpjLinks text={p.slice(1, -1)} /></mark>
-          : <span key={i}><WithCnpjLinks text={p} /></span>,
+        p.startsWith("⟦") ? <mark key={i}>{p.slice(1, -1)}</mark> : <span key={i}>{p}</span>,
       )}
-    </>
-  );
-}
-
-function WithCnpjLinks({ text }: { text: string }) {
-  const parts = text.split(CNPJ_RE);
-  const cnpjs = text.match(CNPJ_RE) ?? [];
-  return (
-    <>
-      {parts.map((p, i) => (
-        <span key={i}>
-          {p}
-          {cnpjs[i] && (
-            <a className="cnpj" href={`/empresa/${cnpjs[i]}`} title="Ver todos os atos desta empresa">
-              {cnpjs[i]}
-            </a>
-          )}
-        </span>
-      ))}
     </>
   );
 }

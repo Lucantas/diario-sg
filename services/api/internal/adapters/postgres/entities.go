@@ -14,7 +14,7 @@ const snippetRadius = 120
 func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, normalized string) (domain.CompanyReport, error) {
 	report := domain.CompanyReport{CNPJ: normalized, CountByType: map[domain.ActType]int{}}
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at,
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at, g.source_url,
 		       substr(a.body, greatest(position(e.value IN a.body) - $3, 1), 2 * $3 + length(e.value)), e.value
 		FROM act_entities e
 		JOIN acts a ON a.id = e.act_id
@@ -28,7 +28,7 @@ func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, no
 	for rows.Next() {
 		var h domain.ActHit
 		var typ, value string
-		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.Snippet, &value); err != nil {
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.SourceURL, &h.Snippet, &value); err != nil {
 			return report, err
 		}
 		h.Type = domain.ActType(typ)

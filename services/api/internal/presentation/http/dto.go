@@ -13,13 +13,15 @@ import (
 // DTOs: o contrato público da API é separado das entidades de domínio.
 
 type actHitDTO struct {
-	ID            string `json:"id"`
-	GazetteID     string `json:"gazette_id"`
-	Type          string `json:"type"`
-	Title         string `json:"title"`
-	Snippet       string `json:"snippet"`
-	EditionNumber string `json:"edition_number"`
-	PublishedAt   string `json:"published_at"`
+	ID            string   `json:"id"`
+	GazetteID     string   `json:"gazette_id"`
+	Type          string   `json:"type"`
+	Title         string   `json:"title"`
+	Snippet       string   `json:"snippet"`
+	EditionNumber string   `json:"edition_number"`
+	PublishedAt   string   `json:"published_at"`
+	SourceURL     string   `json:"source_url"`
+	CNPJs         []string `json:"cnpjs"`
 }
 
 type searchResponse struct {
@@ -77,9 +79,13 @@ type subscriptionDTO struct {
 }
 
 func toHitDTO(h domain.ActHit) actHitDTO {
+	cnpjs := h.CNPJs
+	if cnpjs == nil {
+		cnpjs = []string{}
+	}
 	return actHitDTO{
 		ID: h.ID, GazetteID: h.GazetteID, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
-		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly),
+		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), SourceURL: h.SourceURL, CNPJs: cnpjs,
 	}
 }
 

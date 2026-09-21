@@ -20,3 +20,7 @@ func likePattern(q string) string {
 // cobre nomes parciais, CNPJ e números de contrato que o tokenizador de
 // texto não trata bem.
 const matchClause = `(a.search @@ q OR unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE))`
+
+// CNPJs citados no ato, para o front linkar a página da empresa.
+const cnpjsSubquery = `(SELECT coalesce(array_agg(e.value ORDER BY e.value), '{}')
+		        FROM act_entities e WHERE e.act_id = a.id AND e.kind = 'cnpj')`

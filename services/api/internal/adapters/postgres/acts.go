@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -14,9 +16,10 @@ func NewActRepo(db *sql.DB) *ActRepo { return &ActRepo{db: db} }
 
 func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActHit, int, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at,
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at, g.source_url,
 		       CASE WHEN $1 = '' THEN left(a.body, 280)
 		            ELSE ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`') END,
+		       `+cnpjsSubquery+`,
 		       count(*) OVER ()
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
@@ -41,7 +44,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 	for rows.Next() {
 		var h domain.ActHit
 		var typ string
-		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.Snippet, &total); err != nil {
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.SourceURL, &h.Snippet, pq.Array(&h.CNPJs), &total); err != nil {
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)
@@ -53,8 +56,8 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 
 func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) ([]domain.ActHit, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at,
-		       ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`')
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at, g.source_url,
+		       ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`'), `+cnpjsSubquery+`
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $2) q
@@ -70,7 +73,7 @@ func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) 
 	for rows.Next() {
 		var h domain.ActHit
 		var typ string
-		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.Snippet); err != nil {
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.SourceURL, &h.Snippet, pq.Array(&h.CNPJs)); err != nil {
 			return nil, err
 		}
 		h.Type = domain.ActType(typ)
