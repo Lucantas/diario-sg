@@ -22,7 +22,7 @@ locals {
   # URL determinística do Cloud Run: evita dependência circular api <-> web.
   run_url        = "https://%s-${local.project_number}.${var.region}.run.app"
   web_url        = var.public_web_url != "" ? var.public_web_url : format(local.run_url, "${local.p}-web")
-  resend_enabled = var.resend_api_key != ""
+  resend_enabled = nonsensitive(var.resend_api_key != "")
   registry       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.containers.repository_id}"
 }
 
@@ -76,6 +76,16 @@ resource "google_storage_bucket" "gazettes" {
   uniform_bucket_level_access = true
   public_access_prevention    = "enforced"
   force_destroy               = false
+
+  lifecycle_rule {
+    condition {
+      age = 30
+    }
+    action {
+      type          = "SetStorageClass"
+      storage_class = "ARCHIVE"
+    }
+  }
 }
 
 # ------------------------------------------------------- Contas de serviço
