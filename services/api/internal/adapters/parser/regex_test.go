@@ -48,7 +48,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestParse_NoHeaders(t *testing.T) {
-	acts := New().Parse("texto solto sem cabeçalho")
+	acts := New().Parse("Texto solto sem nenhum cabeçalho reconhecido, mas com conteúdo suficiente para ser um ato.")
 	if len(acts) != 1 || acts[0].Type != domain.ActOutro {
 		t.Fatalf("esperava 1 ato 'outro', veio %+v", acts)
 	}
