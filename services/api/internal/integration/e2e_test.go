@@ -8,15 +8,20 @@ package integration
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	neturl "net/url"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/lib/pq"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/parser"
@@ -31,7 +36,9 @@ Dispõe sobre o horário das repartições.
 PORTARIA Nº 2.345/2026
 O PREFEITO resolve NOMEAR Fulana de Tal para Assessora da Secretaria de Saúde.
 EXTRATO DO CONTRATO Nº 55/2026
-Contratada: Empresa Exemplo LTDA. Objeto: fornecimento de medicamentos.`
+Contratada: Empresa Exemplo LTDA, CNPJ: 12.345.678/0001-90. Objeto: fornecimento de medicamentos.
+PORTARIA Nº 2.346/2026
+Resolve EXONERAR JOSÉ DA SILVA do cargo de Diretor de Conservação.`
 
 type textStore struct{}
 
@@ -66,12 +73,12 @@ func TestEndToEnd(t *testing.T) {
 		t.Skip("TEST_DATABASE_URL não definido")
 	}
 	ctx := context.Background()
-	db, err := postgres.Open(ctx, url)
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := openTestDB(t, ctx, url)
 	defer db.Close()
 	if _, err := postgres.Migrate(ctx, db, migrations.FS); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.ExecContext(ctx, `TRUNCATE gazettes, subscriptions CASCADE`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -106,6 +113,18 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("busca inesperada: %+v", res)
 	}
 
+	// 2b. Nome sem acento encontra o nome acentuado em caixa alta
+	getJSON(t, srv.URL+"/v1/acts?q=jose+da+silva", &res)
+	if res.Total != 1 || res.Items[0].Type != "exoneracao" || !strings.Contains(res.Items[0].Snippet, "⟦JOSÉ⟧") {
+		t.Fatalf("busca sem acento inesperada: %+v", res)
+	}
+
+	// 2c. Substring que o tokenizador não trata (trecho de CNPJ) casa pelo trigram
+	getJSON(t, srv.URL+"/v1/acts?q=345.678/0001", &res)
+	if res.Total != 1 || res.Items[0].Type != "contrato" || !strings.Contains(res.Items[0].Snippet, "⟦345.678/0001⟧") {
+		t.Fatalf("busca por substring inesperada: %+v", res)
+	}
+
 	// 3. Inscrição -> confirmação -> alerta (sem duplicar)
 	post(t, srv.URL+"/v1/subscriptions", `{"email":"rep@jornal.com","query":"medicamentos"}`, http.StatusAccepted)
 	token := strings.Split(strings.Split(box.msgs[0].HTML, "token=")[1], `"`)[0]
@@ -120,6 +139,39 @@ func TestEndToEnd(t *testing.T) {
 	if len(box.msgs) != 2 {
 		t.Fatalf("esperava 1 confirmação + 1 alerta, veio %d e-mails", len(box.msgs))
 	}
+}
+
+// openTestDB cria o banco de teste quando ele ainda não existe (localmente
+// usamos um banco separado para não misturar com as edições ingeridas).
+func openTestDB(t *testing.T, ctx context.Context, url string) *sql.DB {
+	t.Helper()
+	db, err := postgres.Open(ctx, url)
+	if err == nil {
+		return db
+	}
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) || pqErr.Code != "3D000" {
+		t.Fatal(err)
+	}
+	u, perr := neturl.Parse(url)
+	if perr != nil {
+		t.Fatal(perr)
+	}
+	name := strings.TrimPrefix(u.Path, "/")
+	u.Path = "/postgres"
+	admin, err := postgres.Open(ctx, u.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer admin.Close()
+	if _, err := admin.ExecContext(ctx, `CREATE DATABASE `+pq.QuoteIdentifier(name)); err != nil {
+		t.Fatal(err)
+	}
+	db, err = postgres.Open(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return db
 }
 
 func getJSON(t *testing.T, url string, v any) {
