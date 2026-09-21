@@ -3,7 +3,8 @@
 
 export type ActType =
   | "nomeacao" | "exoneracao" | "contrato" | "aditivo" | "licitacao"
-  | "dispensa" | "decreto" | "lei" | "portaria" | "outro";
+  | "dispensa" | "decreto" | "lei" | "portaria" | "resolucao"
+  | "despacho" | "edital" | "ata" | "outro";
 
 export interface ActHit {
   id: string;
@@ -22,6 +23,18 @@ export interface SearchResponse {
   offset: number;
 }
 
+export interface CompanyResponse {
+  cnpj: string;
+  total_value_cents: number;
+  count_by_type: Partial<Record<ActType, number>>;
+  acts: ActHit[];
+}
+
+export interface MonthCount {
+  month: string;
+  count: number;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
@@ -36,6 +49,16 @@ export function searchActs(q: string, type: ActType | "", offset = 0) {
   const params = new URLSearchParams({ q, offset: String(offset) });
   if (type) params.set("type", type);
   return request<SearchResponse>(`/v1/acts?${params}`);
+}
+
+export function getCompany(cnpj: string) {
+  return request<CompanyResponse>(`/v1/entities/cnpj/${encodeURIComponent(cnpj)}`);
+}
+
+export function getMonthlyStats(type: ActType | "" = "") {
+  const params = new URLSearchParams({ group: "month" });
+  if (type) params.set("type", type);
+  return request<{ group: string; items: MonthCount[] }>(`/v1/stats/acts?${params}`);
 }
 
 export function subscribe(email: string, query: string) {
