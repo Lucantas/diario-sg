@@ -40,3 +40,27 @@ func TestIndexGazette_InvalidInputIsPermanent(t *testing.T) {
 		t.Fatalf("esperava ErrInvalidInput, veio %v", err)
 	}
 }
+
+func TestIndexGazette_EditionNumberComesFromTextWhenEventHasNone(t *testing.T) {
+	repo := newMemGazettes()
+	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{"EDIÇÃO 1771\nDECRETO 1"}, lineParser{}, cnpjExtractor{}, &recPublisher{})
+	base := IndexGazetteInput{PublishedAt: time.Now(), StoragePath: "x.pdf"}
+
+	in := base
+	in.Checksum = "sem-numero"
+	if err := uc.Execute(context.Background(), in); err != nil {
+		t.Fatal(err)
+	}
+	if got := repo.saved["g-sem-numero"].EditionNumber; got != "1771" {
+		t.Errorf("esperava número lido do texto, veio %q", got)
+	}
+
+	in = base
+	in.Checksum, in.EditionNumber = "com-numero", "42"
+	if err := uc.Execute(context.Background(), in); err != nil {
+		t.Fatal(err)
+	}
+	if got := repo.saved["g-com-numero"].EditionNumber; got != "42" {
+		t.Errorf("número do evento deve prevalecer, veio %q", got)
+	}
+}

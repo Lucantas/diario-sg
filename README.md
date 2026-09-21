@@ -87,7 +87,9 @@ make migrate
 make run-api       # terminal 1 · http://localhost:8080
 make run-worker    # terminal 2 · recebe mensagens do emulador
 make run-web       # terminal 3 · http://localhost:5173
-make run-scraper   # dispara uma coleta
+make run-scraper   # dispara uma coleta (janela: LOOKBACK_DAYS do .env)
+make run-scraper LOOKBACK_DAYS=7   # outra janela: passe como variável do make,
+                                   # não do shell (o .env incluído tem precedência)
 ```
 
 Testes: `make test` (unitários) e `make test-integration` (Postgres real, num banco

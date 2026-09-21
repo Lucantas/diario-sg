@@ -53,6 +53,9 @@ type TextExtractor interface {
 // futuro pode ser um modelo de ML/LLM sem mudar o caso de uso.
 type ActParser interface {
 	Parse(text string) []domain.Act
+	// EditionNumber lê o número da edição impresso no texto ("" se não achar).
+	// O site da prefeitura não informa o número; só o PDF traz.
+	EditionNumber(text string) string
 }
 
 // EntityExtractor encontra campos (CNPJ, valores, contratos, processos) no

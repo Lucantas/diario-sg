@@ -68,6 +68,13 @@ func (cnpjExtractor) Extract(body string) []domain.Entity {
 	return []domain.Entity{{Kind: domain.EntityCNPJ, Value: "12.345.678/0001-90", Normalized: "12345678000190"}}
 }
 
+func (lineParser) EditionNumber(text string) string {
+	if strings.Contains(text, "EDIÇÃO 1771") {
+		return "1771"
+	}
+	return ""
+}
+
 type recPublisher struct{ indexed []string }
 
 func (r *recPublisher) GazetteIndexed(_ context.Context, id string, _ int) error {

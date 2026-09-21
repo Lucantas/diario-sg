@@ -62,8 +62,12 @@ func (uc *IndexGazette) Execute(ctx context.Context, in IndexGazetteInput) error
 	for i := range acts {
 		acts[i].Entities = uc.entities.Extract(acts[i].Body)
 	}
+	number := in.EditionNumber
+	if number == "" {
+		number = uc.parser.EditionNumber(text)
+	}
 	g := &domain.Gazette{
-		EditionNumber: in.EditionNumber,
+		EditionNumber: number,
 		PublishedAt:   in.PublishedAt,
 		SourceURL:     in.SourceURL,
 		StoragePath:   in.StoragePath,
