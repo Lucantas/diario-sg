@@ -22,8 +22,10 @@ services:
 
   gcs:
     image: fsouza/fake-gcs-server:latest
-    command: -scheme http -port 4443 -public-host localhost:4443 -backend memory
+    command: -scheme http -port 4443 -public-host localhost:4443 -backend filesystem -filesystem-root /data
     ports: ["4443:4443"]
+    volumes: [gcsdata:/data]
 
 volumes:
   pgdata:
+  gcsdata:

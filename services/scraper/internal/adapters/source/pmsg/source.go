@@ -30,8 +30,9 @@ import (
 const (
 	userAgent = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
 	// Termo que aparece no cabeçalho de todas as páginas de toda edição.
-	listingTerm  = "Gonçalo"
-	maxPages     = 50
+	listingTerm = "Gonçalo"
+	// 5 edições por página: 200 páginas cobrem ~4 anos de edições úteis.
+	maxPages     = 200
 	maxHTMLBytes = 10 << 20
 )
 
