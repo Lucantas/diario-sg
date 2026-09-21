@@ -15,12 +15,17 @@ const (
 	ActDecreto    ActType = "decreto"
 	ActLei        ActType = "lei"
 	ActPortaria   ActType = "portaria"
+	ActResolucao  ActType = "resolucao"
+	ActDespacho   ActType = "despacho"
+	ActEdital     ActType = "edital"
+	ActAta        ActType = "ata"
 	ActOutro      ActType = "outro"
 )
 
 var validActTypes = map[ActType]bool{
 	ActNomeacao: true, ActExoneracao: true, ActContrato: true, ActAditivo: true, ActLicitacao: true,
-	ActDispensa: true, ActDecreto: true, ActLei: true, ActPortaria: true, ActOutro: true,
+	ActDispensa: true, ActDecreto: true, ActLei: true, ActPortaria: true, ActResolucao: true,
+	ActDespacho: true, ActEdital: true, ActAta: true, ActOutro: true,
 }
 
 func (t ActType) Valid() bool { return validActTypes[t] }
