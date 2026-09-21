@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import {
   ActHit, ActType, confirmSubscription, searchActs, subscribe, unsubscribe,
 } from "./api";
+import { CompanyPage } from "./CompanyPage";
+import { TYPE_LABEL } from "./types";
 
 const TYPES: { value: ActType | ""; label: string }[] = [
   { value: "", label: "Tudo" },
@@ -12,19 +14,17 @@ const TYPES: { value: ActType | ""; label: string }[] = [
   { value: "licitacao", label: "Licitações" },
   { value: "dispensa", label: "Sem licitação" },
   { value: "decreto", label: "Decretos" },
+  { value: "despacho", label: "Despachos" },
+  { value: "edital", label: "Editais" },
 ];
-
-const TYPE_LABEL: Record<ActType, string> = {
-  nomeacao: "Nomeação", exoneracao: "Exoneração", contrato: "Contrato",
-  aditivo: "Aditivo", licitacao: "Licitação", dispensa: "Sem licitação",
-  decreto: "Decreto", lei: "Lei", portaria: "Portaria", outro: "Outro",
-};
 
 export function App() {
   const path = window.location.pathname;
   const token = new URLSearchParams(window.location.search).get("token") ?? "";
   if (path === "/confirmar") return <TokenPage kind="confirm" token={token} />;
   if (path === "/cancelar") return <TokenPage kind="cancel" token={token} />;
+  const company = path.match(/^\/empresa\/([\d./-]+)$/);
+  if (company) return <CompanyPage cnpj={decodeURIComponent(company[1])} />;
   return <SearchPage />;
 }
 
@@ -117,7 +117,7 @@ function SearchPage() {
   );
 }
 
-function Result({ hit }: { hit: ActHit }) {
+export function Result({ hit }: { hit: ActHit }) {
   const date = new Date(hit.published_at + "T12:00:00").toLocaleDateString("pt-BR");
   return (
     <li className="result">
@@ -131,14 +131,38 @@ function Result({ hit }: { hit: ActHit }) {
   );
 }
 
+const CNPJ_RE = /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/g;
+
 // A API marca os termos encontrados com ⟦ ⟧; renderizamos sem usar HTML cru.
-function Highlighted({ text }: { text: string }) {
+// CNPJs viram links para a página da empresa.
+export function Highlighted({ text }: { text: string }) {
   const parts = text.split(/(⟦[^⟧]*⟧)/g);
   return (
     <>
       {parts.map((p, i) =>
-        p.startsWith("⟦") ? <mark key={i}>{p.slice(1, -1)}</mark> : <span key={i}>{p}</span>,
+        p.startsWith("⟦")
+          ? <mark key={i}><WithCnpjLinks text={p.slice(1, -1)} /></mark>
+          : <span key={i}><WithCnpjLinks text={p} /></span>,
       )}
+    </>
+  );
+}
+
+function WithCnpjLinks({ text }: { text: string }) {
+  const parts = text.split(CNPJ_RE);
+  const cnpjs = text.match(CNPJ_RE) ?? [];
+  return (
+    <>
+      {parts.map((p, i) => (
+        <span key={i}>
+          {p}
+          {cnpjs[i] && (
+            <a className="cnpj" href={`/empresa/${cnpjs[i]}`} title="Ver todos os atos desta empresa">
+              {cnpjs[i]}
+            </a>
+          )}
+        </span>
+      ))}
     </>
   );
 }

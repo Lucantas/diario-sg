@@ -115,3 +115,19 @@ a { color: var(--action); }
   .page { padding-top: 2rem; }
   .search, .alert-row { flex-direction: column; }
 }
+
+/* Página da empresa: linha do tempo e resumo. */
+.crumb { margin: 0 0 1.5rem; font-size: 0.9rem; }
+.eyebrow { color: var(--slate); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; margin: 0 0 0.25rem; }
+.summary { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; margin: 0 0 0.5rem; padding: 1rem 0; border-top: 2px solid var(--ink); }
+.summary div { min-width: 6rem; }
+.summary dt { color: var(--slate); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.summary dd { margin: 0.15rem 0 0; font: 600 1.35rem var(--sans); }
+.fineprint { color: var(--slate); font-size: 0.85rem; margin: 0 0 1.5rem; }
+.timeline { border-left: 2px solid var(--rule); padding-left: 1.25rem !important; }
+.timeline .result { position: relative; }
+.timeline .result::before {
+  content: ""; position: absolute; left: -1.62rem; top: 1.6rem;
+  width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--action);
+}
+a.cnpj { text-decoration-style: dotted; text-underline-offset: 0.15em; }
