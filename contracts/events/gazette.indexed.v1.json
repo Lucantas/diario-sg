@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gazette.indexed.v1",
+  "title": "GazetteIndexed",
+  "description": "Os atos de uma edição foram extraídos e indexados para busca.",
+  "type": "object",
+  "required": ["gazette_id", "acts_count", "indexed_at"],
+  "properties": {
+    "gazette_id": { "type": "string", "format": "uuid" },
+    "acts_count": { "type": "integer", "minimum": 0 },
+    "indexed_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

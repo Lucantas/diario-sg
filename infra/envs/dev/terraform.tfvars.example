@@ -1,0 +1,7 @@
+# Para rodar localmente: copie para terraform.tfvars (ignorado pelo git).
+# No CI estes valores vêm das variáveis/segredos do Environment do GitHub.
+project_id        = "meu-projeto-gcp"
+deployer_sa_email = "gh-deployer@meu-projeto-gcp.iam.gserviceaccount.com"
+neon_api_key      = "neon_api_..."
+resend_api_key    = ""
+email_from        = "Alertas Diário SG <alertas@seudominio.com>"

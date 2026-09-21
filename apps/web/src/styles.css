@@ -1,0 +1,117 @@
+/* Paleta: papel frio, tinta, e o amarelo de marca-texto como único destaque. */
+:root {
+  --paper: #f6f7f4;
+  --ink: #17202b;
+  --slate: #5b6573;
+  --rule: #d8dcd5;
+  --marker: #ffe14d;
+  --action: #1e6b52;
+  --danger: #a3302a;
+
+  --sans: "Public Sans", system-ui, sans-serif;
+  --serif: "Source Serif 4", Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1rem/1.5 var(--sans);
+}
+
+.page { max-width: 46rem; margin: 0 auto; padding: 3.5rem 1.25rem 5rem; }
+.narrow { max-width: 32rem; }
+
+.masthead h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.08;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+}
+.lede { color: var(--slate); font-size: 1.125rem; max-width: 36rem; margin: 0 0 2rem; }
+
+.search { display: flex; gap: 0.5rem; }
+.search input {
+  flex: 1;
+  font: 400 1.25rem var(--sans);
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+}
+
+button {
+  font: 600 1rem var(--sans);
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  border: 2px solid var(--action);
+  background: var(--action);
+  color: #fff;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: progress; }
+:is(button, input, a):focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
+
+.types { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0 2rem; }
+.types button {
+  font-weight: 400;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 999px;
+}
+.types button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+.count { color: var(--slate); margin: 0 0 0.5rem; }
+.results ol { list-style: none; margin: 0; padding: 0; }
+
+.result { padding: 1.25rem 0; border-top: 1px solid var(--rule); }
+.result h2 { font-size: 1.05rem; font-weight: 600; margin: 0.25rem 0 0.5rem; }
+.meta { display: flex; align-items: center; gap: 0.6rem; color: var(--slate); font-size: 0.875rem; margin: 0; }
+.tag { color: var(--ink); font-weight: 600; }
+
+.snippet {
+  font: 400 1.0625rem/1.65 var(--serif);
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* O elemento memorável: o termo buscado grifado como se fosse à mão no papel. */
+mark {
+  color: inherit;
+  background: linear-gradient(100deg, transparent 2%, var(--marker) 6%, var(--marker) 94%, transparent 98%);
+  background-size: 100% 70%;
+  background-position: 0 70%;
+  background-repeat: no-repeat;
+  padding: 0 0.12em;
+}
+
+.alert { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); }
+.alert h2 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+.alert p { color: var(--slate); margin: 0 0 1rem; }
+.alert-row { display: flex; gap: 0.5rem; }
+.alert-row input {
+  flex: 1; font: 400 1rem var(--sans); padding: 0.7rem 0.9rem;
+  border: 1px solid var(--slate); border-radius: 6px; background: #fff;
+}
+
+.notice { border-left: 4px solid var(--action); padding: 0.5rem 0 0.5rem 0.9rem; margin: 1.25rem 0; }
+.notice-error { border-color: var(--danger); color: var(--danger); }
+.primary { margin: 1rem 0; }
+a { color: var(--action); }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (max-width: 36rem) {
+  .page { padding-top: 2rem; }
+  .search, .alert-row { flex-direction: column; }
+}
