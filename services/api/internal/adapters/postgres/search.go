@@ -17,10 +17,20 @@ func likePattern(q string) string {
 
 // Um ato casa quando a busca textual (stemming, sem acentos) bate OU quando
 // o termo aparece literalmente no corpo (também sem acentos). O segundo caso
-// cobre nomes parciais, CNPJ e números de contrato que o tokenizador de
-// texto não trata bem.
-const matchClause = `(a.search @@ q OR unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE))`
+// cobre CNPJ, números de contrato/processo e nomes longos que o tokenizador
+// não trata bem. Termos curtos e sem dígito ("sus", "lei") ficam só na busca
+// textual: como substring casariam com quase tudo e inundariam os alertas.
+const matchClause = `(a.search @@ q
+		  OR (($Q ~ '[0-9]' OR length($Q) >= ` + minSubstringRunes + `)
+		      AND unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE)))`
 
-// CNPJs citados no ato, para o front linkar a página da empresa.
-const cnpjsSubquery = `(SELECT coalesce(array_agg(e.value ORDER BY e.value), '{}')
+const minSubstringRunes = "8"
+
+// matchFor instancia matchClause com os índices do termo e do padrão LIKE.
+func matchFor(queryParam, likeParam string) string {
+	return strings.NewReplacer("$Q", queryParam, "$LIKE", likeParam).Replace(matchClause)
+}
+
+// CNPJs citados no ato (só dígitos), para o front linkar a página da empresa.
+const cnpjsSubquery = `(SELECT coalesce(array_agg(DISTINCT e.normalized), '{}')
 		        FROM act_entities e WHERE e.act_id = a.id AND e.kind = 'cnpj')`

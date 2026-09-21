@@ -129,7 +129,9 @@ curl -G localhost:8080/v1/acts --data-urlencode 'q=51.903.675'                  
 
 Observação: várias palavras são combinadas com E, não como frase; "marcio de
 carvalho ribeiro" também acha "LEONARDO RIBEIRO DE CARVALHO". Aspas fazem busca
-por frase (`websearch_to_tsquery`).
+por frase (`websearch_to_tsquery`). O ramo por substring só entra para termos
+com dígito ou com 8+ caracteres: "sus" e "lei" ficam na busca textual, senão
+casariam "suspensão" e "Cleiton" e inundariam os alertas.
 
 **Entidades (tarefa 5).** Porta `EntityExtractor` separada do `ActParser`
 (justificativa em `services/api/internal/core/ports/ports.go`: segmentar e
@@ -173,6 +175,28 @@ edição 1771 → e-mail (modo log) no worker com 1 resultado.
 `envs/dev` e `envs/prod` (google 6.50.0, neon 0.18.0; `.terraform.lock.hcl`
 versionados). `lifecycle_rule { age = 30 → SetStorageClass ARCHIVE }` no bucket
 de gazetas. Correção: `nonsensitive(var.resend_api_key != "")`.
+
+### Revisão de código
+
+Um agente revisor (Opus) leu o diff completo e rodou os testes. Resultado:
+0 críticos, 1 alto, 4 médios, 5 baixos. Corrigidos nesta fase:
+
+- **Alto**: substring `ILIKE` casava termos curtos ("sus", "lei") com quase
+  todo ato e, via `SearchInGazette`, dispararia alertas em toda edição.
+  Agora só termos com dígito ou 8+ caracteres usam substring; teste e2e cobre.
+- **Médios**: `SearchInGazette` com query vazia casava tudo (guarda
+  adicionada); `/v1/stats/acts` ignorava `q` (agora filtra; e2e cobre);
+  `/v1/entities/cnpj` sem `LIMIT` (lista limitada a 100 atos, contagens e
+  soma calculadas sobre todos); scraper truncava em silêncio no teto de 50
+  páginas (agora devolve erro; teste cobre).
+- **Baixos**: link de CNPJ montado a partir do texto cru do PDF (agora usa os
+  14 dígitos e formata no front); `CHECK` para `valor` numérico na migration
+  003; import circular `App.tsx` ↔ `CompanyPage.tsx` (componentes movidos para
+  `components.tsx`); `getMonthlyStats` sem uso (removida).
+- Registrado, não corrigido: a migration 002 reescreve `acts` e recria dois
+  índices GIN dentro de uma transação, com a API no ar; irrelevante no volume
+  atual, mas em tabela grande deve virar `CREATE INDEX CONCURRENTLY` fora de
+  transação.
 
 ## 4. O que NÃO ficou pronto e por quê
 

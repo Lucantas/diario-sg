@@ -118,7 +118,7 @@ func TestEndToEnd(t *testing.T) {
 	if res.Total != 1 || res.Items[0].Type != "contrato" || !strings.Contains(res.Items[0].Snippet, "⟦") {
 		t.Fatalf("busca inesperada: %+v", res)
 	}
-	if len(res.Items[0].CNPJs) != 1 || res.Items[0].CNPJs[0] != "12.345.678/0001-90" {
+	if len(res.Items[0].CNPJs) != 1 || res.Items[0].CNPJs[0] != "12345678000190" {
 		t.Fatalf("resultado deve listar os CNPJs do ato: %+v", res.Items[0])
 	}
 
@@ -167,6 +167,19 @@ func TestEndToEnd(t *testing.T) {
 	getJSON(t, srv.URL+"/v1/stats/acts?type=contrato&from=2026-09-01&to=2026-09-30", &stats)
 	if len(stats.Items) != 1 || stats.Items[0].Count != 1 {
 		t.Fatalf("estatísticas filtradas inesperadas: %+v", stats)
+	}
+	getJSON(t, srv.URL+"/v1/stats/acts?q=medicamento", &stats)
+	if len(stats.Items) != 1 || stats.Items[0].Count != 1 {
+		t.Fatalf("estatísticas devem respeitar o termo de busca: %+v", stats)
+	}
+
+	// 2e. Termo curto sem dígito não casa por substring (evita inundar alertas)
+	getJSON(t, srv.URL+"/v1/acts?q=sil", &res)
+	if res.Total != 0 {
+		t.Fatalf("'sil' não deveria casar 'SILVA' por substring: %+v", res)
+	}
+	if hits, err := acts.SearchInGazette(ctx, pub.ids[0], ""); err != nil || len(hits) != 0 {
+		t.Fatalf("query vazia não pode casar atos: %v %v", hits, err)
 	}
 
 	// 3. Inscrição -> confirmação -> alerta (sem duplicar)

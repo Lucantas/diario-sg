@@ -15,7 +15,7 @@ export interface ActHit {
   edition_number: string;
   published_at: string;
   source_url: string;
-  cnpjs: string[];
+  cnpjs: string[]; // só dígitos
 }
 
 export interface SearchResponse {
@@ -30,11 +30,6 @@ export interface CompanyResponse {
   total_value_cents: number;
   count_by_type: Partial<Record<ActType, number>>;
   acts: ActHit[];
-}
-
-export interface MonthCount {
-  month: string;
-  count: number;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -55,12 +50,6 @@ export function searchActs(q: string, type: ActType | "", offset = 0) {
 
 export function getCompany(cnpj: string) {
   return request<CompanyResponse>(`/v1/entities/cnpj/${encodeURIComponent(cnpj)}`);
-}
-
-export function getMonthlyStats(type: ActType | "" = "") {
-  const params = new URLSearchParams({ group: "month" });
-  if (type) params.set("type", type);
-  return request<{ group: string; items: MonthCount[] }>(`/v1/stats/acts?${params}`);
 }
 
 export function subscribe(email: string, query: string) {
