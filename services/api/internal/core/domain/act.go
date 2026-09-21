@@ -46,8 +46,11 @@ type ActHit struct {
 	Act
 	EditionNumber string
 	PublishedAt   time.Time
+	SourceURL     string
 	// Snippet contém o trecho relevante; termos encontrados vêm entre ⟦ e ⟧.
 	Snippet string
+	// CNPJs citados no ato, como aparecem no texto.
+	CNPJs []string
 }
 
 // ActFilter descreve uma busca por atos.

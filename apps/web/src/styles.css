@@ -130,4 +130,6 @@ a { color: var(--action); }
   content: ""; position: absolute; left: -1.62rem; top: 1.6rem;
   width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--action);
 }
+.cnpjs { color: var(--slate); font-size: 0.875rem; margin: 0.5rem 0 0; }
+.cnpjs a { margin-right: 0.6rem; }
 a.cnpj { text-decoration-style: dotted; text-underline-offset: 0.15em; }

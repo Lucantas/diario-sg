@@ -14,6 +14,8 @@ export interface ActHit {
   snippet: string;
   edition_number: string;
   published_at: string;
+  source_url: string;
+  cnpjs: string[];
 }
 
 export interface SearchResponse {
