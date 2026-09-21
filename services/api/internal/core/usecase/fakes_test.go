@@ -58,6 +58,16 @@ func (lineParser) Parse(text string) []domain.Act {
 	return out
 }
 
+// cnpjExtractor marca todo ato que contém "CNPJ" com uma entidade fixa.
+type cnpjExtractor struct{}
+
+func (cnpjExtractor) Extract(body string) []domain.Entity {
+	if !strings.Contains(body, "CNPJ") {
+		return nil
+	}
+	return []domain.Entity{{Kind: domain.EntityCNPJ, Value: "12.345.678/0001-90", Normalized: "12345678000190"}}
+}
+
 type recPublisher struct{ indexed []string }
 
 func (r *recPublisher) GazetteIndexed(_ context.Context, id string, _ int) error {

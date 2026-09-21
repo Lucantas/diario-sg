@@ -46,15 +46,28 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 		return err
 	}
 
-	stmt, err := tx.PrepareContext(ctx, `
-		INSERT INTO acts (gazette_id, type, title, body, position) VALUES ($1, $2, $3, $4, $5)`)
+	insertAct, err := tx.PrepareContext(ctx, `
+		INSERT INTO acts (gazette_id, type, title, body, position) VALUES ($1, $2, $3, $4, $5) RETURNING id`)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer insertAct.Close()
+	insertEntity, err := tx.PrepareContext(ctx, `
+		INSERT INTO act_entities (act_id, kind, value, normalized) VALUES ($1, $2, $3, $4)
+		ON CONFLICT DO NOTHING`)
+	if err != nil {
+		return err
+	}
+	defer insertEntity.Close()
 	for _, a := range acts {
-		if _, err := stmt.ExecContext(ctx, g.ID, string(a.Type), a.Title, a.Body, a.Position); err != nil {
+		var actID string
+		if err := insertAct.QueryRowContext(ctx, g.ID, string(a.Type), a.Title, a.Body, a.Position).Scan(&actID); err != nil {
 			return fmt.Errorf("ato %d: %w", a.Position, err)
+		}
+		for _, e := range a.Entities {
+			if _, err := insertEntity.ExecContext(ctx, actID, string(e.Kind), e.Value, e.Normalized); err != nil {
+				return fmt.Errorf("ato %d, entidade %s: %w", a.Position, e.Kind, err)
+			}
 		}
 	}
 	return tx.Commit()

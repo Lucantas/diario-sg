@@ -90,7 +90,11 @@ make run-web       # terminal 3 · http://localhost:5173
 make run-scraper   # dispara uma coleta
 ```
 
-Testes: `make test` (unitários) e `make test-integration` (Postgres real).
+Testes: `make test` (unitários) e `make test-integration` (Postgres real, num banco
+`diario_test` criado pelo próprio teste). Para ter dados reais sem o scraper:
+`./scripts/fetch-editions.sh` baixa edições e
+`make ingest FILE=services/api/testdata/editions/2026_09_18.pdf DATE=2026-09-18 EDITION=1771`
+publica uma delas exatamente como o scraper faria.
 Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 ## API
@@ -99,6 +103,8 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | --- | --- | --- |
 | GET | `/v1/acts?q=&type=&from=&to=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet` |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
+| GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (mais recentes primeiro), soma dos valores e contagem por tipo |
+| GET | `/v1/stats/acts?type=&from=&to=&group=month` | Contagem de atos por mês |
 | POST | `/v1/subscriptions` | `{"email","query"}` → envia e-mail de confirmação |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |

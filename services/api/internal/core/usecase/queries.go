@@ -48,3 +48,28 @@ func (uc *GetGazette) Execute(ctx context.Context, id string) (domain.Gazette, [
 	acts, err := uc.acts.ListByGazette(ctx, id)
 	return g, acts, err
 }
+
+// GetCompany monta a linha do tempo de um CNPJ.
+type GetCompany struct{ acts ports.ActRepository }
+
+func NewGetCompany(a ports.ActRepository) *GetCompany { return &GetCompany{acts: a} }
+
+func (uc *GetCompany) Execute(ctx context.Context, cnpj string) (domain.CompanyReport, error) {
+	normalized, ok := domain.NormalizeCNPJ(cnpj)
+	if !ok {
+		return domain.CompanyReport{}, domain.ErrInvalidCNPJ
+	}
+	return uc.acts.ReportByEntity(ctx, domain.EntityCNPJ, normalized)
+}
+
+// ActStats conta atos por mês.
+type ActStats struct{ acts ports.ActRepository }
+
+func NewActStats(a ports.ActRepository) *ActStats { return &ActStats{acts: a} }
+
+func (uc *ActStats) Execute(ctx context.Context, f domain.ActFilter) ([]domain.MonthCount, error) {
+	if err := f.Normalize(); err != nil {
+		return nil, err
+	}
+	return uc.acts.CountByMonth(ctx, f)
+}
