@@ -7,6 +7,7 @@ type Gazette struct {
 	ID            string
 	EditionNumber string
 	PublishedAt   time.Time
+	IsExtra       bool
 	SourceURL     string
 	StoragePath   string
 	Checksum      string

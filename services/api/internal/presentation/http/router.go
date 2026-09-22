@@ -62,7 +62,7 @@ func (a *API) getGazette(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err, a.Log)
 		return
 	}
-	out := gazetteDTO{ID: g.ID, EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly),
+	out := gazetteDTO{ID: g.ID, EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly), IsExtra: g.IsExtra,
 		SourceURL: g.SourceURL, Acts: make([]actDTO, 0, len(acts))}
 	for _, act := range acts {
 		out.Acts = append(out.Acts, actDTO{ID: act.ID, Type: string(act.Type), Title: act.Title, Body: act.Body, Position: act.Position})

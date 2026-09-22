@@ -46,6 +46,7 @@ type ActHit struct {
 	Act
 	EditionNumber string
 	PublishedAt   time.Time
+	IsExtra       bool
 	SourceURL     string
 	// Snippet contém o trecho relevante; termos encontrados vêm entre ⟦ e ⟧.
 	Snippet string

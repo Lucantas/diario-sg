@@ -20,6 +20,7 @@ type actHitDTO struct {
 	Snippet       string   `json:"snippet"`
 	EditionNumber string   `json:"edition_number"`
 	PublishedAt   string   `json:"published_at"`
+	IsExtra       bool     `json:"is_extra"`
 	SourceURL     string   `json:"source_url"`
 	CNPJs         []string `json:"cnpjs"`
 }
@@ -43,6 +44,7 @@ type gazetteDTO struct {
 	ID            string   `json:"id"`
 	EditionNumber string   `json:"edition_number"`
 	PublishedAt   string   `json:"published_at"`
+	IsExtra       bool     `json:"is_extra"`
 	SourceURL     string   `json:"source_url"`
 	Acts          []actDTO `json:"acts"`
 }
@@ -85,7 +87,7 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 	}
 	return actHitDTO{
 		ID: h.ID, GazetteID: h.GazetteID, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
-		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), SourceURL: h.SourceURL, CNPJs: cnpjs,
+		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
 	}
 }
 

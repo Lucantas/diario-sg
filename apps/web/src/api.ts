@@ -14,6 +14,7 @@ export interface ActHit {
   snippet: string;
   edition_number: string;
   published_at: string;
+  is_extra: boolean;
   source_url: string;
   cnpjs: string[]; // só dígitos
 }

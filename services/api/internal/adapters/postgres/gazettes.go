@@ -76,8 +76,8 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 func (r *GazetteRepo) FindByID(ctx context.Context, id string) (domain.Gazette, error) {
 	var g domain.Gazette
 	err := r.db.QueryRowContext(ctx, `
-		SELECT id, edition_number, published_at, source_url, storage_path, checksum, indexed_at
+		SELECT id, edition_number, published_at, is_extra, source_url, storage_path, checksum, indexed_at
 		FROM gazettes WHERE id = $1`, id,
-	).Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt)
+	).Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.IsExtra, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt)
 	return g, notFound(err)
 }
