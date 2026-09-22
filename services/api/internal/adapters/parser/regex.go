@@ -42,6 +42,9 @@ func (Regex) Parse(text string) []domain.Act {
 			}
 			current.close(l)
 			flush()
+		case isPortariaVerb(l):
+			flush()
+			current = &segment{title: l, lines: []string{l}}
 		case isHeader(l):
 			flush()
 			title := []string{l}

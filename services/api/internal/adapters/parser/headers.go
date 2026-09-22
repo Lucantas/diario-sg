@@ -30,7 +30,10 @@ var headerRes = []*regexp.Regexp{
 // 1497/2026". O número, portanto, é o rodapé do segmento corrente.
 var portariaTrailerRe = regexp.MustCompile(`^Port\.?\s*n[º°.]?\s*\d+/\d{2,4}`)
 
-var portariaVerbRe = regexp.MustCompile(`^(?:Nomeia|Exonera|Designa|Torna|Tornar|Cessar|Concede|Retifica|Dispensa|Revoga|Autoriza|Convoca|Prorroga|Suspende)\b[^:]{0,60}:?$`)
+// Verbo que abre uma portaria abreviada: a linha inteira é o verbo, com ou
+// sem "a pedido" e dois-pontos ("Exonera:", "Nomear:", "Designa",
+// "Declaro vago:"). Frases do corpo que começam com o verbo não casam.
+var portariaVerbRe = regexp.MustCompile(`^(?:Nomeia|Nomear|Exonera|Exonerar|Designa|Designar|Torna sem efeito|Tornar sem efeito|Cessar? os efeitos|Declar[ao] vago|Concede|Conceder|Retifica|Retificar|Revoga|Revogar|Dispensa|Dispensar|Prorroga|Prorrogar|Suspende|Suspender|Autoriza|Autorizar|Convoca|Convocar|Cede|Ceder|Averba|Averbar)(?: a pedido| ex officio| de ofício)?:?$`)
 
 // "Continuação do D.O.E. em 18/09/2026" abre um novo bloco do anexo de
 // pessoal no topo da página; é fronteira de seção, não título de ato.

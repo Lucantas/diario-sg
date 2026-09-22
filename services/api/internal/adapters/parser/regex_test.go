@@ -117,6 +117,42 @@ func TestParse_OldFormatTrailingPortariaNumber(t *testing.T) {
 	}
 }
 
+// Sem sigla de órgão entre o decreto e o anexo de pessoal, o verbo é o que
+// separa a portaria do ato anterior; o decreto não pode ser engolido.
+func TestParse_VerbStartsPortariaAfterDecree(t *testing.T) {
+	acts := New().Parse(`DECRETO Nº 022/2020
+ALTERA O DECRETO Nº 272/2019, QUE TRATA DA ESTRUTURA DA SECRETARIA.
+O PREFEITO DECRETA: Art. 1º Fica alterado o art. 3º. Art. 2º Este decreto entra em vigor na data de sua publicação.
+Nomear:
+a contar de 28 de janeiro de 2020, MARISE FICTÍCIA DA SILVA – CPF: 111.***.***-11, para o cargo de Assessor I.
+Port. nº 150/2020
+Exonera a pedido:
+a contar de 28 de janeiro de 2020, JOÃO FICTÍCIO DA SILVA – Mat.: 1, do cargo de Assessor I.
+Port. nº 151/2020
+Designa
+a contar de 28 de janeiro de 2020, ANA FICTÍCIA DA SILVA – Mat.: 2, para responder pelo cargo de Diretor.`)
+	want := []struct {
+		title string
+		typ   domain.ActType
+	}{
+		{"DECRETO Nº 022/2020", domain.ActDecreto},
+		{"Port. nº 150/2020", domain.ActNomeacao},
+		{"Port. nº 151/2020", domain.ActExoneracao},
+		{"Designa", domain.ActPortaria},
+	}
+	if len(acts) != len(want) {
+		t.Fatalf("esperava %d atos, veio %d: %+v", len(want), len(acts), acts)
+	}
+	for i, w := range want {
+		if acts[i].Title != w.title || acts[i].Type != w.typ {
+			t.Errorf("ato %d: esperava %q/%s, veio %q/%s", i, w.title, w.typ, acts[i].Title, acts[i].Type)
+		}
+	}
+	if strings.Contains(acts[0].Body, "MARISE") || !strings.HasPrefix(acts[1].Body, "Nomear:") {
+		t.Errorf("o decreto não pode conter a nomeação: %q / %q", acts[0].Body, acts[1].Body)
+	}
+}
+
 func TestParse_TrailerWithoutBodyKeepsTheNumber(t *testing.T) {
 	acts := New().Parse("Port. nº 5/2020\n")
 	if len(acts) != 1 || acts[0].Title != "Port. nº 5/2020" || acts[0].Type != domain.ActPortaria {
