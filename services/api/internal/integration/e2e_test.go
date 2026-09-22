@@ -102,14 +102,14 @@ func TestEndToEnd(t *testing.T) {
 		}
 	}
 
-	var withoutPage, total int
+	var unexpected, total int
 	if err := db.QueryRowContext(ctx, `
 		SELECT count(*) FILTER (WHERE page_start IS DISTINCT FROM 1 OR page_end IS DISTINCT FROM 1 OR organ <> ''), count(*)
-		FROM acts`).Scan(&withoutPage, &total); err != nil {
+		FROM acts`).Scan(&unexpected, &total); err != nil {
 		t.Fatal(err)
 	}
-	if total != 5 || withoutPage != 0 {
-		t.Fatalf("esperava 5 atos com página 1 e órgão vazio, veio total=%d fora do esperado=%d", total, withoutPage)
+	if total != 5 || unexpected != 0 {
+		t.Fatalf("esperava 5 atos com página 1 e órgão vazio, veio total=%d inesperados=%d", total, unexpected)
 	}
 
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Gazette: usecase.NewGetGazette(gaz, acts),

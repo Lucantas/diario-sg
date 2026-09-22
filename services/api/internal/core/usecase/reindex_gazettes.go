@@ -39,6 +39,9 @@ func (uc *ReindexGazettes) Execute(ctx context.Context, from, to time.Time) (Rei
 	res := ReindexResult{Found: len(gazettes)}
 	var errs []error
 	for _, g := range gazettes {
+		if err := ctx.Err(); err != nil {
+			return res, errors.Join(append(errs, err)...)
+		}
 		if err := uc.reindexOne(ctx, g); err != nil {
 			res.Failed++
 			errs = append(errs, fmt.Errorf("edição %s (%s): %w", g.PublishedAt.Format(time.DateOnly), g.StoragePath, err))
