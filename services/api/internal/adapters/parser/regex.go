@@ -16,8 +16,7 @@ type Regex struct{}
 func New() Regex { return Regex{} }
 
 func (Regex) Parse(text string) []domain.Act {
-	lines := joinSplitHeaders(stripPageNoise(splitLines(text)))
-	lines = dropPreamble(lines)
+	lines := dropPreamble(joinSplitHeaders(stripPageNoise(splitLines(text))))
 
 	var acts []domain.Act
 	var current *segment
@@ -34,34 +33,36 @@ func (Regex) Parse(text string) []domain.Act {
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
 		switch {
-		case isOrganSection(lines, i), isContinuation(l):
+		case isOrganSection(lines, i), isContinuation(l.text):
 			flush()
-		case isPortariaTrailer(l):
+		case isPortariaTrailer(l.text):
 			if current == nil {
 				current = &segment{}
 			}
 			current.close(l)
 			flush()
-		case isPortariaVerb(l):
+		case isPortariaVerb(l.text):
 			flush()
-			current = &segment{title: l, lines: []string{l}}
-		case isHeader(l):
+			current = &segment{title: l.text}
+			current.add(l)
+		case isHeader(l.text):
 			flush()
-			title := []string{l}
-			for headerContinues(l) && i+1 < len(lines) && lines[i+1] != "" {
+			title := []line{l}
+			for headerContinues(l.text) && i+1 < len(lines) && lines[i+1].text != "" {
 				i++
 				l = lines[i]
 				title = append(title, l)
 			}
-			current = &segment{title: strings.Join(title, " "), lines: title}
+			current = &segment{title: joinTexts(title, " ")}
+			current.add(title...)
 		default:
 			if current == nil {
-				if l == "" {
+				if l.text == "" {
 					continue
 				}
-				current = &segment{title: l, orphan: true}
+				current = &segment{title: l.text, orphan: true}
 			}
-			current.lines = append(current.lines, l)
+			current.add(l)
 		}
 	}
 	flush()
@@ -69,16 +70,31 @@ func (Regex) Parse(text string) []domain.Act {
 }
 
 type segment struct {
-	title  string
-	lines  []string
-	orphan bool
+	title     string
+	lines     []string
+	orphan    bool
+	pageStart int
+	pageEnd   int
+}
+
+func (s *segment) add(ls ...line) {
+	for _, l := range ls {
+		s.lines = append(s.lines, l.text)
+		if l.text == "" {
+			continue
+		}
+		if s.pageStart == 0 {
+			s.pageStart = l.page
+		}
+		s.pageEnd = l.page
+	}
 }
 
 // close dá ao segmento o número de portaria que o encerra.
-func (s *segment) close(trailer string) {
-	s.title = trailer
+func (s *segment) close(trailer line) {
+	s.title = trailer.text
 	s.orphan = false
-	s.lines = append(s.lines, trailer)
+	s.add(trailer)
 }
 
 const (
@@ -97,5 +113,6 @@ func (s *segment) act(position int) (domain.Act, bool) {
 	if r := []rune(title); len(r) > maxTitleRunes {
 		title = string(r[:maxTitleRunes])
 	}
-	return domain.Act{Type: classify(title, body), Title: title, Body: body, Position: position}, true
+	return domain.Act{Type: classify(title, body), Title: title, Body: body, Position: position,
+		PageStart: s.pageStart, PageEnd: s.pageEnd}, true
 }
