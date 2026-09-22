@@ -15,6 +15,7 @@ const (
 	RoleAPI     Role = "api"
 	RoleWorker  Role = "worker"
 	RoleMigrate Role = "migrate"
+	RoleReindex Role = "reindex"
 )
 
 type Config struct {
@@ -52,7 +53,10 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role != RoleMigrate && c.Notifier == "resend" {
+	if role == RoleReindex {
+		required["GAZETTE_BUCKET"] = c.Bucket
+	}
+	if role != RoleMigrate && role != RoleReindex && c.Notifier == "resend" {
 		required["RESEND_API_KEY"] = c.ResendAPIKey
 		required["EMAIL_FROM"] = c.EmailFrom
 	}

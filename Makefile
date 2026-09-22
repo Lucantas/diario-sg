@@ -5,7 +5,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate ingest run-api run-worker run-scraper run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex ingest run-api run-worker run-scraper run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -21,6 +21,10 @@ setup: ## Cria bucket, tópicos e assinaturas nos emuladores
 
 migrate: ## Aplica migrations no banco local
 	cd services/api && go run ./cmd/migrate
+
+reindex: ## Reprocessa edições já indexadas com o parser atual: make reindex FROM=AAAA-MM-DD TO=AAAA-MM-DD
+	@test -n "$(FROM)" -a -n "$(TO)" || (echo "uso: make reindex FROM=AAAA-MM-DD TO=AAAA-MM-DD"; exit 2)
+	cd services/api && go run ./cmd/reindex -from "$(FROM)" -to "$(TO)"
 
 ingest: ## Ingere um PDF baixado manualmente: make ingest FILE=edicao.pdf DATE=AAAA-MM-DD [EDITION=n]
 	@test -n "$(FILE)" -a -n "$(DATE)" || (echo "uso: make ingest FILE=caminho.pdf DATE=AAAA-MM-DD [EDITION=n]"; exit 2)

@@ -90,6 +90,7 @@ make run-web       # terminal 3 · http://localhost:5173
 make run-scraper   # dispara uma coleta (janela: LOOKBACK_DAYS do .env)
 make run-scraper LOOKBACK_DAYS=7   # outra janela: passe como variável do make,
                                    # não do shell (o .env incluído tem precedência)
+make reindex FROM=2020-01-01 TO=2026-12-31   # reprocessa edições já indexadas com o parser atual (não dispara alertas)
 ```
 
 Testes: `make test` (unitários) e `make test-integration` (Postgres real, num banco
