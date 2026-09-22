@@ -40,6 +40,7 @@ type Act struct {
 	Position  int
 	PageStart int
 	PageEnd   int
+	Organ     string
 	Entities  []Entity
 }
 
