@@ -9,6 +9,7 @@ func TestEditionNumber(t *testing.T) {
 		"10 DE MARÇO DE 2025 | EDIÇÃO N°1. 362\n":                                                                                          "1362",
 		"Diário Oficial Eletrônico do Município de São Gonçalo - D.O.E. - | Poder Executivo | Ano I | N.º 190 | em 08 de outubro de 2020.": "190",
 		"Diário Oficial Eletrônico do Município de São Gonçalo - D.O.E. - | Poder Executivo | Ano II | N.º 301 | em 10 de março de 2021.":  "301",
+		"Diário Oficial Eletrônico do Município de São Gonçalo - D.O.E. - | Poder Executivo | Ano I | N.° 158 | em, 18 de agosto de 2020.": "158",
 		"LEI Nº 1164/2020\nDecreto nº 63/2020, de 16 de março de 2020":                                                                     "",
 		"texto sem número de edição": "",
 	}
