@@ -30,12 +30,11 @@ func TestParseRealFixtures(t *testing.T) {
 			{"PORTARIA Nº 1490/2026", domain.ActExoneracao},
 			{"PORTARIA Nº 1492/2026", domain.ActPortaria},
 			{"CORRIGENDA DA PORTARIA Nº 1409/2026", domain.ActOutro},
-			{"Continuação do D.O.E. em 18/09/2026", domain.ActOutro},
 			{"Port. nº 1497/2026", domain.ActPortaria},
-			{"Port. nº 1498/2026", domain.ActNomeacao},
-			{"Port. nº 1499/2026", domain.ActExoneracao},
+			{"Port. nº 1498/2026", domain.ActPortaria},
+			{"Port. nº 1499/2026", domain.ActNomeacao},
 			{"Port. nº 1500/2026", domain.ActExoneracao},
-			{"Port. nº 1502/2026", domain.ActPortaria},
+			{"Port. nº 1502/2026", domain.ActExoneracao},
 		},
 		"licitacoes.txt": {
 			{"DECRETO Nº 446/2026", domain.ActDecreto},
@@ -85,6 +84,37 @@ func TestParseDropsCoverRosterAndPageFurniture(t *testing.T) {
 	}
 	if !strings.Contains(acts[1].Body, "Pedro Exemplo Moreira") {
 		t.Error("o corpo do decreto 444 deve conter os nomes incluídos")
+	}
+}
+
+// No anexo de pessoal o número da portaria fecha o ato; o corpo de cada
+// "Port. nº" é o texto que vem ANTES dele, começando no verbo.
+func TestShortPortariaNumberClosesThePrecedingAct(t *testing.T) {
+	raw, _ := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "fixtures", "pessoal.txt"))
+	acts := New().Parse(string(raw))
+	byTitle := map[string]domain.Act{}
+	for _, a := range acts {
+		byTitle[a.Title] = a
+	}
+	cases := map[string]string{
+		"Port. nº 1497/2026": "Designa\na contar de 17 de setembro de 2026, LEANDRO",
+		"Port. nº 1498/2026": "Torna sem efeito:\na nomeação de RENATO EXEMPLO PIRES",
+		"Port. nº 1499/2026": "Nomeia:\na contar de 18 de setembro de 2026, ANDRÉ FICTÍCIO",
+		"Port. nº 1502/2026": "Exonera:\na contar de 17 de setembro de 2026, os servidores abaixo",
+	}
+	for title, prefix := range cases {
+		a, ok := byTitle[title]
+		if !ok {
+			t.Fatalf("%s não encontrado:\n%s", title, titles(acts))
+		}
+		if !strings.HasPrefix(a.Body, prefix) || !strings.HasSuffix(a.Body, title) {
+			t.Errorf("%s: corpo deveria começar com %q e terminar com o número, veio %q", title, prefix, a.Body)
+		}
+	}
+	for _, a := range acts {
+		if strings.HasPrefix(a.Title, "Continuação") || a.Body == a.Title {
+			t.Errorf("ato indevido: %q", a.Title)
+		}
 	}
 }
 
