@@ -9,7 +9,8 @@
 //     as edições do período que contêm o termo, 5 por página, com links
 //     href="diario/AAAA_MM_DD.pdf" e paginação por ?NumeroPagina=N.
 //
-// Listamos com um termo presente no cabeçalho de toda página ("Gonçalo"),
+// Listamos com a letra "a", que aparece no texto de qualquer edição
+// ("Gonçalo" não serve: a continuação de 13/12/2023 não tem cabeçalho),
 // percorremos a paginação e montamos as URLs. O site não exige JavaScript.
 package pmsg
 
@@ -29,9 +30,8 @@ import (
 )
 
 const (
-	userAgent = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
-	// Termo que aparece no cabeçalho de todas as páginas de toda edição.
-	listingTerm = "Gonçalo"
+	userAgent   = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
+	listingTerm = "a"
 	// 5 edições por página: 200 páginas cobrem ~4 anos de edições úteis.
 	maxPages     = 200
 	maxHTMLBytes = 10 << 20
