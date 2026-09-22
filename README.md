@@ -1,9 +1,29 @@
-# Diário SG — radar do Diário Oficial de São Gonçalo
+# Diário SG
 
-Coleta diariamente as edições do Diário Oficial de São Gonçalo (RJ), separa
-os atos (nomeações, contratos, licitações, dispensas, decretos...), oferece
-busca textual em português por uma API pública e envia alertas por e-mail
-quando um termo de interesse aparece.
+O Diário Oficial de São Gonçalo sai em PDF, quase todo dia, com dezenas de
+páginas de portarias, extratos de contrato, dispensas de licitação e
+decretos. Tudo público. Tudo lá. E praticamente ninguém lê, porque ler um PDF
+inteiro procurando o nome de uma empresa é o tipo de coisa que só se
+faz por obrigação ou por castigo.
+
+O Diário SG lê por você. Todo dia ele baixa as edições novas, separa cada ato
+(nomeação, contrato, licitação, dispensa, decreto...), joga tudo num Postgres
+com busca em português e te manda um e-mail quando aparece o termo que você
+pediu. Quer saber quando o CNPJ daquela empresa ganhar mais um contrato? Ou
+quando sair a nomeação do primo do vereador? Cadastra o termo e vai viver a
+vida.
+
+Não é um serviço da prefeitura, não tem vínculo com ela e não substitui a
+edição oficial. É só um cidadão com um parser e alguma teimosia.
+
+## Como funciona
+
+Um job acorda, visita o site da prefeitura como quem não quer nada, baixa os
+PDFs e avisa uma fila. Um worker pega o PDF, extrai o texto, fatia em atos e
+indexa. Quando termina, avisa outra fila, e o mesmo worker confere quem
+estava esperando por aquilo e manda os e-mails. O resto é uma API e uma
+página em React para você não precisar usar `curl` para descobrir quem foi
+nomeado ontem.
 
 ```mermaid
 flowchart LR
@@ -132,7 +152,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
    - **Secrets**: `NEON_API_KEY`, `RESEND_API_KEY` (opcional)
 5. Faça push na `main`: o workflow **Infra** cria a stack de dev e o
    **Deploy** publica as imagens, roda as migrations e atualiza os serviços.
-6. Para produção, publique uma release (tag `v*`) — ou rode os workflows
+6. Para produção, publique uma release (tag `v*`), ou rode os workflows
    manualmente escolhendo `prod`.
 
 O ideal é um projeto GCP por ambiente (isolamento de IAM e de custo). Se
@@ -144,7 +164,7 @@ Tudo foi dimensionado para caber nos planos gratuitos no volume de um
 município: Cloud Run (serviços e job escalam a zero), Pub/Sub, Cloud
 Scheduler (3 jobs gratuitos), Cloud Storage na região `us-central1`,
 Artifact Registry (com limpeza automática de imagens antigas), Secret Manager,
-Neon e Resend. Os limites de cada plano mudam com o tempo — confira as
+Neon e Resend. Os limites de cada plano mudam com o tempo, então confira as
 páginas de preço antes de subir e mantenha o alerta de orçamento ligado.
 
 ## Caminho de crescimento
@@ -164,3 +184,20 @@ Os dados são públicos, mas contêm nomes de pessoas. Mostre só o que foi
 publicado, cite sempre a edição original, ofereça canal de correção e não
 crie perfis de pessoas físicas a partir dos atos (LGPD). O scraper se
 identifica no User-Agent e espera entre downloads.
+
+## Licença e termos
+
+O código está sob a [licença MIT](LICENSE): use, copie, mude e publique, só
+mantenha o aviso de copyright. Os atos em si são documentos oficiais e não
+têm direito autoral (Lei 9.610/1998, art. 8º, IV), mas continuam citando
+pessoas de verdade, então a LGPD vale para quem reutiliza.
+
+Quem usa a instância publicada por este repositório concorda com os
+[Termos de uso](TERMOS-DE-USO.md) e pode ler como o e-mail dos alertas é
+tratado na [Política de privacidade](PRIVACIDADE.md). Resumo honesto: o texto
+extraído pode ter erro, a edição original é que vale, e seu e-mail só serve
+para te mandar os alertas que você pediu.
+
+Achou um ato quebrado, um órgão errado ou um bug? Abre uma
+[issue](https://github.com/Lucantas/diario-sg/issues). O parser agradece, ele
+ainda está aprendendo a ler a prefeitura.
