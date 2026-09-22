@@ -48,7 +48,17 @@ func New(baseURL string) (*Source, error) {
 	if err != nil || u.Host == "" {
 		return nil, fmt.Errorf("SOURCE_URL inválida: %q", baseURL)
 	}
-	return &Source{baseURL: u, http: &http.Client{Timeout: 60 * time.Second}, delay: 2 * time.Second}, nil
+	return &Source{baseURL: u, http: newClient(), delay: 2 * time.Second}, nil
+}
+
+// newClient abre uma conexão nova por requisição (há uma pausa entre elas de
+// qualquer forma): em backfills longos o site deixa conexões ociosas mortas
+// sem fechar, e reaproveitá-las travava o download seguinte.
+func newClient() *http.Client {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DisableKeepAlives = true
+	transport.ResponseHeaderTimeout = 30 * time.Second
+	return &http.Client{Timeout: 120 * time.Second, Transport: transport}
 }
 
 var (
