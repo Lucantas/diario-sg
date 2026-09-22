@@ -37,11 +37,19 @@ type FetchResult struct {
 }
 
 // Execute coleta as edições publicadas no período [agora-lookback, agora].
-// É idempotente: edições já processadas (com marcador) são ignoradas.
-// Falhas em uma edição não interrompem as demais.
 func (uc *FetchEditions) Execute(ctx context.Context, lookback time.Duration) (FetchResult, error) {
 	to := uc.now()
-	editions, err := uc.source.ListEditions(ctx, to.Add(-lookback), to)
+	return uc.ExecuteRange(ctx, to.Add(-lookback), to)
+}
+
+// ExecuteRange coleta as edições publicadas entre from e to (backfill).
+// É idempotente: edições já processadas (com marcador) são ignoradas.
+// Falhas em uma edição não interrompem as demais.
+func (uc *FetchEditions) ExecuteRange(ctx context.Context, from, to time.Time) (FetchResult, error) {
+	if to.Before(from) {
+		return FetchResult{}, fmt.Errorf("período inválido: %s depois de %s", from.Format(time.DateOnly), to.Format(time.DateOnly))
+	}
+	editions, err := uc.source.ListEditions(ctx, from, to)
 	if err != nil {
 		return FetchResult{}, fmt.Errorf("listar edições: %w", err)
 	}
