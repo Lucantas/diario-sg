@@ -46,8 +46,16 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 		return err
 	}
 
+	if err := insertActs(ctx, tx, g.ID, acts); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func insertActs(ctx context.Context, tx *sql.Tx, gazetteID string, acts []domain.Act) error {
 	insertAct, err := tx.PrepareContext(ctx, `
-		INSERT INTO acts (gazette_id, type, title, body, position) VALUES ($1, $2, $3, $4, $5) RETURNING id`)
+		INSERT INTO acts (gazette_id, type, title, body, position, page_start, page_end, organ)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`)
 	if err != nil {
 		return err
 	}
@@ -61,7 +69,8 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 	defer insertEntity.Close()
 	for _, a := range acts {
 		var actID string
-		if err := insertAct.QueryRowContext(ctx, g.ID, string(a.Type), a.Title, a.Body, a.Position).Scan(&actID); err != nil {
+		if err := insertAct.QueryRowContext(ctx, gazetteID, string(a.Type), a.Title, a.Body, a.Position,
+			a.PageStart, a.PageEnd, a.Organ).Scan(&actID); err != nil {
 			return fmt.Errorf("ato %d: %w", a.Position, err)
 		}
 		for _, e := range a.Entities {
@@ -70,7 +79,7 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 			}
 		}
 	}
-	return tx.Commit()
+	return nil
 }
 
 func (r *GazetteRepo) FindByID(ctx context.Context, id string) (domain.Gazette, error) {
