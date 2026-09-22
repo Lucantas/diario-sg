@@ -64,7 +64,7 @@ func TestListEditionsFollowsPaginationAndThrottles(t *testing.T) {
 		switch {
 		case r.Method == http.MethodPost && r.URL.Path == "/index":
 			r.ParseForm()
-			if r.PostForm.Get("Termo") != listingTerm || r.PostForm.Get("DataInicial") != "2026-09-08" || r.PostForm.Get("DataFinal") != "2026-09-21" {
+			if r.PostForm.Get("Termo") != "a" || r.PostForm.Get("DataInicial") != "2026-09-08" || r.PostForm.Get("DataFinal") != "2026-09-21" {
 				t.Errorf("formulário inesperado: %v", r.PostForm)
 			}
 			w.Write([]byte(fixture(t, "listing_page1.html")))
