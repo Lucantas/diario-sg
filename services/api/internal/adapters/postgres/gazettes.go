@@ -118,7 +118,7 @@ func (r *GazetteRepo) ReplaceActs(ctx context.Context, gazetteID, editionNumber 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback() //nolint:errcheck // sem efeito após Commit
+	defer tx.Rollback() //nolint:errcheck
 
 	if _, err := tx.ExecContext(ctx, `DELETE FROM acts WHERE gazette_id = $1`, gazetteID); err != nil {
 		return err

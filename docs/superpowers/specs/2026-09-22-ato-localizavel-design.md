@@ -121,7 +121,9 @@ sem `\f` é tudo página 1.
   `ANEXO` não vira órgão; cabeçalho quebrado na virada de página fica com a
   página da primeira linha. Os testes existentes, inclusive os de fixtures
   reais (`fixtures_test.go`, `measure_test.go`), continuam passando sem
-  mudar a segmentação: mesma quantidade de atos e mesmos títulos.
+  mudar a segmentação: mesma quantidade de atos e mesmos títulos, exceto
+  cabeçalhos quebrados na virada de página, que agora são reunidos (ver
+  Riscos).
 - Edições reais (`testdata/editions`, pulado quando ausentes, como
   `measure_test.go`): para todo ato, `1 <= PageStart <= PageEnd <= páginas`,
   e a primeira e a última linha do corpo, quando aparecem literalmente no
@@ -144,9 +146,20 @@ sem `\f` é tudo página 1.
   `joinSplitHeaders` quanto pela continuação por preposição pendurada,
   `headerContinues`) agora é reunido num só ato, onde o parser antigo gerava
   dois. Nas 7 edições reais de `testdata/editions` a saída é idêntica à do
-  parser antigo (413 atos); o efeito sobre a base inteira é medido pela
-  reindexação completa da Task 6.
+  parser antigo (413 atos); na reindexação completa da base local (1.740
+  edições, 0 falhas) a contagem de atos ficou idêntica, 73.526 antes e
+  depois, edição a edição.
 - **Reindexação completa leva tempo** (1.740 edições, `pdftotext` em cada):
   é sequencial e retomável por período, porque é idempotente.
 - **Contagem de atos pode mudar** na reindexação se o parser atual difere do
   que indexou edições antigas; a diferença é reportada, não escondida.
+- **Siglas falsas de órgão**: a regra de sigla de seção (`isOrganSection`)
+  também aceita palavras de tabela/texto e sobrenomes (ex.: TOTAL,
+  CANCELAMENTO, DO, DE, NA, FONTE, DESPESA, DA, SILVA); cerca de 2.200 atos
+  (~3%) da base local. Como o órgão vale até a próxima sigla, uma sigla
+  falsa também rotula errado os atos seguintes (TOTAL: 709 atos em 123
+  edições); todo valor de 2 letras observado é falso (~650 atos). Decisão:
+  sem stoplist na 1a; na 1c a tabela sigla → nome vira allowlist aplicada NO
+  PARSER (uma sigla fora da lista continua fechando o ato, a segmentação não
+  muda, mas não troca o órgão corrente), seguida de `make reindex`. Ninguém
+  lê `organ` ainda.

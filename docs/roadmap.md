@@ -59,12 +59,17 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
 Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
 
 - **Proveniência.** Guardar a página de cada ato ✅ (1a, commit
-  `bc0c2cc..HEAD`) e linkar `…pdf#page=N`. Mostrar o hash do PDF e servir a
+  `bc0c2cc..d5d018d`) e linkar `…pdf#page=N`. Mostrar o hash do PDF e servir a
   cópia arquivada no nosso bucket (a prefeitura pode tirar o arquivo do ar).
-  Botão "citar este ato" com edição, data, página e link.
+  Botão "citar este ato" com edição, data, página e link. Em produção ainda
+  não há como rodar a reindexação (sem job no Cloud Run, `deploy.yml` não a
+  executa) — antes de publicar 1b, produção precisa de um job de reindexação,
+  já que até lá os atos de lá ficam com página nula.
 - **Órgão.** Persistir a sigla que `isOrganSection` já reconhece ✅ (1a,
-  commit `bc0c2cc..HEAD`) e expor filtro por secretaria, com os nomes por
-  extenso das siglas (1c).
+  commit `bc0c2cc..d5d018d`) e expor filtro por secretaria, com os nomes por
+  extenso das siglas (1c). A allowlist de siglas da 1c precisa ser aplicada
+  no parser (depois `make reindex`), porque siglas falsas (TOTAL, DO, DE…,
+  ~3% dos atos) se propagam para os atos seguintes.
 - **Busca de investigador.** Faixa de valor (a partir de `act_entities`),
   operadores booleanos, URL permanente para cada consulta.
 - **Exportação.** CSV/JSON de qualquer busca e dump completo periódico

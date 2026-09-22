@@ -82,6 +82,28 @@ func TestReindexGazettes_FailureKeepsOldActsAndContinues(t *testing.T) {
 	}
 }
 
+func TestReindexGazettes_StopsWhenContextIsCancelled(t *testing.T) {
+	repo := newMemGazettes()
+	seed(repo, "a", day(10), "1", domain.Act{Title: "antigo"})
+	seed(repo, "b", day(11), "2", domain.Act{Title: "antigo"})
+	storage := pathStorage{"a.pdf": "PORTARIA 1", "b.pdf": "PORTARIA 2"}
+	uc := NewReindexGazettes(repo, storage, echoExtractor{}, lineParser{}, cnpjExtractor{})
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	res, err := uc.Execute(ctx, day(10), day(11))
+
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("esperava context.Canceled, veio %v", err)
+	}
+	if res != (ReindexResult{Found: 2, Reindexed: 0, Failed: 0}) {
+		t.Fatalf("resultado inesperado: %+v", res)
+	}
+	if repo.acts["a"][0].Title != "antigo" || repo.acts["b"][0].Title != "antigo" {
+		t.Fatalf("contexto cancelado não pode tocar os atos: %+v", repo.acts)
+	}
+}
+
 func TestReindexGazettes_RejectsInvertedPeriod(t *testing.T) {
 	uc := NewReindexGazettes(newMemGazettes(), pathStorage{}, echoExtractor{}, lineParser{}, cnpjExtractor{})
 
