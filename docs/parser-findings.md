@@ -134,6 +134,16 @@ com título no fim de cada bloco.
 - O resto (verbos, `Port. nº`, siglas de órgão, extratos) é igual ao formato
   atual.
 
+### Edições de 2010 a 2013
+
+- O bloco de pessoal abre com `GABINETE DA PREFEITA` (e não `DO
+  PREFEITO`), que não está em `preambleMarkers`; o corte do preâmbulo cai
+  no primeiro início de ato, o que dá o mesmo resultado nas edições
+  conferidas.
+- As portarias abreviadas do gabinete vêm sem sigla de órgão antes delas.
+- Aparecem cabeçalhos de tabela sozinhos na linha (`SUPERVISOR`, `CARGO`,
+  `NOME`, `DESPESA`, `TOTAL`), que casam com o formato de sigla.
+
 ## Como aparecem nomes, cargos, matrículas
 
 - **Portaria do prefeito (formal)**: `PORTARIA Nº 1490/2026` / `O PREFEITO

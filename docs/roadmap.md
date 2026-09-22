@@ -51,6 +51,18 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
   pelo parser.
 - [x] `is_extra` em `gazettes`, coluna gerada a partir do sufixo `_N` da
   URL (migration 004), na API (edição e busca) e no front.
+- [x] Backfill de 2010 a 2019 (22/09/2026): 2.561 edições encontradas e
+  indexadas, nenhuma falha (278, 287, 291, 248, 245, 242, 241, 248, 238 e
+  243 por ano), 78.832 atos. A base local vai de 05/01/2010 a hoje, com
+  4.301 edições. Os PDFs antigos têm texto extraível e o mesmo layout de
+  duas colunas; pesam 646 MB no total (o Postgres cresceu 167 MB).
+- [ ] Nenhuma edição extra antes de 2020 foi listada. Não confirmei se o
+  site não tinha extras nesse período ou se elas usam outro padrão de URL.
+- [ ] Mais atos em `outro` de 2010 a 2019 (10% a 15% por ano, contra 7% a
+  10% depois). Dos 10.054, 4.468 (44%) são `TERMO DE APROVAÇÃO DE
+  PRESTAÇÃO DE CONTAS` e 4.678 (47%) são corrigendas; só ~2% é título
+  quebrado (`SEMAD`, `X`, `CARGO`, vazio). Tipos `corrigenda` e
+  `prestacao_contas` tirariam 91% do `outro` antigo e 55% do de 2020 em diante.
 
 **Pronto quando:** a contagem de edições por ano bate com a listagem do site.
 
@@ -70,6 +82,22 @@ Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
   extenso das siglas (1c). A allowlist de siglas da 1c precisa ser aplicada
   no parser (depois `make reindex`), porque siglas falsas (TOTAL, DO, DE…,
   ~3% dos atos) se propagam para os atos seguintes.
+  A allowlist sozinha não basta: o órgão também vaza para seções **sem**
+  sigla. O bloco de portarias do gabinete (`Port. nº`, nomeações e
+  exonerações) herda a última sigla vista antes dele. Em 20/06/2016 as
+  `Port. nº 1360` e `1495` a `1498` (p. 9) e as atas do Conselho Municipal de Saúde
+  ficaram com `SUBCOMP`, e 21 atos anteriores com `EXECUTIVO` (fim de
+  "MENSAGEM … DO PODER / EXECUTIVO" quebrado em duas linhas). A sigla
+  `CMS` dessa edição não é reconhecida porque vem antes de `RESOLUÇÃO “P”
+  nº 015/CMS-SG/16`, que não casa como cabeçalho. Por isso a taxa de
+  preenchimento engana: 2010 a 2013 têm ~40% dos atos com órgão contra
+  ~85% depois, mas lá 12.974 das 14.054 portarias abreviadas ficam sem
+  órgão, o que é o certo (o gabinete não publica sigla), enquanto de 2014
+  em diante elas aparecem com `FMS`, `CMAS`, `CMDCA`, `TOTAL` e
+  `SEMIURBCPARJ`. Não conferi a amostra de 2020 em diante ato a ato. A
+  correção precisa zerar o órgão em marcos de seção (`GABINETE DO
+  PREFEITO`, `GABINETE DA PREFEITA`, `ATOS DO PREFEITO`) além de validar
+  a sigla.
 - **Busca de investigador.** Faixa de valor (a partir de `act_entities`),
   operadores booleanos, URL permanente para cada consulta.
 - **Exportação.** CSV/JSON de qualquer busca e dump completo periódico
