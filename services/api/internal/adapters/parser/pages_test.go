@@ -49,6 +49,17 @@ func TestParse_SplitHeaderAcrossPagesKeepsTheFirstPage(t *testing.T) {
 	}
 }
 
+func TestParse_DanglingHeaderAcrossPagesIsJoined(t *testing.T) {
+	text := "EXTRATO DO QUINTO TERMO ADITIVO DE PRORROGAÇÃO AO\n\fCONTRATO DE LOCAÇÃO 006/2020.\nObjeto: prorrogação do prazo."
+
+	got := pageSpans(New().Parse(text))
+
+	want := "EXTRATO DO QUINTO TERMO ADITIVO DE PRORROGAÇÃO AO CONTRATO DE LOCAÇÃO 006/2020. 1-2"
+	if len(got) != 1 || got[0] != want {
+		t.Errorf("esperava [%s], veio %v", want, got)
+	}
+}
+
 func TestRealEditions_ActPagesMatchTheText(t *testing.T) {
 	files, _ := filepath.Glob(filepath.Join("..", "..", "..", "testdata", "editions", "*.txt"))
 	if len(files) == 0 {

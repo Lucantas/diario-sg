@@ -138,8 +138,14 @@ sem `\f` é tudo página 1.
 
 ## Riscos
 
-- **Segmentação mudar sem querer** ao trocar `[]string` por `[]line`: os
-  testes de fixtures reais pegam diferença de contagem e de títulos.
+- **Virada de página deixa de inserir linha em branco**: o `\n` que fecha a
+  última linha de uma página, logo antes do `\f`, não vira mais uma linha
+  vazia espúria. Efeito: um cabeçalho quebrado na virada de página (tanto por
+  `joinSplitHeaders` quanto pela continuação por preposição pendurada,
+  `headerContinues`) agora é reunido num só ato, onde o parser antigo gerava
+  dois. Nas 7 edições reais de `testdata/editions` a saída é idêntica à do
+  parser antigo (413 atos); o efeito sobre a base inteira é medido pela
+  reindexação completa da Task 6.
 - **Reindexação completa leva tempo** (1.740 edições, `pdftotext` em cada):
   é sequencial e retomável por período, porque é idempotente.
 - **Contagem de atos pode mudar** na reindexação se o parser atual difere do
