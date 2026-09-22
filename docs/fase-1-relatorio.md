@@ -27,30 +27,43 @@ os workflows do GitHub Actions não rodaram.
 
 ## 2. Números do parser
 
-Fonte: 9 edições reais (7 baixadas à mão + 2 coletadas pelo scraper), indexadas
-pelo pipeline completo; contagens tiradas do banco após a indexação. As mesmas
-contagens saem de `go test -run Measure -v ./internal/adapters/parser/` (que
-lê `services/api/testdata/editions/*.txt`; `./scripts/fetch-editions.sh` baixa
-os arquivos, que não são versionados por conterem nomes de pessoas).
+### 2.1 Base completa: 2020 a 2026
 
-| Edição | Páginas | Atos | `outro` | % outro | nomeação+exoneração | contratos/licitações |
-| --- | --- | --- | --- | --- | --- | --- |
-| 2024-03-15 (1062) | 12 | 38 | 1 | 3% | 18 | 4 |
-| 2026-03-31 (1652) | 12 | 49 | 3 | 6% | 2 | 18 |
-| 2026-06-30 (1714) | 8 | 20 | 5 | 25% | 1 | 0 |
-| 2026-08-31 (1758) | 21 | 143 | 6 | 4% | 3 | 16 |
-| 2026-09-14 (1767) | — | 19 | 2 | 11% | 1 | 2 |
-| 2026-09-15 (1768) | — | 65 | 4 | 6% | 3 | 6 |
-| 2026-09-16 (1769) | 23 | 58 | 7 | 12% | 4 | 14 |
-| 2026-09-17 (1770) | 11 | 54 | 4 | 7% | 7 | 6 |
-| 2026-09-18 (1771) | 11 | 51 | 10 | 20% | 4 | 8 |
-| **Total** | | **497** | **42** | **8%** | 43 | 74 |
+Todas as edições publicadas em https://do.pmsg.rj.gov.br/ de 02/01/2020 a
+18/09/2026 foram coletadas pelo scraper (`make run-scraper FROM=2020-01-01
+TO=2020-12-31`, um ano por vez) e indexadas pelo worker. Contagens tiradas do
+banco depois da reindexação com o parser corrigido (ver 2.3).
 
-Distribuição por tipo (497 atos): despacho 178, portaria 97, outro 42,
-licitação 41, nomeação 25, edital 24, decreto 21, exoneração 18, aditivo 15,
-contrato 14, resolução 9, ata 7, dispensa 4, lei 2.
+| Ano | Edições | Atos | Atos/edição | `outro` | Atos só com título |
+| --- | --- | --- | --- | --- | --- |
+| 2020 | 241 | 7.722 | 32,0 | 6,7% | 229 |
+| 2021 | 248 | 10.174 | 41,0 | 10,8% | 363 |
+| 2022 | 241 | 12.546 | 52,1 | 7,8% | 260 |
+| 2023 | 240 | 11.392 | 47,5 | 7,3% | 187 |
+| 2024 | 243 | 10.973 | 45,2 | 7,0% | 181 |
+| 2025 | 237 | 11.398 | 48,1 | 10,0% | 190 |
+| 2026 (até 18/09) | 172 | 8.760 | 50,9 | 8,9% | 139 |
+| **Total** | **1.622** | **72.965** | 45,0 | **8,4%** | 1.412 (1,9%) |
 
-Entidades extraídas por regex: 478 valores, 308 processos, 89 CNPJs, 25 contratos.
+Distribuição por tipo: portaria 16.784, despacho 15.935, nomeação 8.549,
+outro 6.111, exoneração 6.103, contrato 4.362, licitação 4.360, decreto 3.601,
+edital 2.287, aditivo 2.120, resolução 1.111, ata 667, lei 648, dispensa 327.
+
+Entidades: 11.621 menções a CNPJ (3.612 CNPJs distintos) e 35.137 valores.
+
+O que cai em `outro` na base inteira: corrigendas de portaria (1.474),
+termos de aprovação de prestação de contas (1.039), concessão de licença
+ambiental (638), corrigendas avulsas (458), notificações (186), termos de
+apreensão (180). Um tipo `corrigenda` resolveria um quarto do `outro`.
+
+Formato das edições antigas: até 07/04/2021 o número da edição não existe no
+texto extraído, então `edition_number` fica vazio em 309 edições (todas de
+2020 e 68 de 2021); a data e o link para o PDF continuam corretos. Fora isso o
+formato de 2020 é igual ao atual (mesmos verbos, `Port. nº`, siglas de
+órgão), só sem a capa de notícias: o anexo de pessoal começa logo após
+`GABINETE DO PREFEITO`.
+
+### 2.2 Amostra contada à mão
 
 **Precisão medida à mão.** Só a edição de 18/09/2026 foi contada ato a ato
 (li o texto inteiro): 50 atos reais; o parser produziu 51, todos com a
@@ -65,15 +78,32 @@ aprovação de prestação de contas, concessão de licença ambiental, convoca�
 e o bloco `Continuação do D.O.E.`. Não vi ato de nomeação, contrato ou
 licitação classificado como `outro` nas amostras.
 
+### 2.3 Erro encontrado depois da primeira versão deste relatório
+
+Ao carregar 2020 a 2024 ficou visível que **o número da portaria abreviada
+vem depois do corpo** (`Exonera:` → texto → `Port. nº 808/2020`), em todos
+os anos. A primeira versão do parser tratava `Port. nº` como cabeçalho, então
+cada número recebia o corpo da portaria *seguinte* e o último número de cada
+bloco virava um ato só com título (492 casos em 2025–2026). A confirmação
+está em `docs/parser-findings.md` (três evidências, inclusive com
+`pdftotext -layout`). Correção nos commits `4681b82` e `73e662c`; a base foi
+reindexada inteira depois disso. A contagem de 18/09/2026 continua 51 atos,
+agora com o corpo certo em cada número.
+
 **Erros conhecidos.**
 
 - Cabeçalho ausente no texto extraído (2024-03-15: `DECRETO N.º 104/2024` não
   sai do pdftotext); a ementa fica colada ao anexo do decreto anterior. Sem OCR
   não há como recuperar.
-- Anexo `Continuação do D.O.E.` começa no meio de uma portaria (o cabeçalho
-  ficou fora do PDF) e termina com `Port. nº N/AAAA` sem corpo: o primeiro
-  pedaço vira um ato `outro` com título "Continuação do D.O.E. em ..." e o
-  último vira uma portaria só com título.
+- Portaria abreviada cujo corpo é uma tabela (lista de servidores designados)
+  que atravessa a quebra de página: a segunda metade da tabela vira o corpo do
+  `Port. nº` seguinte (413 de 15.127 portarias abreviadas, 2,7%, não começam
+  com o verbo).
+- Portaria abreviada sem `Port. nº` no fim (fim de seção ou de página antes do
+  número): fica com o verbo como título (`Nomeia:`, `Exonera:`); 778 casos
+  (1,1% dos atos), classificadas certo mas sem número.
+- Assinatura do secretário logo depois da sigla do órgão e antes do primeiro
+  cabeçalho vira um ato `outro` com o nome dele como título (~400 casos).
 - `TERMO DE APREENSÃO ADMINISTRATIVA Nº:` com o número na linha seguinte fica
   sem número no título (2026-03-31).
 - Sigla de órgão seguida do nome por extenso (`SMTC` + `SECRETARIA MUNICIPAL DE
