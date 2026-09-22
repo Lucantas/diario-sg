@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -89,4 +90,12 @@ func (r *GazetteRepo) FindByID(ctx context.Context, id string) (domain.Gazette, 
 		FROM gazettes WHERE id = $1`, id,
 	).Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.IsExtra, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt)
 	return g, notFound(err)
+}
+
+func (r *GazetteRepo) ListByPeriod(context.Context, time.Time, time.Time) ([]domain.Gazette, error) {
+	return nil, errors.New("ListByPeriod: não implementado")
+}
+
+func (r *GazetteRepo) ReplaceActs(context.Context, string, string, []domain.Act) error {
+	return errors.New("ReplaceActs: não implementado")
 }

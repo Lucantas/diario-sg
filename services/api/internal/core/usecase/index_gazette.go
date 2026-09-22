@@ -58,10 +58,7 @@ func (uc *IndexGazette) Execute(ctx context.Context, in IndexGazetteInput) error
 		return fmt.Errorf("extrair texto: %w", err)
 	}
 
-	acts := uc.parser.Parse(text)
-	for i := range acts {
-		acts[i].Entities = uc.entities.Extract(acts[i].Body)
-	}
+	acts := parseActs(uc.parser, uc.entities, text)
 	number := in.EditionNumber
 	if number == "" {
 		number = uc.parser.EditionNumber(text)

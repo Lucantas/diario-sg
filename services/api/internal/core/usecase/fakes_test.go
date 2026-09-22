@@ -3,7 +3,9 @@ package usecase
 import (
 	"context"
 	"io"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -36,6 +38,23 @@ func (m *memGazettes) FindByID(_ context.Context, id string) (domain.Gazette, er
 		return g, domain.ErrNotFound
 	}
 	return g, nil
+}
+func (m *memGazettes) ListByPeriod(_ context.Context, from, to time.Time) ([]domain.Gazette, error) {
+	var out []domain.Gazette
+	for _, g := range m.saved {
+		if !g.PublishedAt.Before(from) && !g.PublishedAt.After(to) {
+			out = append(out, g)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].PublishedAt.Before(out[j].PublishedAt) })
+	return out, nil
+}
+func (m *memGazettes) ReplaceActs(_ context.Context, id, number string, acts []domain.Act) error {
+	g := m.saved[id]
+	g.EditionNumber = number
+	m.saved[id] = g
+	m.acts[id] = acts
+	return nil
 }
 
 type memStorage struct{}
