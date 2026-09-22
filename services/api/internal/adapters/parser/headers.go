@@ -74,15 +74,15 @@ func headerContinues(line string) bool { return danglingEndRe.MatchString(line) 
 // cabeçalho de ato ou do verbo de uma portaria. Não entram em nenhum ato.
 var organRe = regexp.MustCompile(`^[A-Z]{2,14}$`)
 
-func isOrganSection(lines []string, i int) bool {
-	if !organRe.MatchString(lines[i]) || isHeader(lines[i]) {
+func isOrganSection(lines []line, i int) bool {
+	if !organRe.MatchString(lines[i].text) || isHeader(lines[i].text) {
 		return false
 	}
 	for j := i + 1; j < len(lines) && j <= i+2; j++ {
-		if lines[j] == "" {
+		if lines[j].text == "" {
 			continue
 		}
-		return startsAct(lines[j])
+		return startsAct(lines[j].text)
 	}
 	return false
 }

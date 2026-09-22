@@ -38,6 +38,8 @@ type Act struct {
 	Title     string
 	Body      string
 	Position  int
+	PageStart int
+	PageEnd   int
 	Entities  []Entity
 }
 
