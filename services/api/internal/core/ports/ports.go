@@ -5,6 +5,7 @@ package ports
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -15,6 +16,8 @@ type GazetteRepository interface {
 	// SaveWithActs grava a edição e seus atos numa transação e preenche g.ID.
 	SaveWithActs(ctx context.Context, g *domain.Gazette, acts []domain.Act) error
 	FindByID(ctx context.Context, id string) (domain.Gazette, error)
+	ListByPeriod(ctx context.Context, from, to time.Time) ([]domain.Gazette, error)
+	ReplaceActs(ctx context.Context, gazetteID, editionNumber string, acts []domain.Act) error
 }
 
 type ActRepository interface {
