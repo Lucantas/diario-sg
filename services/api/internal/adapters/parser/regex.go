@@ -34,9 +34,15 @@ func (Regex) Parse(text string) []domain.Act {
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
 		switch {
-		case isOrganSection(lines, i):
+		case isOrganSection(lines, i), isContinuation(l):
 			flush()
-		case isHeader(l) || isContinuation(l):
+		case isPortariaTrailer(l):
+			if current == nil {
+				current = &segment{}
+			}
+			current.close(l)
+			flush()
+		case isHeader(l):
 			flush()
 			title := []string{l}
 			for headerContinues(l) && i+1 < len(lines) && lines[i+1] != "" {
@@ -63,6 +69,13 @@ type segment struct {
 	title  string
 	lines  []string
 	orphan bool
+}
+
+// close dá ao segmento o número de portaria que o encerra.
+func (s *segment) close(trailer string) {
+	s.title = trailer
+	s.orphan = false
+	s.lines = append(s.lines, trailer)
 }
 
 const (

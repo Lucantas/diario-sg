@@ -54,18 +54,19 @@ func lastNonEmpty(lines []string) int {
 	return -1
 }
 
-const preambleMarker = "ATOS DO PREFEITO"
+var preambleMarkers = map[string]bool{"ATOS DO PREFEITO": true, "GABINETE DO PREFEITO": true}
 
 // dropPreamble descarta capa (notícias) e expediente (lista de secretários):
-// tudo antes de "ATOS DO PREFEITO" ou, na falta dele, do primeiro cabeçalho.
+// tudo antes de "ATOS DO PREFEITO" (edições até 2020: "GABINETE DO
+// PREFEITO") ou, na falta dele, do primeiro início de ato.
 func dropPreamble(lines []string) []string {
 	for i, l := range lines {
-		if l == preambleMarker {
+		if preambleMarkers[l] {
 			return lines[i+1:]
 		}
 	}
 	for i, l := range lines {
-		if isHeader(l) || isContinuation(l) {
+		if startsAct(l) {
 			return lines[i:]
 		}
 	}

@@ -11,7 +11,7 @@ import (
 func classify(title, body string) domain.ActType {
 	t := strings.ToUpper(title)
 	switch {
-	case strings.HasPrefix(t, "PORT"):
+	case strings.HasPrefix(t, "PORT"), isPortariaVerb(title):
 		return classifyPortaria(title, body)
 	case strings.HasPrefix(t, "DECRETO"):
 		return domain.ActDecreto

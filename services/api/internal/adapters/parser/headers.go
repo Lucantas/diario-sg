@@ -25,18 +25,21 @@ var headerRes = []*regexp.Regexp{
 	regexp.MustCompile(`^(?:CONCESSÃO DE LICENÇA|CONVOCAÇÃO|ERRATA|CORRIGENDA|RETIFICAÇÃO|REPUBLICAÇÃO|COMUNICADO|APOSTILA)\b`),
 }
 
-// Portaria abreviada do anexo de pessoal: "Port. nº 1497/2026".
-var shortPortariaRe = regexp.MustCompile(`^Port\.?\s*n[º°.]?\s*\d+/\d{2,4}`)
+// No anexo de pessoal a portaria abreviada vem FECHANDO o ato: primeiro o
+// verbo ("Exonera:", "Nomeia:"), depois o corpo e por último "Port. nº
+// 1497/2026". O número, portanto, é o rodapé do segmento corrente.
+var portariaTrailerRe = regexp.MustCompile(`^Port\.?\s*n[º°.]?\s*\d+/\d{2,4}`)
 
+var portariaVerbRe = regexp.MustCompile(`^(?:Nomeia|Exonera|Designa|Torna|Tornar|Cessar|Concede|Retifica|Dispensa|Revoga|Autoriza|Convoca|Prorroga|Suspende)\b[^:]{0,60}:?$`)
+
+// "Continuação do D.O.E. em 18/09/2026" abre um novo bloco do anexo de
+// pessoal no topo da página; é fronteira de seção, não título de ato.
 var continuationRe = regexp.MustCompile(`^Continuação do D\.O\.E\.`)
 
 // isHeader exige caixa alta na linha inteira: palavras de cabeçalho também
 // aparecem no meio de frases ("realizará\nDISPENSA DE LICITAÇÃO ... visando a"),
 // mas aí a linha traz minúsculas.
 func isHeader(line string) bool {
-	if shortPortariaRe.MatchString(line) {
-		return true
-	}
 	if strings.ToUpper(line) != line {
 		return false
 	}
@@ -50,6 +53,14 @@ func isHeader(line string) bool {
 
 func isContinuation(line string) bool { return continuationRe.MatchString(line) }
 
+func isPortariaTrailer(line string) bool { return portariaTrailerRe.MatchString(line) }
+
+func isPortariaVerb(line string) bool { return portariaVerbRe.MatchString(line) }
+
+func startsAct(line string) bool {
+	return isHeader(line) || isContinuation(line) || isPortariaVerb(line)
+}
+
 // Um cabeçalho que termina em preposição/conjunção continua na linha seguinte
 // ("EXTRATO DO QUINTO TERMO ADITIVO DE PRORROGAÇÃO AO" + "CONTRATO DE LOCAÇÃO 006/2020.").
 var danglingEndRe = regexp.MustCompile(`\b(?:DE|DO|DA|DOS|DAS|AO|À|COM|SEM|E|PARA|NO|NA|NOS|NAS|POR|SOB)$`)
@@ -57,7 +68,7 @@ var danglingEndRe = regexp.MustCompile(`\b(?:DE|DO|DA|DOS|DAS|AO|À|COM|SEM|E|PA
 func headerContinues(line string) bool { return danglingEndRe.MatchString(line) }
 
 // Siglas de órgão abrem seção: linha só com letras maiúsculas, seguida de um
-// cabeçalho de ato. Não entram em nenhum ato.
+// cabeçalho de ato ou do verbo de uma portaria. Não entram em nenhum ato.
 var organRe = regexp.MustCompile(`^[A-Z]{2,14}$`)
 
 func isOrganSection(lines []string, i int) bool {
@@ -68,7 +79,7 @@ func isOrganSection(lines []string, i int) bool {
 		if lines[j] == "" {
 			continue
 		}
-		return isHeader(lines[j])
+		return startsAct(lines[j])
 	}
 	return false
 }

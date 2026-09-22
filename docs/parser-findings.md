@@ -102,6 +102,38 @@ Observações:
   baixa/mista (`Portaria nº 240/SUBRH/SEMAD/2018`, `Decreto nº 151`), o que
   permite exigir caixa alta no início da linha.
 
+### A portaria abreviada vem no fim do ato, não no início
+
+No anexo de pessoal a ordem é **verbo → corpo → número**:
+
+```
+Nomeia:
+a contar de 18 de setembro de 2026, FULANA ... para exercer o
+cargo em comissão de ...
+Port. nº 1499/2026
+Exonera a pedido:
+a contar de 17 de setembro de 2026, ...
+Port. nº 1500/2026
+```
+
+Três evidências, conferidas em 2020, 2021 e 2026 (inclusive com `-layout`):
+o primeiro ato do bloco vem logo após `GABINETE DO PREFEITO`/`ATOS DO
+PREFEITO`/`Continuação do D.O.E.` sem número antes dele; o último `Port. nº`
+do bloco é seguido só do rodapé da página; e `Continuação do D.O.E. em
+DD/MM/AAAA` está sempre no topo de uma página, seguido de um verbo.
+Tratar `Port. nº` como cabeçalho (como a primeira versão do parser fazia)
+atribuía a cada número o corpo da portaria **seguinte** e deixava um ato só
+com título no fim de cada bloco.
+
+### Edições até abril de 2021
+
+- Não existe `ATOS DO PREFEITO`; o anexo de pessoal começa logo após
+  `GABINETE DO PREFEITO`, sem capa de notícias.
+- O número da edição não aparece no texto extraído (`EDIÇÃO N°` só existe a
+  partir de 08/04/2021), então `edition_number` fica vazio nessas edições.
+- O resto (verbos, `Port. nº`, siglas de órgão, extratos) é igual ao formato
+  atual.
+
 ## Como aparecem nomes, cargos, matrículas
 
 - **Portaria do prefeito (formal)**: `PORTARIA Nº 1490/2026` / `O PREFEITO
@@ -139,8 +171,8 @@ Observações:
 
 1. Extrair sem `-layout`.
 2. Remover ruído de página (cabeçalho/rodapé, número de página seguido da URL).
-3. Descartar capa e expediente: tudo antes de `ATOS DO PREFEITO` (ou do primeiro
-   cabeçalho reconhecido, quando a seção não existe).
+3. Descartar capa e expediente: tudo antes de `ATOS DO PREFEITO` (até 2020,
+   `GABINETE DO PREFEITO`; na falta dos dois, do primeiro início de ato).
 4. Linhas só com sigla de órgão em caixa alta abrem seção: encerram o ato
    anterior e não entram no próximo.
 5. Juntar sequências de linhas de uma palavra em caixa alta que começam com uma
@@ -150,6 +182,11 @@ Observações:
    exoneração; `Torna sem efeito` continua portaria).
 7. Tipos novos no domínio porque a taxonomia original não cobria o que existe
    de fato: `despacho`, `resolucao`, `edital`, `ata`.
+8. `Port. nº N/AAAA` **fecha** o segmento corrente e vira o título dele; o
+   corpo é o texto desde o verbo (`Exonera:`, `Nomeia:`, `Designa`...). Um
+   `Port. nº` sem nada antes vira ato só com o número, para não perdê-lo.
+9. `Continuação do D.O.E.` é fronteira de seção, como a sigla de órgão: encerra
+   o ato anterior e não entra em nenhum ato.
 
 Os números do parser (atos por edição, % em `outro`, erros conhecidos) estão em
 `docs/fase-1-relatorio.md`.
