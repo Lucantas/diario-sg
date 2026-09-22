@@ -84,6 +84,7 @@ function SearchPage() {
         />
         <button type="submit" disabled={loading}>{loading ? "Buscando" : "Buscar"}</button>
       </form>
+      <p className="hint">Entre aspas ("josé da silva") só a frase exata é encontrada.</p>
 
       <div className="types" role="group" aria-label="Tipo de ato">
         {TYPES.map((t) => (

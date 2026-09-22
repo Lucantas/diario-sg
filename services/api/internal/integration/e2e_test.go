@@ -40,7 +40,9 @@ EXTRATO DO CONTRATO Nº 55/2026
 Contratada: Empresa Exemplo LTDA, CNPJ: 12.345.678/0001-90. Objeto: fornecimento de medicamentos. Valor: R$ 120.000,00.
 Contrato nº 55/2026. Processo Administrativo nº 8.189/2025.
 PORTARIA Nº 2.346/2026
-Resolve EXONERAR JOSÉ DA SILVA do cargo de Diretor de Conservação.`
+Resolve EXONERAR JOSÉ DA SILVA do cargo de Diretor de Conservação.
+EDITAL DE CONVOCAÇÃO 01/2026
+Convocados: JOSÉ CARLOS MOURA, MARIA SILVA PRADO, JOSÉ AUGUSTO LEAL, ANA SILVA MOTA, JOSÉ PEDRO NUNES, RITA SILVA REIS.`
 
 type textStore struct{}
 
@@ -122,10 +124,17 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("resultado deve listar os CNPJs do ato: %+v", res.Items[0])
 	}
 
-	// 2b. Nome sem acento encontra o nome acentuado em caixa alta
+	// 2b. Nome sem acento encontra o nome acentuado em caixa alta, e a frase
+	// exata vem antes da lista que repete "JOSÉ" e "SILVA" soltos
 	getJSON(t, srv.URL+"/v1/acts?q=jose+da+silva", &res)
-	if res.Total != 1 || res.Items[0].Type != "exoneracao" || !strings.Contains(res.Items[0].Snippet, "⟦JOSÉ⟧") {
+	if res.Total != 2 || res.Items[0].Type != "exoneracao" || res.Items[1].Type != "edital" || !strings.Contains(res.Items[0].Snippet, "⟦JOSÉ⟧") {
 		t.Fatalf("busca sem acento inesperada: %+v", res)
+	}
+
+	// 2b'. Entre aspas só a frase exata casa
+	getJSON(t, srv.URL+"/v1/acts?q=%22jose+da+silva%22", &res)
+	if res.Total != 1 || res.Items[0].Type != "exoneracao" || !strings.Contains(res.Items[0].Snippet, "⟦JOSÉ⟧") {
+		t.Fatalf("busca por frase inesperada: %+v", res)
 	}
 
 	// 2c. Substring que o tokenizador não trata (trecho de CNPJ) casa pelo trigram
@@ -161,7 +170,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 	}
 	getJSON(t, srv.URL+"/v1/stats/acts?group=month", &stats)
-	if stats.Group != "month" || len(stats.Items) != 1 || stats.Items[0].Month != "2026-09" || stats.Items[0].Count != 4 {
+	if stats.Group != "month" || len(stats.Items) != 1 || stats.Items[0].Month != "2026-09" || stats.Items[0].Count != 5 {
 		t.Fatalf("estatísticas inesperadas: %+v", stats)
 	}
 	getJSON(t, srv.URL+"/v1/stats/acts?type=contrato&from=2026-09-01&to=2026-09-30", &stats)

@@ -23,11 +23,13 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
+		`+exactPhraseFor("$7")+`
 		WHERE ($1 = '' OR `+matchFor("$1", "$7")+`)
 		  AND ($2 = '' OR a.type = $2)
 		  AND ($3::date IS NULL OR g.published_at >= $3::date)
 		  AND ($4::date IS NULL OR g.published_at <= $4::date)
-		ORDER BY CASE WHEN $1 = '' THEN 0 ELSE ts_rank(a.search, q) END DESC,
+		ORDER BY x.exact DESC,
+		         CASE WHEN $1 = '' OR x.exact THEN 0 ELSE ts_rank(a.search, q) END DESC,
 		         g.published_at DESC, a.position
 		LIMIT $5 OFFSET $6`,
 		f.Query, string(f.Type), nullableDate(f.From), nullableDate(f.To), f.Limit, f.Offset, likePattern(f.Query))
@@ -47,7 +49,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)
-		h.Snippet = highlightFallback(h.Snippet, f.Query)
+		h.Snippet = highlightFallback(h.Snippet, phraseOf(f.Query))
 		hits = append(hits, h)
 	}
 	return hits, total, rows.Err()
@@ -76,7 +78,7 @@ func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) 
 			return nil, err
 		}
 		h.Type = domain.ActType(typ)
-		h.Snippet = highlightFallback(h.Snippet, query)
+		h.Snippet = highlightFallback(h.Snippet, phraseOf(query))
 		hits = append(hits, h)
 	}
 	return hits, rows.Err()

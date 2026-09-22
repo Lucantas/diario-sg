@@ -8,11 +8,26 @@ const tsConfig = "portuguese_unaccent"
 // Marcadores de destaque: evitamos HTML para não abrir brecha de XSS no front.
 const headlineOpts = `StartSel=⟦, StopSel=⟧, MaxFragments=2, MaxWords=35, MinWords=12`
 
+// phraseOf tira as aspas que o usuário usa para pedir frase exata: o
+// websearch_to_tsquery as entende, mas a comparação literal do corpo não.
+func phraseOf(q string) string {
+	return strings.TrimSpace(strings.Trim(strings.TrimSpace(q), `"`))
+}
+
 // likePattern transforma a busca do usuário em padrão ILIKE de substring,
 // escapando os curingas do LIKE.
 func likePattern(q string) string {
-	q = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(q)
+	q = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(phraseOf(q))
 	return "%" + q + "%"
+}
+
+// Ordem dos resultados: quem traz a frase exata (sem acento, sem caixa) vem
+// antes, do mais recente ao mais antigo; o resto segue o ts_rank, que sozinho
+// favorece listas longas de nomes com as palavras soltas.
+const exactPhraseJoin = `CROSS JOIN LATERAL (SELECT unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE) AS exact) x`
+
+func exactPhraseFor(likeParam string) string {
+	return strings.Replace(exactPhraseJoin, "$LIKE", likeParam, 1)
 }
 
 // Um ato casa quando a busca textual (stemming, sem acentos) bate OU quando
