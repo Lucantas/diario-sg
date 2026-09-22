@@ -23,23 +23,23 @@ func fixture(t *testing.T, name string) string {
 }
 
 func TestParseListingRealHTML(t *testing.T) {
-	dates, pages := parseListing(fixture(t, "listing_page1.html"))
+	editions, pages := parseListing(fixture(t, "listing_page1.html"))
 	want := []string{"2026-09-18", "2026-09-17", "2026-09-16", "2026-09-15", "2026-09-14"}
-	if len(dates) != len(want) {
-		t.Fatalf("esperava %d datas, veio %d: %v", len(want), len(dates), dates)
+	if len(editions) != len(want) {
+		t.Fatalf("esperava %d edições, veio %d: %v", len(want), len(editions), editions)
 	}
 	for i, w := range want {
-		if dates[i].Format(time.DateOnly) != w {
-			t.Errorf("data %d: esperava %s, veio %s", i, w, dates[i].Format(time.DateOnly))
+		if editions[i].date.Format(time.DateOnly) != w || editions[i].path != "diario/"+strings.ReplaceAll(w, "-", "_")+".pdf" {
+			t.Errorf("edição %d: esperava %s, veio %+v", i, w, editions[i])
 		}
 	}
 	if len(pages) != 1 || pages[0] != 2 {
 		t.Errorf("página 1 deveria apontar só para a 2, veio %v", pages)
 	}
 
-	dates, pages = parseListing(fixture(t, "listing_page2.html"))
-	if len(dates) != 4 || dates[3].Format(time.DateOnly) != "2026-09-08" {
-		t.Errorf("página 2 inesperada: %v", dates)
+	editions, pages = parseListing(fixture(t, "listing_page2.html"))
+	if len(editions) != 4 || editions[3].date.Format(time.DateOnly) != "2026-09-08" {
+		t.Errorf("página 2 inesperada: %v", editions)
 	}
 	if len(pages) != 1 || pages[0] != 1 {
 		t.Errorf("página 2 deveria apontar só para a 1, veio %v", pages)
@@ -98,6 +98,46 @@ func TestListEditionsFollowsPaginationAndThrottles(t *testing.T) {
 	}
 	if gap := times[1].Sub(times[0]); gap < s.delay-5*time.Millisecond {
 		t.Errorf("pausa entre requisições não respeitada: %v", gap)
+	}
+}
+
+func TestListEditionsKeepsExtraEditionsOfTheSameDay(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(fixture(t, "listing_extra.html")))
+	}))
+	defer srv.Close()
+	s, _ := New(srv.URL + "/")
+	s.delay = 0
+
+	editions, err := s.ListEditions(context.Background(),
+		time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC), time.Date(2024, 8, 23, 0, 0, 0, 0, time.UTC))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, e := range editions {
+		got = append(got, e.PublishedAt.Format(time.DateOnly)+" "+strings.TrimPrefix(e.URL, srv.URL))
+	}
+	want := []string{
+		"2024-08-21 /diario/2024_08_21.pdf",
+		"2024-08-21 /diario/2024_08_21_1.pdf",
+		"2024-08-22 /diario/2024_08_22.pdf",
+		"2024-08-23 /diario/2024_08_23.pdf",
+		"2024-08-23 /diario/2024_08_23_1.pdf",
+	}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Errorf("esperava\n%s\nveio\n%s", strings.Join(want, "\n"), strings.Join(got, "\n"))
+	}
+}
+
+func TestExtraEditionsGetTheirOwnStoragePath(t *testing.T) {
+	main := editionFor("https://do.pmsg.rj.gov.br", 2024, 8, 21)
+	extra := main
+	extra.URL = "https://do.pmsg.rj.gov.br/diario/2024_08_21_1.pdf"
+
+	if main.StoragePath() == extra.StoragePath() {
+		t.Errorf("edição extra sobrescreveria a principal em %s", main.StoragePath())
 	}
 }
 

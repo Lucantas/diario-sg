@@ -3,7 +3,8 @@
 //
 // Estrutura real do site (docs/parser-findings.md):
 //   - os PDFs ficam em URLs determinísticas: diario/AAAA_MM_DD.pdf (200 quando
-//     há edição, 500 quando não há);
+//     há edição, 500 quando não há); a edição extraordinária do mesmo dia fica
+//     em diario/AAAA_MM_DD_N.pdf;
 //   - a "Busca Específica" (POST index com DataInicial, DataFinal, Termo) lista
 //     as edições do período que contêm o termo, 5 por página, com links
 //     href="diario/AAAA_MM_DD.pdf" e paginação por ?NumeroPagina=N.
@@ -62,15 +63,21 @@ func newClient() *http.Client {
 }
 
 var (
-	editionLinkRe = regexp.MustCompile(`href="diario/(\d{4})_(\d{2})_(\d{2})\.pdf"`)
+	editionLinkRe = regexp.MustCompile(`href="(diario/(\d{4})_(\d{2})_(\d{2})(?:_\d+)?\.pdf)"`)
 	pageLinkRe    = regexp.MustCompile(`NumeroPagina=(\d+)`)
 )
 
-// ListEditions consulta a busca do site para o período e devolve uma edição
-// por data encontrada, da mais antiga para a mais recente.
+type listedEdition struct {
+	path string
+	date time.Time
+}
+
+// ListEditions consulta a busca do site para o período e devolve cada edição
+// encontrada (inclusive as extraordinárias), da mais antiga para a mais
+// recente.
 func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain.Edition, error) {
 	from, to = dayStart(from), dayStart(to)
-	seen := map[time.Time]bool{}
+	seen := map[string]time.Time{}
 	pending := []int{1}
 	visited := map[int]bool{}
 	for len(pending) > 0 && len(visited) < maxPages {
@@ -85,10 +92,10 @@ func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain
 		if err != nil {
 			return nil, err
 		}
-		dates, pages := parseListing(html)
-		for _, d := range dates {
-			if !d.Before(from) && !d.After(to) {
-				seen[d] = true
+		listed, pages := parseListing(html)
+		for _, e := range listed {
+			if !e.date.Before(from) && !e.date.After(to) {
+				seen[e.path] = e.date
 			}
 		}
 		for _, p := range pages {
@@ -104,10 +111,15 @@ func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain
 	}
 
 	out := make([]domain.Edition, 0, len(seen))
-	for d := range seen {
-		out = append(out, domain.Edition{PublishedAt: d, URL: EditionURL(s.baseURL, d)})
+	for path, d := range seen {
+		out = append(out, domain.Edition{PublishedAt: d, URL: s.baseURL.ResolveReference(&url.URL{Path: path}).String()})
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].PublishedAt.Before(out[j].PublishedAt) })
+	sort.Slice(out, func(i, j int) bool {
+		if !out[i].PublishedAt.Equal(out[j].PublishedAt) {
+			return out[i].PublishedAt.Before(out[j].PublishedAt)
+		}
+		return out[i].URL < out[j].URL
+	})
 	return out, nil
 }
 
@@ -148,16 +160,17 @@ func (s *Source) listingPage(ctx context.Context, from, to time.Time, page int) 
 	return string(html), nil
 }
 
-// parseListing extrai as datas das edições e os números das outras páginas.
-func parseListing(html string) (dates []time.Time, pages []int) {
-	seenDate := map[time.Time]bool{}
+// parseListing extrai as edições (caminho do PDF e data) e os números das
+// outras páginas.
+func parseListing(html string) (editions []listedEdition, pages []int) {
+	seenPath := map[string]bool{}
 	for _, m := range editionLinkRe.FindAllStringSubmatch(html, -1) {
-		d, err := time.Parse(time.DateOnly, m[1]+"-"+m[2]+"-"+m[3])
-		if err != nil || seenDate[d] {
+		d, err := time.Parse(time.DateOnly, m[2]+"-"+m[3]+"-"+m[4])
+		if err != nil || seenPath[m[1]] {
 			continue
 		}
-		seenDate[d] = true
-		dates = append(dates, d)
+		seenPath[m[1]] = true
+		editions = append(editions, listedEdition{path: m[1], date: d})
 	}
 	seenPage := map[int]bool{}
 	for _, m := range pageLinkRe.FindAllStringSubmatch(html, -1) {
@@ -168,7 +181,7 @@ func parseListing(html string) (dates []time.Time, pages []int) {
 		seenPage[n] = true
 		pages = append(pages, n)
 	}
-	return dates, pages
+	return editions, pages
 }
 
 func (s *Source) Download(ctx context.Context, e domain.Edition) (io.ReadCloser, error) {
