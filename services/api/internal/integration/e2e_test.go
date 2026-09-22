@@ -205,6 +205,39 @@ func TestEndToEnd(t *testing.T) {
 	if len(box.msgs) != 2 {
 		t.Fatalf("esperava 1 confirmação + 1 alerta, veio %d e-mails", len(box.msgs))
 	}
+
+	// 4. Edição extraordinária (sufixo _N no PDF) vem marcada na edição e na busca
+	extra := in
+	extra.SourceURL, extra.StoragePath, extra.Checksum = "https://exemplo/2026_09_18_1.pdf", "1-extra.pdf", strings.Repeat("c", 64)
+	if err := idx.Execute(ctx, extra); err != nil {
+		t.Fatal(err)
+	}
+	var edition struct {
+		IsExtra bool `json:"is_extra"`
+	}
+	getJSON(t, srv.URL+"/v1/gazettes/"+pub.ids[0], &edition)
+	if edition.IsExtra {
+		t.Fatal("edição regular não pode vir como extra")
+	}
+	getJSON(t, srv.URL+"/v1/gazettes/"+pub.ids[len(pub.ids)-1], &edition)
+	if !edition.IsExtra {
+		t.Fatal("edição com sufixo _1 deve vir como extra")
+	}
+	var extraHits struct {
+		Items []struct {
+			SourceURL string `json:"source_url"`
+			IsExtra   bool   `json:"is_extra"`
+		} `json:"items"`
+	}
+	getJSON(t, srv.URL+"/v1/acts?q=medicamento", &extraHits)
+	if len(extraHits.Items) != 2 {
+		t.Fatalf("esperava o contrato nas duas edições: %+v", extraHits)
+	}
+	for _, h := range extraHits.Items {
+		if h.IsExtra != strings.HasSuffix(h.SourceURL, "_1.pdf") {
+			t.Fatalf("is_extra não bate com a URL: %+v", h)
+		}
+	}
 }
 
 // openTestDB cria o banco de teste quando ele ainda não existe (localmente

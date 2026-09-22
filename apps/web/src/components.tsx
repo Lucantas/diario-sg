@@ -8,7 +8,7 @@ export function Result({ hit }: { hit: ActHit }) {
       <p className="meta">
         <span className={`tag tag-${hit.type}`}>{TYPE_LABEL[hit.type]}</span>
         <a href={hit.source_url} target="_blank" rel="noopener" title="Abrir o PDF da edição original">
-          Edição {hit.edition_number || "s/n"}, {date}
+          Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {date}
         </a>
       </p>
       <h2>{hit.title}</h2>
