@@ -32,8 +32,8 @@ run-api: ## API pública em :8080
 run-worker: ## Worker (recebe push do Pub/Sub) em :8081
 	cd services/api && PORT=8081 go run ./cmd/worker
 
-run-scraper: ## Executa uma coleta
-	cd services/scraper && go run ./cmd/scraper
+run-scraper: ## Executa uma coleta (LOOKBACK_DAYS=n ou, para backfill, FROM=AAAA-MM-DD [TO=AAAA-MM-DD])
+	cd services/scraper && go run ./cmd/scraper $(if $(FROM),-from $(FROM)) $(if $(TO),-to $(TO))
 
 run-web: ## Front em :5173 (proxy /api -> :8080)
 	cd apps/web && npm install && npm run dev

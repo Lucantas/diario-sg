@@ -11,9 +11,15 @@ import (
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/domain"
 )
 
-type fakeSource struct{ editions []domain.Edition }
+type fakeSource struct {
+	editions []domain.Edition
+	from, to *time.Time
+}
 
-func (f fakeSource) ListEditions(context.Context, time.Time, time.Time) ([]domain.Edition, error) {
+func (f fakeSource) ListEditions(_ context.Context, from, to time.Time) ([]domain.Edition, error) {
+	if f.from != nil {
+		*f.from, *f.to = from, to
+	}
 	return f.editions, nil
 }
 func (f fakeSource) Download(context.Context, domain.Edition) (io.ReadCloser, error) {
@@ -78,5 +84,23 @@ func TestFetchEditions_RetriesWhenPublishFails(t *testing.T) {
 	pub.fail = false
 	if res, err := uc.Execute(context.Background(), time.Hour); err != nil || res.Stored != 1 {
 		t.Fatalf("esperava nova tentativa com sucesso: res=%+v err=%v", res, err)
+	}
+}
+
+func TestExecuteRangePassesPeriodToSourceAndRejectsInvertedPeriod(t *testing.T) {
+	var from, to time.Time
+	src := fakeSource{from: &from, to: &to}
+	uc := NewFetchEditions(src, &fakeStorage{objects: map[string][]byte{}}, &fakePublisher{})
+	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC)
+
+	if _, err := uc.ExecuteRange(context.Background(), start, end); err != nil {
+		t.Fatal(err)
+	}
+	if !from.Equal(start) || !to.Equal(end) {
+		t.Errorf("período repassado errado: %s..%s", from, to)
+	}
+	if _, err := uc.ExecuteRange(context.Background(), end, start); err == nil {
+		t.Error("período invertido deve dar erro")
 	}
 }
