@@ -58,12 +58,13 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
 
 Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
 
-- **Proveniência.** Guardar a página de cada ato (hoje `clean.go` troca `\f`
-  por `\n` e a informação se perde) e linkar `…pdf#page=N`. Mostrar o hash do
-  PDF e servir a cópia arquivada no nosso bucket (a prefeitura pode tirar o
-  arquivo do ar). Botão "citar este ato" com edição, data, página e link.
-- **Órgão.** Persistir a sigla que `isOrganSection` já reconhece e expor
-  filtro por secretaria.
+- **Proveniência.** Guardar a página de cada ato ✅ (1a, commit
+  `bc0c2cc..HEAD`) e linkar `…pdf#page=N`. Mostrar o hash do PDF e servir a
+  cópia arquivada no nosso bucket (a prefeitura pode tirar o arquivo do ar).
+  Botão "citar este ato" com edição, data, página e link.
+- **Órgão.** Persistir a sigla que `isOrganSection` já reconhece ✅ (1a,
+  commit `bc0c2cc..HEAD`) e expor filtro por secretaria, com os nomes por
+  extenso das siglas (1c).
 - **Busca de investigador.** Faixa de valor (a partir de `act_entities`),
   operadores booleanos, URL permanente para cada consulta.
 - **Exportação.** CSV/JSON de qualquer busca e dump completo periódico
