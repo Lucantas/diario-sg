@@ -37,10 +37,19 @@ mesmo dia em `diario/AAAA_MM_DD_1.pdf`, e `editionLinkRe`
 21/08/2024 a base tem a edição 1196, mas não a extra 1197. Na coleta do
 Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
 
-- Aceitar o sufixo `_N` no link e tratar a edição pela URL, não pela data.
-- Gravar `is_extra` em `gazettes` (o card do site traz "Diário Oficial
-  Extraordinário").
-- Backfill das extras de 2020 a hoje e reindexação.
+- [x] Aceitar o sufixo `_N` no link e tratar a edição pela URL, não pela
+  data (commit `e3fc28d`).
+- [x] Backfill das extras de 2020 a hoje: 113 edições novas.
+- [x] Listar pela letra "a" em vez de "Gonçalo": a continuação de
+  13/12/2023 não tem cabeçalho e nunca era listada (commit `0191e82`).
+  A base de 2020 em diante tem 1740 edições, as mesmas da coleta
+  completa do raspador do Querido Diário.
+- [x] Número da edição com `N°1. 362` (2025) e `| N.º 190 | em …`
+  (2020-2021) no parser (commit `530bf7c`); 319 edições reindexadas.
+- [ ] 18 a 20/08/2020 (edições 158 a 160) ainda sem número: cabeçalho
+  ainda não coberto pelo parser.
+- [ ] Gravar `is_extra` em `gazettes` (o card do site traz "Diário Oficial
+  Extraordinário"; o sufixo `_N` na URL também serve) e mostrar na edição.
 
 **Pronto quando:** a contagem de edições por ano bate com a listagem do site.
 
@@ -141,5 +150,7 @@ O Querido Diário (Open Knowledge Brasil) não coleta São Gonçalo. O PR
 mergeado e ficou desatualizado em relação ao upstream (pasta
 `data_collection/` virou `querido_diario_raspadores/`, spiders migraram para
 `async def start()`) e o número da edição deixou de ser extraído porque o site
-passou a escrever `N°1.771` sem espaço. Contribuir com a versão atualizada põe
-os diários de SG na base nacional e na API deles.
+passou a escrever `N°1.771` sem espaço. Contribuição com a versão atualizada:
+[okfn-brasil/querido-diario#1550](https://github.com/okfn-brasil/querido-diario/pull/1550),
+com crédito ao autor original e aviso no #1256. A coleta completa do
+raspador serviu de gabarito para a nossa base (ver Entrega 0).
