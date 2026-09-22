@@ -92,10 +92,42 @@ func (r *GazetteRepo) FindByID(ctx context.Context, id string) (domain.Gazette, 
 	return g, notFound(err)
 }
 
-func (r *GazetteRepo) ListByPeriod(context.Context, time.Time, time.Time) ([]domain.Gazette, error) {
-	return nil, errors.New("ListByPeriod: não implementado")
+func (r *GazetteRepo) ListByPeriod(ctx context.Context, from, to time.Time) ([]domain.Gazette, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT id, edition_number, published_at, is_extra, source_url, storage_path, checksum, indexed_at
+		FROM gazettes
+		WHERE published_at BETWEEN $1::date AND $2::date
+		ORDER BY published_at, source_url`, from.Format(time.DateOnly), to.Format(time.DateOnly))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []domain.Gazette
+	for rows.Next() {
+		var g domain.Gazette
+		if err := rows.Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.IsExtra, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, g)
+	}
+	return out, rows.Err()
 }
 
-func (r *GazetteRepo) ReplaceActs(context.Context, string, string, []domain.Act) error {
-	return errors.New("ReplaceActs: não implementado")
+func (r *GazetteRepo) ReplaceActs(ctx context.Context, gazetteID, editionNumber string, acts []domain.Act) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck // sem efeito após Commit
+
+	if _, err := tx.ExecContext(ctx, `DELETE FROM acts WHERE gazette_id = $1`, gazetteID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE gazettes SET edition_number = $2 WHERE id = $1`, gazetteID, editionNumber); err != nil {
+		return err
+	}
+	if err := insertActs(ctx, tx, gazetteID, acts); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
