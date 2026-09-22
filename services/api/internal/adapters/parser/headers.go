@@ -86,3 +86,5 @@ func isOrganSection(lines []line, i int) bool {
 	}
 	return false
 }
+
+var nonOrganSections = map[string]bool{"ANEXO": true}

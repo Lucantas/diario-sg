@@ -20,6 +20,7 @@ func (Regex) Parse(text string) []domain.Act {
 
 	var acts []domain.Act
 	var current *segment
+	organ := ""
 	flush := func() {
 		if current == nil {
 			return
@@ -33,17 +34,22 @@ func (Regex) Parse(text string) []domain.Act {
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
 		switch {
-		case isOrganSection(lines, i), isContinuation(l.text):
+		case isOrganSection(lines, i):
+			flush()
+			if !nonOrganSections[l.text] {
+				organ = l.text
+			}
+		case isContinuation(l.text):
 			flush()
 		case isPortariaTrailer(l.text):
 			if current == nil {
-				current = &segment{}
+				current = &segment{organ: organ}
 			}
 			current.close(l)
 			flush()
 		case isPortariaVerb(l.text):
 			flush()
-			current = &segment{title: l.text}
+			current = &segment{title: l.text, organ: organ}
 			current.add(l)
 		case isHeader(l.text):
 			flush()
@@ -53,14 +59,14 @@ func (Regex) Parse(text string) []domain.Act {
 				l = lines[i]
 				title = append(title, l)
 			}
-			current = &segment{title: joinTexts(title, " ")}
+			current = &segment{title: joinTexts(title, " "), organ: organ}
 			current.add(title...)
 		default:
 			if current == nil {
 				if l.text == "" {
 					continue
 				}
-				current = &segment{title: l.text, orphan: true}
+				current = &segment{title: l.text, orphan: true, organ: organ}
 			}
 			current.add(l)
 		}
@@ -75,6 +81,7 @@ type segment struct {
 	orphan    bool
 	pageStart int
 	pageEnd   int
+	organ     string
 }
 
 func (s *segment) add(ls ...line) {
@@ -114,5 +121,5 @@ func (s *segment) act(position int) (domain.Act, bool) {
 		title = string(r[:maxTitleRunes])
 	}
 	return domain.Act{Type: classify(title, body), Title: title, Body: body, Position: position,
-		PageStart: s.pageStart, PageEnd: s.pageEnd}, true
+		PageStart: s.pageStart, PageEnd: s.pageEnd, Organ: s.organ}, true
 }
