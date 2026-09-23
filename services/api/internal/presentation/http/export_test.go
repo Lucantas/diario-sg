@@ -33,7 +33,7 @@ func TestCSVRecord(t *testing.T) {
 
 	got := csvRecord("https://site/", h)
 
-	want := []string{"2026-09-18", "1771", "sim", "contrato", "FMS", domain.OrganName("FMS"), "EXTRATO", "3", "4",
+	want := []string{"2026-09-18", "1771", "sim", "diario_prefeitura", "contrato", "FMS", domain.OrganName("FMS"), "EXTRATO", "3", "4",
 		"1200,00 | 300,00", "1 | 2", "https://do/x.pdf#page=3", "https://site/api/v1/gazettes/g1/pdf#page=3", "abc", "", "'=corpo"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("veio\n%q\nesperava\n%q", got, want)
@@ -46,7 +46,12 @@ func TestCSVRecordWithoutPage(t *testing.T) {
 
 	got := csvRecord("https://site", h)
 
-	if got[7] != "" || got[8] != "" || got[11] != "https://do/x.pdf" || got[12] != "https://site/api/v1/gazettes/g1/pdf" || got[2] != "não" {
+	if got[8] != "" || got[9] != "" || got[12] != "https://do/x.pdf" || got[13] != "https://site/api/v1/gazettes/g1/pdf" || got[2] != "não" {
 		t.Errorf("veio %q", got)
+	}
+
+	h.Source = domain.SourceDiarioCamara
+	if got = csvRecord("https://site", h); got[3] != "diario_camara" {
+		t.Errorf("fonte da Câmara: %q", got[3])
 	}
 }

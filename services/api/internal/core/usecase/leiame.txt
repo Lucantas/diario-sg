@@ -2,8 +2,9 @@ Diário SG — dump da base
 =========================
 
 Cópia completa, refeita toda semana, do que o Diário SG extraiu do Diário
-Oficial do Município de São Gonçalo (RJ). Não é publicação da prefeitura;
-a edição oficial em PDF é que vale.
+Oficial do Município de São Gonçalo (RJ) e do Diário Oficial Eletrônico da
+Câmara Municipal. Não é publicação da prefeitura nem da Câmara; a edição
+oficial em PDF é que vale.
 
 Arquivos (CSV, separador vírgula, UTF-8, compactados com gzip)
 --------------------------------------------------------------
@@ -13,9 +14,10 @@ gazettes.csv.gz — uma linha por edição
   edition_number  número da edição (vazio quando o PDF não traz)
   published_at    data de publicação (AAAA-MM-DD)
   is_extra        true para edição extraordinária
-  source_url      PDF no site da prefeitura
+  source_url      PDF no site da prefeitura ou da Câmara
   pdf_sha256      SHA-256 do PDF coletado
   indexed_at      quando a edição foi indexada (UTC)
+  source          diario_prefeitura ou diario_camara
 
 acts.csv.gz — uma linha por ato
   id              identificador do ato (muda quando a edição é reprocessada)
@@ -24,7 +26,8 @@ acts.csv.gz — uma linha por ato
   type            nomeacao, exoneracao, contrato, aditivo, licitacao,
                   dispensa, decreto, lei, portaria, resolucao, despacho,
                   edital, ata, corrigenda, prestacao_contas, outro
-  organ           sigla do órgão (vazia quando não identificada)
+  organ           sigla do órgão da prefeitura (vazia quando não
+                  identificada e nos atos da Câmara)
   title           título do ato
   page_start      página do PDF onde o ato começa (vazia se desconhecida)
   page_end        página do PDF onde o ato termina

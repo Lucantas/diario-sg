@@ -41,7 +41,7 @@ func (n *Notifier) link(path, token string) string {
 }
 
 var confirmTmpl = template.Must(template.New("c").Parse(`
-<p>Recebemos um pedido para avisar este e-mail quando o Diário Oficial de São Gonçalo publicar algo sobre:</p>
+<p>Recebemos um pedido para avisar este e-mail quando o Diário Oficial da Prefeitura ou da Câmara de São Gonçalo publicar algo sobre:</p>
 <p><strong>{{.Query}}</strong></p>
 <p><a href="{{.Link}}">Confirmar alerta</a></p>
 <p>Se não foi você, ignore esta mensagem: nada será enviado sem confirmação.</p>`))
@@ -57,7 +57,7 @@ func (n *Notifier) SendConfirmation(ctx context.Context, s domain.Subscription) 
 var matchesTmpl = template.Must(template.New("m").Funcs(template.FuncMap{
 	"plain": func(s string) string { return strings.NewReplacer("⟦", "", "⟧", "").Replace(s) },
 }).Parse(`
-<p>A edição {{.Edition}} de {{.Date}} tem {{len .Hits}} resultado(s) para <strong>{{.Query}}</strong>:</p>
+<p>A edição {{.Edition}} do {{.SourceName}} de {{.Date}} tem {{len .Hits}} resultado(s) para <strong>{{.Query}}</strong>:</p>
 {{range .Hits}}<p><strong>{{.Title}}</strong><br>{{plain .Snippet}}</p>{{end}}
 <p><a href="{{.Source}}">Abrir a edição original</a></p>
 <p style="font-size:12px"><a href="{{.Unsub}}">Cancelar este alerta</a></p>`))
@@ -65,13 +65,13 @@ var matchesTmpl = template.Must(template.New("m").Funcs(template.FuncMap{
 func (n *Notifier) SendMatches(ctx context.Context, s domain.Subscription, g domain.Gazette, hits []domain.ActHit) error {
 	var b bytes.Buffer
 	err := matchesTmpl.Execute(&b, map[string]any{
-		"Edition": g.EditionNumber, "Date": g.PublishedAt.Format("02/01/2006"), "Hits": hits,
+		"Edition": g.EditionNumber, "SourceName": domain.SourceName(g.Source), "Date": g.PublishedAt.Format("02/01/2006"), "Hits": hits,
 		"Query": s.Query, "Source": g.SourceURL, "Unsub": n.link("/cancelar", s.UnsubscribeToken),
 	})
 	if err != nil {
 		return err
 	}
-	subject := fmt.Sprintf("“%s” no Diário Oficial de %s", s.Query, g.PublishedAt.Format("02/01"))
+	subject := fmt.Sprintf("“%s” no Diário da %s de %s", s.Query, domain.SourceLabel(g.Source), g.PublishedAt.Format("02/01"))
 	return n.sender.Send(ctx, Message{To: s.Email, Subject: subject, HTML: b.String()})
 }
 

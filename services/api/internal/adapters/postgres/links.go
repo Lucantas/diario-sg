@@ -16,9 +16,9 @@ func linkActs(ctx context.Context, tx *sql.Tx, gazetteID string) error {
 func unlinkActs(ctx context.Context, tx *sql.Tx, gazetteID string) error {
 	_, err := tx.ExecContext(ctx, `
 		DELETE FROM entity_links
-		WHERE source = $2 AND record_kind = $3
+		WHERE record_kind = $2
 		  AND record_id IN (SELECT id::text FROM acts WHERE gazette_id = $1)`,
-		gazetteID, domain.SourceDiarioPrefeitura, domain.RecordAct)
+		gazetteID, domain.RecordAct)
 	return err
 }
 
@@ -33,9 +33,9 @@ func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key 
 	var entityID, certainty string
 	err := r.db.QueryRowContext(ctx, `
 		SELECT e.id, `+weakestCertainty+`
-		FROM entities e JOIN entity_links l ON l.entity_id = e.id AND l.source = $3 AND l.record_kind = $4
+		FROM entities e JOIN entity_links l ON l.entity_id = e.id AND l.record_kind = $3
 		WHERE e.kind = $1 AND e.key = $2
-		GROUP BY e.id`, string(kind), key, domain.SourceDiarioPrefeitura, domain.RecordAct).Scan(&entityID, &certainty)
+		GROUP BY e.id`, string(kind), key, domain.RecordAct).Scan(&entityID, &certainty)
 	if errors.Is(err, sql.ErrNoRows) {
 		return report, nil
 	}
@@ -52,22 +52,22 @@ func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key 
 	err = r.db.QueryRowContext(ctx, `
 		SELECT coalesce(sum(v.normalized::bigint), 0)
 		FROM entity_links l JOIN act_entities v ON v.act_id = l.record_id::uuid AND v.kind = 'valor'
-		WHERE l.entity_id = $1 AND l.source = $2 AND l.record_kind = $3`,
-		entityID, domain.SourceDiarioPrefeitura, domain.RecordAct).Scan(&report.TotalCents)
+		WHERE l.entity_id = $1 AND l.record_kind = $2`,
+		entityID, domain.RecordAct).Scan(&report.TotalCents)
 	return report, err
 }
 
 func (r *LinkRepo) linkedActs(ctx context.Context, entityID string, report *domain.EntityReport) error {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
-		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum,
-		       substr(a.body, greatest(position(l.evidence IN a.body) - $4, 1), 2 * $4 + length(l.evidence)), l.evidence
+		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
+		       substr(a.body, greatest(position(l.evidence IN a.body) - $3, 1), 2 * $3 + length(l.evidence)), l.evidence
 		FROM entity_links l
 		JOIN acts a ON a.id = l.record_id::uuid
 		JOIN gazettes g ON g.id = a.gazette_id
-		WHERE l.entity_id = $1 AND l.source = $2 AND l.record_kind = $3
+		WHERE l.entity_id = $1 AND l.record_kind = $2
 		ORDER BY g.published_at DESC, a.position
-		LIMIT $5`, entityID, domain.SourceDiarioPrefeitura, domain.RecordAct, snippetRadius, reportActsLimit)
+		LIMIT $4`, entityID, domain.RecordAct, snippetRadius, reportActsLimit)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID string, report *doma
 		var h domain.ActHit
 		var typ, evidence string
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
-			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Snippet, &evidence); err != nil {
+			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, &evidence); err != nil {
 			return err
 		}
 		h.Type = domain.ActType(typ)
@@ -93,8 +93,8 @@ func (r *LinkRepo) linkedTypes(ctx context.Context, entityID string, report *dom
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.type, count(*)
 		FROM entity_links l JOIN acts a ON a.id = l.record_id::uuid
-		WHERE l.entity_id = $1 AND l.source = $2 AND l.record_kind = $3
-		GROUP BY a.type`, entityID, domain.SourceDiarioPrefeitura, domain.RecordAct)
+		WHERE l.entity_id = $1 AND l.record_kind = $2
+		GROUP BY a.type`, entityID, domain.RecordAct)
 	if err != nil {
 		return err
 	}

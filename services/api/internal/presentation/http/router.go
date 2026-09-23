@@ -89,7 +89,7 @@ func (a *API) getGazette(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err, a.Log)
 		return
 	}
-	out := gazetteDTO{ID: g.ID, EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly), IsExtra: g.IsExtra,
+	out := gazetteDTO{ID: g.ID, Source: domain.SourceOrDefault(g.Source), SourceName: domain.SourceName(g.Source), EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly), IsExtra: g.IsExtra,
 		SourceURL: g.SourceURL, PDFSHA256: g.Checksum, Acts: make([]actDTO, 0, len(acts))}
 	for _, act := range acts {
 		out.Acts = append(out.Acts, toActDTO(act))
@@ -153,7 +153,7 @@ func (a *API) listOrgans(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.ActFilter, bool) {
 	q := r.URL.Query()
-	f := domain.ActFilter{Query: q.Get("q"), Type: domain.ActType(q.Get("type")), Organ: q.Get("organ")}
+	f := domain.ActFilter{Query: q.Get("q"), Source: q.Get("source"), Type: domain.ActType(q.Get("type")), Organ: q.Get("organ")}
 	f.Limit, _ = strconv.Atoi(q.Get("limit"))
 	f.Offset, _ = strconv.Atoi(q.Get("offset"))
 	var err error

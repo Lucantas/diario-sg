@@ -13,7 +13,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-var exportHeader = []string{"data", "edicao", "extra", "tipo", "orgao", "orgao_nome", "titulo", "pagina_inicio", "pagina_fim",
+var exportHeader = []string{"data", "edicao", "extra", "fonte", "tipo", "orgao", "orgao_nome", "titulo", "pagina_inicio", "pagina_fim",
 	"valores_reais", "cnpjs", "pdf_original", "pdf_arquivado", "sha256_pdf", "avisos", "texto"}
 
 const utf8BOM = "\xef\xbb\xbf"
@@ -124,7 +124,7 @@ func csvRecord(base string, h domain.ActHit) []string {
 		extra = "sim"
 	}
 	return []string{
-		h.PublishedAt.Format(time.DateOnly), h.EditionNumber, extra, string(h.Type), h.Organ, csvCell(domain.OrganName(h.Organ)),
+		h.PublishedAt.Format(time.DateOnly), h.EditionNumber, extra, domain.SourceOrDefault(h.Source), string(h.Type), h.Organ, csvCell(domain.OrganName(h.Organ)),
 		csvCell(h.Title), pageText(h.PageStart), pageText(h.PageEnd), strings.Join(values, " | "), strings.Join(h.CNPJs, " | "),
 		h.SourceURL + pageSuffix(h), archivedURL(base, h), h.Checksum,
 		strings.Join(domain.ActWarnings(h.Title, h.TitleOnly, h.PageStart, h.PageEnd), " | "), csvCell(h.Body),

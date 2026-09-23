@@ -32,3 +32,20 @@ func TestSourceName(t *testing.T) {
 		t.Errorf("nome da Câmara: %q", got)
 	}
 }
+
+func TestSourceLabel(t *testing.T) {
+	if SourceLabel("") != "Prefeitura" || SourceLabel(SourceDiarioCamara) != "Câmara" {
+		t.Errorf("rótulos: %q %q", SourceLabel(""), SourceLabel(SourceDiarioCamara))
+	}
+}
+
+func TestActFilterAcceptsOnlyKnownSources(t *testing.T) {
+	ok := ActFilter{Source: SourceDiarioCamara}
+	if err := ok.Normalize(); err != nil {
+		t.Errorf("fonte da Câmara recusada: %v", err)
+	}
+	bad := ActFilter{Source: "tce"}
+	if err := bad.Normalize(); err != ErrInvalidFilter {
+		t.Errorf("fonte desconhecida deveria ser ErrInvalidFilter, veio %v", err)
+	}
+}

@@ -72,7 +72,7 @@ func TestWarningsInSearchGazetteAndExport(t *testing.T) {
 	}
 	found := false
 	for _, r := range records[1:] {
-		if r[6] == "PORTARIA Nº 5/2026" && r[14] == "so_titulo" {
+		if r[7] == "PORTARIA Nº 5/2026" && r[15] == "so_titulo" {
 			found = true
 		}
 	}

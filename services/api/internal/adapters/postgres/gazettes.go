@@ -31,11 +31,11 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 	defer tx.Rollback() //nolint:errcheck
 
 	err = tx.QueryRowContext(ctx, `
-		INSERT INTO gazettes (edition_number, published_at, source_url, storage_path, checksum, indexed_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO gazettes (edition_number, published_at, source_url, storage_path, checksum, indexed_at, source)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (checksum) DO NOTHING
 		RETURNING id`,
-		g.EditionNumber, g.PublishedAt.Format("2006-01-02"), g.SourceURL, g.StoragePath, g.Checksum, g.IndexedAt,
+		g.EditionNumber, g.PublishedAt.Format("2006-01-02"), g.SourceURL, g.StoragePath, g.Checksum, g.IndexedAt, domain.SourceOrDefault(g.Source),
 	).Scan(&g.ID)
 	if errors.Is(err, sql.ErrNoRows) {
 
@@ -89,15 +89,15 @@ func insertActs(ctx context.Context, tx *sql.Tx, gazetteID string, acts []domain
 func (r *GazetteRepo) FindByID(ctx context.Context, id string) (domain.Gazette, error) {
 	var g domain.Gazette
 	err := r.db.QueryRowContext(ctx, `
-		SELECT id, edition_number, published_at, is_extra, source_url, storage_path, checksum, indexed_at
+		SELECT id, edition_number, published_at, is_extra, source_url, storage_path, checksum, indexed_at, source
 		FROM gazettes WHERE id = $1`, id,
-	).Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.IsExtra, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt)
+	).Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.IsExtra, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt, &g.Source)
 	return g, notFound(err)
 }
 
 func (r *GazetteRepo) ListByPeriod(ctx context.Context, from, to time.Time) ([]domain.Gazette, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT id, edition_number, published_at, is_extra, source_url, storage_path, checksum, indexed_at
+		SELECT id, edition_number, published_at, is_extra, source_url, storage_path, checksum, indexed_at, source
 		FROM gazettes
 		WHERE published_at BETWEEN $1::date AND $2::date
 		ORDER BY published_at, source_url`, from.Format(time.DateOnly), to.Format(time.DateOnly))
@@ -108,7 +108,7 @@ func (r *GazetteRepo) ListByPeriod(ctx context.Context, from, to time.Time) ([]d
 	var out []domain.Gazette
 	for rows.Next() {
 		var g domain.Gazette
-		if err := rows.Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.IsExtra, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt); err != nil {
+		if err := rows.Scan(&g.ID, &g.EditionNumber, &g.PublishedAt, &g.IsExtra, &g.SourceURL, &g.StoragePath, &g.Checksum, &g.IndexedAt, &g.Source); err != nil {
 			return nil, err
 		}
 		out = append(out, g)
