@@ -54,3 +54,5 @@ func orderSQL(f domain.ActFilter) string {
 	}
 	return relevanceOrder
 }
+
+const titleOnlyExpr = `btrim(a.body) = btrim(a.title)`

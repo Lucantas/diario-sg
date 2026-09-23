@@ -27,6 +27,7 @@ type actHitDTO struct {
 	PDFSHA256     string   `json:"pdf_sha256"`
 	CNPJs         []string `json:"cnpjs"`
 	ValuesCents   []int64  `json:"values_cents"`
+	Warnings      []string `json:"warnings"`
 }
 
 type searchResponse struct {
@@ -37,15 +38,16 @@ type searchResponse struct {
 }
 
 type actDTO struct {
-	ID        string `json:"id"`
-	Type      string `json:"type"`
-	Title     string `json:"title"`
-	Body      string `json:"body"`
-	Position  int    `json:"position"`
-	PageStart *int   `json:"page_start"`
-	PageEnd   *int   `json:"page_end"`
-	Organ     string `json:"organ"`
-	OrganName string `json:"organ_name"`
+	ID        string   `json:"id"`
+	Type      string   `json:"type"`
+	Title     string   `json:"title"`
+	Body      string   `json:"body"`
+	Position  int      `json:"position"`
+	PageStart *int     `json:"page_start"`
+	PageEnd   *int     `json:"page_end"`
+	Organ     string   `json:"organ"`
+	OrganName string   `json:"organ_name"`
+	Warnings  []string `json:"warnings"`
 }
 
 type gazetteDTO struct {
@@ -113,12 +115,14 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
 		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
 		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum, ValuesCents: values,
+		Warnings: domain.ActWarnings(h.Title, h.TitleOnly, h.PageStart, h.PageEnd),
 	}
 }
 
 func toActDTO(a domain.Act) actDTO {
 	return actDTO{ID: a.ID, Type: string(a.Type), Title: a.Title, Body: a.Body, Position: a.Position,
-		PageStart: pageOrNil(a.PageStart), PageEnd: pageOrNil(a.PageEnd), Organ: a.Organ, OrganName: domain.OrganName(a.Organ)}
+		PageStart: pageOrNil(a.PageStart), PageEnd: pageOrNil(a.PageEnd), Organ: a.Organ, OrganName: domain.OrganName(a.Organ),
+		Warnings: domain.ActWarnings(a.Title, domain.IsTitleOnly(a.Title, a.Body), a.PageStart, a.PageEnd)}
 }
 
 func pageOrNil(p int) *int {

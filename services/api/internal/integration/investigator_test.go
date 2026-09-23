@@ -37,6 +37,11 @@ func newInvestigatorServer(t *testing.T) *httptest.Server {
 
 func newInvestigatorServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
 	t.Helper()
+	return newServerFor(t, investigatorGazette)
+}
+
+func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
+	t.Helper()
 	dbURL := os.Getenv("TEST_DATABASE_URL")
 	if dbURL == "" {
 		t.Skip("TEST_DATABASE_URL não definido")
@@ -53,12 +58,13 @@ func newInvestigatorServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
 	gaz, acts := postgres.NewGazetteRepo(db), postgres.NewActRepo(db)
 	in := usecase.IndexGazetteInput{EditionNumber: "9", PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
 		SourceURL: "https://exemplo/9.pdf", StoragePath: "9.pdf", Checksum: strings.Repeat("f", 64)}
-	idx := usecase.NewIndexGazette(gaz, stringStore(investigatorGazette), passthroughExtractor{}, parser.New(), entities.New(), &recPub{})
+	idx := usecase.NewIndexGazette(gaz, stringStore(text), passthroughExtractor{}, parser.New(), entities.New(), &recPub{})
 	if err := idx.Execute(ctx, in); err != nil {
 		t.Fatal(err)
 	}
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
-		Export: usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), PublicWebURL: "https://web.exemplo",
+		Gazette: usecase.NewGetGazette(gaz, acts),
+		Export:  usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), PublicWebURL: "https://web.exemplo",
 		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
