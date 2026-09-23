@@ -47,6 +47,7 @@ type Act struct {
 
 type ActHit struct {
 	Act
+	Source        string
 	EditionNumber string
 	PublishedAt   time.Time
 	IsExtra       bool
@@ -67,6 +68,7 @@ const (
 
 type ActFilter struct {
 	Query    string
+	Source   string
 	Type     ActType
 	Organ    string
 	From     time.Time
@@ -89,6 +91,9 @@ func (f *ActFilter) Normalize() error {
 		f.Offset = 0
 	}
 	if f.Type != "" && !f.Type.Valid() {
+		return ErrInvalidFilter
+	}
+	if f.Source != "" && !ValidSource(f.Source) {
 		return ErrInvalidFilter
 	}
 	organ, ok := NormalizeOrgan(f.Organ)

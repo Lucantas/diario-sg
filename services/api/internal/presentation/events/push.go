@@ -39,11 +39,14 @@ func (h *PushHandler) gazetteFetched(w http.ResponseWriter, r *http.Request) {
 		h.ack(w, env, "payload inválido", err)
 		return
 	}
-	err := h.Index.Execute(r.Context(), usecase.IndexGazetteInput{
+	h.respond(w, env, h.Index.Execute(r.Context(), indexInputOf(e)))
+}
+
+func indexInputOf(e events.GazetteFetched) usecase.IndexGazetteInput {
+	return usecase.IndexGazetteInput{
 		EditionNumber: e.EditionNumber, PublishedAt: e.PublishedAt, SourceURL: e.SourceURL,
-		StoragePath: e.StoragePath, Checksum: e.ChecksumSHA256,
-	})
-	h.respond(w, env, err)
+		StoragePath: e.StoragePath, Checksum: e.ChecksumSHA256, Source: e.Source,
+	}
 }
 
 func (h *PushHandler) gazetteIndexed(w http.ResponseWriter, r *http.Request) {

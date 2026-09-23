@@ -32,7 +32,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 			LIMIT $2 OFFSET $3
 		)
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
-		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum,
+		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
 		       CASE WHEN $1 = '' THEN left(a.body, 280)
 		            ELSE ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`') END,
 		       `+cnpjsSubquery+`,
@@ -56,7 +56,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		var h domain.ActHit
 		var typ string
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
-			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Snippet, pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
+			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)
@@ -71,7 +71,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 
 func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) ([]domain.ActHit, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at, g.is_extra, g.source_url,
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at, g.is_extra, g.source_url, g.source,
 		       ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`'), `+cnpjsSubquery+`
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
@@ -88,7 +88,7 @@ func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) 
 	for rows.Next() {
 		var h domain.ActHit
 		var typ string
-		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Snippet, pq.Array(&h.CNPJs)); err != nil {
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Source, &h.Snippet, pq.Array(&h.CNPJs)); err != nil {
 			return nil, err
 		}
 		h.Type = domain.ActType(typ)
@@ -125,7 +125,7 @@ func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(dom
 	args := append([]any{f.Query, f.Limit, likePattern(f.Query)}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.body, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
-		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum,
+		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
 		       `+cnpjsSubquery+`,
 		       `+valuesSubquery+`,
 		       count(*) OVER ()
@@ -145,7 +145,7 @@ func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(dom
 		var typ string
 		var total int
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Body, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
-			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum,
+			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source,
 			pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
 			return err
 		}

@@ -25,7 +25,7 @@ func TestDumpSourceWritesTheThreeTables(t *testing.T) {
 		t.Fatalf("tabelas inesperadas: %s", got)
 	}
 	headers := map[string]string{
-		"gazettes":     "id,edition_number,published_at,is_extra,source_url,pdf_sha256,indexed_at",
+		"gazettes":     "id,edition_number,published_at,is_extra,source_url,pdf_sha256,indexed_at,source",
 		"acts":         "id,gazette_id,position,type,organ,title,page_start,page_end,body",
 		"act_entities": "act_id,kind,value,normalized",
 	}

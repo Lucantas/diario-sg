@@ -17,6 +17,7 @@ type GazetteFetched struct {
 	StoragePath    string    `json:"storage_path"`
 	ChecksumSHA256 string    `json:"checksum_sha256"`
 	FetchedAt      time.Time `json:"fetched_at"`
+	Source         string    `json:"source,omitempty"`
 }
 
 type GazetteIndexed struct {

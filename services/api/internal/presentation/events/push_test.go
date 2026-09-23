@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/seu-usuario/diario-sg/pkg/events"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
@@ -63,5 +65,20 @@ func TestFetchCompletedIsRecorded(t *testing.T) {
 	}
 	if len(repo.saved) != 1 {
 		t.Fatalf("payload inválido não deveria gravar: %+v", repo.saved)
+	}
+}
+
+func TestGazetteFetchedCarriesTheSource(t *testing.T) {
+	in := indexInputOf(events.GazetteFetched{StoragePath: "raw/diario_camara/2025/11/03/2025-11-03.pdf", Source: "diario_camara"})
+	if in.Source != "diario_camara" || in.StoragePath != "raw/diario_camara/2025/11/03/2025-11-03.pdf" {
+		t.Errorf("fonte ou caminho perdidos: %+v", in)
+	}
+
+	var old events.GazetteFetched
+	if err := json.Unmarshal([]byte(`{"published_at":"2026-09-18T00:00:00Z","source_url":"https://do.pmsg.rj.gov.br/x.pdf","storage_path":"gazettes/x.pdf","checksum_sha256":"ab","fetched_at":"2026-09-18T01:00:00Z"}`), &old); err != nil {
+		t.Fatal(err)
+	}
+	if in := indexInputOf(old); in.Source != "" || in.Checksum != "ab" {
+		t.Errorf("evento antigo, sem fonte, deveria chegar sem fonte: %+v", in)
 	}
 }

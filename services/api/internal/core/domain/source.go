@@ -12,6 +12,11 @@ var sourceNames = map[string]string{
 	SourceDiarioCamara:     "Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo",
 }
 
+var sourceLabels = map[string]string{
+	SourceDiarioPrefeitura: "Prefeitura",
+	SourceDiarioCamara:     "Câmara",
+}
+
 func ValidSource(s string) bool {
 	_, ok := sourceNames[s]
 	return ok
@@ -25,3 +30,5 @@ func SourceOrDefault(s string) string {
 }
 
 func SourceName(s string) string { return sourceNames[SourceOrDefault(s)] }
+
+func SourceLabel(s string) string { return sourceLabels[SourceOrDefault(s)] }

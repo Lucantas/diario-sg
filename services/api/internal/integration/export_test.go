@@ -37,18 +37,18 @@ func TestExportCSV(t *testing.T) {
 		t.Fatalf("resposta inesperada: %d %v", r.StatusCode, r.Header)
 	}
 	records := readCSV(t, body)
-	if len(records) != 4 || strings.Join(records[0], ";") != "data;edicao;extra;tipo;orgao;orgao_nome;titulo;pagina_inicio;pagina_fim;valores_reais;cnpjs;pdf_original;pdf_arquivado;sha256_pdf;avisos;texto" {
+	if len(records) != 4 || strings.Join(records[0], ";") != "data;edicao;extra;fonte;tipo;orgao;orgao_nome;titulo;pagina_inicio;pagina_fim;valores_reais;cnpjs;pdf_original;pdf_arquivado;sha256_pdf;avisos;texto" {
 		t.Fatalf("CSV inesperado: %q", records)
 	}
 	var third []string
 	for _, rec := range records[1:] {
-		if rec[6] == "EXTRATO DO CONTRATO Nº 3/2026" {
+		if rec[7] == "EXTRATO DO CONTRATO Nº 3/2026" {
 			third = rec
 		}
 	}
-	if third == nil || third[9] != "200000,00 | 20000,00" || third[7] != "1" ||
-		!strings.HasPrefix(third[12], "https://web.exemplo/api/v1/gazettes/") || !strings.HasSuffix(third[12], "/pdf#page=1") ||
-		third[11] != "https://exemplo/9.pdf#page=1" || !strings.Contains(third[15], "mensal R$ 20.000,00") {
+	if third == nil || third[10] != "200000,00 | 20000,00" || third[8] != "1" ||
+		!strings.HasPrefix(third[13], "https://web.exemplo/api/v1/gazettes/") || !strings.HasSuffix(third[13], "/pdf#page=1") ||
+		third[12] != "https://exemplo/9.pdf#page=1" || !strings.Contains(third[16], "mensal R$ 20.000,00") {
 		t.Fatalf("linha do contrato 3 inesperada: %q", third)
 	}
 

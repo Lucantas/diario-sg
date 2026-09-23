@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "gazette.fetched.v1",
   "title": "GazetteFetched",
-  "description": "Uma edição do Diário Oficial foi baixada e armazenada no bucket.",
+  "description": "Uma edição de um Diário Oficial foi baixada e armazenada no bucket. Sem source, é o Diário da Prefeitura.",
   "type": "object",
   "required": ["published_at", "source_url", "storage_path", "checksum_sha256", "fetched_at"],
   "properties": {
@@ -11,7 +11,8 @@
     "source_url": { "type": "string", "format": "uri" },
     "storage_path": { "type": "string" },
     "checksum_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "fetched_at": { "type": "string", "format": "date-time" }
+    "fetched_at": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "enum": ["diario_prefeitura", "diario_camara"] }
   },
   "additionalProperties": false
 }
