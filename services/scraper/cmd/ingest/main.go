@@ -60,6 +60,7 @@ func run(file, date, number string, log *slog.Logger) error {
 	publisher := gcp.NewEventPublisher(
 		gcpclient.NewPublisher(cfg.ProjectID, cfg.PubSubEmulatorHost, gcpclient.TokenSourceFor(cfg.PubSubEmulatorHost)),
 		cfg.TopicFetched,
+		cfg.TopicRuns,
 	)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

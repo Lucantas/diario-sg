@@ -288,6 +288,18 @@ module "queue_gazette_indexed" {
   depends_on                 = [google_project_service.apis]
 }
 
+module "queue_fetch_completed" {
+  source                     = "../modules/pubsub-push"
+  name                       = "${local.p}-fetch-completed"
+  project_id                 = var.project_id
+  project_number             = local.project_number
+  push_endpoint              = "${module.worker.uri}/events/fetch-completed"
+  audience                   = module.worker.uri
+  push_service_account_email = google_service_account.sa["pubsub-push"].email
+  publishers                 = { scraper = "serviceAccount:${google_service_account.sa["scraper"].email}" }
+  depends_on                 = [google_project_service.apis]
+}
+
 resource "google_cloud_run_v2_job" "scraper" {
   name                = "${local.p}-scraper"
   project             = var.project_id
@@ -320,6 +332,10 @@ resource "google_cloud_run_v2_job" "scraper" {
         env {
           name  = "TOPIC_GAZETTE_FETCHED"
           value = module.queue_gazette_fetched.topic_name
+        }
+        env {
+          name  = "TOPIC_FETCH_COMPLETED"
+          value = module.queue_fetch_completed.topic_name
         }
         env {
           name  = "SOURCE_URL"

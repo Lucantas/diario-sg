@@ -148,5 +148,17 @@ func (r *GazetteRepo) Coverage(ctx context.Context) (domain.Coverage, error) {
 		       coalesce(max(indexed_at), 'epoch'), count(*), (SELECT count(*) FROM acts)
 		FROM gazettes`,
 	).Scan(&c.First, &c.Last, &c.LastIndexedAt, &c.Gazettes, &c.Acts)
+	if err != nil {
+		return c, err
+	}
+	run := &c.LastRun
+	err = r.db.QueryRowContext(ctx, `
+		SELECT id, source, requested_from, requested_to, found, stored, skipped, failed, error, started_at, finished_at
+		FROM fetch_runs WHERE source = $1
+		ORDER BY finished_at DESC LIMIT 1`, domain.SourceDiarioPrefeitura,
+	).Scan(&run.ID, &run.Source, &run.RequestedFrom, &run.RequestedTo, &run.Found, &run.Stored, &run.Skipped, &run.Failed, &run.Error, &run.StartedAt, &run.FinishedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return c, nil
+	}
 	return c, err
 }

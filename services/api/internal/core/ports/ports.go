@@ -104,3 +104,7 @@ type CoverageReader interface {
 type EntityReader interface {
 	ReportByKey(ctx context.Context, kind domain.EntityKind, key string) (domain.EntityReport, error)
 }
+
+type FetchRunRepository interface {
+	Save(ctx context.Context, r domain.FetchRun) error
+}

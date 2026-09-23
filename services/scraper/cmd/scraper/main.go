@@ -34,6 +34,7 @@ func main() {
 	publisher := gcp.NewEventPublisher(
 		gcpclient.NewPublisher(cfg.ProjectID, cfg.PubSubEmulatorHost, gcpclient.TokenSourceFor(cfg.PubSubEmulatorHost)),
 		cfg.TopicFetched,
+		cfg.TopicRuns,
 	)
 
 	uc := usecase.NewFetchEditions(source, storage, publisher)

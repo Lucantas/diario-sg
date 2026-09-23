@@ -23,6 +23,7 @@ output "dead_letter_subscriptions" {
   value = [
     module.queue_gazette_fetched.dlq_subscription,
     module.queue_gazette_indexed.dlq_subscription,
+    module.queue_fetch_completed.dlq_subscription,
   ]
 }
 
