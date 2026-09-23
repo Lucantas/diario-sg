@@ -1,5 +1,3 @@
-# Infra local que espelha a nuvem: Postgres (Neon), Pub/Sub e Cloud Storage.
-# Os serviços Go rodam na sua máquina (make run-api / run-worker / run-scraper).
 services:
   postgres:
     image: postgres:16-alpine
@@ -17,7 +15,6 @@ services:
     image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
     command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085 --project=local
     ports: ["8085:8085"]
-    # permite ao emulador entregar mensagens push ao worker rodando no host
     extra_hosts: ["host.docker.internal:host-gateway"]
 
   gcs:

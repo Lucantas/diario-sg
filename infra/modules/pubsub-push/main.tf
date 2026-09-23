@@ -1,7 +1,3 @@
-# Um "pipeline" de fila completo: tópico + assinatura push autenticada
-# + política de retry com backoff + dead-letter queue (DLQ) + assinatura
-# pull na DLQ para inspeção e reprocessamento manual.
-
 terraform {
   required_providers {
     google = {
@@ -11,8 +7,6 @@ terraform {
 }
 
 locals {
-  # Agente de serviço do Pub/Sub: precisa de permissão para mover mensagens
-  # para a DLQ e para gerar tokens OIDC da conta de push.
   pubsub_agent = "serviceAccount:service-${var.project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
@@ -32,7 +26,7 @@ resource "google_pubsub_subscription" "dlq" {
   name                       = "${var.name}-dlq-inspect"
   topic                      = google_pubsub_topic.dlq.id
   ack_deadline_seconds       = 60
-  message_retention_duration = "604800s" # 7 dias para investigar
+  message_retention_duration = "604800s"
 
   expiration_policy {
     ttl = ""

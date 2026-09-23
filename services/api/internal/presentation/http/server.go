@@ -1,5 +1,3 @@
-// Package http é a camada de apresentação REST: traduz HTTP <-> casos de uso.
-// Não contém regra de negócio.
 package http
 
 import (
@@ -10,8 +8,6 @@ import (
 	"time"
 )
 
-// Serve roda o servidor até o contexto ser cancelado e então faz shutdown
-// gracioso (o Cloud Run envia SIGTERM e dá 10s).
 func Serve(ctx context.Context, addr string, h http.Handler, log *slog.Logger) error {
 	srv := &http.Server{
 		Addr:              addr,

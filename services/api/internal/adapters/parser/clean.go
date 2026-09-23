@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-// Linhas fixas que o pdftotext gera em toda página do Diário (cabeçalho,
-// rodapé com URL, rodapé do anexo de pessoal, separadores de anexo).
 var pageNoiseRe = regexp.MustCompile(`^(?:DIÁRIO OFICIAL(?: ELETRÔNICO DO MUNICÍPIO DE SÃO GONÇALO.*)?|PODER EXECUTIVO \(D\.O\.E\).*|\d{1,2} DE [A-ZÇ]+ DE \d{4} \| EDIÇÃO.*|D\.O\.E\. - \d{2}/\d{2}/\d{4}.*|_{10,})$`)
 
 var (
@@ -27,7 +25,6 @@ func joinTexts(ls []line, sep string) string {
 	return strings.Join(parts, sep)
 }
 
-// splitLines normaliza quebras e remove espaços nas pontas de cada linha.
 func splitLines(text string) []line {
 	text = strings.ReplaceAll(text, "\r\n", "\n")
 	var out []line
@@ -43,9 +40,6 @@ func splitLines(text string) []line {
 	return out
 }
 
-// stripPageNoise remove cabeçalho e rodapé de página. O número da página é
-// uma linha só com dígitos imediatamente antes da URL do site; só é
-// removido nesse contexto, porque tabelas também têm linhas só com dígitos.
 func stripPageNoise(lines []line) []line {
 	out := make([]line, 0, len(lines))
 	for _, l := range lines {
@@ -74,9 +68,6 @@ func lastNonEmpty(lines []line) int {
 
 var preambleMarkers = map[string]bool{"ATOS DO PREFEITO": true, "GABINETE DO PREFEITO": true}
 
-// dropPreamble descarta capa (notícias) e expediente (lista de secretários):
-// tudo antes de "ATOS DO PREFEITO" (edições até 2020: "GABINETE DO
-// PREFEITO") ou, na falta dele, do primeiro início de ato.
 func dropPreamble(lines []line) []line {
 	for i, l := range lines {
 		if preambleMarkers[l.text] {
@@ -91,8 +82,6 @@ func dropPreamble(lines []line) []line {
 	return lines
 }
 
-// Palavras que iniciam um cabeçalho e que, quando o pdftotext quebra um
-// título justificado em uma palavra por linha, precisam ser reunidas.
 var splitHeaderStart = map[string]bool{
 	"TERMO": true, "EXTRATO": true, "AVISO": true, "EDITAL": true, "ATA": true,
 	"CONTRATO": true, "NOTIFICAÇÃO": true, "RESOLUÇÃO": true, "PORTARIA": true,
@@ -104,8 +93,6 @@ var singleTokenRe = regexp.MustCompile(`^[A-ZÀ-Ü0-9º°.:/,()\-]+$`)
 
 const maxJoinedTokens = 14
 
-// joinSplitHeaders reúne sequências como "TERMO / DE / APREENSÃO /
-// ADMINISTRATIVA / Nº / 202/SEMMATRAN/2026" em uma linha só.
 func joinSplitHeaders(lines []line) []line {
 	out := make([]line, 0, len(lines))
 	for i := 0; i < len(lines); i++ {

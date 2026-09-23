@@ -1,7 +1,3 @@
-// Package localfile implementa ports.EditionSource a partir de um PDF já
-// baixado. Serve para ingerir edições manualmente (make ingest) passando
-// pelo mesmo caso de uso do scraper: mesmo caminho no bucket, mesmo
-// checksum, mesmo evento gazette.fetched.v1.
 package localfile
 
 import (
@@ -19,8 +15,6 @@ type Source struct {
 	path    string
 }
 
-// New descreve a edição contida em path. sourceURL é a URL pública que a
-// edição teria no site (usada nos links do front e no evento).
 func New(path string, published time.Time, number, sourceURL string) (*Source, error) {
 	info, err := os.Stat(path)
 	if err != nil {

@@ -1,8 +1,3 @@
-# Infraestrutura como código:
-#   PR em infra/**           -> plan em dev (resultado no resumo do job)
-#   push na main em infra/** -> apply em dev
-#   manual (workflow_dispatch) -> plan/apply no ambiente escolhido
-# Proteja o Environment "prod" com revisores obrigatórios no GitHub.
 name: Infra
 
 on:
@@ -24,7 +19,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # necessário para o Workload Identity Federation
+  id-token: write
 
 jobs:
   terraform:
@@ -32,7 +27,7 @@ jobs:
     environment: ${{ inputs.environment || 'dev' }}
     concurrency:
       group: terraform-${{ inputs.environment || 'dev' }}
-      cancel-in-progress: false # nunca interromper um apply no meio
+      cancel-in-progress: false
     env:
       ENV_DIR: infra/envs/${{ inputs.environment || 'dev' }}
       TF_IN_AUTOMATION: 'true'

@@ -2,7 +2,6 @@ package domain
 
 import "time"
 
-// ActType classifica um ato publicado.
 type ActType string
 
 const (
@@ -33,7 +32,6 @@ var validActTypes = map[ActType]bool{
 
 func (t ActType) Valid() bool { return validActTypes[t] }
 
-// Act é um ato individual dentro de uma edição (uma portaria, um extrato...).
 type Act struct {
 	ID        string
 	GazetteID string
@@ -47,20 +45,18 @@ type Act struct {
 	Entities  []Entity
 }
 
-// ActHit é um ato encontrado numa busca, com contexto da edição.
 type ActHit struct {
 	Act
 	EditionNumber string
 	PublishedAt   time.Time
 	IsExtra       bool
 	SourceURL     string
-	// Snippet contém o trecho relevante; termos encontrados vêm entre ⟦ e ⟧.
+
 	Snippet string
-	// CNPJs citados no ato, como aparecem no texto.
+
 	CNPJs []string
 }
 
-// ActFilter descreve uma busca por atos.
 type ActFilter struct {
 	Query  string
 	Type   ActType
@@ -70,7 +66,6 @@ type ActFilter struct {
 	Offset int
 }
 
-// Normalize aplica padrões e valida o filtro.
 func (f *ActFilter) Normalize() error {
 	if f.Limit <= 0 {
 		f.Limit = 20

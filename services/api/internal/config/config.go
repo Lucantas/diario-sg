@@ -1,5 +1,3 @@
-// Package config lê a configuração do ambiente. Os mesmos binários servem
-// dev local e nuvem; só as variáveis mudam (12-factor).
 package config
 
 import (
@@ -26,7 +24,7 @@ type Config struct {
 	TopicIndexed       string
 	PubSubEmulatorHost string
 	StorageEmulator    string
-	Notifier           string // "log" | "resend"
+	Notifier           string
 	ResendAPIKey       string
 	EmailFrom          string
 	PublicWebURL       string

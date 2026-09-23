@@ -8,7 +8,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
-// Subscriptions agrupa os casos de uso de inscrição em alertas.
 type Subscriptions struct {
 	repo     ports.SubscriptionRepository
 	notifier ports.Notifier
@@ -19,7 +18,6 @@ func NewSubscriptions(r ports.SubscriptionRepository, n ports.Notifier) *Subscri
 	return &Subscriptions{repo: r, notifier: n, now: time.Now}
 }
 
-// Subscribe cria uma inscrição pendente e envia o e-mail de confirmação.
 func (uc *Subscriptions) Subscribe(ctx context.Context, email, query string) (domain.Subscription, error) {
 	s, err := domain.NewSubscription(email, query, uc.now())
 	if err != nil {

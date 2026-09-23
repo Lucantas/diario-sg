@@ -1,7 +1,3 @@
-// Package pdf extrai texto de PDFs usando o pdftotext (poppler-utils),
-// instalado na imagem do container. Usa o modo de leitura (sem -layout):
-// o Diário é diagramado em duas colunas e o -layout mistura as colunas na
-// mesma linha; o modo de leitura reconstrói a ordem de cada coluna.
 package pdf
 
 import (
@@ -40,6 +36,6 @@ func (p PDFToText) Extract(ctx context.Context, r io.Reader) (string, error) {
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("pdftotext: %w: %s", err, stderr.String())
 	}
-	// Se vier vazio, o PDF provavelmente é imagem escaneada: plugar OCR aqui.
+
 	return out.String(), nil
 }

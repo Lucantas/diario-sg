@@ -1,5 +1,3 @@
-// Package usecase contém os casos de uso da aplicação. Dependem apenas de
-// domain e ports; nunca de adapters.
 package usecase
 
 import (
@@ -19,7 +17,6 @@ type IndexGazetteInput struct {
 	Checksum      string
 }
 
-// IndexGazette extrai o texto de uma edição, separa em atos, grava e avisa.
 type IndexGazette struct {
 	gazettes  ports.GazetteRepository
 	storage   ports.FileStorage
@@ -39,8 +36,6 @@ func (uc *IndexGazette) Execute(ctx context.Context, in IndexGazetteInput) error
 		return fmt.Errorf("%w: storage_path, checksum e published_at são obrigatórios", domain.ErrInvalidInput)
 	}
 
-	// Pub/Sub entrega "pelo menos uma vez". Se já indexamos, apenas
-	// republicamos o evento (o passo seguinte também é idempotente).
 	if id, found, err := uc.gazettes.FindIDByChecksum(ctx, in.Checksum); err != nil {
 		return err
 	} else if found {

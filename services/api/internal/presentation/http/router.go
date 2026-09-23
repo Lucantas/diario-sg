@@ -20,8 +20,6 @@ type API struct {
 	Log           *slog.Logger
 }
 
-// Routes usa o ServeMux da biblioteca padrão (Go 1.22+ aceita método e
-// parâmetros de rota), sem framework.
 func (a *API) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -32,8 +30,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
 	mux.HandleFunc("GET /v1/stats/acts", a.actStats)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
-	// Confirmação e cancelamento são POST (disparados por um botão no site)
-	// para que robôs que pré-visualizam links de e-mail não os acionem.
+
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)
 	mux.HandleFunc("POST /v1/subscriptions/unsubscribe", a.unsubscribe)
 	return withMiddleware(mux, a.Log)
@@ -110,7 +107,6 @@ func (a *API) actStats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, out)
 }
 
-// filterFromQuery lê q, type, from, to, limit e offset da querystring.
 func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.ActFilter, bool) {
 	q := r.URL.Query()
 	f := domain.ActFilter{Query: q.Get("q"), Type: domain.ActType(q.Get("type"))}

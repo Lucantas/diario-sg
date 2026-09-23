@@ -1,5 +1,3 @@
-# Copie estes valores para as variáveis do Environment no GitHub
-# (Settings > Environments > dev|prod > Variables).
 output "TF_STATE_BUCKET" {
   value = google_storage_bucket.tfstate.name
 }

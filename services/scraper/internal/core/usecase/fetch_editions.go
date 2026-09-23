@@ -1,4 +1,3 @@
-// Package usecase contém as regras de aplicação do scraper.
 package usecase
 
 import (
@@ -15,8 +14,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/ports"
 )
 
-// MaxFileSize protege contra arquivos inesperadamente grandes.
-const MaxFileSize = 100 << 20 // 100 MiB
+const MaxFileSize = 100 << 20
 
 type FetchEditions struct {
 	source    ports.EditionSource
@@ -36,15 +34,11 @@ type FetchResult struct {
 	Failed  int `json:"failed"`
 }
 
-// Execute coleta as edições publicadas no período [agora-lookback, agora].
 func (uc *FetchEditions) Execute(ctx context.Context, lookback time.Duration) (FetchResult, error) {
 	to := uc.now()
 	return uc.ExecuteRange(ctx, to.Add(-lookback), to)
 }
 
-// ExecuteRange coleta as edições publicadas entre from e to (backfill).
-// É idempotente: edições já processadas (com marcador) são ignoradas.
-// Falhas em uma edição não interrompem as demais.
 func (uc *FetchEditions) ExecuteRange(ctx context.Context, from, to time.Time) (FetchResult, error) {
 	if to.Before(from) {
 		return FetchResult{}, fmt.Errorf("período inválido: %s depois de %s", from.Format(time.DateOnly), to.Format(time.DateOnly))
@@ -77,9 +71,6 @@ func (uc *FetchEditions) ExecuteRange(ctx context.Context, from, to time.Time) (
 	return res, errors.Join(errs...)
 }
 
-// fetchOne: baixa -> grava PDF -> publica evento -> grava marcador.
-// Se a publicação falhar, o marcador não existe e a próxima execução tenta
-// de novo. O consumidor é idempotente pelo checksum, então reenvios são seguros.
 func (uc *FetchEditions) fetchOne(ctx context.Context, e domain.Edition) error {
 	rc, err := uc.source.Download(ctx, e)
 	if err != nil {

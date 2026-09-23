@@ -1,17 +1,3 @@
-// Package pmsg implementa ports.EditionSource para o site do Diário Oficial
-// da Prefeitura de São Gonçalo (https://do.pmsg.rj.gov.br/).
-//
-// Estrutura real do site (docs/parser-findings.md):
-//   - os PDFs ficam em URLs determinísticas: diario/AAAA_MM_DD.pdf (200 quando
-//     há edição, 500 quando não há); a edição extraordinária do mesmo dia fica
-//     em diario/AAAA_MM_DD_N.pdf;
-//   - a "Busca Específica" (POST index com DataInicial, DataFinal, Termo) lista
-//     as edições do período que contêm o termo, 5 por página, com links
-//     href="diario/AAAA_MM_DD.pdf" e paginação por ?NumeroPagina=N.
-//
-// Listamos com a letra "a", que aparece no texto de qualquer edição
-// ("Gonçalo" não serve: a continuação de 13/12/2023 não tem cabeçalho),
-// percorremos a paginação e montamos as URLs. O site não exige JavaScript.
 package pmsg
 
 import (
@@ -32,7 +18,7 @@ import (
 const (
 	userAgent   = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
 	listingTerm = "a"
-	// 5 edições por página: 200 páginas cobrem ~4 anos de edições úteis.
+
 	maxPages     = 200
 	maxHTMLBytes = 10 << 20
 )
@@ -52,9 +38,6 @@ func New(baseURL string) (*Source, error) {
 	return &Source{baseURL: u, http: newClient(), delay: 2 * time.Second}, nil
 }
 
-// newClient abre uma conexão nova por requisição (há uma pausa entre elas de
-// qualquer forma): em backfills longos o site deixa conexões ociosas mortas
-// sem fechar, e reaproveitá-las travava o download seguinte.
 func newClient() *http.Client {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.DisableKeepAlives = true
@@ -72,9 +55,6 @@ type listedEdition struct {
 	date time.Time
 }
 
-// ListEditions consulta a busca do site para o período e devolve cada edição
-// encontrada (inclusive as extraordinárias), da mais antiga para a mais
-// recente.
 func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain.Edition, error) {
 	from, to = dayStart(from), dayStart(to)
 	seen := map[string]time.Time{}
@@ -123,8 +103,6 @@ func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain
 	return out, nil
 }
 
-// listingPage faz a busca (POST na primeira página, GET nas seguintes, como
-// o paginador do site) e devolve o HTML.
 func (s *Source) listingPage(ctx context.Context, from, to time.Time, page int) (string, error) {
 	form := url.Values{
 		"DataInicial":    {from.Format(time.DateOnly)},
@@ -160,8 +138,6 @@ func (s *Source) listingPage(ctx context.Context, from, to time.Time, page int) 
 	return string(html), nil
 }
 
-// parseListing extrai as edições (caminho do PDF e data) e os números das
-// outras páginas.
 func parseListing(html string) (editions []listedEdition, pages []int) {
 	seenPath := map[string]bool{}
 	for _, m := range editionLinkRe.FindAllStringSubmatch(html, -1) {
@@ -196,8 +172,6 @@ func (s *Source) Download(ctx context.Context, e domain.Edition) (io.ReadCloser,
 	return body, nil
 }
 
-// do executa uma requisição respeitando a pausa entre chamadas (o caso de
-// uso é sequencial: nunca há mais de uma requisição em andamento).
 func (s *Source) do(ctx context.Context, req *http.Request) (io.ReadCloser, error) {
 	if err := s.throttle(ctx); err != nil {
 		return nil, err

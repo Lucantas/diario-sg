@@ -14,8 +14,6 @@ type want struct {
 	typ   domain.ActType
 }
 
-// Trechos reais do Diário (nomes de pessoas físicas trocados por fictícios),
-// no formato que o pdftotext produz em modo de leitura.
 func TestParseRealFixtures(t *testing.T) {
 	cases := map[string][]want{
 		"atos_prefeito.txt": {
@@ -87,8 +85,6 @@ func TestParseDropsCoverRosterAndPageFurniture(t *testing.T) {
 	}
 }
 
-// No anexo de pessoal o número da portaria fecha o ato; o corpo de cada
-// "Port. nº" é o texto que vem ANTES dele, começando no verbo.
 func TestShortPortariaNumberClosesThePrecedingAct(t *testing.T) {
 	raw, _ := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "fixtures", "pessoal.txt"))
 	acts := New().Parse(string(raw))

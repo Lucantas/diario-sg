@@ -1,4 +1,3 @@
-// Package pubsub adapta o cliente Pub/Sub à porta EventPublisher do core.
 package pubsub
 
 import (

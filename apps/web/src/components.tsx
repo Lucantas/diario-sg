@@ -25,7 +25,6 @@ export function Result({ hit }: { hit: ActHit }) {
   );
 }
 
-// A API marca os termos encontrados com ⟦ ⟧; renderizamos sem usar HTML cru.
 export function Highlighted({ text }: { text: string }) {
   const parts = text.split(/(⟦[^⟧]*⟧)/g);
   return (

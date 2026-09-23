@@ -10,9 +10,6 @@ const (
 	stopSel  = "⟧"
 )
 
-// highlightFallback destaca o termo quando o ts_headline não marcou nada:
-// acontece quando o ato casou só pela substring (ILIKE), por exemplo um
-// CNPJ ou um nome parcial. Compara sem acentos e sem caixa, como o banco.
 func highlightFallback(snippet, query string) string {
 	query = strings.TrimSpace(query)
 	if query == "" || strings.Contains(snippet, startSel) {
@@ -42,8 +39,6 @@ var accentFold = map[rune]rune{
 	'ç': 'c', 'ñ': 'n',
 }
 
-// foldRunes devolve minúsculas sem acento, rune a rune (mesmo comprimento
-// em runes que a entrada, para mapear posições de volta ao original).
 func foldRunes(s string) []rune {
 	out := make([]rune, 0, len(s))
 	for _, r := range s {

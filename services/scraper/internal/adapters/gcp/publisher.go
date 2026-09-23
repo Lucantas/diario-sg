@@ -1,4 +1,3 @@
-// Package gcp adapta os clientes do Google Cloud às portas do core.
 package gcp
 
 import (
@@ -10,7 +9,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/domain"
 )
 
-// EventPublisher traduz o fato de domínio para o contrato público do evento.
 type EventPublisher struct {
 	client *gcpclient.Publisher
 	topic  string

@@ -1,4 +1,3 @@
-# Atalhos de desenvolvimento. Rode `make help`.
 SHELL := /bin/bash
 -include .env
 export
@@ -45,7 +44,6 @@ run-web: ## Front em :5173 (proxy /api -> :8080)
 test: ## Testes unitários de todos os módulos Go
 	@for m in $(GO_MODULES); do (cd $$m && go test -race ./...) || exit 1; done
 
-# Banco separado (criado pelo próprio teste) para não misturar com edições ingeridas.
 TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/diario_test?sslmode=disable
 
 test-integration: ## Testes de integração (precisa de `make up`)

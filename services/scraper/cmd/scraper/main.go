@@ -1,4 +1,3 @@
-// Composition root do scraper: monta adapters e injeta no caso de uso.
 package main
 
 import (

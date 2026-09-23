@@ -1,5 +1,3 @@
-// Package domain contém entidades e regras de negócio puras. Não importa
-// nenhuma outra camada do projeto.
 package domain
 
 import "errors"
@@ -11,6 +9,6 @@ var (
 	ErrInvalidFilter         = errors.New("filtro inválido")
 	ErrInvalidCNPJ           = errors.New("CNPJ inválido: informe 14 dígitos")
 	ErrSubscriptionCancelled = errors.New("inscrição cancelada")
-	// ErrInvalidInput marca erros permanentes: repetir não adianta.
+
 	ErrInvalidInput = errors.New("entrada inválida")
 )

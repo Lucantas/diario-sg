@@ -1,6 +1,3 @@
-// Ingestão manual de uma edição já baixada. Passa pelo mesmo caso de uso do
-// scraper (FetchEditions): grava o PDF no bucket, publica gazette.fetched.v1
-// e grava o marcador. Uso: make ingest FILE=edicao.pdf DATE=2026-09-18 [EDITION=1771]
 package main
 
 import (

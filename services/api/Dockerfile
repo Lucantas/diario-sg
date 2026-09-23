@@ -1,6 +1,3 @@
-# Uma imagem, três binários: api, worker e migrate.
-# Build a partir da raiz do repositório:
-#   docker build -f services/api/Dockerfile .
 FROM golang:1.23-alpine AS build
 WORKDIR /src
 COPY pkg/ pkg/
@@ -13,7 +10,6 @@ RUN for b in api worker migrate; do \
     done
 
 FROM alpine:3.20
-# poppler-utils fornece o pdftotext usado pelo worker
 RUN apk add --no-cache ca-certificates poppler-utils && adduser -D -u 10001 app
 COPY --from=build /out/ /app/
 USER app

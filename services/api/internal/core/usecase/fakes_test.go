@@ -10,8 +10,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-// Fakes em memória: os casos de uso são testados sem banco, rede ou nuvem.
-
 type memGazettes struct {
 	byChecksum map[string]string
 	saved      map[string]domain.Gazette
@@ -77,7 +75,6 @@ func (lineParser) Parse(text string) []domain.Act {
 	return out
 }
 
-// cnpjExtractor marca todo ato que contém "CNPJ" com uma entidade fixa.
 type cnpjExtractor struct{}
 
 func (cnpjExtractor) Extract(body string) []domain.Entity {

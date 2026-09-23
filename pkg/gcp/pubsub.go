@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-// Publisher publica mensagens no Pub/Sub via REST.
 type Publisher struct {
 	baseURL string
 	project string
@@ -27,11 +26,10 @@ func NewPublisher(project, emulatorHost string, ts TokenSource) *Publisher {
 }
 
 type pubsubMessage struct {
-	Data       []byte            `json:"data"` // encoding/json serializa []byte em base64
+	Data       []byte            `json:"data"`
 	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
-// Publish envia uma mensagem e retorna o messageId.
 func (p *Publisher) Publish(ctx context.Context, topic string, data []byte, attrs map[string]string) (string, error) {
 	payload, err := json.Marshal(map[string]any{"messages": []pubsubMessage{{Data: data, Attributes: attrs}}})
 	if err != nil {
@@ -64,7 +62,6 @@ func (p *Publisher) Publish(ctx context.Context, topic string, data []byte, attr
 	return out.MessageIDs[0], nil
 }
 
-// PushEnvelope é o corpo que o Pub/Sub envia em assinaturas push.
 type PushEnvelope struct {
 	Message struct {
 		Data       []byte            `json:"data"`

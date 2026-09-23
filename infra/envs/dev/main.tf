@@ -1,6 +1,3 @@
-# Ambiente: dev. O state fica no bucket criado pelo bootstrap:
-#   terraform init -backend-config="bucket=<TF_STATE_BUCKET>"
-
 terraform {
   required_version = ">= 1.6"
   backend "gcs" {
@@ -37,7 +34,6 @@ module "stack" {
   email_from        = var.email_from
   public_web_url    = var.public_web_url
 
-  # dev: coleta uma vez por dia, escala mínima
   scraper_schedule  = "0 9 * * 1-5"
   api_max_instances = 1
 }

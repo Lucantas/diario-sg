@@ -11,8 +11,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-// Edições reais (não versionadas; ./scripts/fetch-editions.sh). Para as
-// edições contadas à mão registramos o total esperado de atos.
 var expectedActs = map[string]int{
 	"2026_09_18": 51,
 }

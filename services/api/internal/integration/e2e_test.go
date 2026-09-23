@@ -1,8 +1,5 @@
 //go:build integration
 
-// Teste de integração: Postgres real + camada HTTP + casos de uso.
-// Rode com: TEST_DATABASE_URL=postgres://... go test -tags integration ./internal/integration/
-// No CI, o GitHub Actions sobe um Postgres como service container.
 package integration
 
 import (
@@ -92,7 +89,6 @@ func TestEndToEnd(t *testing.T) {
 	box := &inbox{}
 	notifier := email.NewNotifier(box, "https://web.exemplo")
 
-	// 1. Indexação (duas vezes: tem que ser idempotente)
 	idx := usecase.NewIndexGazette(gaz, textStore{}, passthroughExtractor{}, parser.New(), entities.New(), pub)
 	in := usecase.IndexGazetteInput{EditionNumber: "1", PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
 		SourceURL: "https://exemplo/1.pdf", StoragePath: "1.pdf", Checksum: strings.Repeat("b", 64)}
@@ -118,7 +114,6 @@ func TestEndToEnd(t *testing.T) {
 	srv := httptest.NewServer(api.Routes())
 	defer srv.Close()
 
-	// 2. Busca textual em português (stemming: "medicamento" acha "medicamentos")
 	var res struct {
 		Items []struct {
 			Type, Snippet string
@@ -134,26 +129,21 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("resultado deve listar os CNPJs do ato: %+v", res.Items[0])
 	}
 
-	// 2b. Nome sem acento encontra o nome acentuado em caixa alta, e a frase
-	// exata vem antes da lista que repete "JOSÉ" e "SILVA" soltos
 	getJSON(t, srv.URL+"/v1/acts?q=jose+da+silva", &res)
 	if res.Total != 2 || res.Items[0].Type != "exoneracao" || res.Items[1].Type != "edital" || !strings.Contains(res.Items[0].Snippet, "⟦JOSÉ⟧") {
 		t.Fatalf("busca sem acento inesperada: %+v", res)
 	}
 
-	// 2b'. Entre aspas só a frase exata casa
 	getJSON(t, srv.URL+"/v1/acts?q=%22jose+da+silva%22", &res)
 	if res.Total != 1 || res.Items[0].Type != "exoneracao" || !strings.Contains(res.Items[0].Snippet, "⟦JOSÉ⟧") {
 		t.Fatalf("busca por frase inesperada: %+v", res)
 	}
 
-	// 2c. Substring que o tokenizador não trata (trecho de CNPJ) casa pelo trigram
 	getJSON(t, srv.URL+"/v1/acts?q=345.678/0001", &res)
 	if res.Total != 1 || res.Items[0].Type != "contrato" || !strings.Contains(res.Items[0].Snippet, "⟦345.678/0001⟧") {
 		t.Fatalf("busca por substring inesperada: %+v", res)
 	}
 
-	// 2d. Linha do tempo por CNPJ (formatado ou só dígitos) e estatísticas por mês
 	var company struct {
 		CNPJ            string         `json:"cnpj"`
 		TotalValueCents int64          `json:"total_value_cents"`
@@ -192,7 +182,6 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("estatísticas devem respeitar o termo de busca: %+v", stats)
 	}
 
-	// 2e. Termo curto sem dígito não casa por substring (evita inundar alertas)
 	getJSON(t, srv.URL+"/v1/acts?q=sil", &res)
 	if res.Total != 0 {
 		t.Fatalf("'sil' não deveria casar 'SILVA' por substring: %+v", res)
@@ -201,7 +190,6 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("query vazia não pode casar atos: %v %v", hits, err)
 	}
 
-	// 3. Inscrição -> confirmação -> alerta (sem duplicar)
 	post(t, srv.URL+"/v1/subscriptions", `{"email":"rep@jornal.com","query":"medicamentos"}`, http.StatusAccepted)
 	token := strings.Split(strings.Split(box.msgs[0].HTML, "token=")[1], `"`)[0]
 	post(t, srv.URL+"/v1/subscriptions/confirm", `{"token":"`+token+`"}`, http.StatusOK)
@@ -216,7 +204,6 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("esperava 1 confirmação + 1 alerta, veio %d e-mails", len(box.msgs))
 	}
 
-	// 4. Edição extraordinária (sufixo _N no PDF) vem marcada na edição e na busca
 	extra := in
 	extra.SourceURL, extra.StoragePath, extra.Checksum = "https://exemplo/2026_09_18_1.pdf", "1-extra.pdf", strings.Repeat("c", 64)
 	if err := idx.Execute(ctx, extra); err != nil {
@@ -250,8 +237,6 @@ func TestEndToEnd(t *testing.T) {
 	}
 }
 
-// openTestDB cria o banco de teste quando ele ainda não existe (localmente
-// usamos um banco separado para não misturar com as edições ingeridas).
 func openTestDB(t *testing.T, ctx context.Context, url string) *sql.DB {
 	t.Helper()
 	db, err := postgres.Open(ctx, url)

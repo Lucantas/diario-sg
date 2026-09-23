@@ -8,11 +8,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
-// MatchSubscriptions cruza uma edição recém-indexada com as inscrições
-// ativas e envia os alertas.
-//
-// Escala: O(inscrições) buscas por edição. Suficiente para milhares de
-// inscrições; depois disso, considerar busca reversa (percolator) — ver ADR 0003.
 type MatchSubscriptions struct {
 	gazettes ports.GazetteRepository
 	acts     ports.ActRepository
@@ -61,6 +56,6 @@ func (uc *MatchSubscriptions) Execute(ctx context.Context, gazetteID string) err
 			errs = append(errs, err)
 		}
 	}
-	// Retornar erro faz o Pub/Sub reentregar; o NotificationLog impede duplicatas.
+
 	return errors.Join(errs...)
 }

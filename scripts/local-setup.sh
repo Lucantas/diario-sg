@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Cria bucket, tópicos e assinaturas push nos emuladores locais,
-# espelhando o que o Terraform cria na nuvem.
 set -euo pipefail
 
 PROJECT=local

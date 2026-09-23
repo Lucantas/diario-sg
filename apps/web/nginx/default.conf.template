@@ -1,11 +1,8 @@
-# Processado pelo entrypoint da imagem oficial do nginx (envsubst):
-# apenas variáveis definidas no ambiente (PORT, API_URL, API_HOST) são trocadas.
 server {
   listen ${PORT};
   root /usr/share/nginx/html;
   server_tokens off;
 
-  # Proxy para a API: o front e a API ficam na mesma origem (sem CORS).
   location /api/ {
     proxy_pass ${API_URL}/;
     proxy_ssl_server_name on;
