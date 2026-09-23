@@ -19,6 +19,7 @@ var camara = Regex{
 		regexp.MustCompile(`^Página \d+ de \d+$`),
 	},
 	withoutOrgans: true,
+	joinRepeats:   true,
 	lineNoise:     regexp.MustCompile(`^(?:Página \d+ de \d+|Ano-\d+ / Edição.*)$`),
 	editionRes:    []*regexp.Regexp{regexp.MustCompile(`Ano-\d+\s*/\s*Edição\s*[–-]?\s*(\d+)`)},
 }
