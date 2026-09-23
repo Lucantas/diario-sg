@@ -36,3 +36,7 @@ const cnpjsSubquery = `(SELECT coalesce(array_agg(DISTINCT e.normalized), '{}')
 
 const valuesSubquery = `(SELECT coalesce(array_agg(v.normalized::bigint ORDER BY v.normalized::bigint DESC), '{}')
 		        FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor')`
+
+const orderClause = `ORDER BY x.exact DESC,
+		         CASE WHEN $1 = '' OR x.exact THEN 0 ELSE ts_rank(a.search, q) END DESC,
+		         g.published_at DESC, a.position`
