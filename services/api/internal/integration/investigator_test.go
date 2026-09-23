@@ -63,8 +63,8 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		t.Fatal(err)
 	}
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
-		Gazette: usecase.NewGetGazette(gaz, acts),
-		Export:  usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), PublicWebURL: "https://web.exemplo",
+		Gazette: usecase.NewGetGazette(gaz, acts), Reports: usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
+		Export: usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), PublicWebURL: "https://web.exemplo",
 		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)

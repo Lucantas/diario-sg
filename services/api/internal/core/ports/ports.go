@@ -81,3 +81,9 @@ type DumpSnapshot interface {
 type ObjectWriter interface {
 	Put(ctx context.Context, name, contentType string, body io.Reader) error
 }
+
+type ErrorReportRepository interface {
+	Create(ctx context.Context, r *domain.ErrorReport) error
+	List(ctx context.Context, status domain.ReportStatus) ([]domain.ErrorReport, error)
+	Close(ctx context.Context, id string, status domain.ReportStatus) error
+}
