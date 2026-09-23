@@ -29,9 +29,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
 		`+exactPhraseFor("$4")+`
 		WHERE ($1 = '' OR `+matchFor("$1", "$4")+`)`+where+`
-		ORDER BY x.exact DESC,
-		         CASE WHEN $1 = '' OR x.exact THEN 0 ELSE ts_rank(a.search, q) END DESC,
-		         g.published_at DESC, a.position
+		`+orderClause+`
 		LIMIT $2 OFFSET $3`, args...)
 	if err != nil {
 		return nil, 0, err
@@ -105,4 +103,41 @@ func (r *ActRepo) ListByGazette(ctx context.Context, gazetteID string) ([]domain
 		acts = append(acts, a)
 	}
 	return acts, rows.Err()
+}
+
+func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(domain.ActHit, int) error) error {
+	where, extra := filterSQL(f, 4)
+	args := append([]any{f.Query, f.Limit, likePattern(f.Query)}, extra...)
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT a.id, a.gazette_id, a.type, a.title, a.body, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
+		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum,
+		       `+cnpjsSubquery+`,
+		       `+valuesSubquery+`,
+		       count(*) OVER ()
+		FROM acts a
+		JOIN gazettes g ON g.id = a.gazette_id
+		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
+		`+exactPhraseFor("$3")+`
+		WHERE ($1 = '' OR `+matchFor("$1", "$3")+`)`+where+`
+		`+orderClause+`
+		LIMIT $2`, args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var h domain.ActHit
+		var typ string
+		var total int
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Body, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
+			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum,
+			pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
+			return err
+		}
+		h.Type = domain.ActType(typ)
+		if err := yield(h, total); err != nil {
+			return err
+		}
+	}
+	return rows.Err()
 }

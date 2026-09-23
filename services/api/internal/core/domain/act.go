@@ -59,6 +59,8 @@ type ActHit struct {
 	ValuesCents []int64
 }
 
+const ExportLimit = 10000
+
 type ActFilter struct {
 	Query    string
 	Type     ActType

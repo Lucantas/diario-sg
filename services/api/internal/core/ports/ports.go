@@ -25,6 +25,7 @@ type ActRepository interface {
 	ReportByEntity(ctx context.Context, kind domain.EntityKind, normalized string) (domain.CompanyReport, error)
 	CountByMonth(ctx context.Context, f domain.ActFilter) ([]domain.MonthCount, error)
 	CountByOrgan(ctx context.Context) (map[string]int, error)
+	Export(ctx context.Context, f domain.ActFilter, yield func(h domain.ActHit, total int) error) error
 }
 
 type SubscriptionRepository interface {
