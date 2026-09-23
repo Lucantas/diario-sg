@@ -6,20 +6,21 @@ decretos. Tudo público. Tudo lá. E praticamente ninguém lê, porque ler um PD
 inteiro procurando o nome de uma empresa é o tipo de coisa que só se
 faz por obrigação ou por castigo.
 
-O Diário SG lê por você. Todo dia ele baixa as edições novas, separa cada ato
+O Diário SG lê por você. Todo dia ele baixa as edições novas do Diário da
+Prefeitura e do Diário Oficial Eletrônico da Câmara Municipal, separa cada ato
 (nomeação, contrato, licitação, dispensa, decreto...), joga tudo num Postgres
 com busca em português e te manda um e-mail quando aparece o termo que você
 pediu. Quer saber quando o CNPJ daquela empresa ganhar mais um contrato? Ou
 quando sair a nomeação do primo do vereador? Cadastra o termo e vai viver a
 vida.
 
-Não é um serviço da prefeitura, não tem vínculo com ela e não substitui a
-edição oficial. É só um cidadão com um parser e alguma teimosia.
+Não é um serviço da prefeitura nem da Câmara, não tem vínculo com elas e não
+substitui a edição oficial. É só um cidadão com um parser e alguma teimosia.
 
 ## Como funciona
 
-Um job acorda, visita o site da prefeitura como quem não quer nada, baixa os
-PDFs e avisa uma fila. Um worker pega o PDF, extrai o texto, fatia em atos e
+Um job por diário acorda, visita o site da prefeitura (ou o da Câmara) como
+quem não quer nada, baixa os PDFs e avisa uma fila. Um worker pega o PDF, extrai o texto, fatia em atos e
 indexa. Quando termina, avisa outra fila, e o mesmo worker confere quem
 estava esperando por aquilo e manda os e-mails. O resto é uma API e uma
 página em React para você não precisar usar `curl` para descobrir quem foi
@@ -113,6 +114,8 @@ make run-web       # terminal 3 · http://localhost:5173
 make run-scraper   # dispara uma coleta (janela: LOOKBACK_DAYS do .env)
 make run-scraper LOOKBACK_DAYS=7   # outra janela: passe como variável do make,
                                    # não do shell (o .env incluído tem precedência)
+make run-scraper-camara FROM=2020-10-04   # Diário da Câmara (a URL por data só existe desde 2020-10-04;
+                                          # é um pedido por dia, com 2 s entre eles)
 make reindex FROM=2020-01-01 TO=2026-12-31   # reprocessa edições já indexadas com o parser atual (não dispara alertas)
 make dump DUMPS_BUCKET=diario-dumps          # publica o dump da base no emulador (página em /dados)
 make reports                                 # reportes de erro abertos (STATUS=resolvido|descartado para os fechados)
@@ -132,8 +135,8 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents` e `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`) |
-| GET | `/v1/acts/export?format=csv\|json&<filtros da busca>` | Até 10.000 atos da busca com texto completo. CSV para Excel pt-BR (`;`, BOM, decimal com vírgula); `X-Total-Count` e `X-Export-Truncated` nos cabeçalhos |
+| GET | `/v1/acts?q=&source=&type=&organ=&from=&to=&min_value=&max_value=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents` e `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`) |
+| GET | `/v1/acts/export?format=csv\|json&<filtros da busca>` | Até 10.000 atos da busca com texto completo e a coluna `fonte`. CSV para Excel pt-BR (`;`, BOM, decimal com vírgula); `X-Total-Count` e `X-Export-Truncated` nos cabeçalhos |
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/gazettes/{id}/pdf` | Cópia arquivada do PDF (`ETag` = SHA-256; abra com `#page=N`) |
@@ -159,13 +162,27 @@ claude mcp add --transport http diario-sg https://<site>/api/mcp \
 ```
 
 Ferramentas, todas só de leitura: `buscar_atos` (a busca do site,
-paginada, até 20 atos), `ler_ato` (texto completo e citação pronta),
+paginada, até 20 atos; `diario` escolhe Prefeitura ou Câmara), `ler_ato`
+(texto completo e citação pronta),
 `entidade` (atos que citam um CNPJ, um processo ou um contrato, com a
-certeza da ligação) e `fontes` (período coberto, última coleta e
-lacunas). Todo ato vem com a edição, o link oficial na página do ato, a
+certeza da ligação; processo ou contrato que aparece nos dois diários tem
+certeza fraca, e `diario` restringe a um deles) e `fontes` (período coberto, última coleta e
+lacunas de cada diário). Todo ato vem com o diário, a edição, o link oficial na página do ato, a
 cópia arquivada e o SHA-256 do PDF. Limite de 60 chamadas por minuto por
 chave. Conectores que exigem OAuth (claude.ai, ChatGPT) ainda não
 funcionam. Localmente: `make run-api` e `http://localhost:8080/mcp`.
+
+## Diário da Câmara
+
+O Diário Oficial Eletrônico da Câmara Municipal fica nas mesmas tabelas do
+da Prefeitura, com `gazettes.source = 'diario_camara'` (ADR 0007). O job
+`scraper-camara` roda o mesmo scraper com `SOURCE=diario_camara`: ele
+pergunta, dia a dia, se existe
+`https://www.cmsg.rj.gov.br/diariooficialeletronico/PUBLICACOES/AAAA-MM-DD.pdf`
+e guarda o PDF em `raw/diario_camara/AAAA/MM/DD/`. O evento
+`gazette.fetched.v1` leva a fonte, e o worker usa o parser com o cabeçalho
+da Câmara. Edições anteriores a 2020-10-04 não estão disponíveis por data
+e ficam de fora; os atos da Câmara não têm órgão.
 
 ## Entidades e coletas
 

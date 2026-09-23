@@ -176,6 +176,32 @@ Pendências:
 - [ ] Páginas de processo e contrato no site ficam para a Entrega 2, já
   lendo de `entity_links`.
 
+## Etapa C1 do plano de fontes — Diário da Câmara (entregue)
+
+O Diário Oficial Eletrônico da Câmara entra nas mesmas tabelas do da
+Prefeitura, com `gazettes.source` (ADR 0007). Busca, exportação, RSS,
+alertas, citação, dump, `entidade` e MCP valem para os dois; o site ganhou
+o filtro "Diário". O job `scraper-camara` coleta pela URL por data. Na base
+local, o backfill desde 2020-10-04 trouxe 984 edições e 4.824 atos; 78
+edições têm o corpo escaneado e ficam sem atos (sem OCR). Desenho
+em `docs/superpowers/specs/2026-09-23-diario-camara-design.md`.
+
+Pendências:
+
+- [ ] Edições de 2018 a 2020-10-03 existem, mas não por URL com a data; a
+  busca do site da Câmara recusa robôs (WAF). Falta achar outra lista.
+- [ ] Na nuvem: aplicar o Terraform (job e agendamento novos, migration
+  009) antes do primeiro deploy com o job da Câmara, e rodar o backfill
+  desde 2020-10-04 fora do agendamento (leva mais de uma hora; o job tem
+  30 minutos).
+- [ ] OCR das edições escaneadas (8% das edições da Câmara).
+- [ ] SICAM (proposições) e agentes políticos e subsídios: próximos
+  subprojetos da etapa C.
+- [ ] Reindexar a produção: `TERMO DE HOMOLOGAÇÃO` e `TERMO DE
+  ADJUDICAÇÃO` viraram licitação. Na base local (4.302 edições, 9 min), 166
+  atos da Prefeitura passaram de `outro` para `licitacao`; nenhum outro
+  tipo nem órgão mudou.
+
 ## Entrega 2 — Seguir o dinheiro dentro do Diário
 
 Ainda sem fonte externa.

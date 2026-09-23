@@ -76,8 +76,7 @@ fonte ──► coletor (Cloud Run Job, agendado) ──► bruto no bucket (has
 
 | Tabela | Fonte | Chave natural |
 | --- | --- | --- |
-| `gazettes`, `acts`, `act_entities` (existem) | D.O. da Prefeitura | edição, posição |
-| `legislative_gazettes`, `legislative_acts` | D.O.E. da Câmara (mesmo pipeline de PDF, outro parser) | edição, posição |
+| `gazettes`, `acts`, `act_entities` (existem) | D.O. da Prefeitura e D.O.E. da Câmara (`gazettes.source`, ADR 0007) | edição, posição |
 | `bills` | SICAM (proposições e tramitação) | tipo, número, ano |
 | `expenses` | TCE-RJ (`empenho_municipio`, CNPJ e valores por empenho e mês; 2025 e 2026 conferidos, ano inicial a medir), portaltp 2017–2022 (empenho, liquidação e pagamento) e, se a API for descoberta, portal Embras 2023– | unidade, empenho, ano, fase (empenho, liquidação, pagamento) |
 | `procurements`, `procurement_contracts` | Mural de licitações e PNCP | processo; `numeroControlePNCP` |
@@ -178,7 +177,7 @@ fontes de cada uma e adiciona o MCP desde cedo.
 | --- | --- | --- |
 | **A. MCP mínimo** (entregue em 23/09/2026) | Servidor MCP sobre a API atual: `buscar_atos`, `ler_ato`, `entidade` (CNPJ), `fontes` | Diário |
 | **B. Base comum** (abre a Entrega 3; entregue em 23/09/2026) | ADR do modelo de entidades; `fetch_runs`, bruto no bucket, `entities`/`entity_links` por cima de `act_entities` (ADR 0004); ADR de LGPD | — |
-| **C. Diário da Câmara** | D.O.E. da Câmara no mesmo pipeline de PDF, com parser próprio; SICAM (proposições); agentes políticos e subsídios | Câmara |
+| **C. Diário da Câmara** | C1 (entregue em 23/09/2026): D.O.E. da Câmara nas mesmas tabelas e no mesmo pipeline de PDF, com cabeçalho e número de edição próprios no parser (ADR 0007). Faltam SICAM (proposições) e agentes políticos e subsídios | Câmara |
 | **D. Quem é o fornecedor** (Entrega 3) | Receita e sanções da CGU; página e ferramenta `empresa` | Receita, CGU |
 | **E. Anunciado × pago** (Entrega 4) | Empenhos e dispensas do TCE-RJ (com CNPJ, até o mês corrente); portaltp 2017–2022 para liquidação e pagamento detalhados; mural de licitações; PNCP; SICONFI como total de controle; ferramenta `pagamentos` | TCE-RJ, Prefeitura, PNCP, Tesouro |
 | **F. Recorte político** (Entrega 5) | TSE (pelo espelho da Base dos Dados, se o TSE continuar bloqueando), transferências e emendas (CGU, Transferegov), pareceres e penalidades do TCE-RJ; folha agregada | Estado e União |

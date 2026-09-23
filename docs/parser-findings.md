@@ -200,3 +200,61 @@ com título no fim de cada bloco.
 
 Os números do parser (atos por edição, % em `outro`, erros conhecidos) estão em
 `docs/fase-1-relatorio.md`.
+
+## Diário Oficial Eletrônico da Câmara
+
+Amostra: 88 edições de 2020-11 a 2026-09, baixadas de
+`https://www.cmsg.rj.gov.br/diariooficialeletronico/PUBLICACOES/AAAA-MM-DD.pdf`.
+
+- **URL por data.** 404 nos dias sem edição; o servidor aceita `HEAD`. A
+  primeira edição achada assim é de 2020-10-04. As edições de 2018 a 2020
+  ("Ano-01") existem, mas com nomes de arquivo que não seguem a data, e a
+  busca do site fica atrás de um WAF que recusa robôs.
+- **PDF vazio.** Alguns dias devolvem um PDF de 696 bytes sem texto
+  (2025-02-24, por exemplo). Vira uma edição com zero atos.
+- **Cabeçalho de toda página**, sempre antes do primeiro texto da página:
+  `PODER LEGISLATIVO`, `CÂMARA MUNICIPAL DE SÃO GONÇALO`,
+  `São Gonçalo, 3 de novembro de 2025`, `Ano-08 / Edição – 138` (também
+  `Edição - 138` e `Edição 138`), `DIÁRIO OFICIAL ELETRÔNICO – D.O.E`
+  (com ou sem travessão), `LEI MUNICIPAL 855/2018 DE 05/07/2018` (com ou
+  sem ponto) e uma linha de sublinhados.
+- **Rodapé:** `Página N de M`, que o `pdftotext` às vezes põe no topo da
+  página seguinte.
+- **Por isso o cabeçalho só sai do topo da página.** `São Gonçalo, <data>`
+  e `CÂMARA MUNICIPAL DE SÃO GONÇALO` também aparecem dentro dos atos, na
+  assinatura ("GABINETE DO PRESIDENTE DA CÂMARA MUNICIPAL DE / SÃO
+  GONÇALO", "São Gonçalo, 30 de outubro de 2025."). Na amostra, 538 linhas
+  com cara de cabeçalho estavam no meio de atos. O parser tira as linhas
+  de cabeçalho enquanto a página ainda não teve texto, e tira
+  `Página N de M` e `Ano-NN / Edição` em qualquer lugar.
+- **Número da edição** recomeça a cada ano (`Ano-08 / Edição 138`); o
+  parser guarda só o número, e a data diferencia.
+- **Atos.** Os cabeçalhos são os mesmos da Prefeitura: `PORTARIA Nº`,
+  `RESOLUÇÃO Nº` (títulos de cidadania, moções, regimento), `EXTRATO`,
+  `AVISO DE LICITAÇÃO`, `TERMO DE APROVAÇÃO DE PRESTAÇÃO DE CONTAS` (cota
+  parlamentar, CEAPM, um por vereador e mês), `DESPACHO`, `CORRIGENDA`.
+  `TERMO DE HOMOLOGAÇÃO` e `TERMO DE ADJUDICAÇÃO` passaram a ser licitação
+  nas duas fontes.
+- **Lei promulgada pela Câmara** vem com o título duas vezes: `LEI Nº 1219
+  DE 28 DE DEZEMBRO DE 2020`, a cláusula "PROMULGO A SEGUINTE LEI:" e o
+  título de novo, seguido da ementa. O parser da Câmara junta o título
+  repetido ao ato quando o que veio antes é curto e termina em dois-pontos.
+  Sem essa condição, os termos de prestação de contas de vereadores
+  diferentes, que têm o mesmo título, virariam um ato só.
+- **PDF escaneado.** Muitas edições têm só o cabeçalho em texto e o corpo
+  em imagem (cerca de 170 caracteres por página). Ficam com zero atos,
+  porque o parser não faz OCR.
+- **Backfill local (2020-10-04 a 2026-09-23):**
+  - 984 edições, 4.824 atos e 1.896 ligações de entidades; nenhuma falha
+    de coleta;
+  - 78 edições (8%) ficaram sem atos: 5 PDFs em branco de 696 bytes e 73
+    com o corpo escaneado;
+  - por tipo: resolução 2.732, nomeação 370, prestação de contas 367,
+    exoneração 311, portaria 167, licitação 144, despacho 143, aditivo 126,
+    contrato 110, corrigenda 92, outro 84, edital 82, dispensa 56, lei 21,
+    ata 15, decreto 4;
+  - um ato (extrato de 2020-10-28) ficou com o cabeçalho partido no meio da
+    página ("DIÁRIO OFICIAL ELETRÔNICO" e "D.O.E" em linhas separadas). O
+    parser só tira o cabeçalho do topo da página.
+- **Sem órgão.** Os atos da Câmara ficam sem órgão; o filtro de órgão é
+  das secretarias da Prefeitura.
