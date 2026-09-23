@@ -22,6 +22,8 @@ type API struct {
 	Export        *usecase.ExportActs
 	Feed          *usecase.ActFeed
 	Reports       *usecase.ErrorReports
+	Keys          *usecase.APIKeys
+	MCP           http.Handler
 	PublicWebURL  string
 	Subscriptions *usecase.Subscriptions
 	Log           *slog.Logger
@@ -30,6 +32,8 @@ type API struct {
 const (
 	reportsPerClient   = 5
 	reportsPerInstance = 60
+	keysPerClient      = 3
+	keysPerInstance    = 50
 )
 
 func (a *API) Routes() http.Handler {
@@ -48,6 +52,11 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 
 	mux.HandleFunc("POST /v1/reports", a.reportError(ratelimit.New(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))
+	mux.HandleFunc("POST /v1/mcp/keys", a.issueKey(ratelimit.New(keysPerClient, keysPerInstance, time.Hour, time.Now)))
+	mux.HandleFunc("DELETE /v1/mcp/keys", a.revokeKey)
+	if a.MCP != nil {
+		mux.Handle("/mcp", a.MCP)
+	}
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)
 	mux.HandleFunc("POST /v1/subscriptions/unsubscribe", a.unsubscribe)
 	return withMiddleware(mux, a.Log)
