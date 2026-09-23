@@ -53,6 +53,8 @@ func run(l *slog.Logger) error {
 		Stats:         usecase.NewActStats(acts),
 		Organs:        usecase.NewListOrgans(acts),
 		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
+		Export:        usecase.NewExportActs(acts),
+		PublicWebURL:  cfg.PublicWebURL,
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), notifier),
 		Log:           l,
 	}
