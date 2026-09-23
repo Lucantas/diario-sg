@@ -51,7 +51,7 @@ func newOrganServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
 	if _, err := postgres.Migrate(ctx, db, migrations.FS); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, `TRUNCATE gazettes, subscriptions CASCADE`); err != nil {
+	if _, err := db.ExecContext(ctx, resetTables); err != nil {
 		t.Fatal(err)
 	}
 	gaz, acts := postgres.NewGazetteRepo(db), postgres.NewActRepo(db)

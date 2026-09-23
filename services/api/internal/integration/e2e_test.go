@@ -79,7 +79,7 @@ func TestEndToEnd(t *testing.T) {
 	if _, err := postgres.Migrate(ctx, db, migrations.FS); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, `TRUNCATE gazettes, subscriptions CASCADE`); err != nil {
+	if _, err := db.ExecContext(ctx, resetTables); err != nil {
 		t.Fatal(err)
 	}
 
