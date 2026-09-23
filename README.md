@@ -97,7 +97,7 @@ camada (`Domain`, `Application`, `Infrastructure`, `Api`).
 
 ## Rodando localmente
 
-Requisitos: Go 1.22+, Node 20+, Docker e `pdftotext` (pacote `poppler-utils`).
+Requisitos: Go 1.25+, Node 20+, Docker e `pdftotext` (pacote `poppler-utils`).
 
 ```bash
 cp .env.example .env
@@ -136,9 +136,30 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
+| POST | `/v1/mcp/keys` | Gera uma chave do servidor MCP (`{"key","prefix","mcp_url"}`); a chave só aparece nesta resposta; 3 por hora por cliente |
+| DELETE | `/v1/mcp/keys` | Revoga a chave enviada em `Authorization: Bearer` |
+| POST | `/mcp` | Servidor MCP (HTTP "streamable", sem sessão); ver abaixo |
 | POST | `/v1/subscriptions` | `{"email","query"}` → envia e-mail de confirmação |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |
+
+## Servidor MCP
+
+Para perguntar ao Diário pela IA que você já usa. Gere uma chave em
+`/mcp` no site e configure o cliente, por exemplo no Claude Code:
+
+```bash
+claude mcp add --transport http diario-sg https://<site>/api/mcp \
+  --header "Authorization: Bearer dsg_…"
+```
+
+Ferramentas, todas só de leitura: `buscar_atos` (a busca do site,
+paginada, até 20 atos), `ler_ato` (texto completo e citação pronta),
+`entidade` (atos que citam um CNPJ) e `fontes` (período coberto e
+lacunas). Todo ato vem com a edição, o link oficial na página do ato, a
+cópia arquivada e o SHA-256 do PDF. Limite de 60 chamadas por minuto por
+chave. Conectores que exigem OAuth (claude.ai, ChatGPT) ainda não
+funcionam. Localmente: `make run-api` e `http://localhost:8080/mcp`.
 
 ## Dados abertos
 
