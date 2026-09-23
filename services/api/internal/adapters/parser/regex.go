@@ -123,7 +123,7 @@ func sectionOrgan(acronym, current string) string {
 	switch {
 	case nonOrganSections[acronym]:
 		return current
-	case knownOrgans[acronym]:
+	case domain.IsKnownOrgan(acronym):
 		return acronym
 	}
 	return ""

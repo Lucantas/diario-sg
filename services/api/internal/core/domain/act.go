@@ -60,6 +60,7 @@ type ActHit struct {
 type ActFilter struct {
 	Query  string
 	Type   ActType
+	Organ  string
 	From   time.Time
 	To     time.Time
 	Limit  int
@@ -79,6 +80,11 @@ func (f *ActFilter) Normalize() error {
 	if f.Type != "" && !f.Type.Valid() {
 		return ErrInvalidFilter
 	}
+	organ, ok := NormalizeOrgan(f.Organ)
+	if !ok {
+		return ErrInvalidFilter
+	}
+	f.Organ = organ
 	if !f.From.IsZero() && !f.To.IsZero() && f.To.Before(f.From) {
 		return ErrInvalidFilter
 	}
