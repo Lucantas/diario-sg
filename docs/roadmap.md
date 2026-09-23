@@ -139,8 +139,9 @@ Pendências que ficaram desta entrega:
   `npm audit` aponta um alerta alto no Vite que já existia e um moderado no
   mocker do Vitest, que só usamos em teste. Ambos pedem troca de versão
   maior.
-- [ ] Unificar as variantes de sigla (`docs/orgaos.md`): hoje a busca por
-  `SEMSADC` não traz os atos que saíram como `SEMSAD`.
+- [x] Unificar as variantes de sigla (`docs/orgaos.md`), resolvido em
+  23/09/2026: o filtro por órgão traz a sigla principal e as variantes, e a
+  lista de órgãos soma as variantes na principal (de 125 para 107 órgãos).
 
 ## Etapa A do plano de fontes — MCP mínimo (entregue)
 

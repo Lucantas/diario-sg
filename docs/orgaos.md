@@ -40,8 +40,10 @@ chega à base com `make reindex`. Fica para quando houver mais evidência.
 ## Variantes da mesma sigla
 
 Erros de digitação ou grafias antigas que o Diário usou por pouco tempo.
-Cada variante tem o nome do órgão principal, mas a busca por órgão ainda
-trata as duas siglas como órgãos diferentes.
+Cada variante tem o nome do órgão principal. A busca por qualquer uma das
+siglas traz os atos de todas, e a lista de órgãos (`/v1/organs`) mostra só
+a principal, com os atos das variantes somados. O ato continua com a sigla
+que saiu no Diário. A tabela vive em `domain/organ_variants.go`.
 
 | Variante | Sigla principal |
 | --- | --- |
