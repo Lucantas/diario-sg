@@ -19,8 +19,9 @@ var errInternal = errors.New("erro interno; tente de novo em instantes")
 
 type searchInput struct {
 	Query    string  `json:"consulta,omitempty" jsonschema:"termos da busca em português; aceita \"frase exata\", OU e -excluir"`
+	Diario   string  `json:"diario,omitempty" jsonschema:"diario_prefeitura ou diario_camara; vazio busca nos dois"`
 	Type     string  `json:"tipo,omitempty" jsonschema:"tipo do ato: nomeacao, exoneracao, contrato, aditivo, licitacao, dispensa, decreto, lei, portaria, resolucao, despacho, edital, ata, corrigenda, prestacao_contas ou outro"`
-	Organ    string  `json:"orgao,omitempty" jsonschema:"sigla do órgão, como SEMED"`
+	Organ    string  `json:"orgao,omitempty" jsonschema:"sigla do órgão da Prefeitura, como SEMED"`
 	From     string  `json:"de,omitempty" jsonschema:"data inicial da edição, AAAA-MM-DD"`
 	To       string  `json:"ate,omitempty" jsonschema:"data final da edição, AAAA-MM-DD"`
 	MinValue float64 `json:"valor_min,omitempty" jsonschema:"só atos que citam ao menos um valor a partir deste, em reais"`
@@ -34,7 +35,7 @@ type searchOutput struct {
 	Limit    int             `json:"limite"`
 	Offset   int             `json:"deslocamento"`
 	Acts     []actSummaryDTO `json:"atos"`
-	Coverage coverageDTO     `json:"cobertura"`
+	Coverage []coverageDTO   `json:"cobertura"`
 }
 
 type readInput struct {
@@ -43,21 +44,22 @@ type readInput struct {
 }
 
 type readOutput struct {
-	GazetteID     string      `json:"edicao_id"`
-	Position      int         `json:"posicao"`
-	EditionNumber string      `json:"edicao"`
-	PublishedAt   string      `json:"data"`
-	IsExtra       bool        `json:"extra"`
-	Type          string      `json:"tipo"`
-	Organ         string      `json:"orgao"`
-	OrganName     string      `json:"orgao_nome"`
-	Title         string      `json:"titulo"`
-	Text          string      `json:"texto"`
-	Pages         string      `json:"paginas"`
-	Warnings      []string    `json:"avisos"`
-	Citation      string      `json:"citacao"`
-	Sources       []sourceDTO `json:"fontes"`
-	Coverage      coverageDTO `json:"cobertura"`
+	GazetteID     string        `json:"edicao_id"`
+	Position      int           `json:"posicao"`
+	Diario        string        `json:"diario"`
+	EditionNumber string        `json:"edicao"`
+	PublishedAt   string        `json:"data"`
+	IsExtra       bool          `json:"extra"`
+	Type          string        `json:"tipo"`
+	Organ         string        `json:"orgao"`
+	OrganName     string        `json:"orgao_nome"`
+	Title         string        `json:"titulo"`
+	Text          string        `json:"texto"`
+	Pages         string        `json:"paginas"`
+	Warnings      []string      `json:"avisos"`
+	Citation      string        `json:"citacao"`
+	Sources       []sourceDTO   `json:"fontes"`
+	Coverage      []coverageDTO `json:"cobertura"`
 }
 
 type entityInput struct {
@@ -74,7 +76,7 @@ type entityOutput struct {
 	TotalCents  int64           `json:"soma_valores_centavos"`
 	CountByType map[string]int  `json:"atos_por_tipo"`
 	Acts        []actSummaryDTO `json:"atos_recentes"`
-	Coverage    coverageDTO     `json:"cobertura"`
+	Coverage    []coverageDTO   `json:"cobertura"`
 }
 
 type sourcesInput struct{}
@@ -90,6 +92,7 @@ type lastRunDTO struct {
 }
 
 type sourceCoverageDTO struct {
+	Diario        string      `json:"diario"`
 	Name          string      `json:"nome"`
 	URL           string      `json:"url"`
 	From          string      `json:"de"`
@@ -107,14 +110,15 @@ type sourcesOutput struct {
 
 func (s *server) register(srv *sdk.Server) {
 	readOnly := &sdk.ToolAnnotations{ReadOnlyHint: true, IdempotentHint: true}
-	sdk.AddTool(srv, &sdk.Tool{Name: "buscar_atos", Annotations: readOnly, Description: "Busca atos no Diário Oficial de São Gonçalo " +
-		"(nomeações, contratos, licitações, dispensas, decretos…). Os termos encontrados vêm entre ⟦ ⟧ no trecho. " +
+	sdk.AddTool(srv, &sdk.Tool{Name: "buscar_atos", Annotations: readOnly, Description: "Busca atos nos Diários Oficiais de São Gonçalo, " +
+		"da Prefeitura e da Câmara (nomeações, contratos, licitações, dispensas, decretos, resoluções…). " +
+		"Filtre por diario para ver só um dos dois. Os termos encontrados vêm entre ⟦ ⟧ no trecho. " +
 		"Use ler_ato com edicao_id e posicao para o texto completo. Resultado paginado, até 20 atos por chamada."},
 		recorded(s, "buscar_atos", s.search))
 	sdk.AddTool(srv, &sdk.Tool{Name: "ler_ato", Annotations: readOnly, Description: "Texto completo de um ato, " +
 		"com citação pronta (ABNT), link da edição oficial na página do ato e cópia arquivada com SHA-256."},
 		recorded(s, "ler_ato", s.read))
-	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Atos do Diário que citam um CNPJ, " +
+	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Atos dos Diários (Prefeitura e Câmara) que citam um CNPJ, " +
 		"um processo ou um contrato: total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 mais recentes. " +
 		"A soma é do que aparece no texto dos atos, não do que foi pago. A certeza diz quão seguro é juntar esses atos: " +
 		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número."},
@@ -171,7 +175,7 @@ func (s *server) search(ctx context.Context, _ *sdk.CallToolRequest, in searchIn
 }
 
 func filterOf(in searchInput) (domain.ActFilter, error) {
-	f := domain.ActFilter{Query: in.Query, Type: domain.ActType(in.Type), Organ: in.Organ, Limit: in.Limit, Offset: in.Offset}
+	f := domain.ActFilter{Query: in.Query, Source: in.Diario, Type: domain.ActType(in.Type), Organ: in.Organ, Limit: in.Limit, Offset: in.Offset}
 	if f.Limit <= 0 {
 		f.Limit = defaultSearchLimit
 	}
@@ -214,7 +218,7 @@ func (s *server) read(ctx context.Context, _ *sdk.CallToolRequest, in readInput)
 	src := sourceOf(c, s.webURL)
 	src.CollectedAt = timestampOrEmpty(g.IndexedAt)
 	return nil, readOutput{
-		GazetteID: g.ID, Position: a.Position, EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly),
+		GazetteID: g.ID, Position: a.Position, Diario: domain.SourceOrDefault(g.Source), EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly),
 		IsExtra: g.IsExtra, Type: string(a.Type), Organ: a.Organ, OrganName: domain.OrganName(a.Organ), Title: a.Title, Text: a.Body,
 		Pages:    pageRange(a.PageStart, a.PageEnd),
 		Warnings: domain.ActWarnings(a.Title, domain.IsTitleOnly(a.Title, a.Body), a.PageStart, a.PageEnd),
@@ -258,15 +262,19 @@ func certaintyWarning(c domain.Certainty) string {
 }
 
 func (s *server) sources(ctx context.Context, _ *sdk.CallToolRequest, _ sourcesInput) (*sdk.CallToolResult, sourcesOutput, error) {
-	c, err := s.cachedCoverage(ctx)
+	cs, err := s.cachedCoverage(ctx)
 	if err != nil {
 		return nil, sourcesOutput{}, err
 	}
-	cov := coverageOf(c)
-	return nil, sourcesOutput{Sources: []sourceCoverageDTO{{
-		Name: sourceName, URL: sourceSite, From: cov.From, To: cov.To, Gazettes: c.Gazettes, Acts: c.Acts,
-		LastCollected: cov.LastCollected, LastRun: lastRunOf(c.LastRun), Gaps: cov.Gaps,
-	}}}, nil
+	out := sourcesOutput{Sources: make([]sourceCoverageDTO, 0, len(cs))}
+	for _, c := range cs {
+		cov := coverageOf(c)
+		out.Sources = append(out.Sources, sourceCoverageDTO{
+			Diario: c.Source, Name: cov.Name, URL: sourceSites[c.Source], From: cov.From, To: cov.To, Gazettes: c.Gazettes, Acts: c.Acts,
+			LastCollected: cov.LastCollected, LastRun: lastRunOf(c.LastRun), Gaps: cov.Gaps,
+		})
+	}
+	return nil, out, nil
 }
 
 func lastRunOf(r domain.FetchRun) *lastRunDTO {
@@ -277,10 +285,10 @@ func lastRunOf(r domain.FetchRun) *lastRunDTO {
 		To: r.RequestedTo.Format(time.DateOnly), Found: r.Found, Stored: r.Stored, Failed: r.Failed, Error: r.Error}
 }
 
-func (s *server) coverage(ctx context.Context) (coverageDTO, error) {
-	c, err := s.cachedCoverage(ctx)
+func (s *server) coverage(ctx context.Context) ([]coverageDTO, error) {
+	cs, err := s.cachedCoverage(ctx)
 	if err != nil {
-		return coverageDTO{}, err
+		return nil, err
 	}
-	return coverageOf(c), nil
+	return coveragesOf(cs), nil
 }

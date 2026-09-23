@@ -98,7 +98,7 @@ type APIKeyRepository interface {
 }
 
 type CoverageReader interface {
-	Coverage(ctx context.Context) (domain.Coverage, error)
+	Coverage(ctx context.Context) ([]domain.Coverage, error)
 }
 
 type EntityReader interface {
