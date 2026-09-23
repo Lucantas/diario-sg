@@ -1,6 +1,6 @@
 module github.com/seu-usuario/diario-sg/services/scraper
 
-go 1.22
+go 1.25.0
 
 require github.com/seu-usuario/diario-sg/pkg v0.0.0
 
