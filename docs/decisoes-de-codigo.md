@@ -162,6 +162,12 @@ decisões de arquitetura, em `adr/`.
 - Limites: 3 chaves por hora por cliente e 50 por instância; 60 chamadas
   por minuto por chave e 600 por instância. O registro de uso guarda só a
   contagem por dia e ferramenta, nunca os argumentos.
+- Lote JSON-RPC (um array no corpo) é recusado com 400. O SDK aceita lote
+  quando o cliente não manda `Mcp-Protocol-Version`, e um único POST com
+  centenas de chamadas passaria pelo limite, que conta requisições.
+- Antes da chave, um limite por cliente (120 por minuto por IP, 1.200 por
+  instância) segura quem manda chave inventada, que custaria uma consulta
+  ao banco por requisição. A revogação tem o seu (10 por minuto).
 - Erro de entrada volta como erro da ferramenta, com a mensagem do
   domínio, para a IA corrigir a chamada; erro interno vira "erro interno"
   e fica no log.

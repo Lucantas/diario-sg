@@ -1,8 +1,10 @@
 package mcp
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -70,7 +72,7 @@ func NewHandler(d Deps) http.Handler {
 		&sdk.StreamableHTTPOptions{Stateless: true, JSONResponse: true, Logger: d.Log})
 	limiter := ratelimit.New(callsPerKey, callsPerInstance, time.Minute, d.Now)
 	bearer := auth.RequireBearerToken(s.verify, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})
-	return requireBearerHeader(bearer(limited(limiter, h)))
+	return requireBearerHeader(bearer(limited(limiter, rejectBatch(h))))
 }
 
 func (s *server) verify(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
@@ -110,6 +112,22 @@ func limited(l *ratelimit.Limiter, next http.Handler) http.Handler {
 			http.Error(w, "muitas chamadas seguidas; tente de novo em um minuto", http.StatusTooManyRequests)
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func rejectBatch(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "corpo da requisição grande demais", http.StatusRequestEntityTooLarge)
+			return
+		}
+		if trimmed := bytes.TrimLeft(body, " \t\r\n"); len(trimmed) > 0 && trimmed[0] == '[' {
+			http.Error(w, "lote JSON-RPC não é aceito; mande uma chamada por requisição", http.StatusBadRequest)
+			return
+		}
+		r.Body = io.NopCloser(bytes.NewReader(body))
 		next.ServeHTTP(w, r)
 	})
 }
