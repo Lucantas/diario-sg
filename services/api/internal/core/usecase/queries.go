@@ -80,8 +80,12 @@ func (uc *ListOrgans) Execute(ctx context.Context) ([]domain.OrganCount, error) 
 	if err != nil {
 		return nil, err
 	}
-	out := make([]domain.OrganCount, 0, len(counts))
+	merged := make(map[string]int, len(counts))
 	for acronym, n := range counts {
+		merged[domain.PrincipalOrgan(acronym)] += n
+	}
+	out := make([]domain.OrganCount, 0, len(merged))
+	for acronym, n := range merged {
 		out = append(out, domain.OrganCount{Organ: domain.Organ{Acronym: acronym, Name: domain.OrganName(acronym)}, Acts: n})
 	}
 	sort.Slice(out, func(i, j int) bool {

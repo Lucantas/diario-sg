@@ -27,7 +27,7 @@ func NormalizeOrgan(s string) (string, bool) {
 	if !IsKnownOrgan(s) {
 		return "", false
 	}
-	return s, true
+	return PrincipalOrgan(s), true
 }
 
 var organNames = map[string]string{
