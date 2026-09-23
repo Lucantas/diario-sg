@@ -51,6 +51,7 @@ type ActHit struct {
 	PublishedAt   time.Time
 	IsExtra       bool
 	SourceURL     string
+	Checksum      string
 
 	Snippet string
 

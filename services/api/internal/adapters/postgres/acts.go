@@ -15,7 +15,8 @@ func NewActRepo(db *sql.DB) *ActRepo { return &ActRepo{db: db} }
 
 func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActHit, int, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, g.edition_number, g.published_at, g.is_extra, g.source_url,
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
+		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum,
 		       CASE WHEN $1 = '' THEN left(a.body, 280)
 		            ELSE ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`') END,
 		       `+cnpjsSubquery+`,
@@ -46,7 +47,8 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 	for rows.Next() {
 		var h domain.ActHit
 		var typ string
-		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Snippet, pq.Array(&h.CNPJs), &total); err != nil {
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
+			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Snippet, pq.Array(&h.CNPJs), &total); err != nil {
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)
@@ -87,7 +89,7 @@ func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) 
 
 func (r *ActRepo) ListByGazette(ctx context.Context, gazetteID string) ([]domain.Act, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT id, gazette_id, type, title, body, position
+		SELECT id, gazette_id, type, title, body, position, coalesce(page_start, 0), coalesce(page_end, 0), organ
 		FROM acts WHERE gazette_id = $1 ORDER BY position`, gazetteID)
 	if err != nil {
 		return nil, notFound(err)
@@ -98,7 +100,7 @@ func (r *ActRepo) ListByGazette(ctx context.Context, gazetteID string) ([]domain
 	for rows.Next() {
 		var a domain.Act
 		var typ string
-		if err := rows.Scan(&a.ID, &a.GazetteID, &typ, &a.Title, &a.Body, &a.Position); err != nil {
+		if err := rows.Scan(&a.ID, &a.GazetteID, &typ, &a.Title, &a.Body, &a.Position, &a.PageStart, &a.PageEnd, &a.Organ); err != nil {
 			return nil, err
 		}
 		a.Type = domain.ActType(typ)
