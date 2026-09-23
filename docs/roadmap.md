@@ -70,44 +70,70 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
 
 Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
 
-- **Proveniência.** Guardar a página de cada ato ✅ (1a, commit
-  `5950b8d..1741bf1`) e linkar `…pdf#page=N`. Mostrar o hash do PDF e servir a
-  cópia arquivada no nosso bucket (a prefeitura pode tirar o arquivo do ar).
-  Botão "citar este ato" com edição, data, página e link. Em produção ainda
-  não há como rodar a reindexação (sem job no Cloud Run, `deploy.yml` não a
-  executa) — antes de publicar 1b, produção precisa de um job de reindexação,
-  já que até lá os atos de lá ficam com página nula.
-- **Órgão.** Persistir a sigla que `isOrganSection` já reconhece ✅ (1a,
-  commit `5950b8d..1741bf1`) e expor filtro por secretaria, com os nomes por
-  extenso das siglas (1c). A allowlist de siglas da 1c precisa ser aplicada
-  no parser (depois `make reindex`), porque siglas falsas (TOTAL, DO, DE…,
-  ~3% dos atos) se propagam para os atos seguintes.
-  Allowlist aplicada e vazamento de órgão corrigido ✅ (commit `6f28706`,
-  base reindexada em 22/09/2026). O órgão vazava para seções sem sigla: o
-  bloco de portarias abreviadas do gabinete herdava a última sigla vista
-  (em 20/06/2016, `Port. nº 1360` e `1495` a `1498` saíam com `SUBCOMP`),
-  e palavras em formato de sigla viravam órgão (`EXECUTIVO`, `TOTAL`,
-  `NOME`, sobrenomes: 5.848 atos). Agora a portaria abreviada fica sem
-  órgão e zera o órgão corrente, `Continuação do D.O.E.` também zera, e
-  uma linha em formato de sigla fora da allowlist (125 siglas, em
-  `parser/organs.go`) separa seção sem virar órgão. `RESOLUÇÃO “P” nº` e
-  cabeçalhos com `nº` minúsculo (`PORTARIA nº 442/SUBRH/SEMAD/2019`)
-  passaram a abrir ato: 1.392 atos que antes ficavam colados ao anterior.
-  Atos com órgão caíram de 112.543 para 80.832, porque os errados saíram;
-  fora as portarias abreviadas, 74% dos atos têm órgão. Falta: nomes por
-  extenso das siglas e o filtro (1c). Sigla nova que a prefeitura criar
-  precisa entrar na allowlist.
-- **Busca de investigador.** Faixa de valor (a partir de `act_entities`),
-  operadores booleanos, URL permanente para cada consulta.
-- **Exportação.** CSV/JSON de qualquer busca e dump completo periódico
-  (CSV/Parquet e um SQLite pronto para o Datasette), publicado no bucket.
-- **RSS** por consulta, ao lado do alerta por e-mail.
-- **Qualidade visível.** Marcar no ato os casos conhecidos do parser
-  (`docs/fase-1-relatorio.md` §2.3: portaria sem número, tabela quebrada entre
-  páginas) e um botão "reportar erro" que abre uma fila de correção.
+- **Proveniência.** ✅ Página de cada ato (1a, commit `5950b8d..1741bf1`),
+  link `…pdf#page=N`, SHA-256 do PDF, cópia arquivada servida pela API
+  (`/v1/gazettes/{id}/pdf`) e botão "Citar este ato" com edição, data,
+  página e os dois links (1b). Produção ganhou o job de reindexação
+  (`reindex` no Cloud Run, disparado pelo workflow manual
+  `reindex.yml`); ele precisa rodar uma vez depois do deploy, senão os
+  atos de lá ficam com página nula.
+- **Órgão.** ✅ Allowlist no parser e vazamento de órgão corrigidos
+  (commit `6f28706`, base reindexada em 22/09/2026). O órgão vazava para
+  seções sem sigla: o bloco de portarias abreviadas do gabinete herdava a
+  última sigla vista (em 20/06/2016, `Port. nº 1360` e `1495` a `1498`
+  saíam com `SUBCOMP`), e palavras em formato de sigla viravam órgão
+  (`EXECUTIVO`, `TOTAL`, `NOME`, sobrenomes: 5.848 atos). Agora a
+  portaria abreviada fica sem órgão e zera o órgão corrente,
+  `Continuação do D.O.E.` também zera, e uma linha em formato de sigla
+  fora da allowlist separa seção sem virar órgão. `RESOLUÇÃO “P” nº` e
+  cabeçalhos com `nº` minúsculo passaram a abrir ato: 1.392 atos que
+  antes ficavam colados ao anterior. Atos com órgão caíram de 112.543
+  para 80.832; fora as portarias abreviadas, 74% dos atos têm órgão.
+  ✅ Filtro por órgão na busca e `/v1/organs` (1c). O catálogo de 125
+  siglas saiu do parser para `domain/organ.go`, com nome por extenso de
+  119 delas; a fonte de cada nome, as siglas que talvez não sejam órgãos
+  e as variantes estão em `docs/orgaos.md`. Sigla nova que a prefeitura
+  criar precisa entrar no catálogo (e `make reindex`).
+- **Busca de investigador.** ✅ Faixa de valor (a partir de
+  `act_entities`), operador `OU`, filtros de período e URL permanente
+  para cada consulta, com paginação.
+- **Exportação.** ✅ CSV (pt-BR, para planilha) e JSON de qualquer busca,
+  até 10.000 atos. ✅ Dump semanal da base em CSV compactado, com
+  manifesto e página `/dados`. SQLite e Parquet prontos ficaram de fora:
+  o LEIAME mostra como carregar o CSV no pandas e no Datasette.
+- **RSS** ✅ por consulta (`/v1/feeds/acts`), ao lado do alerta por e-mail.
+- **Qualidade visível.** ✅ Avisos em cada ato para os casos conhecidos
+  do parser (portaria sem número, ato só com o título, ato com 10 páginas
+  ou mais) e botão "Reportar erro", que grava numa fila lida com
+  `make reports`. A "tabela quebrada entre páginas"
+  (`docs/fase-1-relatorio.md` §2.3) ficou sem aviso: a regra candidata dá
+  falsos positivos demais (ver `docs/decisoes-de-codigo.md`).
 
 **Pronto quando:** um jornalista consegue sair de uma busca com um CSV e uma
-citação que aponta para a página exata do PDF arquivado.
+citação que aponta para a página exata do PDF arquivado. Localmente, já
+consegue.
+
+Pendências que ficaram desta entrega:
+
+- [ ] Nada da infra nova (job de reindexação, dump semanal, bucket
+  público, leitura do bucket pela API) foi aplicado na nuvem: o
+  environment `dev` do GitHub não tem as variáveis, e os workflows de
+  infra e deploy falham na autenticação, antes do `terraform plan`. Foi
+  validado só com `terraform validate` e `fmt`.
+- [ ] Busca textual ampla é lenta: `contrato` leva ~7 s e `prefeitura`
+  ~5,5 s na base local (153.750 atos), tanto no `main` quanto depois desta
+  entrega. Medido em 23/09/2026: a conferência com `ILIKE` responde por
+  ~0,9 s; `ts_headline` e as subconsultas de CNPJ e valores não mudam o
+  tempo; uma versão enxuta da mesma consulta (menos colunas, sem os testes
+  de parâmetro vazio) roda em 2,7 s, com outro plano. O suspeito é o plano
+  escolhido com o `count(*) OVER ()`, que monta as ~16 mil linhas
+  encontradas antes de ordenar. Vale atacar antes da Entrega 2.
+- [ ] Atualizar o Vite (5 → 8) e o Vitest (3 → 4.1.11 ou mais): o
+  `npm audit` aponta um alerta alto no Vite que já existia e um moderado no
+  mocker do Vitest, que só usamos em teste. Ambos pedem troca de versão
+  maior.
+- [ ] Unificar as variantes de sigla (`docs/orgaos.md`): hoje a busca por
+  `SEMSADC` não traz os atos que saíram como `SEMSAD`.
 
 ## Entrega 2 — Seguir o dinheiro dentro do Diário
 
