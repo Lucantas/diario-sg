@@ -22,6 +22,23 @@ decisões de arquitetura, em `adr/`.
   `ts_headline` não marca nada e `highlightFallback` marca o termo, com a
   mesma comparação sem acento e sem caixa do banco.
 
+- `OU` (maiúsculo, fora de aspas) vira `or` antes do
+  `websearch_to_tsquery`. Em português `ou` é stopword e sumia:
+  `limpeza OU coleta` virava `limpeza E coleta`. Minúsculo continua
+  stopword porque "ou" aparece o tempo todo no texto dos atos. Vale na
+  busca, nas estatísticas e no casamento de alertas.
+- A faixa de valor casa um ato que cite **ao menos um** valor dentro dela.
+  Um extrato cita valor global, mensal e unitário; exigir todos na faixa
+  esconderia o contrato. Por isso a interface diz "cita valor".
+- A API recebe reais com ponto decimal e sem milhar (`1500.50`); o front
+  aceita o formato brasileiro e converte. `1.500` na API seria ambíguo, e
+  a URL da busca precisa ser permanente.
+- Os filtros (tipo, órgão, período, valor) saem de um só construtor,
+  `filterSQL`, com parâmetros numerados; a busca, as estatísticas, a
+  exportação e o RSS usam o mesmo.
+- A URL do site usa nomes em português (`?q=&tipo=&orgao=&de=&ate=&valor_min=&valor_max=&pagina=`);
+  a da API continua em inglês.
+
 ## Dados
 
 - `NormalizeCNPJ` não valida dígito verificador: o Diário publica CNPJ com
