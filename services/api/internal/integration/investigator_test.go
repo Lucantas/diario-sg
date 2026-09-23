@@ -59,7 +59,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	gaz, acts := postgres.NewGazetteRepo(db), postgres.NewActRepo(db)
 	in := usecase.IndexGazetteInput{EditionNumber: "9", PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
 		SourceURL: "https://exemplo/9.pdf", StoragePath: "9.pdf", Checksum: strings.Repeat("f", 64)}
-	idx := usecase.NewIndexGazette(gaz, stringStore(text), passthroughExtractor{}, parser.New(), entities.New(), &recPub{})
+	idx := usecase.NewIndexGazette(gaz, stringStore(text), passthroughExtractor{}, parser.Set{}, entities.New(), &recPub{})
 	if err := idx.Execute(ctx, in); err != nil {
 		t.Fatal(err)
 	}

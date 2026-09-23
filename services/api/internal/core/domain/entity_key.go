@@ -14,9 +14,8 @@ const (
 )
 
 const (
-	SourceDiarioPrefeitura = "diario_prefeitura"
-	RecordAct              = "ato"
-	RoleMentioned          = "mencionado"
+	RecordAct     = "ato"
+	RoleMentioned = "mencionado"
 
 	minProcessoDigits = 5
 )

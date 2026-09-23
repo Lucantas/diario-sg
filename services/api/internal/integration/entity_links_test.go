@@ -87,7 +87,7 @@ func TestIndexingLinksActsToEntities(t *testing.T) {
 
 	gaz := postgres.NewGazetteRepo(db)
 	published := time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC)
-	res, err := usecase.NewReindexGazettes(gaz, stringStore(gazetteText), passthroughExtractor{}, parser.New(), entities.New()).
+	res, err := usecase.NewReindexGazettes(gaz, stringStore(gazetteText), passthroughExtractor{}, parser.Set{}, entities.New()).
 		Execute(ctx, published, published)
 	if err != nil || res.Reindexed != 1 {
 		t.Fatalf("reindexação: %+v %v", res, err)
