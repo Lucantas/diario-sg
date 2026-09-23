@@ -160,15 +160,33 @@ func TestMCPWithPerUserKey(t *testing.T) {
 		t.Fatal("posição inexistente deveria voltar como erro da ferramenta")
 	}
 
-	company, _ := call[struct {
-		TotalActs  int   `json:"total_atos"`
-		TotalCents int64 `json:"soma_valores_centavos"`
-	}](t, session, "entidade", map[string]any{"cnpj": "12345678000190"})
-	if company.TotalActs != 1 || company.TotalCents != 12000000 {
+	type entityOut struct {
+		Key        string `json:"chave"`
+		Certainty  string `json:"certeza"`
+		Warning    string `json:"aviso"`
+		TotalActs  int    `json:"total_atos"`
+		TotalCents int64  `json:"soma_valores_centavos"`
+	}
+	company, _ := call[entityOut](t, session, "entidade", map[string]any{"numero": "12.345.678/0001-90"})
+	if company.TotalActs != 1 || company.TotalCents != 12000000 || company.Certainty != "exata" || company.Warning != "" {
 		t.Fatalf("entidade inesperada: %+v", company)
 	}
-	if _, res := call[struct{}](t, session, "entidade", map[string]any{"cnpj": "123"}); !res.IsError {
-		t.Fatal("CNPJ inválido deveria voltar como erro da ferramenta")
+	process, _ := call[entityOut](t, session, "entidade", map[string]any{"tipo": "processo", "numero": "8.189/2025"})
+	if process.Key != "81892025" || process.TotalActs != 1 || process.Certainty != "forte" {
+		t.Fatalf("processo inesperado: %+v", process)
+	}
+	contract, _ := call[entityOut](t, session, "entidade", map[string]any{"tipo": "contrato", "numero": "055/2026"})
+	if contract.Key != "55/2026" || contract.TotalActs != 1 || contract.Certainty != "fraca" || contract.Warning == "" {
+		t.Fatalf("contrato inesperado: %+v", contract)
+	}
+	missing, _ := call[entityOut](t, session, "entidade", map[string]any{"tipo": "processo", "numero": "99999/2001"})
+	if missing.TotalActs != 0 || missing.Certainty != "" {
+		t.Fatalf("processo ausente deveria voltar vazio: %+v", missing)
+	}
+	for _, args := range []map[string]any{{"numero": "123"}, {"tipo": "valor", "numero": "100"}} {
+		if _, res := call[struct{}](t, session, "entidade", args); !res.IsError {
+			t.Fatalf("%v deveria voltar como erro da ferramenta", args)
+		}
 	}
 
 	sources, _ := call[struct {
@@ -195,7 +213,7 @@ func TestMCPWithPerUserKey(t *testing.T) {
 		usage[tool] = calls
 	}
 	rows.Close()
-	if usage["buscar_atos"] != 1 || usage["ler_ato"] != 2 || usage["entidade"] != 2 || usage["fontes"] != 1 {
+	if usage["buscar_atos"] != 1 || usage["ler_ato"] != 2 || usage["entidade"] != 6 || usage["fontes"] != 1 {
 		t.Fatalf("uso registrado: %v", usage)
 	}
 
