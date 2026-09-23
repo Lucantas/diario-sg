@@ -97,7 +97,7 @@ camada (`Domain`, `Application`, `Infrastructure`, `Api`).
 
 ## Rodando localmente
 
-Requisitos: Go 1.25+, Node 20+, Docker e `pdftotext` (pacote `poppler-utils`).
+Requisitos: Go 1.25+, Node 22.12+, Docker e `pdftotext` (pacote `poppler-utils`).
 
 ```bash
 cp .env.example .env
