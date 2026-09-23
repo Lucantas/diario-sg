@@ -105,3 +105,27 @@ export function reportError(report: ErrorReport) {
     body: JSON.stringify(report),
   });
 }
+
+export interface IssuedKey {
+  key: string;
+  prefix: string;
+  mcp_url: string;
+}
+
+export function issueMcpKey(website: string) {
+  return request<IssuedKey>("/v1/mcp/keys", {
+    method: "POST",
+    body: JSON.stringify({ website }),
+  });
+}
+
+export async function revokeMcpKey(key: string) {
+  const res = await fetch("/api/v1/mcp/keys", {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${key.trim()}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Erro ${res.status}`);
+  }
+}

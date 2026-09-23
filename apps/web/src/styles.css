@@ -193,7 +193,7 @@ button.secondary { background: transparent; color: var(--action); }
 }
 .export { color: var(--slate); font-size: 0.875rem; margin: -0.25rem 0 0.75rem; }
 
-.site-footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.9rem; }
+.site-footer { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.9rem; }
 .files { list-style: none; margin: 0 0 1.5rem; padding: 0; }
 .files li { padding: 1rem 0; border-top: 1px solid var(--rule); }
 .files p { margin: 0.2rem 0; }
@@ -201,6 +201,9 @@ button.secondary { background: transparent; color: var(--action); }
 .file-name span { color: var(--slate); font-weight: 400; font-size: 0.875rem; }
 .hash { color: var(--slate); font-size: 0.75rem; overflow-wrap: anywhere; font-family: ui-monospace, monospace; }
 .howto h2 { font-size: 1.25rem; margin: 2rem 0 0.5rem; }
+.tools { padding-left: 1.25rem; }
+.howto + .fineprint { margin-top: 2rem; }
+.tools li { margin: 0.3rem 0; }
 .howto pre {
   background: #fff; border: 1px solid var(--rule); border-radius: 6px; padding: 0.75rem 0.9rem;
   overflow-x: auto; font-size: 0.85rem;
