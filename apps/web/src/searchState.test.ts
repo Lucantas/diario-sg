@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  EMPTY_STATE, SearchState, apiParams, exportUrl, hasSearch, parseBRL, queryFromState, stateFromQuery,
+  EMPTY_STATE, SearchState, apiParams, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery,
 } from "./searchState";
 
 describe("parseBRL", () => {
@@ -79,5 +79,21 @@ describe("exportUrl", () => {
 
   it("não monta link com valor inválido", () => {
     expect(exportUrl({ ...EMPTY_STATE, min: "abc" }, "json")).toBeNull();
+  });
+});
+
+describe("feedUrl", () => {
+  it("leva os filtros sem paginação", () => {
+    const url = feedUrl({ ...EMPTY_STATE, q: "merenda", organ: "SEMED", page: 4 })!;
+    const p = new URLSearchParams(url.split("?")[1]);
+
+    expect(url.startsWith("/api/v1/feeds/acts?")).toBe(true);
+    expect(p.get("q")).toBe("merenda");
+    expect(p.get("organ")).toBe("SEMED");
+    expect(p.has("limit") || p.has("offset") || p.has("format")).toBe(false);
+  });
+
+  it("não monta link com valor inválido", () => {
+    expect(feedUrl({ ...EMPTY_STATE, max: "x" })).toBeNull();
   });
 });

@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ActType, Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api";
 import { Result } from "./components";
-import { SearchState, apiParams, exportUrl, hasSearch, queryFromState, stateFromQuery } from "./searchState";
+import { SearchState, apiParams, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery } from "./searchState";
 
 const PAGE_SIZE = 20;
 
@@ -207,6 +207,7 @@ export function SearchPage() {
             </nav>
           )}
           {state.q.length >= 3 && <AlertForm query={state.q} />}
+          <FeedLink state={state} />
         </section>
       )}
 
@@ -225,6 +226,17 @@ function ExportLinks({ state, total }: { state: SearchState; total: number }) {
     <p className="export">
       Baixar o resultado: <a href={csv} download>CSV</a> · <a href={json} download>JSON</a>
       {total > EXPORT_LIMIT && ` (só os ${EXPORT_LIMIT.toLocaleString("pt-BR")} primeiros atos)`}
+    </p>
+  );
+}
+
+function FeedLink({ state }: { state: SearchState }) {
+  const path = feedUrl(state);
+  if (!path) return null;
+  return (
+    <p className="feed">
+      Prefere RSS? <a href={window.location.origin + path}>Assine o feed desta busca</a>: os 50 atos mais recentes,
+      sem precisar de e-mail.
     </p>
   );
 }

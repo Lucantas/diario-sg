@@ -96,7 +96,7 @@ func feedItem(base string, h domain.ActHit) rssItem {
 		GUID:        rssGUID{Value: "diario-sg:" + h.GazetteID + ":" + strconv.Itoa(h.Position), IsPermaLink: "false"},
 		PubDate:     time.Date(h.PublishedAt.Year(), h.PublishedAt.Month(), h.PublishedAt.Day(), 12, 0, 0, 0, saoPaulo).Format(time.RFC1123Z),
 		Category:    h.Organ,
-		Description: "Edição " + edition + ", " + h.PublishedAt.Format("02/01/2006") + ". " + stripMarks(h.Snippet),
+		Description: "Edição " + edition + ", " + h.PublishedAt.Format("02/01/2006") + ". " + strings.Join(strings.Fields(stripMarks(h.Snippet)), " "),
 	}
 }
 

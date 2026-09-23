@@ -67,11 +67,22 @@ export function apiParams(s: SearchState, limit: number): URLSearchParams | null
   return p;
 }
 
-export function exportUrl(s: SearchState, format: "csv" | "json"): string | null {
+function unpagedParams(s: SearchState): URLSearchParams | null {
   const p = apiParams(s, 1);
   if (!p) return null;
   p.delete("limit");
   p.delete("offset");
+  return p;
+}
+
+export function exportUrl(s: SearchState, format: "csv" | "json"): string | null {
+  const p = unpagedParams(s);
+  if (!p) return null;
   p.set("format", format);
   return `/api/v1/acts/export?${p}`;
+}
+
+export function feedUrl(s: SearchState): string | null {
+  const p = unpagedParams(s);
+  return p && `/api/v1/feeds/acts?${p}`;
 }
