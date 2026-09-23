@@ -130,3 +130,26 @@ func TestCamaraActsHaveNoOrgan(t *testing.T) {
 		}
 	}
 }
+
+func TestCamaraLawWithPromulgationKeepsOneAct(t *testing.T) {
+	text := camaraHeader + "LEI Nº 1219 DE 28 DE DEZEMBRO DE 2020\n" +
+		"O PRESIDENTE DA CÂMARA MUNICIPAL DE SÃO GONÇALO, NO USO DE SUAS ATRIBUIÇÕES, PROMULGO\nA\nSEGUINTE LEI:\n" +
+		"LEI Nº 1219 DE 28 DE DEZEMBRO DE 2020\nInclui o Dia Municipal do Artesão no Calendário Oficial.\n" +
+		"LEI Nº 1220 DE 30 DE DEZEMBRO DE 2020\nInstitui o programa Empresa Amiga do Nonagenário.\n"
+
+	got := pageSpans(ForSource(domain.SourceDiarioCamara).Parse(text))
+
+	want := []string{"LEI Nº 1219 DE 28 DE DEZEMBRO DE 2020 1-1", "LEI Nº 1220 DE 30 DE DEZEMBRO DE 2020 1-1"}
+	if strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Fatalf("esperava %v, veio %v", want, got)
+	}
+}
+
+func TestCamaraTermsWithTheSameTitleStaySeparate(t *testing.T) {
+	term := "TERMO DE APROVAÇÃO DE PRESTAÇÃO DE CONTAS\nVEREADOR %s\nautorizo a publicação da prestação de contas no valor de R$ 10.000,00.\n-Presidente____________\n"
+	text := camaraHeader + strings.ReplaceAll(term, "%s", "ALCEMIR MACIEL") + strings.ReplaceAll(term, "%s", "FELIPE GUARANY")
+
+	if got := ForSource(domain.SourceDiarioCamara).Parse(text); len(got) != 2 {
+		t.Fatalf("termos de vereadores diferentes deveriam ser dois atos: %v", pageSpans(got))
+	}
+}
