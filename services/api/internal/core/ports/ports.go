@@ -102,7 +102,7 @@ type CoverageReader interface {
 }
 
 type EntityReader interface {
-	ReportByKey(ctx context.Context, kind domain.EntityKind, key string) (domain.EntityReport, error)
+	ReportByKey(ctx context.Context, kind domain.EntityKind, key, source string) (domain.EntityReport, error)
 }
 
 type FetchRunRepository interface {

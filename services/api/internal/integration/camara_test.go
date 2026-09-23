@@ -21,7 +21,7 @@ import (
 const camaraText = "PODER LEGISLATIVO\nCÂMARA MUNICIPAL DE SÃO GONÇALO\nSão Gonçalo, 3 de novembro de 2025\n" +
 	"Ano-08 / Edição - 138\n\nDIÁRIO OFICIAL ELETRÔNICO – D.O.E\nLEI MUNICIPAL 855/2018 DE 05/07/2018.\n" +
 	"EXTRATO DO CONTRATO Nº 12/2025\nCONTRATADA: Empresa de Limpeza Ltda, CNPJ 12.345.678/0001-90.\n" +
-	"OBJETO: limpeza do plenário da Câmara. VALOR: R$ 50.000,00.\nPágina 1 de 1\n"
+	"PROCESSO: 8.189/2025. OBJETO: limpeza do plenário da Câmara. VALOR: R$ 50.000,00.\nPágina 1 de 1\n"
 
 func indexCamara(t *testing.T, db *sql.DB) {
 	t.Helper()
@@ -112,7 +112,7 @@ func TestEntityReportSpansBothSources(t *testing.T) {
 	_, db := newServerFor(t, gazetteText)
 	indexCamara(t, db)
 
-	report, err := postgres.NewLinkRepo(db).ReportByKey(context.Background(), domain.EntityCNPJ, "12345678000190")
+	report, err := postgres.NewLinkRepo(db).ReportByKey(context.Background(), domain.EntityCNPJ, "12345678000190", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,5 +171,28 @@ func TestMCPReadsTheCamara(t *testing.T) {
 
 	if _, res := call[struct{}](t, session, "buscar_atos", map[string]any{"diario": "tce"}); !res.IsError {
 		t.Fatal("diário desconhecido deveria voltar como erro da ferramenta")
+	}
+}
+
+func TestSameProcessoInBothDiariosIsWeak(t *testing.T) {
+	_, db := newServerFor(t, gazetteText)
+	indexCamara(t, db)
+	links := postgres.NewLinkRepo(db)
+
+	both, err := links.ReportByKey(context.Background(), domain.EntityProcesso, "81892025", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if both.Sources != 2 || both.Certainty != domain.CertaintyWeak || both.TotalActs != 2 {
+		t.Fatalf("processo nos dois diários deveria ser fraco: %+v", both)
+	}
+
+	camara, err := links.ReportByKey(context.Background(), domain.EntityProcesso, "81892025", domain.SourceDiarioCamara)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if camara.Sources != 1 || camara.Certainty != domain.CertaintyStrong || camara.TotalActs != 1 ||
+		len(camara.Acts) != 1 || camara.Acts[0].Source != domain.SourceDiarioCamara || camara.TotalCents != 5000000 {
+		t.Fatalf("só a Câmara: %+v", camara)
 	}
 }

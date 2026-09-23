@@ -71,3 +71,23 @@ func TestLinkedKindsExcludeValues(t *testing.T) {
 		}
 	}
 }
+
+func TestReportCertaintyWeakensWhenSourcesMix(t *testing.T) {
+	cases := []struct {
+		kind    EntityKind
+		weakest Certainty
+		sources int
+		want    Certainty
+	}{
+		{EntityProcesso, CertaintyStrong, 1, CertaintyStrong},
+		{EntityProcesso, CertaintyStrong, 2, CertaintyWeak},
+		{EntityContrato, CertaintyStrong, 2, CertaintyWeak},
+		{EntityCNPJ, CertaintyExact, 2, CertaintyExact},
+		{EntityContrato, CertaintyWeak, 1, CertaintyWeak},
+	}
+	for _, c := range cases {
+		if got := ReportCertainty(c.kind, c.weakest, c.sources); got != c.want {
+			t.Errorf("%s %s em %d fontes: veio %s, esperava %s", c.kind, c.weakest, c.sources, got, c.want)
+		}
+	}
+}

@@ -14,9 +14,10 @@ import (
 )
 
 type server struct {
-	mu      sync.Mutex
-	methods []string
-	status  map[string]int
+	mu       sync.Mutex
+	methods  []string
+	status   map[string]int
+	failures map[string]int
 }
 
 func (s *server) handler(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,16 @@ func (s *server) handler(w http.ResponseWriter, r *http.Request) {
 	s.mu.Unlock()
 	if r.Header.Get("User-Agent") == "" || !strings.HasPrefix(r.Header.Get("User-Agent"), "diario-sg-bot") {
 		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	s.mu.Lock()
+	failing := s.failures[r.URL.Path] > 0
+	if failing {
+		s.failures[r.URL.Path]--
+	}
+	s.mu.Unlock()
+	if failing {
+		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
 	code, ok := s.status[r.URL.Path]
@@ -39,7 +50,7 @@ func (s *server) handler(w http.ResponseWriter, r *http.Request) {
 
 func newSource(t *testing.T, status map[string]int) (*Source, *server) {
 	t.Helper()
-	s := &server{status: status}
+	s := &server{status: status, failures: map[string]int{}}
 	ts := httptest.NewServer(http.HandlerFunc(s.handler))
 	t.Cleanup(ts.Close)
 	src, err := New(ts.URL + "/diariooficialeletronico/")
@@ -47,6 +58,7 @@ func newSource(t *testing.T, status map[string]int) (*Source, *server) {
 		t.Fatal(err)
 	}
 	src.delay = 0
+	src.retryWaits = []time.Duration{0, 0}
 	return src, s
 }
 
@@ -79,13 +91,28 @@ func TestListEditionsProbesEachDayWithHead(t *testing.T) {
 	}
 }
 
-func TestListEditionsFailsOnUnexpectedStatus(t *testing.T) {
+func TestListEditionsRetriesTransientFailures(t *testing.T) {
+	path := "/diariooficialeletronico/PUBLICACOES/2025-11-04.pdf"
+	src, srv := newSource(t, map[string]int{path: http.StatusOK})
+	srv.failures[path] = 2
+
+	got, err := src.ListEditions(context.Background(), day(4), day(4))
+
+	if err != nil || len(got) != 1 {
+		t.Fatalf("depois de duas falhas a terceira tentativa deveria achar a edição: %+v %v", got, err)
+	}
+}
+
+func TestDayThatKeepsFailingIsKeptForTheDownloadToCount(t *testing.T) {
 	src, _ := newSource(t, map[string]int{"/diariooficialeletronico/PUBLICACOES/2025-11-04.pdf": http.StatusInternalServerError})
 
-	_, err := src.ListEditions(context.Background(), day(3), day(5))
+	got, err := src.ListEditions(context.Background(), day(3), day(5))
 
-	if err == nil || !strings.Contains(err.Error(), "500") {
-		t.Fatalf("esperava erro com o status, veio %v", err)
+	if err != nil || len(got) != 1 || !got[0].PublishedAt.Equal(day(4)) {
+		t.Fatalf("o dia sem resposta deveria seguir para o download, sem derrubar a coleta: %+v %v", got, err)
+	}
+	if _, err := src.Download(context.Background(), got[0]); err == nil || !strings.Contains(err.Error(), "500") {
+		t.Fatalf("o download deveria falhar com o status: %v", err)
 	}
 }
 

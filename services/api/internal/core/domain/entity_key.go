@@ -74,3 +74,10 @@ func ParseEntityInput(kind EntityKind, s string) (string, error) {
 	}
 	return "", ErrInvalidInput
 }
+
+func ReportCertainty(kind EntityKind, weakest Certainty, sources int) Certainty {
+	if kind != EntityCNPJ && sources > 1 {
+		return CertaintyWeak
+	}
+	return weakest
+}
