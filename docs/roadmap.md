@@ -142,6 +142,24 @@ Pendências que ficaram desta entrega:
 - [ ] Unificar as variantes de sigla (`docs/orgaos.md`): hoje a busca por
   `SEMSADC` não traz os atos que saíram como `SEMSAD`.
 
+## Etapa A do plano de fontes — MCP mínimo (entregue)
+
+Servidor MCP em `POST /mcp` da API (`/api/mcp` no site), só leitura, com
+`buscar_atos`, `ler_ato`, `entidade` (CNPJ) e `fontes`. Cada pessoa gera
+uma chave anônima na página `/mcp`; o uso é contado por chave, dia e
+ferramenta. Desenho em
+`docs/superpowers/specs/2026-09-23-mcp-minimo-design.md`.
+
+Pendências:
+
+- [ ] OAuth: os conectores do claude.ai e do ChatGPT só aceitam servidor
+  com login OAuth. Hoje funcionam Claude Code, Claude Desktop (via
+  `mcp-remote`), Cursor e outros clientes que mandam o cabeçalho
+  `Authorization`.
+- [ ] Revogar chave pelo id (abuso) ainda é SQL direto:
+  `UPDATE api_keys SET revoked_at = now() WHERE key_prefix = '…'`.
+- [ ] Não foi para a nuvem, pelo mesmo motivo da Entrega 1.
+
 ## Entrega 2 — Seguir o dinheiro dentro do Diário
 
 Ainda sem fonte externa.

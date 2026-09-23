@@ -148,6 +148,28 @@ decisões de arquitetura, em `adr/`.
   esse caso. O pior resultado é lixo na fila, que `make close-report
   AS=descartado` limpa.
 
+## Servidor MCP
+
+- No mesmo binário e serviço da API: chama os mesmos casos de uso e não
+  pede infra nova. SDK oficial (`modelcontextprotocol/go-sdk`), que exige
+  Go 1.25.
+- Sem sessão e com resposta JSON (`Stateless`, `JSONResponse`): qualquer
+  instância do Cloud Run atende, e o `statusRecorder` do middleware não
+  precisa de `Flush`.
+- Chave anônima, sem e-mail: identifica o uso, não a pessoa. O banco
+  guarda só o SHA-256 e um prefixo de 8 caracteres, que é o que aparece no
+  log. Chave vazada se revoga com a própria chave.
+- Limites: 3 chaves por hora por cliente e 50 por instância; 60 chamadas
+  por minuto por chave e 600 por instância. O registro de uso guarda só a
+  contagem por dia e ferramenta, nunca os argumentos.
+- Erro de entrada volta como erro da ferramenta, com a mensagem do
+  domínio, para a IA corrigir a chamada; erro interno vira "erro interno"
+  e fica no log.
+- A cobertura (período, edições, atos) vai em toda resposta e fica em
+  cache por 5 minutos: a contagem de atos percorre um índice inteiro (~0,27 s na base local).
+- Citação ABNT reescrita em Go com o mesmo teste do front: as duas precisam
+  continuar iguais.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo
