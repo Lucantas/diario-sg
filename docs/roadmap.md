@@ -135,10 +135,9 @@ Pendências que ficaram desta entrega:
   em atos muito grandes (`prefeitura`, `merenda OU alimentação`) ainda
   levam ~2 s: o custo que sobra é comparar o texto sem acento de cada ato
   encontrado.
-- [ ] Atualizar o Vite (5 → 8) e o Vitest (3 → 4.1.11 ou mais): o
-  `npm audit` aponta um alerta alto no Vite que já existia e um moderado no
-  mocker do Vitest, que só usamos em teste. Ambos pedem troca de versão
-  maior.
+- [x] Atualizar o Vite e o Vitest (resolvido em 23/09/2026): Vite 8,
+  `@vitejs/plugin-react` 6 e Vitest 5, com Node 22 na imagem e no CI (o
+  Vitest 5 exige). `npm audit` sem alertas.
 - [x] Unificar as variantes de sigla (`docs/orgaos.md`), resolvido em
   23/09/2026: o filtro por órgão traz a sigla principal e as variantes, e a
   lista de órgãos soma as variantes na principal (de 125 para 107 órgãos).
