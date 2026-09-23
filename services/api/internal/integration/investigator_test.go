@@ -58,7 +58,7 @@ func newInvestigatorServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
 		t.Fatal(err)
 	}
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
-		Export: usecase.NewExportActs(acts), PublicWebURL: "https://web.exemplo",
+		Export: usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), PublicWebURL: "https://web.exemplo",
 		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)

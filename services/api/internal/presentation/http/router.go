@@ -19,6 +19,7 @@ type API struct {
 	Organs        *usecase.ListOrgans
 	PDF           *usecase.GetGazettePDF
 	Export        *usecase.ExportActs
+	Feed          *usecase.ActFeed
 	PublicWebURL  string
 	Subscriptions *usecase.Subscriptions
 	Log           *slog.Logger
@@ -31,6 +32,7 @@ func (a *API) Routes() http.Handler {
 	})
 	mux.HandleFunc("GET /v1/acts", a.searchActs)
 	mux.HandleFunc("GET /v1/acts/export", a.exportActs)
+	mux.HandleFunc("GET /v1/feeds/acts", a.actFeed)
 	mux.HandleFunc("GET /v1/gazettes/{id}", a.getGazette)
 	mux.HandleFunc("GET /v1/gazettes/{id}/pdf", a.gazettePDF)
 	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
