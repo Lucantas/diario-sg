@@ -50,6 +50,9 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 	if err := insertActs(ctx, tx, g.ID, acts); err != nil {
 		return err
 	}
+	if err := linkActs(ctx, tx, g.ID); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
 
@@ -120,6 +123,9 @@ func (r *GazetteRepo) ReplaceActs(ctx context.Context, gazetteID, editionNumber 
 	}
 	defer tx.Rollback() //nolint:errcheck
 
+	if err := unlinkActs(ctx, tx, gazetteID); err != nil {
+		return err
+	}
 	if _, err := tx.ExecContext(ctx, `DELETE FROM acts WHERE gazette_id = $1`, gazetteID); err != nil {
 		return err
 	}
@@ -127,6 +133,9 @@ func (r *GazetteRepo) ReplaceActs(ctx context.Context, gazetteID, editionNumber 
 		return err
 	}
 	if err := insertActs(ctx, tx, gazetteID, acts); err != nil {
+		return err
+	}
+	if err := linkActs(ctx, tx, gazetteID); err != nil {
 		return err
 	}
 	return tx.Commit()
