@@ -168,3 +168,4 @@ button.secondary { background: transparent; color: var(--action); }
 @media (max-width: 36rem) {
   .filter-grid { grid-template-columns: 1fr; }
 }
+.export { color: var(--slate); font-size: 0.875rem; margin: -0.25rem 0 0.75rem; }

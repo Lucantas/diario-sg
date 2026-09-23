@@ -66,3 +66,12 @@ export function apiParams(s: SearchState, limit: number): URLSearchParams | null
   }
   return p;
 }
+
+export function exportUrl(s: SearchState, format: "csv" | "json"): string | null {
+  const p = apiParams(s, 1);
+  if (!p) return null;
+  p.delete("limit");
+  p.delete("offset");
+  p.set("format", format);
+  return `/api/v1/acts/export?${p}`;
+}

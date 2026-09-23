@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_STATE, SearchState, apiParams, hasSearch, parseBRL, queryFromState, stateFromQuery } from "./searchState";
+import {
+  EMPTY_STATE, SearchState, apiParams, exportUrl, hasSearch, parseBRL, queryFromState, stateFromQuery,
+} from "./searchState";
 
 describe("parseBRL", () => {
   it("aceita formato brasileiro e inteiro", () => {
@@ -59,5 +61,23 @@ describe("hasSearch", () => {
     expect(hasSearch(EMPTY_STATE)).toBe(false);
     expect(hasSearch({ ...EMPTY_STATE, organ: "FMS" })).toBe(true);
     expect(hasSearch({ ...EMPTY_STATE, page: 2 })).toBe(false);
+  });
+});
+
+describe("exportUrl", () => {
+  it("leva os filtros sem paginação", () => {
+    const url = exportUrl({ ...EMPTY_STATE, q: "merenda", organ: "SEMED", min: "1.000", page: 3 }, "csv")!;
+    const p = new URLSearchParams(url.split("?")[1]);
+
+    expect(url.startsWith("/api/v1/acts/export?")).toBe(true);
+    expect(p.get("format")).toBe("csv");
+    expect(p.get("q")).toBe("merenda");
+    expect(p.get("organ")).toBe("SEMED");
+    expect(p.get("min_value")).toBe("1000");
+    expect(p.has("limit") || p.has("offset")).toBe(false);
+  });
+
+  it("não monta link com valor inválido", () => {
+    expect(exportUrl({ ...EMPTY_STATE, min: "abc" }, "json")).toBeNull();
   });
 });
