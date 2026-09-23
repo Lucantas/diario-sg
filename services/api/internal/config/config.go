@@ -16,6 +16,7 @@ const (
 	RoleReindex Role = "reindex"
 	RoleDump    Role = "dump"
 	RoleReports Role = "reports"
+	RoleKeys    Role = "keys"
 )
 
 type Config struct {

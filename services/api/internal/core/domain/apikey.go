@@ -16,9 +16,12 @@ const (
 )
 
 type APIKey struct {
-	ID        string
-	Prefix    string
-	CreatedAt time.Time
+	ID          string
+	Prefix      string
+	CreatedAt   time.Time
+	RevokedAt   time.Time
+	LastUsedAt  time.Time
+	RecentCalls int
 }
 
 func NewAPIKeySecret() (string, error) {
@@ -33,6 +36,8 @@ func HashAPIKey(secret string) string {
 	sum := sha256.Sum256([]byte(secret))
 	return hex.EncodeToString(sum[:])
 }
+
+func IsAPIKeyPrefix(s string) bool { return len(s) == apiKeyPrefixSize }
 
 func APIKeyPrefix(secret string) string {
 	rest, ok := strings.CutPrefix(secret, apiKeyMarker)

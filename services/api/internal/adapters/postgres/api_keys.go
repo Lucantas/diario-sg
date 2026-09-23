@@ -51,3 +51,41 @@ func (r *APIKeyRepo) RecordUse(ctx context.Context, keyID, tool string) error {
 		ON CONFLICT (key_id, day, tool) DO UPDATE SET calls = api_key_usage.calls + 1`, keyID, tool)
 	return err
 }
+
+func (r *APIKeyRepo) List(ctx context.Context) ([]domain.APIKey, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT k.id, k.key_prefix, k.created_at, coalesce(k.revoked_at, 'epoch'), coalesce(k.last_used_at, 'epoch'),
+		       coalesce((SELECT sum(u.calls) FROM api_key_usage u
+		                 WHERE u.key_id = k.id AND u.day > (now() AT TIME ZONE 'America/Sao_Paulo')::date - 30), 0)
+		FROM api_keys k
+		ORDER BY k.created_at`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []domain.APIKey
+	for rows.Next() {
+		var k domain.APIKey
+		if err := rows.Scan(&k.ID, &k.Prefix, &k.CreatedAt, &k.RevokedAt, &k.LastUsedAt, &k.RecentCalls); err != nil {
+			return nil, err
+		}
+		out = append(out, k)
+	}
+	return out, rows.Err()
+}
+
+func (r *APIKeyRepo) RevokeByPrefix(ctx context.Context, prefix string) error {
+	res, err := r.db.ExecContext(ctx, `
+		UPDATE api_keys SET revoked_at = now() WHERE key_prefix = $1 AND revoked_at IS NULL`, prefix)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
