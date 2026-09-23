@@ -53,7 +53,7 @@ button {
   cursor: pointer;
 }
 button:disabled { opacity: 0.6; cursor: progress; }
-:is(button, input, select, a):focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
+:is(button, input, select, textarea, a):focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
 
 .types { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0 2rem; }
 .types button {
@@ -145,6 +145,29 @@ a.cnpj { text-decoration-style: dotted; text-underline-offset: 0.15em; }
   border: 0; background: none; color: var(--action);
   text-decoration: underline; text-underline-offset: 0.15em;
 }
+.actions { display: flex; gap: 1.25rem; margin: 0; }
+.warnings {
+  list-style: none; margin: 0 0 0.6rem; padding: 0.4rem 0.7rem;
+  border-left: 3px solid var(--marker); background: #fffbe0;
+  font-size: 0.85rem; color: var(--ink);
+}
+.warnings li + li { margin-top: 0.25rem; }
+.report {
+  display: flex; flex-direction: column; gap: 0.35rem;
+  margin-top: 0.6rem; padding: 0.75rem 0.9rem; background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+  font-size: 0.875rem;
+}
+.report label { color: var(--slate); }
+.report select, .report textarea {
+  font: 400 0.9rem var(--sans); padding: 0.45rem 0.6rem; color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 6px; background: #fff;
+}
+.report textarea { resize: vertical; }
+.report-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 0.4rem 0 0; }
+.report-actions button { font-size: 0.875rem; padding: 0.35rem 0.8rem; }
+.report-actions .fineprint, .report .notice { margin: 0; }
+.report-sent { display: block; margin-bottom: 0; }
+.trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .cite { margin-top: 0.6rem; padding: 0.75rem 0.9rem; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
 .cite p { margin: 0 0 0.6rem; font-size: 0.875rem; overflow-wrap: anywhere; user-select: all; }
 .cite button { font-size: 0.875rem; padding: 0.35rem 0.8rem; }
