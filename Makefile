@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex dump ingest run-api run-worker run-scraper run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex dump reports close-report ingest run-api run-worker run-scraper run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -27,6 +27,13 @@ reindex: ## Reprocessa edições já indexadas com o parser atual: make reindex 
 
 dump: ## Publica o dump da base (CSV compactado) no bucket DUMPS_BUCKET
 	cd services/api && go run ./cmd/dump
+
+reports: ## Lista reportes de erro enviados pelo site: make reports [STATUS=aberto|resolvido|descartado]
+	cd services/api && go run ./cmd/reports -status "$(or $(STATUS),aberto)"
+
+close-report: ## Fecha um reporte: make close-report ID=<id> AS=resolvido|descartado
+	@test -n "$(ID)" -a -n "$(AS)" || (echo "uso: make close-report ID=<id> AS=resolvido|descartado"; exit 2)
+	cd services/api && go run ./cmd/reports -close "$(ID)" -as "$(AS)"
 
 ingest: ## Ingere um PDF baixado manualmente: make ingest FILE=edicao.pdf DATE=AAAA-MM-DD [EDITION=n]
 	@test -n "$(FILE)" -a -n "$(DATE)" || (echo "uso: make ingest FILE=caminho.pdf DATE=AAAA-MM-DD [EDITION=n]"; exit 2)
