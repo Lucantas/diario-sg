@@ -13,6 +13,7 @@ type Regex struct {
 	lineNoise     *regexp.Regexp
 	editionRes    []*regexp.Regexp
 	withoutOrgans bool
+	joinRepeats   bool
 }
 
 func New() Regex { return Regex{editionRes: editionNumberRes} }
@@ -54,6 +55,8 @@ func (r Regex) Parse(text string) []domain.Act {
 			flush()
 			organ = ""
 			current = &segment{title: l.text}
+			current.add(l)
+		case r.joinRepeats && current.repeatsTitle(l.text):
 			current.add(l)
 		case isHeader(l.text):
 			flush()
@@ -100,6 +103,18 @@ func (s *segment) add(ls ...line) {
 		s.pageEnd = l.page
 	}
 }
+
+const maxPreambleRunes = 600
+
+func (s *segment) repeatsTitle(text string) bool {
+	if s == nil || s.orphan || strings.Join(strings.Fields(text), " ") != strings.Join(strings.Fields(s.title), " ") {
+		return false
+	}
+	body := strings.TrimSpace(strings.Join(s.lines, "\n"))
+	return utf8.RuneCountInString(body) <= maxPreambleRunes && promulgationEndRe.MatchString(body)
+}
+
+var promulgationEndRe = regexp.MustCompile(`:\W*$`)
 
 func (s *segment) close(trailer line) {
 	s.title = trailer.text
