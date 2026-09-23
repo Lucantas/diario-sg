@@ -1,6 +1,10 @@
 package postgres
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
+)
 
 const tsConfig = "portuguese_unaccent"
 
@@ -37,6 +41,16 @@ const cnpjsSubquery = `(SELECT coalesce(array_agg(DISTINCT e.normalized), '{}')
 const valuesSubquery = `(SELECT coalesce(array_agg(v.normalized::bigint ORDER BY v.normalized::bigint DESC), '{}')
 		        FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor')`
 
-const orderClause = `ORDER BY x.exact DESC,
+const (
+	relevanceOrder = `ORDER BY x.exact DESC,
 		         CASE WHEN $1 = '' OR x.exact THEN 0 ELSE ts_rank(a.search, q) END DESC,
 		         g.published_at DESC, a.position`
+	recentOrder = `ORDER BY g.published_at DESC, g.source_url DESC, a.position`
+)
+
+func orderSQL(f domain.ActFilter) string {
+	if f.Recent {
+		return recentOrder
+	}
+	return relevanceOrder
+}
