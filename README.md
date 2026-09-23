@@ -111,6 +111,7 @@ make run-scraper   # dispara uma coleta (janela: LOOKBACK_DAYS do .env)
 make run-scraper LOOKBACK_DAYS=7   # outra janela: passe como variável do make,
                                    # não do shell (o .env incluído tem precedência)
 make reindex FROM=2020-01-01 TO=2026-12-31   # reprocessa edições já indexadas com o parser atual (não dispara alertas)
+make dump DUMPS_BUCKET=diario-dumps          # publica o dump da base no emulador (página em /dados)
 ```
 
 Testes: `make test` (unitários) e `make test-integration` (Postgres real, num banco
@@ -134,6 +135,15 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | POST | `/v1/subscriptions` | `{"email","query"}` → envia e-mail de confirmação |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |
+
+## Dados abertos
+
+Todo domingo um Cloud Run Job publica a base inteira num bucket público
+próprio: `gazettes.csv.gz`, `acts.csv.gz` (com o texto completo),
+`act_entities.csv.gz`, `LEIAME.txt` (colunas e como abrir) e
+`manifest.json` (linhas, bytes e SHA-256 de cada arquivo). O site serve
+tudo em `/dados/`, e a página `/dados` explica os arquivos. Inscrições
+em alertas nunca entram no dump.
 
 ## Deploy na nuvem (primeira vez)
 

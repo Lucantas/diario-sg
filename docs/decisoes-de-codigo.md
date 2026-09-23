@@ -93,6 +93,27 @@ decisões de arquitetura, em `adr/`.
 - Consulta própria, sem `ts_headline`: gerar trecho destacado para 10 mil
   atos custaria segundos e a exportação leva o corpo inteiro.
 
+## Dump da base
+
+- CSV comum (vírgula, UTF-8 sem BOM, gzip) no dump, CSV de planilha
+  pt-BR na exportação da busca: o dump é para programas (pandas,
+  sqlite-utils), a exportação é para gente abrir no Excel.
+- Sem SQLite nem Parquet prontos: o CSV compactado cobre os dois usos sem
+  dependência nova no Go, e o LEIAME mostra os comandos.
+- Bucket próprio e público para o dump; o de edições é privado e move
+  tudo para ARCHIVE. Leitura anônima com `legacyObjectReader`, que lê
+  objeto mas não lista o bucket.
+- As três tabelas saem de uma transação `REPEATABLE READ` só de leitura,
+  senão uma edição indexada no meio do dump apareceria numa tabela e não
+  na outra.
+- Cada tabela é compactada e enviada por `io.Pipe`, sem arquivo
+  temporário: no Cloud Run o `/tmp` é memória.
+- O manifesto sobe por último e só se todas as tabelas subiram. Quem lê
+  o manifesto encontra os arquivos que ele descreve.
+- O nginx serve `/dados/` por proxy do bucket, e `location = /dados`
+  devolve a página do front: sem ele, o prefixo com `proxy_pass`
+  redirecionaria `/dados` para `/dados/`.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo
