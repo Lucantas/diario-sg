@@ -4,7 +4,8 @@ export const TYPE_LABEL: Record<ActType, string> = {
   nomeacao: "Nomeação", exoneracao: "Exoneração", contrato: "Contrato",
   aditivo: "Aditivo", licitacao: "Licitação", dispensa: "Sem licitação",
   decreto: "Decreto", lei: "Lei", portaria: "Portaria", resolucao: "Resolução",
-  despacho: "Despacho", edital: "Edital", ata: "Ata", outro: "Outro",
+  despacho: "Despacho", edital: "Edital", ata: "Ata", corrigenda: "Corrigenda",
+  prestacao_contas: "Prestação de contas", outro: "Outro",
 };
 
 export function formatCnpj(digits: string) {

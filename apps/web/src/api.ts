@@ -4,7 +4,7 @@
 export type ActType =
   | "nomeacao" | "exoneracao" | "contrato" | "aditivo" | "licitacao"
   | "dispensa" | "decreto" | "lei" | "portaria" | "resolucao"
-  | "despacho" | "edital" | "ata" | "outro";
+  | "despacho" | "edital" | "ata" | "corrigenda" | "prestacao_contas" | "outro";
 
 export interface ActHit {
   id: string;

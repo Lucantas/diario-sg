@@ -159,3 +159,23 @@ func TestParse_TrailerWithoutBodyKeepsTheNumber(t *testing.T) {
 		t.Fatalf("esperava só a portaria 5/2020, veio %+v", acts)
 	}
 }
+
+func TestClassify_CorrigendaAndPrestacaoDeContas(t *testing.T) {
+	cases := []struct {
+		title string
+		want  domain.ActType
+	}{
+		{"CORRIGENDA DA PORTARIA Nº 1384/2016", domain.ActCorrigenda},
+		{"CORRIGENDA – TCE", domain.ActCorrigenda},
+		{"ERRATA", domain.ActCorrigenda},
+		{"CORRIGENDA DO TERMO DE APROVAÇÃO DE PRESTAÇÃO DE CONTAS", domain.ActCorrigenda},
+		{"TERMO DE APROVAÇÃO DE PRESTAÇÃO DE CONTAS", domain.ActPrestacaoContas},
+		{"TERMO DE APROVAÇÃO E PRESTAÇÃO DE CONTAS Nº 12/2015", domain.ActPrestacaoContas},
+		{"TERMO DE APREENSÃO ADMINISTRATIVA Nº 5/2026", domain.ActOutro},
+	}
+	for _, c := range cases {
+		if got := classify(c.title, c.title); got != c.want {
+			t.Errorf("%q: esperava %s, veio %s", c.title, c.want, got)
+		}
+	}
+}

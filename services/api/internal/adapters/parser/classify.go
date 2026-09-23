@@ -11,6 +11,8 @@ import (
 func classify(title, body string) domain.ActType {
 	t := strings.ToUpper(title)
 	switch {
+	case hasAnyPrefix(t, "CORRIGENDA", "ERRATA"):
+		return domain.ActCorrigenda
 	case strings.HasPrefix(t, "PORT"), isPortariaVerb(title):
 		return classifyPortaria(title, body)
 	case strings.HasPrefix(t, "DECRETO"):
@@ -44,7 +46,10 @@ func classify(title, body string) domain.ActType {
 	case strings.HasPrefix(t, "CONTRATO"):
 		return domain.ActContrato
 	case strings.HasPrefix(t, "TERMO DE"):
-		if containsAny(t, "PRESTAÇÃO DE CONTAS", "APREENSÃO") {
+		if strings.Contains(t, "PRESTAÇÃO DE CONTAS") {
+			return domain.ActPrestacaoContas
+		}
+		if strings.Contains(t, "APREENSÃO") {
 			return domain.ActOutro
 		}
 		if containsAny(t, "CONTRATO", "COOPERAÇÃO", "FOMENTO", "COLABORAÇÃO", "CONVÊNIO", "PARCERIA", "ACORDO", "CESSÃO", "COMODATO", "PERMISSÃO") {
