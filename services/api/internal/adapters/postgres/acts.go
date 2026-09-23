@@ -18,7 +18,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 	args := append([]any{f.Query, f.Limit, f.Offset, likePattern(f.Query)}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
-		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, `+titleOnlyExpr+`,
+		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum,
 		       CASE WHEN $1 = '' THEN left(a.body, 280)
 		            ELSE ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`') END,
 		       `+cnpjsSubquery+`,
@@ -44,14 +44,17 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		var h domain.ActHit
 		var typ string
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
-			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.TitleOnly, &h.Snippet, pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
+			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Snippet, pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)
 		h.Snippet = highlightFallback(h.Snippet, phraseOf(f.Query))
 		hits = append(hits, h)
 	}
-	return hits, total, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+	return hits, total, markTitleOnly(ctx, r.db, hits)
 }
 
 func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) ([]domain.ActHit, error) {

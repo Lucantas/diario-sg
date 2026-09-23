@@ -1,7 +1,11 @@
 package postgres
 
 import (
+	"context"
+	"database/sql"
 	"strings"
+
+	"github.com/lib/pq"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -55,4 +59,30 @@ func orderSQL(f domain.ActFilter) string {
 	return relevanceOrder
 }
 
-const titleOnlyExpr = `btrim(a.body) = btrim(a.title)`
+func markTitleOnly(ctx context.Context, db *sql.DB, hits []domain.ActHit) error {
+	if len(hits) == 0 {
+		return nil
+	}
+	ids := make([]string, len(hits))
+	for i, h := range hits {
+		ids[i] = h.ID
+	}
+	rows, err := db.QueryContext(ctx, `
+		SELECT id FROM acts WHERE id = ANY($1::uuid[]) AND btrim(body) = btrim(title)`, pq.Array(ids))
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	titleOnly := map[string]bool{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return err
+		}
+		titleOnly[id] = true
+	}
+	for i := range hits {
+		hits[i].TitleOnly = titleOnly[hits[i].ID]
+	}
+	return rows.Err()
+}
