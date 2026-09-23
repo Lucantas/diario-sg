@@ -75,6 +75,24 @@ decisões de arquitetura, em `adr/`.
 - A citação é montada no front (`src/citation.ts`); a API devolve os
   dados, e o formato pode mudar sem mexer no backend.
 
+## Exportação
+
+- Teto de 10.000 atos por exportação, na ordem da busca: cobre qualquer
+  recorte razoável e limita a resposta a dezenas de MB. Acima disso os
+  cabeçalhos `X-Total-Count` e `X-Export-Truncated` (e `truncated` no
+  JSON) avisam; a base inteira fica para o dump.
+- CSV feito para abrir direto no Excel e no LibreOffice em pt-BR:
+  separador `;`, UTF-8 com BOM, CRLF (o `encoding/csv` também troca as
+  quebras de linha dentro dos campos) e decimal com vírgula.
+- Célula de texto que começa com `=`, `+`, `-`, `@`, tab ou CR ganha um
+  apóstrofo na frente: o texto dos atos vem de fora e vai ser aberto em
+  planilha (injeção de fórmula, OWASP).
+- Streaming do banco para a resposta; os cabeçalhos são escritos quando
+  chega a primeira linha, que traz o total. Resposta em streaming não tem
+  o limite de 32 MiB do Cloud Run.
+- Consulta própria, sem `ts_headline`: gerar trecho destacado para 10 mil
+  atos custaria segundos e a exportação leva o corpo inteiro.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo
