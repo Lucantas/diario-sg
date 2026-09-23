@@ -7,6 +7,7 @@ export type ActType =
 export interface ActHit {
   id: string;
   gazette_id: string;
+  position: number;
   type: ActType;
   title: string;
   organ: string;
@@ -21,6 +22,7 @@ export interface ActHit {
   pdf_sha256: string;
   cnpjs: string[];
   values_cents: number[];
+  warnings: string[];
 }
 
 export interface SearchResponse {
@@ -83,5 +85,23 @@ export function unsubscribe(token: string) {
   return request<unknown>("/v1/subscriptions/unsubscribe", {
     method: "POST",
     body: JSON.stringify({ token }),
+  });
+}
+
+export type ReportKind = "texto_errado" | "tipo_errado" | "orgao_errado" | "pagina_errada" | "outro";
+
+export interface ErrorReport {
+  gazette_id: string;
+  position: number;
+  act_title: string;
+  kind: ReportKind;
+  message: string;
+  website: string;
+}
+
+export function reportError(report: ErrorReport) {
+  return request<{ status: string }>("/v1/reports", {
+    method: "POST",
+    body: JSON.stringify(report),
   });
 }

@@ -1,10 +1,15 @@
 import { useRef, useState } from "react";
 import { ActHit } from "./api";
 import { archivedPdfUrl, formatCitation, pageFragment, pageLabel } from "./citation";
+import { ReportForm } from "./ReportForm";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
+import { warningText } from "./warnings";
+
+type Panel = "cite" | "report" | null;
 
 export function Result({ hit }: { hit: ActHit }) {
-  const [citing, setCiting] = useState(false);
+  const [panel, setPanel] = useState<Panel>(null);
+  const toggle = (p: Exclude<Panel, null>) => setPanel(panel === p ? null : p);
   const date = new Date(hit.published_at + "T12:00:00").toLocaleDateString("pt-BR");
   const pages = pageLabel(hit);
   return (
@@ -24,6 +29,7 @@ export function Result({ hit }: { hit: ActHit }) {
         )}
       </p>
       <h2>{hit.title}</h2>
+      <Warnings hit={hit} />
       <p className="snippet"><Highlighted text={hit.snippet} /></p>
       {hit.values_cents.length > 0 && <Values cents={hit.values_cents} />}
       {hit.cnpjs.length > 0 && (
@@ -34,11 +40,27 @@ export function Result({ hit }: { hit: ActHit }) {
           ))}
         </p>
       )}
-      <button type="button" className="link-button" aria-expanded={citing} onClick={() => setCiting(!citing)}>
-        Citar este ato
-      </button>
-      {citing && <Citation hit={hit} />}
+      <p className="actions">
+        <button type="button" className="link-button" aria-expanded={panel === "cite"} onClick={() => toggle("cite")}>
+          Citar este ato
+        </button>
+        <button type="button" className="link-button" aria-expanded={panel === "report"} onClick={() => toggle("report")}>
+          Reportar erro
+        </button>
+      </p>
+      {panel === "cite" && <Citation hit={hit} />}
+      {panel === "report" && <ReportForm hit={hit} />}
     </li>
+  );
+}
+
+function Warnings({ hit }: { hit: ActHit }) {
+  const texts = hit.warnings.map((w) => warningText(w, hit)).filter(Boolean);
+  if (texts.length === 0) return null;
+  return (
+    <ul className="warnings" aria-label="Avisos de extração">
+      {texts.map((t) => <li key={t}>{t}</li>)}
+    </ul>
   );
 }
 
