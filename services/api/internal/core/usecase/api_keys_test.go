@@ -40,6 +40,24 @@ func (m *memAPIKeys) Revoke(_ context.Context, hash string) error {
 	return nil
 }
 
+func (m *memAPIKeys) List(context.Context) ([]domain.APIKey, error) {
+	var out []domain.APIKey
+	for _, k := range m.byHash {
+		out = append(out, k)
+	}
+	return out, nil
+}
+
+func (m *memAPIKeys) RevokeByPrefix(_ context.Context, prefix string) error {
+	for hash, k := range m.byHash {
+		if k.Prefix == prefix && !m.revoked[hash] {
+			m.revoked[hash] = true
+			return nil
+		}
+	}
+	return domain.ErrNotFound
+}
+
 func (m *memAPIKeys) RecordUse(_ context.Context, keyID, tool string) error {
 	m.uses[keyID+"/"+tool]++
 	return nil
@@ -85,5 +103,24 @@ func TestAuthenticateRejectsUnknownAndRevokedKeys(t *testing.T) {
 	}
 	if err := uc.Revoke(ctx, secret); !errors.Is(err, domain.ErrUnauthorized) {
 		t.Fatalf("revogar de novo deveria ser ErrUnauthorized, veio %v", err)
+	}
+}
+
+func TestRevokeByPrefixNeedsTheFullPrefix(t *testing.T) {
+	ctx := context.Background()
+	uc := NewAPIKeys(newMemAPIKeys())
+	secret, key, _ := uc.Issue(ctx)
+
+	if err := uc.RevokeByPrefix(ctx, key.Prefix[:4]); !errors.Is(err, domain.ErrInvalidInput) {
+		t.Fatalf("prefixo curto deveria ser ErrInvalidInput, veio %v", err)
+	}
+	if err := uc.RevokeByPrefix(ctx, key.Prefix); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := uc.Authenticate(ctx, secret); !errors.Is(err, domain.ErrUnauthorized) {
+		t.Fatalf("chave revogada pelo prefixo ainda autentica: %v", err)
+	}
+	if err := uc.RevokeByPrefix(ctx, key.Prefix); !errors.Is(err, domain.ErrNotFound) {
+		t.Fatalf("revogar de novo deveria ser ErrNotFound, veio %v", err)
 	}
 }

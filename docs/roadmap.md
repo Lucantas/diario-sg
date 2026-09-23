@@ -157,8 +157,9 @@ Pendências:
   com login OAuth. Hoje funcionam Claude Code, Claude Desktop (via
   `mcp-remote`), Cursor e outros clientes que mandam o cabeçalho
   `Authorization`.
-- [ ] Revogar chave pelo id (abuso) ainda é SQL direto:
-  `UPDATE api_keys SET revoked_at = now() WHERE key_prefix = '…'`.
+- [x] Revogar chave por abuso (resolvido em 23/09/2026): `make keys` lista as
+  chaves com o uso dos últimos 30 dias e `make revoke-key PREFIX=…` revoga
+  pelo prefixo que aparece no log.
 - [ ] Não foi para a nuvem, pelo mesmo motivo da Entrega 1.
 
 ## Entrega 2 — Seguir o dinheiro dentro do Diário

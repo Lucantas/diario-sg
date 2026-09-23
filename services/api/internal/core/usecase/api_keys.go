@@ -43,6 +43,17 @@ func (uc *APIKeys) RecordUse(ctx context.Context, keyID, tool string) error {
 	return uc.repo.RecordUse(ctx, keyID, tool)
 }
 
+func (uc *APIKeys) List(ctx context.Context) ([]domain.APIKey, error) {
+	return uc.repo.List(ctx)
+}
+
+func (uc *APIKeys) RevokeByPrefix(ctx context.Context, prefix string) error {
+	if !domain.IsAPIKeyPrefix(prefix) {
+		return domain.ErrInvalidInput
+	}
+	return uc.repo.RevokeByPrefix(ctx, prefix)
+}
+
 func unauthorizedIfMissing(err error) error {
 	if errors.Is(err, domain.ErrNotFound) {
 		return domain.ErrUnauthorized
