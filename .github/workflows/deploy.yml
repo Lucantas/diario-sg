@@ -106,6 +106,8 @@ jobs:
         run: gcloud run deploy $PREFIX-web --image $REGISTRY/web:$TAG --region $REGION --quiet
       - name: scraper (job)
         run: gcloud run jobs update $PREFIX-scraper --image $REGISTRY/scraper:$TAG --region $REGION --quiet
+      - name: scraper da Câmara (job)
+        run: gcloud run jobs update $PREFIX-scraper-camara --image $REGISTRY/scraper:$TAG --region $REGION --quiet
       - name: reindex (job)
         run: gcloud run jobs update $PREFIX-reindex --image $REGISTRY/api:$TAG --region $REGION --quiet
       - name: dump (job)

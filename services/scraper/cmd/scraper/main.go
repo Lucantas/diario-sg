@@ -9,8 +9,11 @@ import (
 	gcpclient "github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/gcp"
+	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/source/cmsg"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/source/pmsg"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/config"
+	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/domain"
+	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/ports"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/usecase"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/presentation/cli"
 )
@@ -22,10 +25,11 @@ func main() {
 		log.Error("configuração inválida", "error", err)
 		os.Exit(2)
 	}
+	log = log.With("source", cfg.Source)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	source, err := pmsg.New(cfg.SourceURL)
+	source, err := editionSource(cfg)
 	if err != nil {
 		log.Error("fonte inválida", "error", err)
 		os.Exit(2)
@@ -39,4 +43,11 @@ func main() {
 
 	uc := usecase.NewFetchEditions(source, storage, publisher)
 	os.Exit(cli.Run(ctx, os.Args[1:], uc, cfg.Lookback, log))
+}
+
+func editionSource(cfg config.Config) (ports.EditionSource, error) {
+	if cfg.Source == domain.SourceDiarioCamara {
+		return cmsg.New(cfg.SourceURL)
+	}
+	return pmsg.New(cfg.SourceURL)
 }

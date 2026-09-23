@@ -9,6 +9,7 @@ import (
 )
 
 type EditionSource interface {
+	Name() string
 	ListEditions(ctx context.Context, from, to time.Time) ([]domain.Edition, error)
 	Download(ctx context.Context, e domain.Edition) (io.ReadCloser, error)
 }

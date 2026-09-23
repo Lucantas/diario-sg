@@ -29,6 +29,8 @@ func New(path string, published time.Time, number, sourceURL string) (*Source, e
 	return &Source{path: path, edition: domain.Edition{Number: number, PublishedAt: published, URL: sourceURL}}, nil
 }
 
+func (s *Source) Name() string { return domain.SourceDiarioPrefeitura }
+
 func (s *Source) ListEditions(context.Context, time.Time, time.Time) ([]domain.Edition, error) {
 	return []domain.Edition{s.edition}, nil
 }

@@ -53,6 +53,12 @@ variable "scraper_schedule" {
   default     = "0 8,13,19 * * 1-6"
 }
 
+variable "camara_scraper_schedule" {
+  description = "Cron da coleta do Diário da Câmara (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "30 21 * * 1-6"
+}
+
 variable "scraper_lookback_days" {
   type    = number
   default = 3

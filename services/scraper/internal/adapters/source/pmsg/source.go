@@ -38,6 +38,8 @@ func New(baseURL string) (*Source, error) {
 	return &Source{baseURL: u, http: newClient(), delay: 2 * time.Second}, nil
 }
 
+func (s *Source) Name() string { return domain.SourceDiarioPrefeitura }
+
 func newClient() *http.Client {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.DisableKeepAlives = true
