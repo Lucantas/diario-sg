@@ -19,9 +19,9 @@ var dumpTables = []string{"gazettes", "acts", "act_entities"}
 
 var dumpQueries = map[string]dumpTable{
 	"gazettes": {
-		header: []string{"id", "edition_number", "published_at", "is_extra", "source_url", "pdf_sha256", "indexed_at"},
+		header: []string{"id", "edition_number", "published_at", "is_extra", "source_url", "pdf_sha256", "indexed_at", "source"},
 		query: `SELECT id::text, edition_number, to_char(published_at, 'YYYY-MM-DD'), is_extra::text, source_url, checksum,
-		               to_char(indexed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+		               to_char(indexed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), source
 		        FROM gazettes ORDER BY published_at, source_url`,
 	},
 	"acts": {

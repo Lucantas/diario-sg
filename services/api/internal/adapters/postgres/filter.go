@@ -17,6 +17,9 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 		args = append(args, v)
 		return "$" + strconv.Itoa(next+len(args)-1)
 	}
+	if f.Source != "" {
+		b.WriteString(" AND g.source = " + param(f.Source))
+	}
 	if f.Type != "" {
 		b.WriteString(" AND a.type = " + param(string(f.Type)))
 	}

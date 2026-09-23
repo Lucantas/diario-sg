@@ -69,3 +69,11 @@ func TestPageOrderSQLFollowsTheSameKeys(t *testing.T) {
 		t.Errorf("ordem da página cronológica inesperada: %s", got)
 	}
 }
+
+func TestFilterSQLBySource(t *testing.T) {
+	where, args := filterSQL(domain.ActFilter{Source: domain.SourceDiarioCamara, Type: domain.ActPortaria}, 2)
+
+	if where != " AND g.source = $2 AND a.type = $3" || !reflect.DeepEqual(args, []any{"diario_camara", "portaria"}) {
+		t.Errorf("veio %q %v", where, args)
+	}
+}

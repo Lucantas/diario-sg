@@ -68,7 +68,7 @@ func (a *API) actFeed(w http.ResponseWriter, r *http.Request) {
 	feed := rss{Version: "2.0", Channel: rssChannel{
 		Title:       title,
 		Link:        siteSearchURL(a.PublicWebURL, f),
-		Description: "Atos mais recentes do Diário Oficial de São Gonçalo que casam com esta busca.",
+		Description: "Atos mais recentes dos Diários Oficiais de São Gonçalo (Prefeitura e Câmara) que casam com esta busca.",
 		Language:    "pt-br",
 		TTL:         15,
 	}}
@@ -96,7 +96,7 @@ func feedItem(base string, h domain.ActHit) rssItem {
 		GUID:        rssGUID{Value: "diario-sg:" + h.GazetteID + ":" + strconv.Itoa(h.Position), IsPermaLink: "false"},
 		PubDate:     time.Date(h.PublishedAt.Year(), h.PublishedAt.Month(), h.PublishedAt.Day(), 12, 0, 0, 0, saoPaulo).Format(time.RFC1123Z),
 		Category:    h.Organ,
-		Description: "Edição " + edition + ", " + h.PublishedAt.Format("02/01/2006") + ". " + strings.Join(strings.Fields(stripMarks(h.Snippet)), " "),
+		Description: domain.SourceLabel(h.Source) + ", edição " + edition + ", " + h.PublishedAt.Format("02/01/2006") + ". " + strings.Join(strings.Fields(stripMarks(h.Snippet)), " "),
 	}
 }
 
@@ -117,6 +117,7 @@ func siteSearchURL(base string, f domain.ActFilter) string {
 		}
 	}
 	add("q", f.Query)
+	add("fonte", f.Source)
 	add("tipo", string(f.Type))
 	add("orgao", f.Organ)
 	if !f.From.IsZero() {

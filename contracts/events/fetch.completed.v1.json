@@ -7,7 +7,7 @@
   "required": ["run_id", "source", "requested_from", "requested_to", "found", "stored", "skipped", "failed", "error", "started_at", "finished_at"],
   "properties": {
     "run_id": { "type": "string", "format": "uuid" },
-    "source": { "type": "string", "enum": ["diario_prefeitura"] },
+    "source": { "type": "string", "enum": ["diario_prefeitura", "diario_camara"] },
     "requested_from": { "type": "string", "format": "date" },
     "requested_to": { "type": "string", "format": "date" },
     "found": { "type": "integer", "minimum": 0 },

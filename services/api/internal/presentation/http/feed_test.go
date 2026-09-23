@@ -1,6 +1,7 @@
 package http
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -38,13 +39,18 @@ func TestFeedItem(t *testing.T) {
 
 	if it.Title != "Contrato: EXTRATO" || it.Link != "https://site/api/v1/gazettes/g1/pdf#page=3" ||
 		it.GUID.Value != "diario-sg:g1:7" || it.GUID.IsPermaLink != "false" || it.Category != "FMS" ||
-		it.PubDate != "Fri, 18 Sep 2026 12:00:00 -0300" || it.Description != "Edição 1771, 18/09/2026. valor global" {
+		it.PubDate != "Fri, 18 Sep 2026 12:00:00 -0300" || it.Description != "Prefeitura, edição 1771, 18/09/2026. valor global" {
 		t.Errorf("item inesperado: %+v", it)
 	}
 
 	h.Organ, h.PageStart, h.EditionNumber = "", 0, ""
 	it = feedItem("https://site", h)
-	if it.Category != "" || it.Link != "https://site/api/v1/gazettes/g1/pdf" || it.Description != "Edição s/n, 18/09/2026. valor global" {
+	if it.Category != "" || it.Link != "https://site/api/v1/gazettes/g1/pdf" || it.Description != "Prefeitura, edição s/n, 18/09/2026. valor global" {
 		t.Errorf("item sem órgão e página inesperado: %+v", it)
+	}
+
+	h.Source = domain.SourceDiarioCamara
+	if it = feedItem("https://site", h); !strings.HasPrefix(it.Description, "Câmara, edição s/n") {
+		t.Errorf("item da Câmara sem a fonte: %q", it.Description)
 	}
 }
