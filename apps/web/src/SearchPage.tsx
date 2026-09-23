@@ -1,9 +1,11 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ActType, Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api";
 import { Result } from "./components";
-import { SearchState, apiParams, hasSearch, queryFromState, stateFromQuery } from "./searchState";
+import { SearchState, apiParams, exportUrl, hasSearch, queryFromState, stateFromQuery } from "./searchState";
 
 const PAGE_SIZE = 20;
+
+const EXPORT_LIMIT = 10000;
 
 const INVALID_VALUE = "Valor inválido. Escreva só números, como 1.500 ou 1.500,50.";
 
@@ -191,6 +193,7 @@ export function SearchPage() {
               ? "Nenhum ato encontrado. Tente outro termo ou remova filtros."
               : `${result.total.toLocaleString("pt-BR")} ${result.total === 1 ? "ato encontrado" : "atos encontrados"}`}
           </p>
+          {result.total > 0 && <ExportLinks state={state} total={result.total} />}
           <ol>
             {result.items.map((h) => <Result key={h.id} hit={h} />)}
           </ol>
@@ -207,6 +210,18 @@ export function SearchPage() {
         </section>
       )}
     </main>
+  );
+}
+
+function ExportLinks({ state, total }: { state: SearchState; total: number }) {
+  const csv = exportUrl(state, "csv");
+  const json = exportUrl(state, "json");
+  if (!csv || !json) return null;
+  return (
+    <p className="export">
+      Baixar o resultado: <a href={csv} download>CSV</a> · <a href={json} download>JSON</a>
+      {total > EXPORT_LIMIT && ` (só os ${EXPORT_LIMIT.toLocaleString("pt-BR")} primeiros atos)`}
+    </p>
   );
 }
 
