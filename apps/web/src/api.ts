@@ -20,6 +20,7 @@ export interface ActHit {
   page_end: number | null;
   pdf_sha256: string;
   cnpjs: string[];
+  values_cents: number[];
 }
 
 export interface SearchResponse {
@@ -33,12 +34,6 @@ export interface Organ {
   acronym: string;
   name: string;
   acts: number;
-}
-
-export interface SearchFilter {
-  q: string;
-  type: ActType | "";
-  organ: string;
 }
 
 export interface CompanyResponse {
@@ -58,10 +53,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-export function searchActs(filter: SearchFilter, offset = 0) {
-  const params = new URLSearchParams({ q: filter.q, offset: String(offset) });
-  if (filter.type) params.set("type", filter.type);
-  if (filter.organ) params.set("organ", filter.organ);
+export function searchActs(params: URLSearchParams) {
   return request<SearchResponse>(`/v1/acts?${params}`);
 }
 

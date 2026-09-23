@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { ActHit } from "./api";
 import { archivedPdfUrl, formatCitation, pageFragment, pageLabel } from "./citation";
-import { TYPE_LABEL, formatCnpj } from "./types";
+import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
 export function Result({ hit }: { hit: ActHit }) {
   const [citing, setCiting] = useState(false);
@@ -25,6 +25,7 @@ export function Result({ hit }: { hit: ActHit }) {
       </p>
       <h2>{hit.title}</h2>
       <p className="snippet"><Highlighted text={hit.snippet} /></p>
+      {hit.values_cents.length > 0 && <Values cents={hit.values_cents} />}
       {hit.cnpjs.length > 0 && (
         <p className="cnpjs">
           Empresas citadas:{" "}
@@ -38,6 +39,18 @@ export function Result({ hit }: { hit: ActHit }) {
       </button>
       {citing && <Citation hit={hit} />}
     </li>
+  );
+}
+
+const SHOWN_VALUES = 3;
+
+function Values({ cents }: { cents: number[] }) {
+  const hidden = cents.length - SHOWN_VALUES;
+  return (
+    <p className="values">
+      Valores citados: {cents.slice(0, SHOWN_VALUES).map(formatCents).join(" · ")}
+      {hidden > 0 && ` · +${hidden}`}
+    </p>
   );
 }
 
