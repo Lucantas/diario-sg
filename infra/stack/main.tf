@@ -102,6 +102,12 @@ resource "google_storage_bucket_iam_member" "worker_reads" {
   member = "serviceAccount:${google_service_account.sa["worker"].email}"
 }
 
+resource "google_storage_bucket_iam_member" "api_reads" {
+  bucket = google_storage_bucket.gazettes.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_service_account.sa["api"].email}"
+}
+
 resource "neon_project" "db" {
   name                      = local.p
   region_id                 = var.neon_region
@@ -208,12 +214,15 @@ module "api" {
   public                = true
   max_instances         = var.api_max_instances
   secret_env            = local.app_secrets
-  env                   = local.email_env
+  env = merge(local.email_env, {
+    GAZETTE_BUCKET = google_storage_bucket.gazettes.name
+  })
 
   depends_on = [
     google_project_service.apis,
     google_secret_manager_secret_iam_member.database_url,
     google_secret_manager_secret_iam_member.resend_api_key,
+    google_storage_bucket_iam_member.api_reads,
   ]
 }
 
