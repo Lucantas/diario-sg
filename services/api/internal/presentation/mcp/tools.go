@@ -61,11 +61,15 @@ type readOutput struct {
 }
 
 type entityInput struct {
-	CNPJ string `json:"cnpj" jsonschema:"CNPJ com ou sem pontuação"`
+	Kind   string `json:"tipo,omitempty" jsonschema:"cnpj (padrão), processo ou contrato"`
+	Number string `json:"numero" jsonschema:"o CNPJ, o número do processo (como 06.10981/2025-7 ou 8421/2023) ou do contrato (como 55/2026 ou 30/FMS/2011)"`
 }
 
 type entityOutput struct {
-	CNPJ        string          `json:"cnpj"`
+	Kind        string          `json:"tipo"`
+	Key         string          `json:"chave"`
+	Certainty   string          `json:"certeza,omitempty"`
+	Warning     string          `json:"aviso,omitempty"`
 	TotalActs   int             `json:"total_atos"`
 	TotalCents  int64           `json:"soma_valores_centavos"`
 	CountByType map[string]int  `json:"atos_por_tipo"`
@@ -99,9 +103,10 @@ func (s *server) register(srv *sdk.Server) {
 	sdk.AddTool(srv, &sdk.Tool{Name: "ler_ato", Annotations: readOnly, Description: "Texto completo de um ato, " +
 		"com citação pronta (ABNT), link da edição oficial na página do ato e cópia arquivada com SHA-256."},
 		recorded(s, "ler_ato", s.read))
-	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Atos do Diário que citam um CNPJ: " +
-		"total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 atos mais recentes. " +
-		"A soma é do que aparece no texto dos atos, não do que foi pago."},
+	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Atos do Diário que citam um CNPJ, " +
+		"um processo ou um contrato: total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 mais recentes. " +
+		"A soma é do que aparece no texto dos atos, não do que foi pago. A certeza diz quão seguro é juntar esses atos: " +
+		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "fontes", Annotations: readOnly, Description: "Fontes de dados do Diário SG, " +
 		"com o período coberto, a última coleta e as lacunas conhecidas. Consulte antes de concluir que algo não existe."},
@@ -207,7 +212,14 @@ func (s *server) read(ctx context.Context, _ *sdk.CallToolRequest, in readInput)
 }
 
 func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityInput) (*sdk.CallToolResult, entityOutput, error) {
-	report, err := s.company.Execute(ctx, in.CNPJ)
+	kind := domain.EntityKind(in.Kind)
+	if in.Kind == "" {
+		kind = domain.EntityCNPJ
+	}
+	if !domain.IsLinkedKind(kind) {
+		return nil, entityOutput{}, domain.ErrInvalidInput
+	}
+	report, err := s.getEntity.Execute(ctx, kind, in.Number)
 	if err != nil {
 		return nil, entityOutput{}, err
 	}
@@ -215,16 +227,23 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	if err != nil {
 		return nil, entityOutput{}, err
 	}
-	out := entityOutput{CNPJ: report.CNPJ, TotalCents: report.TotalCents, CountByType: map[string]int{},
-		Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)), Coverage: cov}
+	out := entityOutput{Kind: string(report.Kind), Key: report.Key, Certainty: string(report.Certainty),
+		Warning: certaintyWarning(report.Certainty), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
+		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)), Coverage: cov}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
-		out.TotalActs += n
 	}
 	for _, h := range report.Acts[:min(len(report.Acts), maxActsPerCall)] {
 		out.Acts = append(out.Acts, summaryOf(h, s.webURL))
 	}
 	return nil, out, nil
+}
+
+func certaintyWarning(c domain.Certainty) string {
+	if c != domain.CertaintyWeak {
+		return ""
+	}
+	return "Número de contrato sem a sigla do órgão: estes atos podem ser de contratos diferentes, de órgãos diferentes, com o mesmo número e ano. Confira o órgão em cada ato."
 }
 
 func (s *server) sources(ctx context.Context, _ *sdk.CallToolRequest, _ sourcesInput) (*sdk.CallToolResult, sourcesOutput, error) {

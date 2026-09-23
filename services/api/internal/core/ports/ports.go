@@ -100,3 +100,7 @@ type APIKeyRepository interface {
 type CoverageReader interface {
 	Coverage(ctx context.Context) (domain.Coverage, error)
 }
+
+type EntityReader interface {
+	ReportByKey(ctx context.Context, kind domain.EntityKind, key string) (domain.EntityReport, error)
+}

@@ -28,3 +28,13 @@ type MonthCount struct {
 	Month time.Time
 	Count int
 }
+
+type EntityReport struct {
+	Kind        EntityKind
+	Key         string
+	Certainty   Certainty
+	TotalActs   int
+	CountByType map[ActType]int
+	TotalCents  int64
+	Acts        []ActHit
+}
