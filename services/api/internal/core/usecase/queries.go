@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"sort"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
@@ -68,4 +69,26 @@ func (uc *ActStats) Execute(ctx context.Context, f domain.ActFilter) ([]domain.M
 		return nil, err
 	}
 	return uc.acts.CountByMonth(ctx, f)
+}
+
+type ListOrgans struct{ acts ports.ActRepository }
+
+func NewListOrgans(a ports.ActRepository) *ListOrgans { return &ListOrgans{acts: a} }
+
+func (uc *ListOrgans) Execute(ctx context.Context) ([]domain.OrganCount, error) {
+	counts, err := uc.acts.CountByOrgan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.OrganCount, 0, len(counts))
+	for acronym, n := range counts {
+		out = append(out, domain.OrganCount{Organ: domain.Organ{Acronym: acronym, Name: domain.OrganName(acronym)}, Acts: n})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Acts != out[j].Acts {
+			return out[i].Acts > out[j].Acts
+		}
+		return out[i].Acronym < out[j].Acronym
+	})
+	return out, nil
 }

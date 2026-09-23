@@ -55,7 +55,7 @@ func newOrganServer(t *testing.T) *httptest.Server {
 		t.Fatal(err)
 	}
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Gazette: usecase.NewGetGazette(gaz, acts),
-		Company: usecase.NewGetCompany(acts), Stats: usecase.NewActStats(acts),
+		Company: usecase.NewGetCompany(acts), Stats: usecase.NewActStats(acts), Organs: usecase.NewListOrgans(acts),
 		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
@@ -101,5 +101,31 @@ func TestSearchFiltersByOrgan(t *testing.T) {
 	getJSON(t, srv.URL+"/v1/stats/acts?organ=FMS", &stats)
 	if len(stats.Items) != 1 || stats.Items[0].Count != 1 {
 		t.Fatalf("estatísticas devem respeitar o órgão: %+v", stats)
+	}
+}
+
+func TestListOrgansCountsActs(t *testing.T) {
+	srv := newOrganServer(t)
+
+	var organs struct {
+		Items []struct {
+			Acronym string `json:"acronym"`
+			Name    string `json:"name"`
+			Acts    int    `json:"acts"`
+		} `json:"items"`
+	}
+	r, err := http.Get(srv.URL + "/v1/organs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Body.Close()
+	if r.Header.Get("Cache-Control") == "" {
+		t.Error("lista de órgãos deve ter Cache-Control")
+	}
+	getJSON(t, srv.URL+"/v1/organs", &organs)
+
+	if len(organs.Items) != 2 || organs.Items[0].Acronym != "FMS" || organs.Items[1].Acronym != "SEMAD" ||
+		organs.Items[0].Acts != 1 || organs.Items[1].Acts != 1 || organs.Items[1].Name != domain.OrganName("SEMAD") {
+		t.Fatalf("órgãos inesperados: %+v", organs)
 	}
 }
