@@ -139,6 +139,14 @@ func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.Ac
 		writeError(w, domain.ErrInvalidFilter, a.Log)
 		return f, false
 	}
+	if f.MinCents, err = parseReais(q.Get("min_value")); err != nil {
+		writeError(w, err, a.Log)
+		return f, false
+	}
+	if f.MaxCents, err = parseReais(q.Get("max_value")); err != nil {
+		writeError(w, err, a.Log)
+		return f, false
+	}
 	return f, true
 }
 
