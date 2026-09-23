@@ -67,3 +67,17 @@ type Notifier interface {
 	SendConfirmation(ctx context.Context, s domain.Subscription) error
 	SendMatches(ctx context.Context, s domain.Subscription, g domain.Gazette, hits []domain.ActHit) error
 }
+
+type DumpSource interface {
+	Snapshot(ctx context.Context) (DumpSnapshot, error)
+}
+
+type DumpSnapshot interface {
+	Tables() []string
+	WriteTable(ctx context.Context, table string, w io.Writer) (rows int, err error)
+	Close() error
+}
+
+type ObjectWriter interface {
+	Put(ctx context.Context, name, contentType string, body io.Reader) error
+}
