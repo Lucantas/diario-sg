@@ -19,8 +19,6 @@ var (
 	contratoRe = regexp.MustCompile(`(?i)\bcontrato(?:\s+de\s+[a-zçãõáéíóúâêô]+)?(?:\s+[A-Z]{2,10})?\s*(?:n\s*[º°.o]*\s*[:.]?\s*)?(\d{1,5}(?:/[A-Za-z0-9]{1,12}){1,3})`)
 	processoRe = regexp.MustCompile(`(?i)\b(?:processo|procedimento)(?:\s+administrativo|\s+sei!?)?\s*(?:n\s*[º°.o]*|no)?\s*[:.]?\s*(\d{1,3}\.\d{3,6}/\d{4}-\d|\d{1,6}\.?\d{0,3}/\d{4})`)
 	digitsRe   = regexp.MustCompile(`\D`)
-
-	contratoShapeRe = regexp.MustCompile(`^\d{1,5}(?:/[A-Z]{2,10})?/\d{4}(?:/[A-Z]{2,10})?$`)
 )
 
 func (Regex) Extract(body string) []domain.Entity {
@@ -50,7 +48,7 @@ func (Regex) Extract(body string) []domain.Entity {
 	}
 	for _, m := range contratoRe.FindAllStringSubmatch(body, -1) {
 		n := normalizeNumber(m[1])
-		if contratoShapeRe.MatchString(n) {
+		if domain.IsContratoShape(n) {
 			add(domain.EntityContrato, m[0], n)
 		}
 	}
