@@ -15,6 +15,7 @@ const (
 	RoleMigrate Role = "migrate"
 	RoleReindex Role = "reindex"
 	RoleDump    Role = "dump"
+	RoleReports Role = "reports"
 )
 
 type Config struct {
@@ -60,7 +61,7 @@ func Load(role Role) (Config, error) {
 	if role == RoleDump {
 		required["DUMPS_BUCKET"] = c.DumpsBucket
 	}
-	if role != RoleMigrate && role != RoleReindex && role != RoleDump && c.Notifier == "resend" {
+	if (role == RoleAPI || role == RoleWorker) && c.Notifier == "resend" {
 		required["RESEND_API_KEY"] = c.ResendAPIKey
 		required["EMAIL_FROM"] = c.EmailFrom
 	}
