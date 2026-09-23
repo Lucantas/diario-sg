@@ -34,7 +34,7 @@ func TestCSVRecord(t *testing.T) {
 	got := csvRecord("https://site/", h)
 
 	want := []string{"2026-09-18", "1771", "sim", "contrato", "FMS", domain.OrganName("FMS"), "EXTRATO", "3", "4",
-		"1200,00 | 300,00", "1 | 2", "https://do/x.pdf#page=3", "https://site/api/v1/gazettes/g1/pdf#page=3", "abc", "'=corpo"}
+		"1200,00 | 300,00", "1 | 2", "https://do/x.pdf#page=3", "https://site/api/v1/gazettes/g1/pdf#page=3", "abc", "", "'=corpo"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("veio\n%q\nesperava\n%q", got, want)
 	}

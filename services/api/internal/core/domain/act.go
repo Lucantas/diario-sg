@@ -52,6 +52,7 @@ type ActHit struct {
 	IsExtra       bool
 	SourceURL     string
 	Checksum      string
+	TitleOnly     bool
 
 	Snippet string
 
