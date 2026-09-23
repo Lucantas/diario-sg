@@ -9,6 +9,7 @@ import (
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
+	"github.com/seu-usuario/diario-sg/services/api/internal/presentation/ratelimit"
 )
 
 type API struct {
@@ -46,7 +47,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/organs", a.listOrgans)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 
-	mux.HandleFunc("POST /v1/reports", a.reportError(newRateLimiter(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))
+	mux.HandleFunc("POST /v1/reports", a.reportError(ratelimit.New(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)
 	mux.HandleFunc("POST /v1/subscriptions/unsubscribe", a.unsubscribe)
 	return withMiddleware(mux, a.Log)

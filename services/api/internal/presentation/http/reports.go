@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
+	"github.com/seu-usuario/diario-sg/services/api/internal/presentation/ratelimit"
 )
 
 type reportRequest struct {
@@ -18,9 +19,9 @@ type reportRequest struct {
 
 var reportAccepted = map[string]string{"status": "recebido"}
 
-func (a *API) reportError(limiter *rateLimiter) http.HandlerFunc {
+func (a *API) reportError(limiter *ratelimit.Limiter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !limiter.allow(clientKey(r)) {
+		if !limiter.Allow(clientKey(r)) {
 			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitos reportes seguidos; tente de novo em um minuto"})
 			return
 		}
