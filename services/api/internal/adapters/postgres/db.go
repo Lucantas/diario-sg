@@ -39,11 +39,4 @@ func notFound(err error) error {
 	return err
 }
 
-func nullableDate(t time.Time) any {
-	if t.IsZero() {
-		return nil
-	}
-	return t.Format("2006-01-02")
-}
-
 const pgInvalidTextRepresentation = "22P02"

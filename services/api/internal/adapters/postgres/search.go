@@ -33,3 +33,6 @@ func matchFor(queryParam, likeParam string) string {
 
 const cnpjsSubquery = `(SELECT coalesce(array_agg(DISTINCT e.normalized), '{}')
 		        FROM act_entities e WHERE e.act_id = a.id AND e.kind = 'cnpj')`
+
+const valuesSubquery = `(SELECT coalesce(array_agg(v.normalized::bigint ORDER BY v.normalized::bigint DESC), '{}')
+		        FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor')`

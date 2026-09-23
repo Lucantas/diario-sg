@@ -73,17 +73,15 @@ func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, no
 }
 
 func (r *ActRepo) CountByMonth(ctx context.Context, f domain.ActFilter) ([]domain.MonthCount, error) {
+	where, extra := filterSQL(f, 3)
+	args := append([]any{f.Query, likePattern(f.Query)}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT date_trunc('month', g.published_at)::date AS month, count(*)
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
-		WHERE ($1 = '' OR `+matchFor("$1", "$5")+`)
-		  AND ($2 = '' OR a.type = $2)
-		  AND ($3::date IS NULL OR g.published_at >= $3::date)
-		  AND ($4::date IS NULL OR g.published_at <= $4::date)
-		  AND ($6 = '' OR a.organ = $6)
-		GROUP BY 1 ORDER BY 1`, f.Query, string(f.Type), nullableDate(f.From), nullableDate(f.To), likePattern(f.Query), f.Organ)
+		WHERE ($1 = '' OR `+matchFor("$1", "$2")+`)`+where+`
+		GROUP BY 1 ORDER BY 1`, args...)
 	if err != nil {
 		return nil, err
 	}

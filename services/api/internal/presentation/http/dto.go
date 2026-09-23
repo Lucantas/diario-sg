@@ -26,6 +26,7 @@ type actHitDTO struct {
 	PageEnd       *int     `json:"page_end"`
 	PDFSHA256     string   `json:"pdf_sha256"`
 	CNPJs         []string `json:"cnpjs"`
+	ValuesCents   []int64  `json:"values_cents"`
 }
 
 type searchResponse struct {
@@ -103,11 +104,15 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 	if cnpjs == nil {
 		cnpjs = []string{}
 	}
+	values := h.ValuesCents
+	if values == nil {
+		values = []int64{}
+	}
 	return actHitDTO{
 		ID: h.ID, GazetteID: h.GazetteID, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
 		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
-		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum,
+		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum, ValuesCents: values,
 	}
 }
 
