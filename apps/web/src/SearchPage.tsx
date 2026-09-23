@@ -209,6 +209,10 @@ export function SearchPage() {
           {state.q.length >= 3 && <AlertForm query={state.q} />}
         </section>
       )}
+
+      <footer className="site-footer">
+        <a href="/dados">Dados abertos: a base inteira para baixar</a>
+      </footer>
     </main>
   );
 }

@@ -10,6 +10,16 @@ server {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
 
+  location = /dados {
+    try_files /index.html =404;
+  }
+
+  location /dados/ {
+    proxy_pass ${DUMPS_URL}/latest/;
+    proxy_ssl_server_name on;
+    proxy_set_header Host ${DUMPS_HOST};
+  }
+
   location /assets/ {
     add_header Cache-Control "public, max-age=31536000, immutable";
   }
