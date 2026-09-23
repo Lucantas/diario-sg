@@ -23,10 +23,14 @@ func likePattern(q string) string {
 	return "%" + q + "%"
 }
 
-const exactPhraseJoin = `CROSS JOIN LATERAL (SELECT unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE) AS exact) x`
+const exactPhrase = `unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE)`
+
+func exactPhraseExpr(likeParam string) string {
+	return strings.Replace(exactPhrase, "$LIKE", likeParam, 1)
+}
 
 func exactPhraseFor(likeParam string) string {
-	return strings.Replace(exactPhraseJoin, "$LIKE", likeParam, 1)
+	return `CROSS JOIN LATERAL (SELECT ` + exactPhraseExpr(likeParam) + ` AS exact) x`
 }
 
 const matchClause = `(a.search @@ q
@@ -50,6 +54,12 @@ const (
 		         CASE WHEN $1 = '' OR x.exact THEN 0 ELSE ts_rank(a.search, q) END DESC,
 		         g.published_at DESC, a.position`
 	recentOrder = `ORDER BY g.published_at DESC, g.source_url DESC, a.position`
+
+	matchedRelevanceOrder = `ORDER BY exact DESC, rank DESC, published_at DESC, position`
+	matchedRecentOrder    = `ORDER BY published_at DESC, source_url DESC, position`
+
+	pageRelevanceOrder = `ORDER BY p.exact DESC, p.rank DESC, p.published_at DESC, p.position`
+	pageRecentOrder    = `ORDER BY p.published_at DESC, p.source_url DESC, p.position`
 )
 
 func orderSQL(f domain.ActFilter) string {
@@ -57,6 +67,20 @@ func orderSQL(f domain.ActFilter) string {
 		return recentOrder
 	}
 	return relevanceOrder
+}
+
+func matchedOrderSQL(f domain.ActFilter) string {
+	if f.Recent {
+		return matchedRecentOrder
+	}
+	return matchedRelevanceOrder
+}
+
+func pageOrderSQL(f domain.ActFilter) string {
+	if f.Recent {
+		return pageRecentOrder
+	}
+	return pageRelevanceOrder
 }
 
 func markTitleOnly(ctx context.Context, db *sql.DB, hits []domain.ActHit) error {
