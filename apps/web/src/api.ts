@@ -16,6 +16,9 @@ export interface ActHit {
   published_at: string;
   is_extra: boolean;
   source_url: string;
+  page_start: number | null;
+  page_end: number | null;
+  pdf_sha256: string;
   cnpjs: string[];
 }
 
