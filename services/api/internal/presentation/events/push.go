@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/pkg/events"
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
@@ -15,6 +16,7 @@ import (
 type PushHandler struct {
 	Index *usecase.IndexGazette
 	Match *usecase.MatchSubscriptions
+	Runs  *usecase.RecordFetchRun
 	Log   *slog.Logger
 }
 
@@ -23,6 +25,7 @@ func (h *PushHandler) Routes() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
 	mux.HandleFunc("POST /events/gazette-fetched", h.gazetteFetched)
 	mux.HandleFunc("POST /events/gazette-indexed", h.gazetteIndexed)
+	mux.HandleFunc("POST /events/fetch-completed", h.fetchCompleted)
 	return mux
 }
 
@@ -54,6 +57,38 @@ func (h *PushHandler) gazetteIndexed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.respond(w, env, h.Match.Execute(r.Context(), e.GazetteID))
+}
+
+func (h *PushHandler) fetchCompleted(w http.ResponseWriter, r *http.Request) {
+	env, ok := h.decode(w, r)
+	if !ok {
+		return
+	}
+	var e events.FetchCompleted
+	if err := json.Unmarshal(env.Message.Data, &e); err != nil {
+		h.ack(w, env, "payload inválido", err)
+		return
+	}
+	run, err := fetchRunOf(e)
+	if err != nil {
+		h.ack(w, env, "payload inválido", err)
+		return
+	}
+	h.respond(w, env, h.Runs.Execute(r.Context(), run))
+}
+
+func fetchRunOf(e events.FetchCompleted) (domain.FetchRun, error) {
+	from, err := time.Parse(time.DateOnly, e.RequestedFrom)
+	if err != nil {
+		return domain.FetchRun{}, err
+	}
+	to, err := time.Parse(time.DateOnly, e.RequestedTo)
+	if err != nil {
+		return domain.FetchRun{}, err
+	}
+	return domain.FetchRun{ID: e.RunID, Source: e.Source, RequestedFrom: from, RequestedTo: to,
+		Found: e.Found, Stored: e.Stored, Skipped: e.Skipped, Failed: e.Failed, Error: e.Error,
+		StartedAt: e.StartedAt, FinishedAt: e.FinishedAt}, nil
 }
 
 func (h *PushHandler) decode(w http.ResponseWriter, r *http.Request) (gcp.PushEnvelope, bool) {

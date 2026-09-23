@@ -39,8 +39,18 @@ func (f *fakeStorage) Put(_ context.Context, p, _ string, r io.Reader) error {
 }
 
 type fakePublisher struct {
-	events []domain.FetchedEdition
-	fail   bool
+	events  []domain.FetchedEdition
+	runs    []domain.FetchRun
+	fail    bool
+	failRun bool
+}
+
+func (f *fakePublisher) RunCompleted(_ context.Context, r domain.FetchRun) error {
+	if f.failRun {
+		return errors.New("pubsub fora do ar")
+	}
+	f.runs = append(f.runs, r)
+	return nil
 }
 
 func (f *fakePublisher) EditionFetched(_ context.Context, e domain.FetchedEdition) error {
@@ -102,5 +112,49 @@ func TestExecuteRangePassesPeriodToSourceAndRejectsInvertedPeriod(t *testing.T) 
 	}
 	if _, err := uc.ExecuteRange(context.Background(), end, start); err == nil {
 		t.Error("período invertido deve dar erro")
+	}
+}
+
+func TestExecuteRangePublishesTheRun(t *testing.T) {
+	day := time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC)
+	src := fakeSource{editions: []domain.Edition{{Number: "1", PublishedAt: day, URL: "u1"}, {Number: "2", PublishedAt: day, URL: "u2"}}}
+	pub := &fakePublisher{}
+	uc := NewFetchEditions(src, &fakeStorage{objects: map[string][]byte{}}, pub)
+	start, end := day.AddDate(0, 0, -3), day
+
+	if _, err := uc.ExecuteRange(context.Background(), start, end); err != nil {
+		t.Fatal(err)
+	}
+	pub.fail = true
+	src.editions = append(src.editions, domain.Edition{Number: "3", PublishedAt: day, URL: "u3"})
+	uc = NewFetchEditions(src, &fakeStorage{objects: map[string][]byte{}}, pub)
+	_, failure := uc.ExecuteRange(context.Background(), start, end)
+
+	if len(pub.runs) != 2 {
+		t.Fatalf("esperava uma coleta publicada por execução, veio %d", len(pub.runs))
+	}
+	ok, failed := pub.runs[0], pub.runs[1]
+	if ok.Source != domain.SourceDiarioPrefeitura || ok.ID == "" || ok.ID == failed.ID ||
+		!ok.RequestedFrom.Equal(start) || !ok.RequestedTo.Equal(end) ||
+		ok.Found != 2 || ok.Stored != 2 || ok.Failed != 0 || ok.Error != "" || ok.FinishedAt.Before(ok.StartedAt) {
+		t.Fatalf("coleta com sucesso publicada errado: %+v", ok)
+	}
+	if failure == nil || failed.Found != 3 || failed.Failed != 3 || failed.Error != failure.Error() {
+		t.Fatalf("coleta com falha publicada errado: %+v (erro %v)", failed, failure)
+	}
+}
+
+func TestExecuteRangeFailsWhenTheRunIsNotPublished(t *testing.T) {
+	uc := NewFetchEditions(fakeSource{}, &fakeStorage{objects: map[string][]byte{}}, &fakePublisher{failRun: true})
+
+	if _, err := uc.ExecuteRange(context.Background(), time.Now().Add(-time.Hour), time.Now()); err == nil {
+		t.Fatal("falha ao publicar a coleta deveria ser erro da execução")
+	}
+}
+
+func TestNewRunIDIsAUUID(t *testing.T) {
+	a, b := domain.NewRunID(), domain.NewRunID()
+	if len(a) != 36 || a[14] != '4' || a == b {
+		t.Fatalf("ids inesperados: %q %q", a, b)
 	}
 }
