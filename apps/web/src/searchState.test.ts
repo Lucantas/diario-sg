@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  EMPTY_STATE, SearchState, apiParams, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery,
+  EMPTY_STATE, SearchState, apiParams, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery, withSource,
 } from "./searchState";
 
 describe("parseBRL", () => {
@@ -23,7 +23,7 @@ describe("parseBRL", () => {
 describe("URL da busca", () => {
   it("vai e volta sem perder filtros", () => {
     const s: SearchState = {
-      q: "limpeza OU coleta", type: "contrato", organ: "SEMED", from: "2024-01-01",
+      q: "limpeza OU coleta", source: "diario_camara", type: "contrato", organ: "SEMED", from: "2024-01-01",
       to: "2024-12-31", min: "1.000,00", max: "", page: 3,
     };
 
@@ -35,8 +35,8 @@ describe("URL da busca", () => {
     expect(queryFromState(EMPTY_STATE)).toBe("");
   });
 
-  it("ignora página inválida e tipo desconhecido", () => {
-    expect(stateFromQuery("?pagina=-2&tipo=bobagem")).toEqual(EMPTY_STATE);
+  it("ignora página inválida, tipo e diário desconhecidos", () => {
+    expect(stateFromQuery("?pagina=-2&tipo=bobagem&fonte=tce")).toEqual(EMPTY_STATE);
     expect(stateFromQuery("?pagina=2.5").page).toBe(1);
   });
 });
@@ -54,12 +54,19 @@ describe("apiParams", () => {
   it("recusa valor inválido", () => {
     expect(apiParams({ ...EMPTY_STATE, max: "abc" }, 20)).toBeNull();
   });
+
+  it("filtra pelo diário", () => {
+    expect(apiParams({ ...EMPTY_STATE, source: "diario_camara" }, 20)!.get("source")).toBe("diario_camara");
+    expect(apiParams(EMPTY_STATE, 20)!.has("source")).toBe(false);
+    expect(queryFromState({ ...EMPTY_STATE, source: "diario_camara" })).toBe("?fonte=diario_camara");
+  });
 });
 
 describe("hasSearch", () => {
   it("é verdadeiro com termo ou qualquer filtro", () => {
     expect(hasSearch(EMPTY_STATE)).toBe(false);
     expect(hasSearch({ ...EMPTY_STATE, organ: "FMS" })).toBe(true);
+    expect(hasSearch({ ...EMPTY_STATE, source: "diario_camara" })).toBe(true);
     expect(hasSearch({ ...EMPTY_STATE, page: 2 })).toBe(false);
   });
 });
@@ -95,5 +102,15 @@ describe("feedUrl", () => {
 
   it("não monta link com valor inválido", () => {
     expect(feedUrl({ ...EMPTY_STATE, max: "x" })).toBeNull();
+  });
+});
+
+describe("withSource", () => {
+  it("tira o órgão ao escolher a Câmara e volta à primeira página", () => {
+    const s = { ...EMPTY_STATE, organ: "SEMED", page: 3 };
+
+    expect(withSource(s, "diario_camara")).toEqual({ ...EMPTY_STATE, source: "diario_camara" });
+    expect(withSource(s, "diario_prefeitura")).toEqual({ ...EMPTY_STATE, source: "diario_prefeitura", organ: "SEMED" });
+    expect(withSource(s, "")).toEqual({ ...EMPTY_STATE, organ: "SEMED" });
   });
 });
