@@ -9,6 +9,11 @@ export default defineConfig({
         target: "http://localhost:8080",
         rewrite: (p) => p.replace(/^\/api/, ""),
       },
+      "^/dados/": {
+        target: "http://localhost:4443",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/dados\//, "/diario-dumps/latest/"),
+      },
     },
   },
 });
