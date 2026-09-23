@@ -17,9 +17,6 @@ const (
 	SubscriptionCancelled SubscriptionStatus = "cancelled"
 )
 
-// Subscription é um pedido de alerta: "me avise quando <Query> aparecer".
-// Usa confirmação dupla (double opt-in) e link de cancelamento: boas práticas
-// de LGPD e de reputação de envio de e-mail.
 type Subscription struct {
 	ID               string
 	Email            string

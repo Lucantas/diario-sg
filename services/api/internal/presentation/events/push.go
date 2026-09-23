@@ -1,10 +1,3 @@
-// Package events é a camada de apresentação para mensagens assíncronas:
-// recebe entregas push do Pub/Sub e chama os casos de uso.
-//
-// Semântica de resposta:
-//   - 2xx: mensagem processada (ou inválida de forma permanente) -> ack
-//   - 5xx: falha temporária -> Pub/Sub reentrega com backoff e, após N
-//     tentativas, envia para a dead-letter queue.
 package events
 
 import (
@@ -67,7 +60,7 @@ func (h *PushHandler) decode(w http.ResponseWriter, r *http.Request) (gcp.PushEn
 	var env gcp.PushEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&env); err != nil {
 		h.Log.Warn("envelope push inválido", "error", err)
-		w.WriteHeader(http.StatusNoContent) // não adianta reentregar
+		w.WriteHeader(http.StatusNoContent)
 		return env, false
 	}
 	return env, true

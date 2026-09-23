@@ -24,7 +24,7 @@ func TestIndexGazette_SavesActsAndIsIdempotent(t *testing.T) {
 	if saved := repo.acts["g-abc"]; len(saved[0].Entities) != 0 || len(saved[1].Entities) != 1 || saved[1].Entities[0].Normalized != "12345678000190" {
 		t.Fatalf("entidades devem ser extraídas por ato: %+v", saved)
 	}
-	// Reentrega da mesma mensagem: não duplica, mas republica o evento.
+
 	if err := uc.Execute(context.Background(), in); err != nil {
 		t.Fatal(err)
 	}

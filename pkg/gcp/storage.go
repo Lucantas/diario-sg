@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-// Storage é um cliente mínimo da JSON API do Cloud Storage para um bucket.
 type Storage struct {
 	baseURL string
 	bucket  string
@@ -17,8 +16,6 @@ type Storage struct {
 	http    *http.Client
 }
 
-// NewStorage cria o cliente. Se emulatorHost (ex.: "localhost:4443") estiver
-// preenchido, fala com o fake-gcs-server via HTTP.
 func NewStorage(bucket, emulatorHost string, ts TokenSource) *Storage {
 	base := "https://storage.googleapis.com"
 	if emulatorHost != "" {
@@ -31,7 +28,6 @@ func (s *Storage) objectURL(name string) string {
 	return fmt.Sprintf("%s/storage/v1/b/%s/o/%s", s.baseURL, url.PathEscape(s.bucket), url.PathEscape(name))
 }
 
-// Exists retorna true se o objeto existe.
 func (s *Storage) Exists(ctx context.Context, name string) (bool, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.objectURL(name), nil)
 	if err != nil {
@@ -55,7 +51,6 @@ func (s *Storage) Exists(ctx context.Context, name string) (bool, error) {
 	}
 }
 
-// Put grava (ou sobrescreve) um objeto.
 func (s *Storage) Put(ctx context.Context, name, contentType string, body io.Reader) error {
 	u := fmt.Sprintf("%s/upload/storage/v1/b/%s/o?uploadType=media&name=%s",
 		s.baseURL, url.PathEscape(s.bucket), url.QueryEscape(name))
@@ -79,7 +74,6 @@ func (s *Storage) Put(ctx context.Context, name, contentType string, body io.Rea
 	return nil
 }
 
-// Get abre o conteúdo de um objeto. Quem chama deve fechar o reader.
 func (s *Storage) Get(ctx context.Context, name string) (io.ReadCloser, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.objectURL(name)+"?alt=media", nil)
 	if err != nil {

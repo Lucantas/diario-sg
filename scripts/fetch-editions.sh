@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# Baixa edições reais do Diário Oficial de São Gonçalo e extrai o texto com
-# pdftotext (modo de leitura, sem -layout) em services/api/testdata/editions/.
-# Os arquivos contêm nomes de pessoas físicas e por isso NÃO são versionados.
-#
-#   ./scripts/fetch-editions.sh                # datas padrão usadas na fase 1
-#   ./scripts/fetch-editions.sh 2026-09-18     # datas específicas
 set -euo pipefail
 
 BASE_URL="${SOURCE_URL:-https://do.pmsg.rj.gov.br/}"

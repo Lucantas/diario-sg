@@ -1,5 +1,3 @@
-// Cliente da API. Tudo passa por /api: em produção o nginx faz o proxy para
-// o serviço de backend; em dev, o Vite faz o mesmo.
 
 export type ActType =
   | "nomeacao" | "exoneracao" | "contrato" | "aditivo" | "licitacao"
@@ -16,7 +14,7 @@ export interface ActHit {
   published_at: string;
   is_extra: boolean;
   source_url: string;
-  cnpjs: string[]; // só dígitos
+  cnpjs: string[];
 }
 
 export interface SearchResponse {

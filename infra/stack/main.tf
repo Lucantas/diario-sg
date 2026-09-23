@@ -1,17 +1,3 @@
-# Stack completa de um ambiente. Os ambientes (envs/dev, envs/prod) apenas
-# instanciam este módulo com valores diferentes.
-#
-#   Cloud Scheduler --> Cloud Run Job (scraper) --> Cloud Storage (PDFs)
-#                                 |
-#                                 v
-#                   Pub/Sub "gazette-fetched" --push--> worker (privado)
-#                                                          |  Neon Postgres
-#                   Pub/Sub "gazette-indexed" <------------+
-#                                 |
-#                                 +--push--> worker --> e-mail (Resend)
-#
-#   Usuário --> web (nginx) --/api--> api (pública) --> Neon Postgres
-
 data "google_project" "this" {
   project_id = var.project_id
 }
@@ -19,14 +5,12 @@ data "google_project" "this" {
 locals {
   p              = var.name_prefix
   project_number = data.google_project.this.number
-  # URL determinística do Cloud Run: evita dependência circular api <-> web.
   run_url        = "https://%s-${local.project_number}.${var.region}.run.app"
   web_url        = var.public_web_url != "" ? var.public_web_url : format(local.run_url, "${local.p}-web")
   resend_enabled = nonsensitive(var.resend_api_key != "")
   registry       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.containers.repository_id}"
 }
 
-# ---------------------------------------------------------------- APIs
 resource "google_project_service" "apis" {
   for_each = toset([
     "artifactregistry.googleapis.com",
@@ -41,14 +25,12 @@ resource "google_project_service" "apis" {
   disable_on_destroy = false
 }
 
-# ------------------------------------------------------ Artifact Registry
 resource "google_artifact_registry_repository" "containers" {
   project       = var.project_id
   location      = var.region
   repository_id = "containers"
   format        = "DOCKER"
 
-  # Mantém o registry dentro do free tier (0,5 GB).
   cleanup_policy_dry_run = false
   cleanup_policies {
     id     = "keep-recent"
@@ -61,14 +43,13 @@ resource "google_artifact_registry_repository" "containers" {
     id     = "delete-old"
     action = "DELETE"
     condition {
-      older_than = "1209600s" # 14 dias
+      older_than = "1209600s"
     }
   }
 
   depends_on = [google_project_service.apis]
 }
 
-# --------------------------------------------------------- Cloud Storage
 resource "google_storage_bucket" "gazettes" {
   project                     = var.project_id
   name                        = "${var.project_id}-${local.p}-gazettes"
@@ -88,8 +69,6 @@ resource "google_storage_bucket" "gazettes" {
   }
 }
 
-# ------------------------------------------------------- Contas de serviço
-# Uma conta por componente, com o mínimo de permissões (least privilege).
 resource "google_service_account" "sa" {
   for_each     = toset(["api", "worker", "scraper", "web", "pubsub-push", "scheduler"])
   project      = var.project_id
@@ -97,7 +76,6 @@ resource "google_service_account" "sa" {
   display_name = "${local.p} ${each.value}"
 }
 
-# O pipeline de deploy precisa "agir como" as contas dos serviços.
 resource "google_service_account_iam_member" "deployer_act_as" {
   for_each           = toset(["api", "worker", "scraper", "web"])
   service_account_id = google_service_account.sa[each.value].name
@@ -105,7 +83,6 @@ resource "google_service_account_iam_member" "deployer_act_as" {
   member             = "serviceAccount:${var.deployer_sa_email}"
 }
 
-# Permite ao Pub/Sub gerar tokens OIDC em nome da conta de push.
 resource "google_service_account_iam_member" "pubsub_token_creator" {
   service_account_id = google_service_account.sa["pubsub-push"].name
   role               = "roles/iam.serviceAccountTokenCreator"
@@ -125,9 +102,6 @@ resource "google_storage_bucket_iam_member" "worker_reads" {
   member = "serviceAccount:${google_service_account.sa["worker"].email}"
 }
 
-# ----------------------------------------------------------- Banco (Neon)
-# Postgres serverless com plano gratuito. Para crescer, ver ADR 0002
-# (migração para Cloud SQL ou AlloyDB é troca de DATABASE_URL + dump/restore).
 resource "neon_project" "db" {
   name                      = local.p
   region_id                 = var.neon_region
@@ -135,7 +109,6 @@ resource "neon_project" "db" {
   history_retention_seconds = 21600
 }
 
-# --------------------------------------------------------- Secret Manager
 resource "google_secret_manager_secret" "database_url" {
   project   = var.project_id
   secret_id = "${local.p}-database-url"
@@ -154,7 +127,7 @@ resource "google_secret_manager_secret_iam_member" "database_url" {
   for_each = {
     api      = "serviceAccount:${google_service_account.sa["api"].email}"
     worker   = "serviceAccount:${google_service_account.sa["worker"].email}"
-    deployer = "serviceAccount:${var.deployer_sa_email}" # roda as migrations
+    deployer = "serviceAccount:${var.deployer_sa_email}"
   }
   secret_id = google_secret_manager_secret.database_url.id
   role      = "roles/secretmanager.secretAccessor"
@@ -199,7 +172,6 @@ locals {
   )
 }
 
-# --------------------------------------------------------------- Serviços
 module "worker" {
   source                = "../modules/cloud-run-service"
   name                  = "${local.p}-worker"
@@ -210,7 +182,7 @@ module "worker" {
   public                = false
   invokers              = { pubsub = "serviceAccount:${google_service_account.sa["pubsub-push"].email}" }
   memory                = "1Gi"
-  concurrency           = 4 # extração de PDF é pesada
+  concurrency           = 4
   max_instances         = 3
   timeout_seconds       = 300
   secret_env            = local.app_secrets
@@ -260,7 +232,6 @@ module "web" {
   depends_on = [google_project_service.apis]
 }
 
-# ---------------------------------------------------------- Filas (Pub/Sub)
 module "queue_gazette_fetched" {
   source                     = "../modules/pubsub-push"
   name                       = "${local.p}-gazette-fetched"
@@ -285,7 +256,6 @@ module "queue_gazette_indexed" {
   depends_on                 = [google_project_service.apis]
 }
 
-# ------------------------------------------------ Scraper (Job + agendador)
 resource "google_cloud_run_v2_job" "scraper" {
   name                = "${local.p}-scraper"
   project             = var.project_id

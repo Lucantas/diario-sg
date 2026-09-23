@@ -1,4 +1,3 @@
-/* Paleta: papel frio, tinta, e o amarelo de marca-texto como único destaque. */
 :root {
   --paper: #f6f7f4;
   --ink: #17202b;
@@ -82,7 +81,6 @@ button:disabled { opacity: 0.6; cursor: progress; }
   white-space: pre-line;
 }
 
-/* O elemento memorável: o termo buscado grifado como se fosse à mão no papel. */
 mark {
   color: inherit;
   background: linear-gradient(100deg, transparent 2%, var(--marker) 6%, var(--marker) 94%, transparent 98%);
@@ -116,7 +114,6 @@ a { color: var(--action); }
   .search, .alert-row { flex-direction: column; }
 }
 
-/* Página da empresa: linha do tempo e resumo. */
 .crumb { margin: 0 0 1.5rem; font-size: 0.9rem; }
 .eyebrow { color: var(--slate); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; margin: 0 0 0.25rem; }
 .summary { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; margin: 0 0 0.5rem; padding: 1rem 0; border-top: 2px solid var(--ink); }

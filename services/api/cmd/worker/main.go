@@ -1,5 +1,3 @@
-// Composition root do worker (Cloud Run service privado). Recebe mensagens
-// push do Pub/Sub: indexa edições e dispara alertas.
 package main
 
 import (

@@ -1,4 +1,3 @@
-// Package obs concentra observabilidade compartilhada (logs estruturados).
 package obs
 
 import (
@@ -6,8 +5,6 @@ import (
 	"os"
 )
 
-// NewLogger cria um logger JSON compatível com o Cloud Logging: os campos
-// "severity" e "message" são reconhecidos automaticamente.
 func NewLogger(service string) *slog.Logger {
 	h := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,

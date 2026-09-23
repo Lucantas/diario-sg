@@ -1,7 +1,3 @@
-// Package gcp contém clientes REST mínimos para serviços do Google Cloud.
-// Usamos a API REST com a biblioteca padrão em vez dos SDKs oficiais para
-// manter as imagens pequenas e o código fácil de ler. Todos funcionam também
-// contra os emuladores locais (Pub/Sub emulator e fake-gcs-server).
 package gcp
 
 import (
@@ -13,19 +9,14 @@ import (
 	"time"
 )
 
-// TokenSource fornece tokens OAuth2 de acesso. Uma string vazia significa
-// "sem autenticação" (usado com emuladores).
 type TokenSource interface {
 	Token(ctx context.Context) (string, error)
 }
 
-// NoAuth é usado localmente, contra emuladores.
 type NoAuth struct{}
 
 func (NoAuth) Token(context.Context) (string, error) { return "", nil }
 
-// MetadataTokenSource obtém tokens da conta de serviço do Cloud Run pelo
-// metadata server, com cache até perto de expirar.
 type MetadataTokenSource struct {
 	client *http.Client
 	mu     sync.Mutex
@@ -70,7 +61,6 @@ func (m *MetadataTokenSource) Token(ctx context.Context) (string, error) {
 	return m.token, nil
 }
 
-// TokenSourceFor escolhe NoAuth quando algum emulador está configurado.
 func TokenSourceFor(emulatorHost string) TokenSource {
 	if emulatorHost != "" {
 		return NoAuth{}

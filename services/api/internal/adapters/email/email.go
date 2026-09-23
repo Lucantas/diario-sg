@@ -1,5 +1,3 @@
-// Package email implementa ports.Notifier. Em produção usa a API HTTP do
-// Resend (plano gratuito); localmente apenas registra os e-mails no log.
 package email
 
 import (
@@ -19,17 +17,14 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
-// Message é um e-mail já renderizado.
 type Message struct {
 	To, Subject, HTML string
 }
 
-// Sender é o transporte. Trocar de provedor = novo Sender.
 type Sender interface {
 	Send(ctx context.Context, m Message) error
 }
 
-// Notifier renderiza os e-mails do domínio e delega o envio ao Sender.
 type Notifier struct {
 	sender Sender
 	webURL string
@@ -80,7 +75,6 @@ func (n *Notifier) SendMatches(ctx context.Context, s domain.Subscription, g dom
 	return n.sender.Send(ctx, Message{To: s.Email, Subject: subject, HTML: b.String()})
 }
 
-// LogSender é usado em desenvolvimento.
 type LogSender struct{ Log *slog.Logger }
 
 func (l LogSender) Send(_ context.Context, m Message) error {
@@ -88,7 +82,6 @@ func (l LogSender) Send(_ context.Context, m Message) error {
 	return nil
 }
 
-// ResendSender envia pela API do Resend (https://resend.com).
 type ResendSender struct {
 	APIKey string
 	From   string

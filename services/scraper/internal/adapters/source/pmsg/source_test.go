@@ -46,9 +46,6 @@ func TestParseListingRealHTML(t *testing.T) {
 	}
 }
 
-// Servidor que imita o site: POST index devolve a página 1; GET
-// index?NumeroPagina=2 devolve a página 2. Registra a ordem e o horário das
-// requisições para verificar a pausa entre elas.
 func TestListEditionsFollowsPaginationAndThrottles(t *testing.T) {
 	var mu sync.Mutex
 	var calls []string
@@ -177,7 +174,6 @@ func TestNewRejectsURLWithoutHost(t *testing.T) {
 	}
 }
 
-// Servidor cuja listagem nunca acaba: cada página aponta para a seguinte.
 func TestListEditionsFailsInsteadOfTruncatingSilently(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		page := 1

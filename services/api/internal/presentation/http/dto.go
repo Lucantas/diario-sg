@@ -10,8 +10,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-// DTOs: o contrato público da API é separado das entidades de domínio.
-
 type actHitDTO struct {
 	ID            string   `json:"id"`
 	GazetteID     string   `json:"gazette_id"`
@@ -97,7 +95,6 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-// writeError mapeia erros de domínio para status HTTP.
 func writeError(w http.ResponseWriter, err error, log *slog.Logger) {
 	status := http.StatusInternalServerError
 	msg := "erro interno"

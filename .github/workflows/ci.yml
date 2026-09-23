@@ -1,5 +1,3 @@
-# Integração contínua: roda em todo PR e em push na main.
-# Só executa os jobs das partes do monorepo que mudaram.
 name: CI
 
 on:

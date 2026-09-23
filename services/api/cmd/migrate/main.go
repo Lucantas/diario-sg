@@ -1,5 +1,3 @@
-// Aplica as migrations. Roda no pipeline de deploy antes da nova versão
-// entrar no ar, e localmente com `make migrate`.
 package main
 
 import (

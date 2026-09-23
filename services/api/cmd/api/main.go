@@ -1,4 +1,3 @@
-// Composition root da API pública (Cloud Run service, acesso público).
 package main
 
 import (

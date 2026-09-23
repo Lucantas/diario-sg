@@ -55,10 +55,6 @@ func TestParse_NoHeaders(t *testing.T) {
 	}
 }
 
-// Formato das edições até abril de 2021: sem "ATOS DO PREFEITO", o anexo de
-// pessoal vem logo após "GABINETE DO PREFEITO" e cada portaria é "verbo,
-// corpo, Port. nº". "Continuação do D.O.E." abre um bloco novo no topo da
-// página e a sigla do órgão abre a seção seguinte.
 const oldFormatSample = `PREFEITURA
 MUNICIPAL DE
 SÃO GONÇALO
@@ -117,8 +113,6 @@ func TestParse_OldFormatTrailingPortariaNumber(t *testing.T) {
 	}
 }
 
-// Sem sigla de órgão entre o decreto e o anexo de pessoal, o verbo é o que
-// separa a portaria do ato anterior; o decreto não pode ser engolido.
 func TestParse_VerbStartsPortariaAfterDecree(t *testing.T) {
 	acts := New().Parse(`DECRETO Nº 022/2020
 ALTERA O DECRETO Nº 272/2019, QUE TRATA DA ESTRUTURA DA SECRETARIA.

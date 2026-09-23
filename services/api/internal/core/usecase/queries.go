@@ -7,7 +7,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
-// SearchActs é a busca pública de atos.
 type SearchActs struct{ acts ports.ActRepository }
 
 func NewSearchActs(a ports.ActRepository) *SearchActs { return &SearchActs{acts: a} }
@@ -30,7 +29,6 @@ func (uc *SearchActs) Execute(ctx context.Context, f domain.ActFilter) (SearchRe
 	return SearchResult{Hits: hits, Total: total, Limit: f.Limit, Offset: f.Offset}, nil
 }
 
-// GetGazette retorna uma edição com todos os seus atos.
 type GetGazette struct {
 	gazettes ports.GazetteRepository
 	acts     ports.ActRepository
@@ -49,7 +47,6 @@ func (uc *GetGazette) Execute(ctx context.Context, id string) (domain.Gazette, [
 	return g, acts, err
 }
 
-// GetCompany monta a linha do tempo de um CNPJ.
 type GetCompany struct{ acts ports.ActRepository }
 
 func NewGetCompany(a ports.ActRepository) *GetCompany { return &GetCompany{acts: a} }
@@ -62,7 +59,6 @@ func (uc *GetCompany) Execute(ctx context.Context, cnpj string) (domain.CompanyR
 	return uc.acts.ReportByEntity(ctx, domain.EntityCNPJ, normalized)
 }
 
-// ActStats conta atos por mês.
 type ActStats struct{ acts ports.ActRepository }
 
 func NewActStats(a ports.ActRepository) *ActStats { return &ActStats{acts: a} }

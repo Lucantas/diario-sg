@@ -8,8 +8,6 @@ import (
 	"sort"
 )
 
-// Migrate aplica, em ordem, os arquivos .sql ainda não aplicados. Usa um
-// advisory lock para que duas execuções simultâneas não conflitem.
 func Migrate(ctx context.Context, db *sql.DB, files fs.FS) ([]string, error) {
 	conn, err := db.Conn(ctx)
 	if err != nil {
@@ -17,11 +15,11 @@ func Migrate(ctx context.Context, db *sql.DB, files fs.FS) ([]string, error) {
 	}
 	defer conn.Close()
 
-	const lockID = 727274 // arbitrário, fixo
-	if _, err := conn.ExecContext(ctx, `SELECT pg_advisory_lock($1)`, lockID); err != nil {
+	const migrationLockID = 727274
+	if _, err := conn.ExecContext(ctx, `SELECT pg_advisory_lock($1)`, migrationLockID); err != nil {
 		return nil, err
 	}
-	defer conn.ExecContext(context.Background(), `SELECT pg_advisory_unlock($1)`, lockID) //nolint:errcheck
+	defer conn.ExecContext(context.Background(), `SELECT pg_advisory_unlock($1)`, migrationLockID) //nolint:errcheck
 
 	if _, err := conn.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (
 		version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {

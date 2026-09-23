@@ -8,14 +8,10 @@ import (
 
 const (
 	snippetRadius = 120
-	// A lista de atos é limitada; contagens e soma cobrem todos os atos.
+
 	reportActsLimit = 100
 )
 
-// ReportByEntity lista os atos mais recentes onde a entidade aparece, com
-// um trecho em volta da ocorrência, mais a contagem por tipo e a soma de
-// todos os valores encontrados nesses atos (calculadas sobre o conjunto
-// inteiro, não só sobre a página listada).
 func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, normalized string) (domain.CompanyReport, error) {
 	report := domain.CompanyReport{CNPJ: normalized, CountByType: map[domain.ActType]int{}}
 	rows, err := r.db.QueryContext(ctx, `
@@ -74,8 +70,6 @@ func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, no
 	return report, err
 }
 
-// CountByMonth conta atos por mês de publicação, respeitando termo de
-// busca, tipo e período.
 func (r *ActRepo) CountByMonth(ctx context.Context, f domain.ActFilter) ([]domain.MonthCount, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT date_trunc('month', g.published_at)::date AS month, count(*)

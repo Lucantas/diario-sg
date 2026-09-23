@@ -1,6 +1,3 @@
-# Ambiente: prod. O state fica no bucket criado pelo bootstrap:
-#   terraform init -backend-config="bucket=<TF_STATE_BUCKET>"
-
 terraform {
   required_version = ">= 1.6"
   backend "gcs" {

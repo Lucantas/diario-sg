@@ -1,5 +1,3 @@
-# Build a partir da raiz do repositório:
-#   docker build -f services/scraper/Dockerfile .
 FROM golang:1.23-alpine AS build
 WORKDIR /src
 COPY pkg/ pkg/

@@ -71,7 +71,6 @@ func scanSub(row scanner) (domain.Subscription, error) {
 	return s, err
 }
 
-// NotificationLog implementa ports.NotificationLog.
 type NotificationLog struct{ db *sql.DB }
 
 func NewNotificationLog(db *sql.DB) *NotificationLog { return &NotificationLog{db: db} }

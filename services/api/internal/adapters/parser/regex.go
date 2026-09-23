@@ -1,7 +1,3 @@
-// Package parser separa o texto de uma edição do Diário Oficial em atos a
-// partir dos cabeçalhos usados de fato pela prefeitura (DECRETO Nº, PORTARIA
-// - SEI Nº, Port. nº, EXTRATO..., DESPACHO...). É determinístico e auditável;
-// os achados que orientam cada regra estão em docs/parser-findings.md.
 package parser
 
 import (
@@ -99,7 +95,6 @@ func (s *segment) add(ls ...line) {
 	}
 }
 
-// close dá ao segmento o número de portaria que o encerra.
 func (s *segment) close(trailer line) {
 	s.title = trailer.text
 	s.orphan = false
@@ -111,8 +106,6 @@ const (
 	minOrphanRunes = 40
 )
 
-// act monta o ato. Restos sem cabeçalho (carimbos, sobras de tabela antes do
-// primeiro ato) só viram ato quando têm conteúdo de verdade.
 func (s *segment) act(position int) (domain.Act, bool) {
 	body := strings.TrimSpace(strings.Join(s.lines, "\n"))
 	if body == "" || (s.orphan && utf8.RuneCountInString(body) < minOrphanRunes) {

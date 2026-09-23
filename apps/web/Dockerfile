@@ -1,5 +1,3 @@
-# Build a partir da raiz do repositório:
-#   docker build -f apps/web/Dockerfile .
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY apps/web/package.json apps/web/package-lock.json ./

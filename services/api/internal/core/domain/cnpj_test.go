@@ -22,3 +22,11 @@ func TestNormalizeCNPJ(t *testing.T) {
 		}
 	}
 }
+
+func TestNormalizeCNPJKeepsWrongCheckDigitsBecauseTheGazettePublishesTypos(t *testing.T) {
+	got, ok := NormalizeCNPJ("12.345.678/0001-00")
+
+	if !ok || got != "12345678000100" {
+		t.Errorf("NormalizeCNPJ = %q,%v; esperava 12345678000100,true", got, ok)
+	}
+}

@@ -5,7 +5,6 @@ import (
 	"log/slog"
 )
 
-// FromConfig escolhe o transporte de e-mail pelo nome configurado.
 func FromConfig(kind, apiKey, from, webURL string, log *slog.Logger) (*Notifier, error) {
 	switch kind {
 	case "log", "":

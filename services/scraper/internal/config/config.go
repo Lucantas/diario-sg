@@ -1,4 +1,3 @@
-// Package config lê a configuração do ambiente (12-factor).
 package config
 
 import (

@@ -78,8 +78,6 @@ var (
 	verbWindowRunes = 600
 )
 
-// classifyPortaria olha o verbo nas primeiras linhas do corpo. "Torna sem
-// efeito a nomeação" é portaria, não nomeação, por isso é testado primeiro.
 func classifyPortaria(title, body string) domain.ActType {
 	rest := strings.TrimPrefix(body, title)
 	if utf8.RuneCountInString(rest) > verbWindowRunes {

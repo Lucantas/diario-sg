@@ -28,7 +28,7 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback() //nolint:errcheck // sem efeito após Commit
+	defer tx.Rollback() //nolint:errcheck
 
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO gazettes (edition_number, published_at, source_url, storage_path, checksum, indexed_at)
@@ -38,7 +38,7 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 		g.EditionNumber, g.PublishedAt.Format("2006-01-02"), g.SourceURL, g.StoragePath, g.Checksum, g.IndexedAt,
 	).Scan(&g.ID)
 	if errors.Is(err, sql.ErrNoRows) {
-		// Outra instância indexou a mesma edição em paralelo.
+
 		id, _, ferr := r.FindIDByChecksum(ctx, g.Checksum)
 		g.ID = id
 		return ferr

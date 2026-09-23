@@ -3,7 +3,6 @@ import { ActType, CompanyResponse, getCompany } from "./api";
 import { Result } from "./components";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
-// Linha do tempo de uma empresa: todos os atos em que o CNPJ apareceu.
 export function CompanyPage({ cnpj }: { cnpj: string }) {
   const [data, setData] = useState<CompanyResponse | null>(null);
   const [error, setError] = useState("");

@@ -1,12 +1,3 @@
-# Bootstrap: aplicado UMA vez, manualmente, por um humano com permissão de
-# Owner no projeto. Cria o que o próprio pipeline precisa para rodar:
-#   - bucket do state remoto do Terraform
-#   - Workload Identity Federation (GitHub Actions autentica sem chave JSON)
-#   - contas de serviço do pipeline (terraform e deploy)
-#
-#   cd infra/bootstrap
-#   terraform init && terraform apply -var project_id=... -var github_repository=usuario/diario-sg
-
 terraform {
   required_version = ">= 1.6"
   required_providers {
@@ -73,7 +64,6 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.repository" = "assertion.repository"
     "attribute.ref"        = "assertion.ref"
   }
-  # Só o seu repositório pode trocar tokens do GitHub por credenciais GCP.
   attribute_condition = "assertion.repository == \"${var.github_repository}\""
 
   oidc {
@@ -85,7 +75,6 @@ locals {
   github_principal = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
 }
 
-# --- Conta usada pelo workflow de infraestrutura (terraform plan/apply) ---
 resource "google_service_account" "gh_terraform" {
   account_id   = "gh-terraform"
   display_name = "GitHub Actions - Terraform"
@@ -113,7 +102,6 @@ resource "google_service_account_iam_member" "gh_terraform_wif" {
   member             = local.github_principal
 }
 
-# --- Conta usada pelo workflow de deploy (build, push, gcloud run deploy) ---
 resource "google_service_account" "gh_deployer" {
   account_id   = "gh-deployer"
   display_name = "GitHub Actions - Deploy"

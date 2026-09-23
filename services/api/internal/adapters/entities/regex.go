@@ -1,6 +1,3 @@
-// Package entities extrai campos do corpo de um ato por expressões
-// regulares: CNPJ, valores em reais, números de contrato e de processo.
-// Determinístico e auditável; os formatos vêm de docs/parser-findings.md.
 package entities
 
 import (
@@ -17,12 +14,12 @@ func New() Regex { return Regex{} }
 
 var (
 	cnpjRe = regexp.MustCompile(`\b\d{2}\.?\d{3}\.?\d{3}/\d{4}-\s?\d{2}\b`)
-	// Exige centavos: "VALOR (R$ 1)" em cabeçalho de tabela não é valor.
+
 	valorRe    = regexp.MustCompile(`R\$\s?(\d{1,3}(?:\.\d{3})+|\d+),(\d{2})\b`)
 	contratoRe = regexp.MustCompile(`(?i)\bcontrato(?:\s+de\s+[a-zçãõáéíóúâêô]+)?(?:\s+[A-Z]{2,10})?\s*(?:n\s*[º°.o]*\s*[:.]?\s*)?(\d{1,5}(?:/[A-Za-z0-9]{1,12}){1,3})`)
 	processoRe = regexp.MustCompile(`(?i)\b(?:processo|procedimento)(?:\s+administrativo|\s+sei!?)?\s*(?:n\s*[º°.o]*|no)?\s*[:.]?\s*(\d{1,3}\.\d{3,6}/\d{4}-\d|\d{1,6}\.?\d{0,3}/\d{4})`)
 	digitsRe   = regexp.MustCompile(`\D`)
-	// Número de contrato válido: NNN/AAAA, NNN/SIGLA/AAAA ou NNN/AAAA/SIGLA.
+
 	contratoShapeRe = regexp.MustCompile(`^\d{1,5}(?:/[A-Z]{2,10})?/\d{4}(?:/[A-Z]{2,10})?$`)
 )
 

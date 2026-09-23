@@ -1,6 +1,3 @@
-# Serviço Cloud Run genérico. A imagem é gerenciada pelo pipeline de deploy
-# (gcloud run deploy); o Terraform cuida de configuração, escala e IAM.
-
 terraform {
   required_providers {
     google = {
@@ -35,7 +32,7 @@ resource "google_cloud_run_v2_service" "this" {
           cpu    = var.cpu
           memory = var.memory
         }
-        cpu_idle          = true # só cobra CPU enquanto atende requisições
+        cpu_idle          = true
         startup_cpu_boost = true
       }
 
@@ -63,7 +60,6 @@ resource "google_cloud_run_v2_service" "this" {
   }
 
   lifecycle {
-    # A imagem é atualizada pelo workflow de deploy, não pelo Terraform.
     ignore_changes = [
       template[0].containers[0].image,
       client,
