@@ -131,3 +131,13 @@ func (r *GazetteRepo) ReplaceActs(ctx context.Context, gazetteID, editionNumber 
 	}
 	return tx.Commit()
 }
+
+func (r *GazetteRepo) Coverage(ctx context.Context) (domain.Coverage, error) {
+	var c domain.Coverage
+	err := r.db.QueryRowContext(ctx, `
+		SELECT coalesce(min(published_at), 'epoch'), coalesce(max(published_at), 'epoch'),
+		       coalesce(max(indexed_at), 'epoch'), count(*), (SELECT count(*) FROM acts)
+		FROM gazettes`,
+	).Scan(&c.First, &c.Last, &c.LastIndexedAt, &c.Gazettes, &c.Acts)
+	return c, err
+}
