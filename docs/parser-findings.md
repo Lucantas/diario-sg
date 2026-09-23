@@ -125,6 +125,23 @@ Tratar `Port. nº` como cabeçalho (como a primeira versão do parser fazia)
 atribuía a cada número o corpo da portaria **seguinte** e deixava um ato só
 com título no fim de cada bloco.
 
+### Notificações da Defesa Civil não têm título
+
+As notificações de interdição da COMDEC não têm cabeçalho: cada uma começa
+com `A COORDENADORIA MUNICIPAL DE DEFESA CIVIL DE SÃO GONÇALO, de acordo
+com sua competência legal, ... vem pelo presente NOTIFICAR`, e vêm em blocos
+de dezenas, uma por imóvel. Sem cabeçalho, o parser as colava no ato
+anterior: em setembro de 2026, 1.099 notificações estavam dentro de 131 atos
+alheios (extratos de dispensa, corrigendas, editais). Um exemplo: o extrato de
+ratificação de dispensa da edição 1233.
+
+Essa frase de abertura passou a iniciar um ato com o título `NOTIFICAÇÃO DA
+DEFESA CIVIL` e o órgão COMDEC, e o tipo fica `outro`. A sigla `COMDEC` antes
+do bloco nem sempre é seguida da primeira notificação, porque o
+`pdftotext` põe antes dela a assinatura da coluna ao lado. Por isso algumas
+linhas soltas (`Subsecretário Municipal de Defesa Civil`, `Mat. …`) ainda
+podem ficar no fim do ato anterior.
+
 ### Edições até abril de 2021
 
 - Não existe `ATOS DO PREFEITO`; o anexo de pessoal começa logo após

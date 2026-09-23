@@ -56,6 +56,10 @@ func (r Regex) Parse(text string) []domain.Act {
 			organ = ""
 			current = &segment{title: l.text}
 			current.add(l)
+		case isCivilDefenseNotice(l.text):
+			flush()
+			current = &segment{title: civilDefenseNoticeTitle, organ: r.organOf(civilDefenseOrgan)}
+			current.add(l)
 		case r.joinRepeats && current.repeatsTitle(l.text):
 			current.add(l)
 		case isHeader(l.text):
@@ -138,6 +142,13 @@ func (s *segment) act(position int) (domain.Act, bool) {
 	}
 	return domain.Act{Type: classify(title, body), Title: title, Body: body, Position: position,
 		PageStart: s.pageStart, PageEnd: s.pageEnd, Organ: s.organ}, true
+}
+
+func (r Regex) organOf(acronym string) string {
+	if r.withoutOrgans {
+		return ""
+	}
+	return acronym
 }
 
 func sectionOrgan(acronym, current string) string {
