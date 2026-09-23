@@ -16,6 +16,7 @@ type warnedHits struct {
 	Items []struct {
 		Title     string   `json:"title"`
 		GazetteID string   `json:"gazette_id"`
+		Position  *int     `json:"position"`
 		Warnings  []string `json:"warnings"`
 	} `json:"items"`
 }
@@ -37,6 +38,17 @@ func TestWarningsInSearchGazetteAndExport(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("avisos na busca: esperava %v, veio %v", want, got)
+	}
+
+	positions := map[string]int{}
+	for _, h := range hits.Items {
+		if h.Position == nil {
+			t.Fatalf("busca sem a posição do ato, que o reporte de erro precisa: %s", h.Title)
+		}
+		positions[h.Title] = *h.Position
+	}
+	if want := map[string]int{"Nomeia:": 0, "PORTARIA Nº 5/2026": 1, "DECRETO Nº 9/2026": 2}; !reflect.DeepEqual(positions, want) {
+		t.Fatalf("posições na busca: esperava %v, veio %v", want, positions)
 	}
 
 	var gazette struct {
