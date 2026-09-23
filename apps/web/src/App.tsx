@@ -2,6 +2,7 @@ import { useState } from "react";
 import { confirmSubscription, unsubscribe } from "./api";
 import { CompanyPage } from "./CompanyPage";
 import { DataPage } from "./DataPage";
+import { McpPage } from "./McpPage";
 import { SearchPage } from "./SearchPage";
 
 export function App() {
@@ -10,6 +11,7 @@ export function App() {
   if (path === "/confirmar") return <TokenPage kind="confirm" token={token} />;
   if (path === "/cancelar") return <TokenPage kind="cancel" token={token} />;
   if (path === "/dados") return <DataPage />;
+  if (path === "/mcp") return <McpPage />;
   const company = path.match(/^\/empresa\/([\d./-]+)$/);
   if (company) return <CompanyPage cnpj={decodeURIComponent(company[1])} />;
   return <SearchPage />;
