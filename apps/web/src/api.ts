@@ -9,6 +9,8 @@ export interface ActHit {
   gazette_id: string;
   type: ActType;
   title: string;
+  organ: string;
+  organ_name: string;
   snippet: string;
   edition_number: string;
   published_at: string;
@@ -22,6 +24,18 @@ export interface SearchResponse {
   total: number;
   limit: number;
   offset: number;
+}
+
+export interface Organ {
+  acronym: string;
+  name: string;
+  acts: number;
+}
+
+export interface SearchFilter {
+  q: string;
+  type: ActType | "";
+  organ: string;
 }
 
 export interface CompanyResponse {
@@ -41,10 +55,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-export function searchActs(q: string, type: ActType | "", offset = 0) {
-  const params = new URLSearchParams({ q, offset: String(offset) });
-  if (type) params.set("type", type);
+export function searchActs(filter: SearchFilter, offset = 0) {
+  const params = new URLSearchParams({ q: filter.q, offset: String(offset) });
+  if (filter.type) params.set("type", filter.type);
+  if (filter.organ) params.set("organ", filter.organ);
   return request<SearchResponse>(`/v1/acts?${params}`);
+}
+
+export function listOrgans() {
+  return request<{ items: Organ[] }>("/v1/organs");
 }
 
 export function getCompany(cnpj: string) {

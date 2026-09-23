@@ -10,6 +10,11 @@ export function Result({ hit }: { hit: ActHit }) {
         <a href={hit.source_url} target="_blank" rel="noopener" title="Abrir o PDF da edição original">
           Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {date}
         </a>
+        {hit.organ && (
+          <span className="organ" title={hit.organ_name || undefined}>
+            {hit.organ}{hit.organ_name && ` · ${hit.organ_name}`}
+          </span>
+        )}
       </p>
       <h2>{hit.title}</h2>
       <p className="snippet"><Highlighted text={hit.snippet} /></p>

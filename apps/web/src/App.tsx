@@ -1,6 +1,6 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
-  ActHit, ActType, confirmSubscription, searchActs, subscribe, unsubscribe,
+  ActHit, ActType, Organ, SearchFilter, confirmSubscription, listOrgans, searchActs, subscribe, unsubscribe,
 } from "./api";
 import { CompanyPage } from "./CompanyPage";
 import { Result } from "./components";
@@ -31,20 +31,26 @@ export function App() {
 function SearchPage() {
   const [query, setQuery] = useState("");
   const [type, setType] = useState<ActType | "">("");
+  const [organ, setOrgan] = useState("");
+  const [organs, setOrgans] = useState<Organ[]>([]);
   const [hits, setHits] = useState<ActHit[] | null>(null);
   const [total, setTotal] = useState(0);
   const [searched, setSearched] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function run(q: string, t: ActType | "") {
+  useEffect(() => {
+    listOrgans().then((res) => setOrgans(res.items)).catch(() => setOrgans([]));
+  }, []);
+
+  async function run(filter: SearchFilter) {
     setLoading(true);
     setError("");
     try {
-      const res = await searchActs(q, t);
+      const res = await searchActs(filter);
       setHits(res.items);
       setTotal(res.total);
-      setSearched(q);
+      setSearched(filter.q);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -54,12 +60,17 @@ function SearchPage() {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    run(query.trim(), type);
+    run({ q: query.trim(), type, organ });
   }
 
   function onType(t: ActType | "") {
     setType(t);
-    if (hits !== null) run(query.trim(), t);
+    if (hits !== null) run({ q: query.trim(), type: t, organ });
+  }
+
+  function onOrgan(o: string) {
+    setOrgan(o);
+    if (hits !== null) run({ q: query.trim(), type, organ: o });
   }
 
   return (
@@ -99,13 +110,27 @@ function SearchPage() {
         ))}
       </div>
 
+      {organs.length > 0 && (
+        <div className="organ-filter">
+          <label htmlFor="organ">Órgão</label>
+          <select id="organ" value={organ} onChange={(e) => onOrgan(e.target.value)}>
+            <option value="">Todos os órgãos</option>
+            {organs.map((o) => (
+              <option key={o.acronym} value={o.acronym}>
+                {o.name ? `${o.acronym} · ${o.name}` : o.acronym} ({o.acts.toLocaleString("pt-BR")})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {error && <p className="notice notice-error">{error}</p>}
 
       {hits !== null && (
         <section className="results" aria-live="polite">
           <p className="count">
             {total === 0
-              ? "Nenhum ato encontrado. Tente outro termo ou remova o filtro de tipo."
+              ? "Nenhum ato encontrado. Tente outro termo ou remova os filtros de tipo e órgão."
               : `${total} ${total === 1 ? "ato encontrado" : "atos encontrados"}`}
           </p>
           <ol>
