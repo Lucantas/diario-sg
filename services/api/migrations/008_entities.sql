@@ -54,6 +54,7 @@ LANGUAGE sql AS $$
     SELECT DISTINCT ae.kind, entity_key(ae.kind, ae.normalized)
     FROM act_entities ae JOIN acts a ON a.id = ae.act_id
     WHERE a.gazette_id = gazette AND ae.kind IN ('cnpj', 'processo', 'contrato')
+    ORDER BY 1, 2
     ON CONFLICT (kind, key) DO NOTHING;
 
     INSERT INTO entity_links (entity_id, source, record_kind, record_id, role, certainty, evidence)

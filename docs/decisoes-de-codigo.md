@@ -198,6 +198,18 @@ explica sozinho.
   porque o registro pode ser de qualquer fonte.
 - Entidade sem nenhuma menção volta com zero atos, não como erro: "não
   aparece no Diário" é uma resposta.
+- Entidade que perde todas as ligações numa reindexação continua em
+  `entities`: não atrapalha a leitura, que parte das ligações, e pode
+  voltar a ser citada.
+- A inserção de entidades é ordenada por tipo e chave para que duas
+  edições indexadas ao mesmo tempo travem as linhas na mesma ordem, sem
+  deadlock.
+- O erro da coleta vai resumido para `fetch_runs` ("3 falhas; a primeira:
+  …", até 200 caracteres), porque o `fontes` do MCP é público. O detalhe
+  completo fica no log do job.
+- O evento da coleta é publicado com contexto próprio (10 s), para que um
+  job interrompido ainda registre a coleta que falhou. O `make ingest`
+  manual não registra coleta: não é execução do coletor.
 - Na base local, a migration 008 criou 85.003 ligações, uma por ato e
   chave de `act_entities`. Os zeros à esquerda juntaram 1.783 números de
   contrato em 1.508 entidades.
