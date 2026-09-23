@@ -53,3 +53,17 @@ func TestOrderSQLByRelevanceOrByDate(t *testing.T) {
 		t.Errorf("ordem por relevância inesperada: %s", relevance)
 	}
 }
+
+func TestPageOrderSQLFollowsTheSameKeys(t *testing.T) {
+	for _, f := range []domain.ActFilter{{}, {Recent: true}} {
+		if strings.ReplaceAll(pageOrderSQL(f), "p.", "") != matchedOrderSQL(f) {
+			t.Errorf("página e seleção ordenam diferente: %q × %q", pageOrderSQL(f), matchedOrderSQL(f))
+		}
+	}
+	if got := pageOrderSQL(domain.ActFilter{}); got != "ORDER BY p.exact DESC, p.rank DESC, p.published_at DESC, p.position" {
+		t.Errorf("ordem da página por relevância inesperada: %s", got)
+	}
+	if got := pageOrderSQL(domain.ActFilter{Recent: true}); got != "ORDER BY p.published_at DESC, p.source_url DESC, p.position" {
+		t.Errorf("ordem da página cronológica inesperada: %s", got)
+	}
+}

@@ -17,6 +17,13 @@ decisões de arquitetura, em `adr/`.
   listas longas de nomes com as palavras soltas.
 - Aspas pedem frase exata. O `websearch_to_tsquery` entende as aspas, a
   comparação literal não, por isso elas saem antes do `ILIKE`.
+- A consulta tem duas etapas. `matched` (CTE `MATERIALIZED`) guarda só id,
+  frase exata, `ts_rank` e chaves de ordem de todos os atos encontrados;
+  `page` ordena, conta e corta a página; só então entram corpo, destaque e
+  entidades. Carregar o corpo de milhares de atos até o `count(*) OVER ()`
+  fazia o sort ir para disco e recalcular a frase exata sobre textos
+  enormes. O `MATERIALIZED` impede o Postgres de reabrir a CTE e refazer
+  essas contas. Sem termo, a frase exata nem é calculada.
 - O destaque vem entre `⟦ ⟧` e não em HTML, para o front renderizar sem
   `innerHTML` (sem brecha de XSS). Quando o ato casou só pelo literal, o
   `ts_headline` não marca nada e `highlightFallback` marca o termo, com a
