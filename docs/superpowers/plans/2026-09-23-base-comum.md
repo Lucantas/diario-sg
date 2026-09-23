@@ -32,7 +32,7 @@
 
 ### Task 3: migration 008 e ligador
 **Files:** `migrations/008_entities.sql`; `adapters/postgres/gazettes.go` (`insertActs`, `ReplaceActs`), `adapters/postgres/links.go`; `integration/entity_links_test.go`; truncar `entity_links`, `entities`, `fetch_runs` nos helpers de teste.
-- [ ] Teste de integração: indexar `gazetteText` gera as ligações esperadas; reindexar não deixa órfãs; SQL de preenchimento sobre `act_entities` dá o mesmo conjunto que o ligador em Go.
+- [ ] Teste de integração: indexar `gazetteText` gera as ligações esperadas; reindexar não deixa órfãs; `entity_key` e `link_certainty` em SQL concordam com o domínio em Go.
 - [ ] Implementar; commit `feat(api): entidades e ligações do Diário`.
 
 ### Task 4: leitura por entidade e `entidade` do MCP
