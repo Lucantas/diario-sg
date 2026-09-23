@@ -176,7 +176,7 @@ fontes de cada uma e adiciona o MCP desde cedo.
 
 | Etapa | Conteúdo | Fontes |
 | --- | --- | --- |
-| **A. MCP mínimo** | Servidor MCP sobre a API atual: `buscar_atos`, `ler_ato`, `entidade` (CNPJ), `fontes` | Diário |
+| **A. MCP mínimo** (entregue em 23/09/2026) | Servidor MCP sobre a API atual: `buscar_atos`, `ler_ato`, `entidade` (CNPJ), `fontes` | Diário |
 | **B. Base comum** (abre a Entrega 3) | ADR do modelo de entidades; `fetch_runs`, bruto no bucket, `entities`/`entity_links` migrando `act_entities`; ADR de LGPD | — |
 | **C. Diário da Câmara** | D.O.E. da Câmara no mesmo pipeline de PDF, com parser próprio; SICAM (proposições); agentes políticos e subsídios | Câmara |
 | **D. Quem é o fornecedor** (Entrega 3) | Receita e sanções da CGU; página e ferramenta `empresa` | Receita, CGU |
