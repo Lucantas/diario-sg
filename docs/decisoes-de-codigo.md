@@ -32,6 +32,15 @@ decisões de arquitetura, em `adr/`.
   mistura as duas na mesma linha. Texto vazio indica PDF escaneado, o lugar
   para plugar OCR.
 
+- O catálogo de órgãos (sigla → nome) fica no domínio (`domain/organ.go`)
+  e é a allowlist do parser: API e parser usam a mesma lista. O nome por
+  extenso é resolvido na apresentação, não gravado em `acts`, para a
+  tabela mudar sem reindexar. Nome sem evidência no próprio Diário fica
+  vazio (o levantamento está em `docs/orgaos.md`); nome errado é pior que
+  sigla sozinha.
+- O filtro por órgão aceita só siglas do catálogo (sigla desconhecida é
+  `400`), como o filtro de tipo.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo
@@ -89,6 +98,11 @@ decisões de arquitetura, em `adr/`.
   do deploy roda as migrations e age como as contas dos serviços.
 - O workflow de infra nunca cancela um `apply` em andamento
   (`cancel-in-progress: false`).
+- A reindexação na nuvem é um Cloud Run Job com a imagem da API e a conta
+  do worker (que já lê o bucket e o segredo do banco), executado à mão
+  pelo workflow Reindex. Não é passo do deploy: leva horas e é decisão de
+  quem mudou o parser. Sem retry: a falha é registrada por edição e o
+  período pode ser executado de novo, já que a reindexação é idempotente.
 - Os Dockerfiles são construídos a partir da raiz do repositório
   (`docker build -f services/api/Dockerfile .`): os `COPY` usam caminhos
   a partir dela, e os serviços Go copiam `pkg/`.

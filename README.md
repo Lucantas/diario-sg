@@ -124,10 +124,11 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&type=&from=&to=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet` |
+| GET | `/v1/acts?q=&type=&organ=&from=&to=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla (`SEMED`) |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos |
-| GET | `/v1/stats/acts?q=&type=&from=&to=&group=month` | Contagem de atos por mês |
+| GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&group=month` | Contagem de atos por mês |
+| GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido) com a contagem de atos |
 | POST | `/v1/subscriptions` | `{"email","query"}` → envia e-mail de confirmação |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |
@@ -154,6 +155,11 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
    **Deploy** publica as imagens, roda as migrations e atualiza os serviços.
 6. Para produção, publique uma release (tag `v*`), ou rode os workflows
    manualmente escolhendo `prod`.
+7. Mudou o parser? Rode o workflow **Reindex** (ambiente, `from` e `to`):
+   ele executa o Cloud Run Job `diario-<ambiente>-reindex`, que relê os
+   PDFs do bucket e troca os atos das edições do período, sem disparar
+   alertas. Uma reindexação completa leva horas; se passar do limite de
+   6 h, rode por períodos menores.
 
 O ideal é um projeto GCP por ambiente (isolamento de IAM e de custo). Se
 quiser economizar no começo, use só `prod`.
