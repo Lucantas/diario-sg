@@ -1,14 +1,21 @@
+import { useRef, useState } from "react";
 import { ActHit } from "./api";
+import { archivedPdfUrl, formatCitation, pageFragment, pageLabel } from "./citation";
 import { TYPE_LABEL, formatCnpj } from "./types";
 
 export function Result({ hit }: { hit: ActHit }) {
+  const [citing, setCiting] = useState(false);
   const date = new Date(hit.published_at + "T12:00:00").toLocaleDateString("pt-BR");
+  const pages = pageLabel(hit);
   return (
     <li className="result">
       <p className="meta">
         <span className={`tag tag-${hit.type}`}>{TYPE_LABEL[hit.type]}</span>
-        <a href={hit.source_url} target="_blank" rel="noopener" title="Abrir o PDF da edição original">
-          Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {date}
+        <a href={hit.source_url + pageFragment(hit)} target="_blank" rel="noopener" title="Abrir o PDF no site da prefeitura">
+          Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {date}{pages && `, ${pages}`}
+        </a>
+        <a href={archivedPdfUrl("", hit)} target="_blank" rel="noopener" title="Abrir a cópia do PDF guardada pelo Diário SG">
+          cópia arquivada
         </a>
         {hit.organ && (
           <span className="organ" title={hit.organ_name || undefined}>
@@ -26,7 +33,43 @@ export function Result({ hit }: { hit: ActHit }) {
           ))}
         </p>
       )}
+      <button type="button" className="link-button" aria-expanded={citing} onClick={() => setCiting(!citing)}>
+        Citar este ato
+      </button>
+      {citing && <Citation hit={hit} />}
     </li>
+  );
+}
+
+function Citation({ hit }: { hit: ActHit }) {
+  const text = formatCitation(hit, window.location.origin, new Date());
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  function selectText() {
+    const node = ref.current;
+    const selection = window.getSelection();
+    if (!node || !selection) return;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      selectText();
+    }
+  }
+
+  return (
+    <div className="cite">
+      <p ref={ref}>{text}</p>
+      <button type="button" onClick={copy}>{copied ? "Copiado" : "Copiar citação"}</button>
+    </div>
   );
 }
 
@@ -40,4 +83,3 @@ export function Highlighted({ text }: { text: string }) {
     </>
   );
 }
-

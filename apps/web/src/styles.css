@@ -140,3 +140,11 @@ a { color: var(--action); }
 .cnpjs { color: var(--slate); font-size: 0.875rem; margin: 0.5rem 0 0; }
 .cnpjs a { margin-right: 0.6rem; }
 a.cnpj { text-decoration-style: dotted; text-underline-offset: 0.15em; }
+.link-button {
+  font: 400 0.875rem var(--sans); padding: 0; margin-top: 0.6rem;
+  border: 0; background: none; color: var(--action);
+  text-decoration: underline; text-underline-offset: 0.15em;
+}
+.cite { margin-top: 0.6rem; padding: 0.75rem 0.9rem; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
+.cite p { margin: 0 0 0.6rem; font-size: 0.875rem; overflow-wrap: anywhere; user-select: all; }
+.cite button { font-size: 0.875rem; padding: 0.35rem 0.8rem; }
