@@ -18,6 +18,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/source/localfile"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/source/pmsg"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/config"
+	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/usecase"
 )
 
@@ -57,11 +58,11 @@ func run(file, date, number string, log *slog.Logger) error {
 		return err
 	}
 	storage := gcpclient.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcpclient.TokenSourceFor(cfg.StorageEmulator))
-	publisher := gcp.NewEventPublisher(
+	publisher := manualIngest{gcp.NewEventPublisher(
 		gcpclient.NewPublisher(cfg.ProjectID, cfg.PubSubEmulatorHost, gcpclient.TokenSourceFor(cfg.PubSubEmulatorHost)),
 		cfg.TopicFetched,
 		cfg.TopicRuns,
-	)
+	)}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -76,3 +77,7 @@ func run(file, date, number string, log *slog.Logger) error {
 	}
 	return nil
 }
+
+type manualIngest struct{ *gcp.EventPublisher }
+
+func (manualIngest) RunCompleted(context.Context, domain.FetchRun) error { return nil }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -139,7 +140,7 @@ func TestExecuteRangePublishesTheRun(t *testing.T) {
 		ok.Found != 2 || ok.Stored != 2 || ok.Failed != 0 || ok.Error != "" || ok.FinishedAt.Before(ok.StartedAt) {
 		t.Fatalf("coleta com sucesso publicada errado: %+v", ok)
 	}
-	if failure == nil || failed.Found != 3 || failed.Failed != 3 || failed.Error != failure.Error() {
+	if failure == nil || failed.Found != 3 || failed.Failed != 3 || !strings.HasPrefix(failed.Error, "3 falhas; a primeira: edição") {
 		t.Fatalf("coleta com falha publicada errado: %+v (erro %v)", failed, failure)
 	}
 }
@@ -156,5 +157,46 @@ func TestNewRunIDIsAUUID(t *testing.T) {
 	a, b := domain.NewRunID(), domain.NewRunID()
 	if len(a) != 36 || a[14] != '4' || a == b {
 		t.Fatalf("ids inesperados: %q %q", a, b)
+	}
+}
+
+type ctxRecordingPublisher struct {
+	fakePublisher
+	runCtxErr error
+}
+
+func (p *ctxRecordingPublisher) RunCompleted(ctx context.Context, r domain.FetchRun) error {
+	p.runCtxErr = ctx.Err()
+	return p.fakePublisher.RunCompleted(ctx, r)
+}
+
+func TestRunIsPublishedEvenWhenTheJobIsCancelled(t *testing.T) {
+	pub := &ctxRecordingPublisher{}
+	uc := NewFetchEditions(fakeSource{}, &fakeStorage{objects: map[string][]byte{}}, pub)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, _ = uc.ExecuteRange(ctx, time.Now().Add(-time.Hour), time.Now())
+
+	if pub.runCtxErr != nil || len(pub.runs) != 1 {
+		t.Fatalf("coleta cancelada deveria ser publicada com contexto vivo: %v, %d coletas", pub.runCtxErr, len(pub.runs))
+	}
+}
+
+func TestRunErrorIsASummary(t *testing.T) {
+	cases := []struct {
+		failed int
+		err    error
+		want   string
+	}{
+		{0, nil, ""},
+		{1, errors.New("edição a: timeout"), "edição a: timeout"},
+		{3, errors.Join(errors.New("edição a: timeout"), errors.New("edição b: 500")), "3 falhas; a primeira: edição a: timeout"},
+		{1, errors.New(strings.Repeat("x", 500)), strings.Repeat("x", 200) + "…"},
+	}
+	for _, c := range cases {
+		if got := summarizeRunError(c.err, c.failed); got != c.want {
+			t.Errorf("summarizeRunError(%v, %d) = %q, esperava %q", c.err, c.failed, got, c.want)
+		}
 	}
 }

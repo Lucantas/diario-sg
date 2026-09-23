@@ -89,7 +89,8 @@ aceitar processo e contrato, além do CNPJ, lendo das ligações.
 
 - `ports.EntityReader.ReportByKey(ctx, kind, key) (domain.EntityReport, error)`,
   implementado em Postgres sobre `entities` + `entity_links` + `acts`.
-  Entidade que não existe é `ErrNotFound`.
+  Entidade sem nenhuma menção volta com zero atos e sem certeza, não como
+  erro: "não aparece no Diário" é uma resposta.
 - `usecase.GetEntity.Execute(ctx, kind, input)`: valida e normaliza a
   entrada e chama o leitor.
 - MCP `entidade`:

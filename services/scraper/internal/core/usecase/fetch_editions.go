@@ -8,13 +8,18 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/ports"
 )
 
-const MaxFileSize = 100 << 20
+const (
+	MaxFileSize       = 100 << 20
+	publishRunTimeout = 10 * time.Second
+	maxRunErrorRunes  = 200
+)
 
 type FetchEditions struct {
 	source    ports.EditionSource
@@ -46,10 +51,10 @@ func (uc *FetchEditions) ExecuteRange(ctx context.Context, from, to time.Time) (
 	run := domain.FetchRun{ID: domain.NewRunID(), Source: domain.SourceDiarioPrefeitura, RequestedFrom: from, RequestedTo: to, StartedAt: uc.now()}
 	res, err := uc.collect(ctx, from, to)
 	run.Found, run.Stored, run.Skipped, run.Failed, run.FinishedAt = res.Found, res.Stored, res.Skipped, res.Failed, uc.now()
-	if err != nil {
-		run.Error = err.Error()
-	}
-	if perr := uc.publisher.RunCompleted(ctx, run); perr != nil {
+	run.Error = summarizeRunError(err, res.Failed)
+	pubCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), publishRunTimeout)
+	defer cancel()
+	if perr := uc.publisher.RunCompleted(pubCtx, run); perr != nil {
 		err = errors.Join(err, fmt.Errorf("publicar coleta: %w", perr))
 	}
 	return res, err
@@ -117,4 +122,18 @@ func (uc *FetchEditions) fetchOne(ctx context.Context, e domain.Edition) error {
 		return fmt.Errorf("gravar marcador: %w", err)
 	}
 	return nil
+}
+
+func summarizeRunError(err error, failed int) string {
+	if err == nil {
+		return ""
+	}
+	first, _, _ := strings.Cut(err.Error(), "\n")
+	if r := []rune(first); len(r) > maxRunErrorRunes {
+		first = string(r[:maxRunErrorRunes]) + "…"
+	}
+	if failed > 1 {
+		return fmt.Sprintf("%d falhas; a primeira: %s", failed, first)
+	}
+	return first
 }
