@@ -41,6 +41,23 @@ decisões de arquitetura, em `adr/`.
 - O filtro por órgão aceita só siglas do catálogo (sigla desconhecida é
   `400`), como o filtro de tipo.
 
+## Citação e cópia arquivada
+
+- A API serve o PDF arquivado (`/v1/gazettes/{id}/pdf`) em vez de abrir o
+  bucket: bucket público exporia a listagem e os marcadores `.published`,
+  e URL assinada expira, o que não serve para citação.
+- O PDF de uma edição não muda (o checksum é a identidade dela), então o
+  `ETag` é o SHA-256 e o cache é imutável. O handler busca a edição e
+  responde `304` antes de abrir o arquivo: depois de 30 dias os objetos
+  vão para a classe ARCHIVE, onde cada leitura é cobrada.
+- A citação aponta para a edição e a página, não para o ato: o `id` do
+  ato muda a cada reindexação (`ReplaceActs` apaga e insere) e a posição
+  pode mudar se a segmentação mudar.
+- Página nula (ato ainda não reindexado) sai como `null`, nunca como 1: o
+  link abre o PDF no início e a citação omite a página.
+- A citação é montada no front (`src/citation.ts`); a API devolve os
+  dados, e o formato pode mudar sem mexer no backend.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo

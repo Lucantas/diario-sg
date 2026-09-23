@@ -124,8 +124,9 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&type=&organ=&from=&to=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla (`SEMED`) |
+| GET | `/v1/acts?q=&type=&organ=&from=&to=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla (`SEMED`). Cada ato traz `page_start`/`page_end` (`null` se ainda não reindexado) e `pdf_sha256` |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
+| GET | `/v1/gazettes/{id}/pdf` | Cópia arquivada do PDF (`ETag` = SHA-256; abra com `#page=N`) |
 | GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&group=month` | Contagem de atos por mês |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
