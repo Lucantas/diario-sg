@@ -13,6 +13,7 @@ import (
 type actHitDTO struct {
 	ID            string   `json:"id"`
 	GazetteID     string   `json:"gazette_id"`
+	Position      int      `json:"position"`
 	Type          string   `json:"type"`
 	Title         string   `json:"title"`
 	Organ         string   `json:"organ"`
@@ -111,7 +112,7 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 		values = []int64{}
 	}
 	return actHitDTO{
-		ID: h.ID, GazetteID: h.GazetteID, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
+		ID: h.ID, GazetteID: h.GazetteID, Position: h.Position, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
 		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
 		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum, ValuesCents: values,
