@@ -94,3 +94,7 @@ type APIKeyRepository interface {
 	Revoke(ctx context.Context, hash string) error
 	RecordUse(ctx context.Context, keyID, tool string) error
 }
+
+type CoverageReader interface {
+	Coverage(ctx context.Context) (domain.Coverage, error)
+}
