@@ -12,8 +12,8 @@ var (
 	nonDigitRe = regexp.MustCompile(`\D`)
 )
 
-func (Regex) EditionNumber(text string) string {
-	for _, re := range editionNumberRes {
+func (r Regex) EditionNumber(text string) string {
+	for _, re := range r.editionRes {
 		if m := re.FindStringSubmatch(text); m != nil {
 			return nonDigitRe.ReplaceAllString(m[1], "")
 		}

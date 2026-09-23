@@ -1,18 +1,23 @@
 package parser
 
 import (
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-type Regex struct{}
+type Regex struct {
+	pageHeader *regexp.Regexp
+	lineNoise  *regexp.Regexp
+	editionRes []*regexp.Regexp
+}
 
-func New() Regex { return Regex{} }
+func New() Regex { return Regex{editionRes: editionNumberRes} }
 
-func (Regex) Parse(text string) []domain.Act {
-	lines := dropPreamble(joinSplitHeaders(stripPageNoise(splitLines(text))))
+func (r Regex) Parse(text string) []domain.Act {
+	lines := dropPreamble(joinSplitHeaders(stripPageNoise(r.stripSourceNoise(splitLines(text)))))
 
 	var acts []domain.Act
 	var current *segment

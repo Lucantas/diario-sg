@@ -108,3 +108,7 @@ type EntityReader interface {
 type FetchRunRepository interface {
 	Save(ctx context.Context, r domain.FetchRun) error
 }
+
+type ActParsers interface {
+	For(source string) ActParser
+}

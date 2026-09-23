@@ -57,7 +57,7 @@ func newOrganServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
 	gaz, acts := postgres.NewGazetteRepo(db), postgres.NewActRepo(db)
 	in := usecase.IndexGazetteInput{EditionNumber: "7", PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
 		SourceURL: "https://exemplo/7.pdf", StoragePath: "7.pdf", Checksum: strings.Repeat("e", 64)}
-	idx := usecase.NewIndexGazette(gaz, stringStore(organGazette), passthroughExtractor{}, parser.New(), entities.New(), &recPub{})
+	idx := usecase.NewIndexGazette(gaz, stringStore(organGazette), passthroughExtractor{}, parser.Set{}, entities.New(), &recPub{})
 	if err := idx.Execute(ctx, in); err != nil {
 		t.Fatal(err)
 	}

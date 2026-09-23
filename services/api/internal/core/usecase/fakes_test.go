@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
 type memGazettes struct {
@@ -65,14 +66,23 @@ type fixedExtractor struct{ text string }
 
 func (f fixedExtractor) Extract(context.Context, io.Reader) (string, error) { return f.text, nil }
 
-type lineParser struct{}
+type lineParser struct{ tag string }
 
-func (lineParser) Parse(text string) []domain.Act {
+func (p lineParser) Parse(text string) []domain.Act {
 	var out []domain.Act
 	for i, l := range strings.Split(strings.TrimSpace(text), "\n") {
-		out = append(out, domain.Act{Type: domain.ActOutro, Title: l, Body: l, Position: i})
+		out = append(out, domain.Act{Type: domain.ActOutro, Title: p.tag + l, Body: l, Position: i})
 	}
 	return out
+}
+
+type lineParsers struct{}
+
+func (lineParsers) For(source string) ports.ActParser {
+	if source == domain.SourceDiarioCamara {
+		return lineParser{tag: "câmara: "}
+	}
+	return lineParser{}
 }
 
 type cnpjExtractor struct{}

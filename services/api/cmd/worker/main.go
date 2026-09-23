@@ -56,7 +56,7 @@ func run(l *slog.Logger) error {
 	acts := postgres.NewActRepo(db)
 
 	h := &events.PushHandler{
-		Index: usecase.NewIndexGazette(gazettes, storage, pdf.New(), parser.New(), entities.New(), publisher),
+		Index: usecase.NewIndexGazette(gazettes, storage, pdf.New(), parser.Set{}, entities.New(), publisher),
 		Match: usecase.NewMatchSubscriptions(gazettes, acts, postgres.NewSubscriptionRepo(db),
 			postgres.NewNotificationLog(db), notifier),
 		Runs: usecase.NewRecordFetchRun(postgres.NewFetchRunRepo(db)),

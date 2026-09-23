@@ -40,6 +40,25 @@ func splitLines(text string) []line {
 	return out
 }
 
+func (r Regex) stripSourceNoise(lines []line) []line {
+	if r.pageHeader == nil {
+		return lines
+	}
+	out := make([]line, 0, len(lines))
+	headerPage := 0
+	for _, l := range lines {
+		if l.page != headerPage && (l.text == "" || r.pageHeader.MatchString(l.text)) {
+			continue
+		}
+		headerPage = l.page
+		if r.lineNoise.MatchString(l.text) {
+			continue
+		}
+		out = append(out, l)
+	}
+	return out
+}
+
 func stripPageNoise(lines []line) []line {
 	out := make([]line, 0, len(lines))
 	for _, l := range lines {
