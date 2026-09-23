@@ -14,6 +14,7 @@ const (
 	RoleWorker  Role = "worker"
 	RoleMigrate Role = "migrate"
 	RoleReindex Role = "reindex"
+	RoleDump    Role = "dump"
 )
 
 type Config struct {
@@ -21,6 +22,7 @@ type Config struct {
 	DatabaseURL        string
 	ProjectID          string
 	Bucket             string
+	DumpsBucket        string
 	TopicIndexed       string
 	PubSubEmulatorHost string
 	StorageEmulator    string
@@ -36,6 +38,7 @@ func Load(role Role) (Config, error) {
 		DatabaseURL:        os.Getenv("DATABASE_URL"),
 		ProjectID:          os.Getenv("GCP_PROJECT_ID"),
 		Bucket:             os.Getenv("GAZETTE_BUCKET"),
+		DumpsBucket:        os.Getenv("DUMPS_BUCKET"),
 		TopicIndexed:       os.Getenv("TOPIC_GAZETTE_INDEXED"),
 		PubSubEmulatorHost: os.Getenv("PUBSUB_EMULATOR_HOST"),
 		StorageEmulator:    os.Getenv("STORAGE_EMULATOR_HOST"),
@@ -54,7 +57,10 @@ func Load(role Role) (Config, error) {
 	if role == RoleReindex || role == RoleAPI {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
-	if role != RoleMigrate && role != RoleReindex && c.Notifier == "resend" {
+	if role == RoleDump {
+		required["DUMPS_BUCKET"] = c.DumpsBucket
+	}
+	if role != RoleMigrate && role != RoleReindex && role != RoleDump && c.Notifier == "resend" {
 		required["RESEND_API_KEY"] = c.ResendAPIKey
 		required["EMAIL_FROM"] = c.EmailFrom
 	}

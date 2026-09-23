@@ -4,6 +4,7 @@ package integration
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"log/slog"
 	"net/http"
@@ -30,6 +31,12 @@ const investigatorGazette = "EXTRATO DO CONTRATO Nº 1/2026\nObjeto: limpeza urb
 
 func newInvestigatorServer(t *testing.T) *httptest.Server {
 	t.Helper()
+	srv, _ := newInvestigatorServerWithDB(t)
+	return srv
+}
+
+func newInvestigatorServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
+	t.Helper()
 	dbURL := os.Getenv("TEST_DATABASE_URL")
 	if dbURL == "" {
 		t.Skip("TEST_DATABASE_URL não definido")
@@ -55,7 +62,7 @@ func newInvestigatorServer(t *testing.T) *httptest.Server {
 		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
-	return srv
+	return srv, db
 }
 
 type valueHits struct {
