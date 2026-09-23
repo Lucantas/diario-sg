@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
 var sample = citable{
@@ -47,8 +49,55 @@ func TestSourceOfAnActPointsToThePage(t *testing.T) {
 
 	if f.URL != "https://do.pmsg.rj.gov.br/diario/2026_09_18.pdf#page=3" ||
 		f.ArchivedCopy != "https://diario.exemplo/api/v1/gazettes/g1/pdf#page=3" ||
-		f.Page != 3 || f.SHA256 != sample.Checksum || f.Name != "Diário Oficial de São Gonçalo, edição 1771 de 18/09/2026" {
+		f.Page != 3 || f.SHA256 != sample.Checksum || f.Name != "Diário Oficial do Município de São Gonçalo, edição 1771 de 18/09/2026" {
 		t.Fatalf("fonte inesperada: %+v", f)
+	}
+}
+
+var camaraSample = citable{
+	GazetteID: "g2", Title: "PORTARIA Nº 156/2025", EditionNumber: "138", Source: "diario_camara",
+	PublishedAt: time.Date(2025, 11, 3, 0, 0, 0, 0, time.UTC),
+	SourceURL:   "https://www.cmsg.rj.gov.br/diariooficialeletronico/PUBLICACOES/2025-11-03.pdf",
+	PageStart:   1, PageEnd: 1, Checksum: strings.Repeat("cd", 32),
+}
+
+func TestCitationOfTheCamara(t *testing.T) {
+	want := "SÃO GONÇALO (RJ). Câmara Municipal. Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo, ed. 138, 3 nov. 2025, p. 1. " +
+		"PORTARIA Nº 156/2025. Disponível em: <https://www.cmsg.rj.gov.br/diariooficialeletronico/PUBLICACOES/2025-11-03.pdf#page=1>. " +
+		"Cópia arquivada em: <https://diario.exemplo/api/v1/gazettes/g2/pdf#page=1>. " +
+		"SHA-256 do PDF: " + strings.Repeat("cd", 32) + ". Acesso em: 22 set. 2026."
+
+	if got := formatCitation(camaraSample, "https://diario.exemplo", accessed); got != want {
+		t.Fatalf("citação da Câmara:\n%s\n%s", got, want)
+	}
+	if f := sourceOf(camaraSample, "https://diario.exemplo"); f.Name != "Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo, edição 138 de 03/11/2025" {
+		t.Errorf("nome da fonte da Câmara: %q", f.Name)
+	}
+}
+
+func TestCoverageHasOneEntryPerSourceWithItsGaps(t *testing.T) {
+	cov := coveragesOf([]domain.Coverage{
+		{Source: domain.SourceDiarioPrefeitura, First: time.Date(2010, 1, 4, 0, 0, 0, 0, time.UTC), Last: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC)},
+		{Source: domain.SourceDiarioCamara},
+	})
+
+	if len(cov) != 2 || cov[0].Source != "diario_prefeitura" || cov[0].From != "2010-01-04" || cov[1].Source != "diario_camara" || cov[1].From != "" {
+		t.Fatalf("cobertura inesperada: %+v", cov)
+	}
+	if strings.Contains(strings.Join(cov[0].Gaps, " "), "2020-10-04") || !strings.Contains(strings.Join(cov[1].Gaps, " "), "2020-10-04") {
+		t.Errorf("a lacuna de 2020 é só da Câmara: %+v", cov)
+	}
+	for _, c := range cov {
+		if strings.Contains(strings.Join(c.Gaps, " "), "ainda não é coletado") {
+			t.Errorf("lacuna antiga da Câmara ficou: %+v", c.Gaps)
+		}
+	}
+}
+
+func TestFilterOfAcceptsTheSource(t *testing.T) {
+	f, err := filterOf(searchInput{Diario: "diario_camara"})
+	if err != nil || f.Source != "diario_camara" {
+		t.Fatalf("fonte: %+v %v", f, err)
 	}
 }
 

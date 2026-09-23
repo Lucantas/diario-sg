@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
 var abntMonths = [...]string{"jan.", "fev.", "mar.", "abr.", "maio", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."}
@@ -20,6 +22,7 @@ type citable struct {
 	PageStart     int
 	PageEnd       int
 	Checksum      string
+	Source        string
 }
 
 func pageFragment(pageStart int) string {
@@ -52,6 +55,13 @@ func sentence(text string) string {
 	return strings.TrimRight(text, " \t\n.:;,") + "."
 }
 
+func citationAuthor(source string) string {
+	if source == domain.SourceDiarioCamara {
+		return "SÃO GONÇALO (RJ). Câmara Municipal. "
+	}
+	return "SÃO GONÇALO (RJ). "
+}
+
 func formatCitation(c citable, webURL string, accessed time.Time) string {
 	edition := "ed. " + c.EditionNumber
 	if c.EditionNumber == "" {
@@ -65,7 +75,7 @@ func formatCitation(c citable, webURL string, accessed time.Time) string {
 		where = append(where, "p. "+pages)
 	}
 	return strings.Join([]string{
-		fmt.Sprintf("SÃO GONÇALO (RJ). Diário Oficial do Município de São Gonçalo, %s.", strings.Join(where, ", ")),
+		fmt.Sprintf("%s%s, %s.", citationAuthor(c.Source), domain.SourceName(c.Source), strings.Join(where, ", ")),
 		sentence(c.Title),
 		fmt.Sprintf("Disponível em: <%s%s>.", c.SourceURL, pageFragment(c.PageStart)),
 		fmt.Sprintf("Cópia arquivada em: <%s>.", archivedPDFURL(webURL, c)),

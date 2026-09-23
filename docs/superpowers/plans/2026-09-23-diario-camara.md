@@ -37,7 +37,7 @@
 
 ### Task 4: MCP ciente da fonte
 **Files:** `presentation/mcp/{tools.go,dto.go,citation.go}` (+ testes); `usecase/coverage.go`; `integration/mcp_test.go`.
-- [ ] Testes: citação da Câmara; `fontes` com duas fontes; `buscar_atos` com `fonte`.
+- [ ] Testes: citação da Câmara; `fontes` com dois diários; `buscar_atos` com `diario`.
 - [ ] Implementar; commit `feat(mcp): Diário da Câmara nas ferramentas`.
 
 ### Task 5: coletor da Câmara

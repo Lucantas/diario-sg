@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -141,24 +143,52 @@ func (r *GazetteRepo) ReplaceActs(ctx context.Context, gazetteID, editionNumber 
 	return tx.Commit()
 }
 
-func (r *GazetteRepo) Coverage(ctx context.Context) (domain.Coverage, error) {
-	var c domain.Coverage
-	err := r.db.QueryRowContext(ctx, `
-		SELECT coalesce(min(published_at), 'epoch'), coalesce(max(published_at), 'epoch'),
-		       coalesce(max(indexed_at), 'epoch'), count(*), (SELECT count(*) FROM acts)
-		FROM gazettes`,
-	).Scan(&c.First, &c.Last, &c.LastIndexedAt, &c.Gazettes, &c.Acts)
+func (r *GazetteRepo) Coverage(ctx context.Context) ([]domain.Coverage, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT s.source, coalesce(min(g.published_at), 'epoch'), coalesce(max(g.published_at), 'epoch'),
+		       coalesce(max(g.indexed_at), 'epoch'), count(g.id),
+		       (SELECT count(*) FROM acts a JOIN gazettes ga ON ga.id = a.gazette_id WHERE ga.source = s.source)
+		FROM unnest($1::text[]) WITH ORDINALITY AS s(source, ord)
+		LEFT JOIN gazettes g ON g.source = s.source
+		GROUP BY s.source, s.ord
+		ORDER BY s.ord`, pq.StringArray(domain.Sources))
 	if err != nil {
-		return c, err
+		return nil, err
 	}
-	run := &c.LastRun
-	err = r.db.QueryRowContext(ctx, `
-		SELECT id, source, requested_from, requested_to, found, stored, skipped, failed, error, started_at, finished_at
-		FROM fetch_runs WHERE source = $1
-		ORDER BY finished_at DESC LIMIT 1`, domain.SourceDiarioPrefeitura,
-	).Scan(&run.ID, &run.Source, &run.RequestedFrom, &run.RequestedTo, &run.Found, &run.Stored, &run.Skipped, &run.Failed, &run.Error, &run.StartedAt, &run.FinishedAt)
-	if errors.Is(err, sql.ErrNoRows) {
-		return c, nil
+	defer rows.Close()
+	var out []domain.Coverage
+	for rows.Next() {
+		var c domain.Coverage
+		if err := rows.Scan(&c.Source, &c.First, &c.Last, &c.LastIndexedAt, &c.Gazettes, &c.Acts); err != nil {
+			return nil, err
+		}
+		out = append(out, c)
 	}
-	return c, err
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return out, r.attachLastRuns(ctx, out)
+}
+
+func (r *GazetteRepo) attachLastRuns(ctx context.Context, cov []domain.Coverage) error {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT DISTINCT ON (source) id, source, requested_from, requested_to, found, stored, skipped, failed, error, started_at, finished_at
+		FROM fetch_runs WHERE source = ANY($1)
+		ORDER BY source, finished_at DESC`, pq.StringArray(domain.Sources))
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var run domain.FetchRun
+		if err := rows.Scan(&run.ID, &run.Source, &run.RequestedFrom, &run.RequestedTo, &run.Found, &run.Stored, &run.Skipped, &run.Failed, &run.Error, &run.StartedAt, &run.FinishedAt); err != nil {
+			return err
+		}
+		for i := range cov {
+			if cov[i].Source == run.Source {
+				cov[i].LastRun = run
+			}
+		}
+	}
+	return rows.Err()
 }

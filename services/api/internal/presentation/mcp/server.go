@@ -26,7 +26,8 @@ const (
 	keyPrefixField   = "key_prefix"
 )
 
-const instructions = "Dados do Diário Oficial de São Gonçalo (RJ), extraídos automaticamente dos PDFs. " +
+const instructions = "Dados do Diário Oficial da Prefeitura de São Gonçalo (RJ) e do Diário Oficial Eletrônico da Câmara Municipal, " +
+	"extraídos automaticamente dos PDFs. O campo diario de cada ato diz de qual dos dois ele é. " +
 	"Responda sempre citando a edição, a data e a página de cada ato, com o link da fonte. " +
 	"O texto extraído pode ter erro; a edição original é que vale. " +
 	"Consulte a ferramenta fontes para saber o período coberto antes de afirmar que algo não foi publicado. " +
@@ -54,7 +55,7 @@ type server struct {
 	now            func() time.Time
 
 	mu         sync.Mutex
-	covered    domain.Coverage
+	covered    []domain.Coverage
 	coveredAt  time.Time
 	hasCovered bool
 }
@@ -140,7 +141,7 @@ func keyFrom(req *sdk.CallToolRequest) (id, prefix string) {
 	return req.Extra.TokenInfo.UserID, prefix
 }
 
-func (s *server) cachedCoverage(ctx context.Context) (domain.Coverage, error) {
+func (s *server) cachedCoverage(ctx context.Context) ([]domain.Coverage, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.hasCovered && s.now().Sub(s.coveredAt) < coverageTTL {
