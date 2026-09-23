@@ -125,3 +125,51 @@ func TestEntityReportSpansBothSources(t *testing.T) {
 		t.Fatalf("o relatório do CNPJ deveria juntar as duas fontes: %+v", sources)
 	}
 }
+
+func TestMCPReadsTheCamara(t *testing.T) {
+	srv, db := newServerFor(t, gazetteText)
+	indexCamara(t, db)
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	found, _ := call[struct {
+		Total int `json:"total"`
+		Acts  []struct {
+			actRef
+			Diario string `json:"diario"`
+		} `json:"atos"`
+	}](t, session, "buscar_atos", map[string]any{"diario": "diario_camara"})
+	if found.Total != 1 || found.Acts[0].Diario != "diario_camara" {
+		t.Fatalf("busca na Câmara: %+v", found)
+	}
+
+	act, _ := call[struct {
+		Diario   string `json:"diario"`
+		Citation string `json:"citacao"`
+	}](t, session, "ler_ato", map[string]any{"edicao_id": found.Acts[0].GazetteID, "posicao": found.Acts[0].Position})
+	if act.Diario != "diario_camara" ||
+		!strings.HasPrefix(act.Citation, "SÃO GONÇALO (RJ). Câmara Municipal. Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo, ed. 138, 3 nov. 2025") {
+		t.Fatalf("ato da Câmara: %+v", act)
+	}
+
+	sources, _ := call[struct {
+		Sources []struct {
+			Diario   string   `json:"diario"`
+			From     string   `json:"de"`
+			Gazettes int      `json:"edicoes"`
+			Gaps     []string `json:"lacunas"`
+		} `json:"fontes"`
+	}](t, session, "fontes", nil)
+	if len(sources.Sources) != 2 || sources.Sources[1].Diario != "diario_camara" || sources.Sources[1].Gazettes != 1 ||
+		sources.Sources[1].From != "2025-11-03" || !strings.Contains(strings.Join(sources.Sources[1].Gaps, " "), "2020-10-04") {
+		t.Fatalf("fontes: %+v", sources)
+	}
+
+	if _, res := call[struct{}](t, session, "buscar_atos", map[string]any{"diario": "tce"}); !res.IsError {
+		t.Fatal("diário desconhecido deveria voltar como erro da ferramenta")
+	}
+}

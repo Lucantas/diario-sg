@@ -23,13 +23,15 @@ func TestFetchRunsAreIdempotentAndShownInSources(t *testing.T) {
 	latest := domain.FetchRun{ID: "22222222-2222-4222-8222-222222222222", Source: domain.SourceDiarioPrefeitura,
 		RequestedFrom: start.AddDate(0, 0, -3), RequestedTo: start, Found: 3, Stored: 2, Failed: 1,
 		Error: "edição 1780: timeout", StartedAt: start, FinishedAt: start.Add(2 * time.Minute)}
-	for _, run := range []domain.FetchRun{latest, older, latest} {
+	camara := domain.FetchRun{ID: "33333333-3333-4333-8333-333333333333", Source: domain.SourceDiarioCamara,
+		RequestedFrom: start, RequestedTo: start, Found: 1, Stored: 1, StartedAt: start.Add(time.Hour), FinishedAt: start.Add(time.Hour + time.Minute)}
+	for _, run := range []domain.FetchRun{latest, older, latest, camara} {
 		if err := uc.Execute(ctx, run); err != nil {
 			t.Fatal(err)
 		}
 	}
 	var stored int
-	if err := db.QueryRow(`SELECT count(*) FROM fetch_runs`).Scan(&stored); err != nil || stored != 2 {
+	if err := db.QueryRow(`SELECT count(*) FROM fetch_runs`).Scan(&stored); err != nil || stored != 3 {
 		t.Fatalf("a mesma coleta entregue duas vezes deveria virar uma linha: %d %v", stored, err)
 	}
 
@@ -53,7 +55,7 @@ func TestFetchRunsAreIdempotentAndShownInSources(t *testing.T) {
 			} `json:"ultima_coleta_tentada"`
 		} `json:"fontes"`
 	}](t, session, "fontes", nil)
-	if len(sources.Sources) != 1 || sources.Sources[0].LastRun == nil {
+	if len(sources.Sources) != 2 || sources.Sources[0].LastRun == nil || sources.Sources[1].LastRun == nil || sources.Sources[1].LastRun.Found != 1 {
 		t.Fatalf("fontes sem a última coleta: %+v", sources)
 	}
 	got := *sources.Sources[0].LastRun

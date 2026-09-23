@@ -11,6 +11,6 @@ type SourceCoverage struct{ reader ports.CoverageReader }
 
 func NewSourceCoverage(r ports.CoverageReader) *SourceCoverage { return &SourceCoverage{reader: r} }
 
-func (uc *SourceCoverage) Execute(ctx context.Context) (domain.Coverage, error) {
+func (uc *SourceCoverage) Execute(ctx context.Context) ([]domain.Coverage, error) {
 	return uc.reader.Coverage(ctx)
 }

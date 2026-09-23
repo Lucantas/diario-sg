@@ -9,17 +9,29 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-const (
-	sourceName = "Diário Oficial de São Gonçalo"
-	sourceSite = "https://do.pmsg.rj.gov.br/"
-	brDate     = "02/01/2006"
-)
+const brDate = "02/01/2006"
 
-var knownGaps = []string{
-	"Só o Diário Oficial da Prefeitura; o Diário da Câmara ainda não é coletado.",
+var sourceSites = map[string]string{
+	domain.SourceDiarioPrefeitura: "https://do.pmsg.rj.gov.br/",
+	domain.SourceDiarioCamara:     "https://www.cmsg.rj.gov.br/diariooficialeletronico/",
+}
+
+var commonGaps = []string{
 	"Edição em PDF só com imagem (escaneada) não tem o texto lido.",
 	"A separação em atos é automática e pode errar; os avisos de cada ato dizem onde desconfiar.",
 	"Ausência de resultado não prova que o ato não existe: confira a edição original.",
+}
+
+var sourceGaps = map[string][]string{
+	domain.SourceDiarioCamara: {
+		"Edições da Câmara anteriores a 2020-10-04 não estão disponíveis por data no site da Câmara e não foram coletadas.",
+		"Só uma edição da Câmara por dia é coletada (o arquivo com a data do dia).",
+		"Os atos da Câmara não têm órgão; o filtro orgao vale só para a Prefeitura.",
+	},
+}
+
+func gapsOf(source string) []string {
+	return append(append([]string{}, sourceGaps[source]...), commonGaps...)
 }
 
 type sourceDTO struct {
@@ -32,7 +44,8 @@ type sourceDTO struct {
 }
 
 type coverageDTO struct {
-	Source        string   `json:"fonte"`
+	Source        string   `json:"diario"`
+	Name          string   `json:"nome"`
 	From          string   `json:"de"`
 	To            string   `json:"ate"`
 	LastCollected string   `json:"ultima_coleta"`
@@ -42,6 +55,7 @@ type coverageDTO struct {
 type actSummaryDTO struct {
 	GazetteID     string      `json:"edicao_id"`
 	Position      int         `json:"posicao"`
+	Diario        string      `json:"diario"`
 	EditionNumber string      `json:"edicao"`
 	PublishedAt   string      `json:"data"`
 	IsExtra       bool        `json:"extra"`
@@ -59,7 +73,7 @@ type actSummaryDTO struct {
 
 func sourceOf(c citable, webURL string) sourceDTO {
 	return sourceDTO{
-		Name:         fmt.Sprintf("%s, edição %s de %s", sourceName, editionLabel(c.EditionNumber), c.PublishedAt.Format(brDate)),
+		Name:         fmt.Sprintf("%s, edição %s de %s", domain.SourceName(c.Source), editionLabel(c.EditionNumber), c.PublishedAt.Format(brDate)),
 		URL:          c.SourceURL + pageFragment(c.PageStart),
 		ArchivedCopy: archivedPDFURL(webURL, c),
 		Page:         c.PageStart,
@@ -75,8 +89,16 @@ func editionLabel(number string) string {
 }
 
 func coverageOf(c domain.Coverage) coverageDTO {
-	return coverageDTO{Source: sourceName, From: dateOrEmpty(c.First), To: dateOrEmpty(c.Last),
-		LastCollected: timestampOrEmpty(c.LastIndexedAt), Gaps: knownGaps}
+	return coverageDTO{Source: c.Source, Name: domain.SourceName(c.Source), From: dateOrEmpty(c.First), To: dateOrEmpty(c.Last),
+		LastCollected: timestampOrEmpty(c.LastIndexedAt), Gaps: gapsOf(c.Source)}
+}
+
+func coveragesOf(cs []domain.Coverage) []coverageDTO {
+	out := make([]coverageDTO, 0, len(cs))
+	for _, c := range cs {
+		out = append(out, coverageOf(c))
+	}
+	return out
 }
 
 func dateOrEmpty(t time.Time) string {
@@ -95,17 +117,19 @@ func timestampOrEmpty(t time.Time) string {
 
 func citableHit(h domain.ActHit) citable {
 	return citable{GazetteID: h.GazetteID, Title: h.Title, EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt,
-		IsExtra: h.IsExtra, SourceURL: h.SourceURL, PageStart: h.PageStart, PageEnd: h.PageEnd, Checksum: h.Checksum}
+		IsExtra: h.IsExtra, SourceURL: h.SourceURL, PageStart: h.PageStart, PageEnd: h.PageEnd, Checksum: h.Checksum,
+		Source: domain.SourceOrDefault(h.Source)}
 }
 
 func citableAct(g domain.Gazette, a domain.Act) citable {
 	return citable{GazetteID: g.ID, Title: a.Title, EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt,
-		IsExtra: g.IsExtra, SourceURL: g.SourceURL, PageStart: a.PageStart, PageEnd: a.PageEnd, Checksum: g.Checksum}
+		IsExtra: g.IsExtra, SourceURL: g.SourceURL, PageStart: a.PageStart, PageEnd: a.PageEnd, Checksum: g.Checksum,
+		Source: domain.SourceOrDefault(g.Source)}
 }
 
 func summaryOf(h domain.ActHit, webURL string) actSummaryDTO {
 	return actSummaryDTO{
-		GazetteID: h.GazetteID, Position: h.Position, EditionNumber: h.EditionNumber,
+		GazetteID: h.GazetteID, Position: h.Position, Diario: domain.SourceOrDefault(h.Source), EditionNumber: h.EditionNumber,
 		PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, Type: string(h.Type),
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ), Title: h.Title, Snippet: h.Snippet,
 		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs), ValuesCents: nonNil(h.ValuesCents),

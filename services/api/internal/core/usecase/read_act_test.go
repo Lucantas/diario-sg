@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -17,9 +18,9 @@ type gazetteActs struct {
 
 func (g gazetteActs) ListByGazette(context.Context, string) ([]domain.Act, error) { return g.acts, nil }
 
-type fixedCoverage struct{ c domain.Coverage }
+type fixedCoverage struct{ c []domain.Coverage }
 
-func (f fixedCoverage) Coverage(context.Context) (domain.Coverage, error) { return f.c, nil }
+func (f fixedCoverage) Coverage(context.Context) ([]domain.Coverage, error) { return f.c, nil }
 
 func TestReadActFindsTheActByPosition(t *testing.T) {
 	ctx := context.Background()
@@ -43,11 +44,11 @@ func TestReadActFindsTheActByPosition(t *testing.T) {
 }
 
 func TestSourceCoverageReturnsTheReaderCoverage(t *testing.T) {
-	want := domain.Coverage{First: time.Date(2010, 1, 4, 0, 0, 0, 0, time.UTC), Gazettes: 3, Acts: 10}
+	want := []domain.Coverage{{Source: domain.SourceDiarioPrefeitura, First: time.Date(2010, 1, 4, 0, 0, 0, 0, time.UTC), Gazettes: 3, Acts: 10}}
 
 	got, err := NewSourceCoverage(fixedCoverage{want}).Execute(context.Background())
 
-	if err != nil || got != want {
+	if err != nil || !reflect.DeepEqual(got, want) {
 		t.Fatalf("veio %+v %v", got, err)
 	}
 }

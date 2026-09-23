@@ -86,10 +86,12 @@ exportação, dump e MCP do Diário da Prefeitura.
 
 - `GET /v1/acts` e a exportação aceitam `source`; `organ` continua só da
   Prefeitura. Atos e edições trazem `source` e `source_name`.
-- MCP:
-  - `buscar_atos` aceita `fonte`;
-  - todo ato traz a fonte, e a citação usa o nome da fonte;
-  - `fontes` lista as duas, com cobertura e última coleta de cada uma,
+- MCP (o campo se chama `diario`, porque `fontes` já é a lista de links
+  de prova de cada ato):
+  - `buscar_atos` aceita `diario`;
+  - todo ato traz `diario`, e a citação usa o nome da fonte;
+  - `cobertura` passa a ser uma lista, uma entrada por diário;
+  - `fontes` lista os dois, com cobertura e última coleta de cada um,
     e as lacunas da Câmara.
 - E-mail do alerta e RSS: o assunto e o item dizem de qual diário é o ato.
 - Site:
@@ -119,7 +121,7 @@ exportação, dump e MCP do Diário da Prefeitura.
   - edição da Câmara indexada com fonte, ligações com
     `source = 'diario_camara'`;
   - busca com `source`;
-  - `fontes` com as duas fontes;
+  - `buscar_atos` com `diario` e `fontes` com os dois diários;
   - citação da Câmara no `ler_ato`.
 - Site: citação por fonte; estado da busca com `source`.
 - Manual: backfill local da Câmara desde 2020-10-04, com contagem por tipo

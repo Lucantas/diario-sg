@@ -140,11 +140,11 @@ func TestMCPWithPerUserKey(t *testing.T) {
 	found, _ := call[struct {
 		Total    int      `json:"total"`
 		Acts     []actRef `json:"atos"`
-		Coverage struct {
+		Coverage []struct {
 			From string `json:"de"`
 		} `json:"cobertura"`
 	}](t, session, "buscar_atos", map[string]any{"consulta": "medicamentos", "limite": 50})
-	if found.Total != 1 || len(found.Acts) != 1 || found.Coverage.From != "2026-09-18" ||
+	if found.Total != 1 || len(found.Acts) != 1 || len(found.Coverage) != 2 || found.Coverage[0].From != "2026-09-18" ||
 		!strings.HasPrefix(found.Acts[0].Sources[0].ArchivedCopy, "https://web.exemplo/api/v1/gazettes/") {
 		t.Fatalf("busca inesperada: %+v", found)
 	}
@@ -195,7 +195,7 @@ func TestMCPWithPerUserKey(t *testing.T) {
 			Acts     int `json:"atos"`
 		} `json:"fontes"`
 	}](t, session, "fontes", nil)
-	if len(sources.Sources) != 1 || sources.Sources[0].Gazettes != 1 || sources.Sources[0].Acts == 0 {
+	if len(sources.Sources) != 2 || sources.Sources[0].Gazettes != 1 || sources.Sources[0].Acts == 0 || sources.Sources[1].Gazettes != 0 {
 		t.Fatalf("fontes inesperadas: %+v", sources)
 	}
 
