@@ -3,6 +3,8 @@
 package integration
 
 import (
+	"io"
+	"net/http"
 	"strings"
 	"testing"
 )
@@ -56,5 +58,45 @@ func TestSearchExposesPageAndPDFHash(t *testing.T) {
 	if gazette.PDFSHA256 != strings.Repeat("e", 64) || len(gazette.Acts) != 3 ||
 		gazette.Acts[0].PageStart != nil || gazette.Acts[1].PageStart == nil || gazette.Acts[1].Organ != "SEMAD" {
 		t.Fatalf("edição inesperada: %+v", gazette)
+	}
+}
+
+func TestArchivedPDFIsServedWithCacheValidators(t *testing.T) {
+	srv, _ := newOrganServerWithDB(t)
+	var hits citableHits
+	getJSON(t, srv.URL+"/v1/acts", &hits)
+	url := srv.URL + "/v1/gazettes/" + hits.Items[0].GazetteID + "/pdf"
+
+	r, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(r.Body)
+	r.Body.Close()
+	etag := `"` + strings.Repeat("e", 64) + `"`
+	if r.StatusCode != http.StatusOK || string(body) != organGazette || r.Header.Get("Content-Type") != "application/pdf" ||
+		r.Header.Get("ETag") != etag || !strings.Contains(r.Header.Get("Content-Disposition"), `filename="diario-sg-2026-09-18-7.pdf"`) {
+		t.Fatalf("resposta inesperada: %d %v %q", r.StatusCode, r.Header, body)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, url, nil)
+	req.Header.Set("If-None-Match", etag)
+	r, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ = io.ReadAll(r.Body)
+	r.Body.Close()
+	if r.StatusCode != http.StatusNotModified || len(body) != 0 {
+		t.Fatalf("esperava 304 sem corpo, veio %d %q", r.StatusCode, body)
+	}
+
+	r, err = http.Get(srv.URL + "/v1/gazettes/00000000-0000-0000-0000-000000000000/pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Body.Close()
+	if r.StatusCode != http.StatusNotFound {
+		t.Fatalf("edição inexistente deve dar 404, veio %d", r.StatusCode)
 	}
 }

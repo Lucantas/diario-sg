@@ -17,6 +17,7 @@ type API struct {
 	Company       *usecase.GetCompany
 	Stats         *usecase.ActStats
 	Organs        *usecase.ListOrgans
+	PDF           *usecase.GetGazettePDF
 	Subscriptions *usecase.Subscriptions
 	Log           *slog.Logger
 }
@@ -28,6 +29,7 @@ func (a *API) Routes() http.Handler {
 	})
 	mux.HandleFunc("GET /v1/acts", a.searchActs)
 	mux.HandleFunc("GET /v1/gazettes/{id}", a.getGazette)
+	mux.HandleFunc("GET /v1/gazettes/{id}/pdf", a.gazettePDF)
 	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
 	mux.HandleFunc("GET /v1/stats/acts", a.actStats)
 	mux.HandleFunc("GET /v1/organs", a.listOrgans)

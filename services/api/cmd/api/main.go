@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
@@ -43,6 +44,7 @@ func run(l *slog.Logger) error {
 	}
 	gazettes := postgres.NewGazetteRepo(db)
 	acts := postgres.NewActRepo(db)
+	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
 
 	api := &httpapi.API{
 		Search:        usecase.NewSearchActs(acts),
@@ -50,6 +52,7 @@ func run(l *slog.Logger) error {
 		Company:       usecase.NewGetCompany(acts),
 		Stats:         usecase.NewActStats(acts),
 		Organs:        usecase.NewListOrgans(acts),
+		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), notifier),
 		Log:           l,
 	}

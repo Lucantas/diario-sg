@@ -63,6 +63,7 @@ func newOrganServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
 	}
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Gazette: usecase.NewGetGazette(gaz, acts),
 		Company: usecase.NewGetCompany(acts), Stats: usecase.NewActStats(acts), Organs: usecase.NewListOrgans(acts),
+		PDF: usecase.NewGetGazettePDF(gaz, stringStore(organGazette)),
 		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)

@@ -51,7 +51,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex {
+	if role == RoleReindex || role == RoleAPI {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role != RoleMigrate && role != RoleReindex && c.Notifier == "resend" {
