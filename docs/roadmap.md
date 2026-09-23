@@ -161,6 +161,21 @@ Pendências:
   pelo prefixo que aparece no log.
 - [ ] Não foi para a nuvem, pelo mesmo motivo da Entrega 1.
 
+## Etapa B do plano de fontes — base comum (entregue)
+
+`entities` e `entity_links` por cima de `act_entities`, com a certeza de
+cada ligação; `fetch_runs` gravado pelo evento `fetch.completed.v1`;
+convenção do arquivo bruto; ADRs 0004 (entidades), 0005 (coletas) e 0006
+(LGPD). A ferramenta `entidade` do MCP aceita processo e contrato. Desenho
+em `docs/superpowers/specs/2026-09-23-base-comum-design.md`.
+
+Pendências:
+
+- [ ] Na nuvem, o scraper passa a exigir `TOPIC_FETCH_COMPLETED`: aplicar
+  o Terraform (fila nova) antes de publicar a imagem nova do scraper.
+- [ ] Páginas de processo e contrato no site ficam para a Entrega 2, já
+  lendo de `entity_links`.
+
 ## Entrega 2 — Seguir o dinheiro dentro do Diário
 
 Ainda sem fonte externa.

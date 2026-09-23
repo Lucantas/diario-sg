@@ -177,7 +177,7 @@ fontes de cada uma e adiciona o MCP desde cedo.
 | Etapa | Conteúdo | Fontes |
 | --- | --- | --- |
 | **A. MCP mínimo** (entregue em 23/09/2026) | Servidor MCP sobre a API atual: `buscar_atos`, `ler_ato`, `entidade` (CNPJ), `fontes` | Diário |
-| **B. Base comum** (abre a Entrega 3) | ADR do modelo de entidades; `fetch_runs`, bruto no bucket, `entities`/`entity_links` migrando `act_entities`; ADR de LGPD | — |
+| **B. Base comum** (abre a Entrega 3; entregue em 23/09/2026) | ADR do modelo de entidades; `fetch_runs`, bruto no bucket, `entities`/`entity_links` por cima de `act_entities` (ADR 0004); ADR de LGPD | — |
 | **C. Diário da Câmara** | D.O.E. da Câmara no mesmo pipeline de PDF, com parser próprio; SICAM (proposições); agentes políticos e subsídios | Câmara |
 | **D. Quem é o fornecedor** (Entrega 3) | Receita e sanções da CGU; página e ferramenta `empresa` | Receita, CGU |
 | **E. Anunciado × pago** (Entrega 4) | Empenhos e dispensas do TCE-RJ (com CNPJ, até o mês corrente); portaltp 2017–2022 para liquidação e pagamento detalhados; mural de licitações; PNCP; SICONFI como total de controle; ferramenta `pagamentos` | TCE-RJ, Prefeitura, PNCP, Tesouro |

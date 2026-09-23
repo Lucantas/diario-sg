@@ -30,6 +30,8 @@ flowchart LR
   sched[Cloud Scheduler] -->|cron| scraper[Scraper<br/>Cloud Run Job]
   scraper -->|PDF| gcs[(Cloud Storage)]
   scraper -->|gazette.fetched.v1| q1{{Pub/Sub}}
+  scraper -->|fetch.completed.v1| q3{{Pub/Sub}}
+  q3 -->|push + OIDC| worker
   q1 -->|push + OIDC| worker[Worker<br/>Cloud Run privado]
   worker --> gcs
   worker --> db[(Neon Postgres<br/>full-text pt-BR)]
@@ -41,6 +43,7 @@ flowchart LR
   api --> db
   q1 -.falhas.-> dlq1[(DLQ)]
   q2 -.falhas.-> dlq2[(DLQ)]
+  q3 -.falhas.-> dlq3[(DLQ)]
 ```
 
 ## Estrutura do monorepo
@@ -157,11 +160,22 @@ claude mcp add --transport http diario-sg https://<site>/api/mcp \
 
 Ferramentas, todas só de leitura: `buscar_atos` (a busca do site,
 paginada, até 20 atos), `ler_ato` (texto completo e citação pronta),
-`entidade` (atos que citam um CNPJ) e `fontes` (período coberto e
+`entidade` (atos que citam um CNPJ, um processo ou um contrato, com a
+certeza da ligação) e `fontes` (período coberto, última coleta e
 lacunas). Todo ato vem com a edição, o link oficial na página do ato, a
 cópia arquivada e o SHA-256 do PDF. Limite de 60 chamadas por minuto por
 chave. Conectores que exigem OAuth (claude.ai, ChatGPT) ainda não
 funcionam. Localmente: `make run-api` e `http://localhost:8080/mcp`.
+
+## Entidades e coletas
+
+Cada CNPJ, processo e contrato citado num ato vira uma entidade
+(`entities`), ligada ao ato em `entity_links` com a certeza da ligação:
+`exata` para CNPJ, `forte` para processo e contrato com a sigla do órgão,
+`fraca` para contrato só com número e ano, que se repete entre órgãos. As
+fontes novas vão se ligar às mesmas entidades (ADR 0004). Cada execução do
+scraper publica `fetch.completed.v1`, e o worker grava a coleta em
+`fetch_runs` (ADR 0005). As regras de dado pessoal estão na ADR 0006.
 
 ## Dados abertos
 
