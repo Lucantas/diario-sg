@@ -1,10 +1,17 @@
 # Roadmap — de buscador do Diário a ferramenta de investigação
 
 Público: jornalistas, mandatos e ativistas que investigam a Prefeitura de São
-Gonçalo. Restrição de projeto: **nada depende de IA** (sem LLM, embeddings ou
-classificação estatística). Todo cruzamento é feito por chave determinística
+Gonçalo. Nos dados, **nada depende de IA** (sem LLM, embeddings ou
+classificação estatística): todo cruzamento é feito por chave determinística
 (CNPJ, nº de processo, nº de contrato, CPF parcial + nome) e todo alerta é uma
-regra escrita, que mostra a regra e os atos que a acionaram.
+regra escrita, que mostra a regra e os atos que a acionaram. Perguntas em
+linguagem natural ficam com a IA de cada usuário, pelo servidor MCP (ver
+`docs/plano-fontes-publicas.md`): nós servimos dados e provas, não texto
+gerado.
+
+O plano de fontes (`docs/plano-fontes-publicas.md`, com o levantamento em
+`docs/fontes/README.md`) detalha as fontes de cada entrega e adiciona o
+servidor MCP desde cedo.
 
 A ideia central: o Diário diz o que foi **anunciado**. A investigação nasce do
 cruzamento com o que foi **pago**, com **quem é dono** do fornecedor, com
