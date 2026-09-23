@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -24,13 +26,13 @@ func TestFilterSQLNumbersParametersFromNext(t *testing.T) {
 
 	where, args := filterSQL(f, 5)
 
-	want := " AND a.type = $5 AND a.organ = $6 AND g.published_at >= $7::date AND g.published_at <= $8::date" +
+	want := " AND a.type = $5 AND a.organ = ANY($6) AND g.published_at >= $7::date AND g.published_at <= $8::date" +
 		" AND EXISTS (SELECT 1 FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor'" +
 		" AND v.normalized::bigint >= $9 AND v.normalized::bigint <= $10)"
 	if where != want {
 		t.Errorf("veio\n%s\nesperava\n%s", where, want)
 	}
-	if !reflect.DeepEqual(args, []any{"contrato", "SEMED", "2024-01-01", "2024-12-31", int64(100), int64(900)}) {
+	if !reflect.DeepEqual(args, []any{"contrato", pq.StringArray{"SEMED"}, "2024-01-01", "2024-12-31", int64(100), int64(900)}) {
 		t.Errorf("argumentos inesperados: %v", args)
 	}
 }

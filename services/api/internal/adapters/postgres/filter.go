@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -19,7 +21,7 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 		b.WriteString(" AND a.type = " + param(string(f.Type)))
 	}
 	if f.Organ != "" {
-		b.WriteString(" AND a.organ = " + param(f.Organ))
+		b.WriteString(" AND a.organ = ANY(" + param(pq.StringArray(domain.OrganAcronyms(f.Organ))) + ")")
 	}
 	if !f.From.IsZero() {
 		b.WriteString(" AND g.published_at >= " + param(f.From.Format(time.DateOnly)) + "::date")

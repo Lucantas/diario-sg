@@ -33,3 +33,20 @@ func TestListOrgansSortsByActsThenAcronymAndNamesThem(t *testing.T) {
 		t.Errorf("esperava %+v, veio %+v", want, got)
 	}
 }
+
+func TestListOrgansAddsVariantsToThePrincipal(t *testing.T) {
+	uc := NewListOrgans(organCounts{counts: map[string]int{"FMS": 5, "FMSSG": 2, "SEMSAD": 1}})
+
+	got, err := uc.Execute(context.Background())
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []domain.OrganCount{
+		{Organ: domain.Organ{Acronym: "FMS", Name: domain.OrganName("FMS")}, Acts: 7},
+		{Organ: domain.Organ{Acronym: "SEMSADC", Name: domain.OrganName("SEMSADC")}, Acts: 1},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("esperava %+v, veio %+v", want, got)
+	}
+}
