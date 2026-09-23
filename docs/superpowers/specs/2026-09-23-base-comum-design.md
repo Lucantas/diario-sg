@@ -55,9 +55,11 @@ aceitar processo e contrato, além do CNPJ, lendo das ligações.
 - `fetch_runs (id uuid PK vindo do evento, source, requested_from date,
   requested_to date, found, stored, skipped, failed int, error text,
   started_at, finished_at timestamptz)` e índice `(source, finished_at DESC)`.
-- Preenchimento: a migration cria as entidades e as ligações do Diário a
-  partir de `act_entities` com a mesma regra de `domain.EntityKey` e
-  `domain.LinkCertainty`, em SQL.
+- Funções SQL: `entity_key(kind, normalized)`, `link_certainty(kind, key)`
+  e `link_diario_acts(gazette uuid)`, que cria entidades e ligações dos
+  atos de uma edição a partir de `act_entities`. A evidência é o menor
+  `value` entre os que dão a mesma chave no mesmo ato.
+- Preenchimento: a migration chama `link_diario_acts` para cada edição.
 
 ### Domínio
 
@@ -80,10 +82,8 @@ aceitar processo e contrato, além do CNPJ, lendo das ligações.
 ### Ligador
 
 - Em `GazetteRepo.SaveWithActs` e `ReplaceActs`, na mesma transação:
-  - apagar as ligações do Diário dos atos que saem;
-  - depois de gravar `act_entities`, gravar entidades (`ON CONFLICT DO
-    NOTHING`) e ligações dos atos novos, para CNPJ, processo e contrato;
-  - a evidência é o `value` extraído.
+  - apagar as ligações do Diário dos atos que saem, antes de apagá-los;
+  - depois de gravar `act_entities`, `SELECT link_diario_acts($1)`.
 
 ### Leitura
 
@@ -126,8 +126,10 @@ aceitar processo e contrato, além do CNPJ, lendo das ligações.
   quando há falha; erro ao publicar vira erro da execução.
 - Worker: evento válido grava; payload inválido é descartado com 2xx.
 - Integração (Postgres real):
-  - indexar uma edição cria entidades e ligações iguais às que a
-    migration criaria a partir de `act_entities`;
+  - indexar uma edição cria as entidades e ligações esperadas;
+  - `entity_key` e `link_certainty` em SQL dão o mesmo que o domínio em
+    Go, nos casos do teste de domínio e em todas as linhas de
+    `act_entities` da base de teste;
   - reindexar troca as ligações sem deixar órfãs;
   - `ReportByKey` para processo e contrato (com certeza `fraca`);
   - `fetch_runs` idempotente;

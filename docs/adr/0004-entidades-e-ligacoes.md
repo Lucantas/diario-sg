@@ -19,7 +19,13 @@ alimenta busca, filtros, dump público e a página do CNPJ.
     a página do CNPJ não mudam.
 - **Valor não é entidade:** é atributo do registro, não chave de
   cruzamento. Continua em `act_entities`.
-- **Chave normalizada no domínio** (`domain.EntityKey`):
+- **A regra vive no banco**, em funções SQL criadas pela migration 008:
+  `entity_key`, `link_certainty` e `link_diario_acts` (liga os atos de uma
+  edição). O ligador da indexação e o preenchimento inicial chamam a mesma
+  função. O domínio em Go espelha a regra (`domain.EntityKey`,
+  `domain.LinkCertainty`) só para validar o que a pessoa digita, e um
+  teste de integração confere que Go e SQL concordam.
+- **Chave normalizada:**
   - CNPJ só com dígitos;
   - processo só com dígitos (como o extrator já faz);
   - contrato sem espaços, em maiúsculas e sem zeros à esquerda no número
@@ -44,9 +50,8 @@ alimenta busca, filtros, dump público e a página do CNPJ.
 ## Consequências
 - Duas tabelas com informação parecida para o Diário: a extração e a
   ligação. A migration 008 preenche `entity_links` a partir de
-  `act_entities` com a mesma regra do domínio, e um teste de integração
-  confere que as duas dão o mesmo resultado.
+  `act_entities` chamando `link_diario_acts` para cada edição.
 - Fonte nova grava só nas suas tabelas e em `entity_links`, sem tocar no
   Diário.
-- Mudar a regra de chave ou de certeza exige migration que refaça as
-  ligações.
+- Mudar a regra de chave ou de certeza exige migration que troque as
+  funções e refaça as ligações, e o espelho em Go muda junto.
