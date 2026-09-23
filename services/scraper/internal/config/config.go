@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -42,6 +43,9 @@ func Load() (Config, error) {
 		return c, fmt.Errorf("SOURCE desconhecida: %q", c.Source)
 	}
 	c.SourceURL = getenv("SOURCE_URL", defaultURLs[c.Source])
+	if err := checkSourceURL(c.Source, c.SourceURL); err != nil {
+		return c, err
+	}
 	var missing []string
 	for k, v := range map[string]string{"GCP_PROJECT_ID": c.ProjectID, "GAZETTE_BUCKET": c.Bucket, "TOPIC_GAZETTE_FETCHED": c.TopicFetched, "TOPIC_FETCH_COMPLETED": c.TopicRuns} {
 		if v == "" {
@@ -58,6 +62,20 @@ func Load() (Config, error) {
 var defaultURLs = map[string]string{
 	domain.SourceDiarioPrefeitura: "https://do.pmsg.rj.gov.br/",
 	domain.SourceDiarioCamara:     "https://www.cmsg.rj.gov.br/diariooficialeletronico/",
+}
+
+func checkSourceURL(source, raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("SOURCE_URL inválida: %q", raw)
+	}
+	for other, def := range defaultURLs {
+		d, _ := url.Parse(def)
+		if other != source && strings.EqualFold(u.Host, d.Host) {
+			return fmt.Errorf("SOURCE_URL %q é de %s, mas SOURCE é %s", raw, other, source)
+		}
+	}
+	return nil
 }
 
 func getenv(k, def string) string {

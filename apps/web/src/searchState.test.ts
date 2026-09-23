@@ -23,7 +23,7 @@ describe("parseBRL", () => {
 describe("URL da busca", () => {
   it("vai e volta sem perder filtros", () => {
     const s: SearchState = {
-      q: "limpeza OU coleta", source: "diario_camara", type: "contrato", organ: "SEMED", from: "2024-01-01",
+      q: "limpeza OU coleta", source: "diario_prefeitura", type: "contrato", organ: "SEMED", from: "2024-01-01",
       to: "2024-12-31", min: "1.000,00", max: "", page: 3,
     };
 
@@ -37,6 +37,7 @@ describe("URL da busca", () => {
 
   it("ignora página inválida, tipo e diário desconhecidos", () => {
     expect(stateFromQuery("?pagina=-2&tipo=bobagem&fonte=tce")).toEqual(EMPTY_STATE);
+    expect(stateFromQuery("?tipo=toString&fonte=constructor")).toEqual(EMPTY_STATE);
     expect(stateFromQuery("?pagina=2.5").page).toBe(1);
   });
 });
@@ -102,6 +103,12 @@ describe("feedUrl", () => {
 
   it("não monta link com valor inválido", () => {
     expect(feedUrl({ ...EMPTY_STATE, max: "x" })).toBeNull();
+  });
+});
+
+describe("link com Câmara e órgão", () => {
+  it("descarta o órgão, que só vale para a Prefeitura", () => {
+    expect(stateFromQuery("?fonte=diario_camara&orgao=SEMED")).toEqual({ ...EMPTY_STATE, source: "diario_camara" });
   });
 });
 

@@ -104,3 +104,29 @@ func TestSetChoosesTheParserBySource(t *testing.T) {
 		t.Errorf("fonte vazia deveria ser a Prefeitura: %q", got)
 	}
 }
+
+func TestCamaraSigningLineAtTheTopOfAPageIsKept(t *testing.T) {
+	text := camaraHeader + "PORTARIA Nº 156/2025\nEXONERAR o servidor do gabinete da presidência.\nPágina 1 de 2\n\f" +
+		camaraHeader + "São Gonçalo, 30 de outubro de 2025.\nPIERO CABRAL\n"
+
+	acts := ForSource(domain.SourceDiarioCamara).Parse(text)
+
+	if len(acts) != 1 || !strings.Contains(acts[0].Body, "São Gonçalo, 30 de outubro de 2025.\nPIERO CABRAL") {
+		t.Fatalf("a assinatura no topo da página sumiu: %+v", acts)
+	}
+}
+
+func TestCamaraActsHaveNoOrgan(t *testing.T) {
+	body := "PORTARIA Nº 1/2025\nNOMEAR o servidor para a comissão.\nSEMAD\nPORTARIA Nº 10/2026\nNomeia servidor para a função.\n"
+	if got := organs(body); !strings.Contains(got, "=SEMAD") {
+		t.Fatalf("o texto deveria ter órgão para a Prefeitura: %s", got)
+	}
+
+	acts := ForSource(domain.SourceDiarioCamara).Parse(camaraHeader + body)
+
+	for _, a := range acts {
+		if a.Organ != "" {
+			t.Errorf("ato da Câmara com órgão %q: %s", a.Organ, a.Title)
+		}
+	}
+}

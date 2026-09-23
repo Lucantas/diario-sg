@@ -45,18 +45,37 @@ func (r Regex) stripSourceNoise(lines []line) []line {
 		return lines
 	}
 	out := make([]line, 0, len(lines))
-	headerPage := 0
+	headerPage, bodyPage := 0, 0
+	var seen map[int]bool
 	for _, l := range lines {
-		if l.page != headerPage && (l.text == "" || r.pageHeader.MatchString(l.text)) {
-			continue
+		if l.page != headerPage {
+			headerPage, seen = l.page, map[int]bool{}
 		}
-		headerPage = l.page
+		if l.page != bodyPage {
+			if l.text == "" {
+				continue
+			}
+			if k := r.headerKind(l.text); k >= 0 && !seen[k] {
+				seen[k] = true
+				continue
+			}
+			bodyPage = l.page
+		}
 		if r.lineNoise.MatchString(l.text) {
 			continue
 		}
 		out = append(out, l)
 	}
 	return out
+}
+
+func (r Regex) headerKind(text string) int {
+	for i, re := range r.pageHeader {
+		if re.MatchString(text) {
+			return i
+		}
+	}
+	return -1
 }
 
 func stripPageNoise(lines []line) []line {

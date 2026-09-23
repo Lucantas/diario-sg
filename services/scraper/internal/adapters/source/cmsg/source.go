@@ -17,10 +17,11 @@ const (
 )
 
 type Source struct {
-	baseURL *url.URL
-	http    *http.Client
-	delay   time.Duration
-	last    time.Time
+	baseURL    *url.URL
+	http       *http.Client
+	delay      time.Duration
+	retryWaits []time.Duration
+	last       time.Time
 }
 
 func New(baseURL string) (*Source, error) {
@@ -30,7 +31,8 @@ func New(baseURL string) (*Source, error) {
 	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.ResponseHeaderTimeout = 30 * time.Second
-	return &Source{baseURL: u, http: &http.Client{Timeout: 120 * time.Second, Transport: transport}, delay: 2 * time.Second}, nil
+	return &Source{baseURL: u, http: &http.Client{Timeout: 120 * time.Second, Transport: transport}, delay: 2 * time.Second,
+		retryWaits: []time.Duration{10 * time.Second, 30 * time.Second}}, nil
 }
 
 func (s *Source) Name() string { return domain.SourceDiarioCamara }
@@ -43,15 +45,31 @@ func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain
 	var out []domain.Edition
 	for day := dayStart(from); !day.After(dayStart(to)); day = day.AddDate(0, 0, 1) {
 		e := domain.Edition{Source: domain.SourceDiarioCamara, PublishedAt: day, URL: s.editionURL(day)}
-		found, err := s.exists(ctx, e.URL)
-		if err != nil {
-			return nil, err
+		found, err := s.existsWithRetry(ctx, e.URL)
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
 		}
-		if found {
+		if found || err != nil {
 			out = append(out, e)
 		}
 	}
 	return out, nil
+}
+
+func (s *Source) existsWithRetry(ctx context.Context, target string) (bool, error) {
+	found, err := s.exists(ctx, target)
+	for _, wait := range s.retryWaits {
+		if err == nil || ctx.Err() != nil {
+			break
+		}
+		select {
+		case <-time.After(wait):
+		case <-ctx.Done():
+			return false, ctx.Err()
+		}
+		found, err = s.exists(ctx, target)
+	}
+	return found, err
 }
 
 func (s *Source) exists(ctx context.Context, target string) (bool, error) {

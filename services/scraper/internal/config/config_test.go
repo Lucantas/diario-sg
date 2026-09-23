@@ -42,3 +42,13 @@ func TestLoadRejectsUnknownSource(t *testing.T) {
 		t.Fatal("fonte desconhecida deveria dar erro")
 	}
 }
+
+func TestLoadRejectsTheURLOfTheOtherSource(t *testing.T) {
+	setRequired(t)
+	t.Setenv("SOURCE", "diario_camara")
+	t.Setenv("SOURCE_URL", "https://do.pmsg.rj.gov.br/")
+
+	if _, err := Load(); err == nil {
+		t.Fatal("a Câmara com a URL da Prefeitura deveria dar erro")
+	}
+}
