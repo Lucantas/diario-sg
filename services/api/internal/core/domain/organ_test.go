@@ -36,6 +36,29 @@ func TestOrganCatalogIsWellFormed(t *testing.T) {
 	}
 }
 
+func TestOrganNameSpellsOutTheAcronym(t *testing.T) {
+	cases := map[string]string{
+		"SEMED": "Secretaria Municipal de Educação",
+		"SEMAS": "Secretaria Municipal de Assistência Social",
+		"SMC":   "",
+		"TOTAL": "",
+	}
+	for acronym, want := range cases {
+		if got := OrganName(acronym); got != want {
+			t.Errorf("OrganName(%q) = %q; esperava %q", acronym, got, want)
+		}
+	}
+	named := 0
+	for _, name := range organNames {
+		if name != "" {
+			named++
+		}
+	}
+	if named != 119 {
+		t.Fatalf("esperava 119 siglas com nome (ver docs/orgaos.md), veio %d", named)
+	}
+}
+
 func TestFilterNormalizesAndValidatesOrgan(t *testing.T) {
 	f := ActFilter{Organ: "semed"}
 	if err := f.Normalize(); err != nil || f.Organ != "SEMED" {

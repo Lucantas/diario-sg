@@ -128,7 +128,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&group=month` | Contagem de atos por mês |
-| GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido) com a contagem de atos |
+| GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/subscriptions` | `{"email","query"}` → envia e-mail de confirmação |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |
