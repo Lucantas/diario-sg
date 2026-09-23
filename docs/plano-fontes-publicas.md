@@ -36,8 +36,8 @@ Duas portas para as mesmas respostas:
 5. **Determinístico por baixo.** Padrões para verificar são regras escritas
    com teste. A IA do usuário interpreta; nossos números não dependem dela.
 6. **LGPD.** Agentes políticos e secretários têm página. Servidor aparece
-   no ato em que é citado, sem perfil. Folha só em agregado por cargo e
-   órgão, exceto agentes políticos. Sócio de empresa só dentro da página da
+   no ato em que é citado, sem perfil. Folha com nome só de agentes
+   políticos; dos demais, só agregados por órgão e cargo. Sócio de empresa só dentro da página da
    empresa.
 
 ## Arquitetura
@@ -226,12 +226,10 @@ quase todo o pipeline existente.
    de LGPD valem para todos.
 2. **Ordem: Câmara (C) antes da Receita (D)** (decidido em 23/09/2026).
 
-## Decisão em aberto
-
-- **Até onde vai a folha de pagamento com nome.** A proposta é mostrar a
-  remuneração com nome só de agentes políticos (prefeito, vice,
-  secretários, vereadores) e, para os demais servidores, só agregados por
-  órgão e cargo. Os portais da Prefeitura e da Câmara publicam a folha
-  nominal de todos (a lei obriga), mas reunir essa folha com o Diário, a
-  Receita e o TSE num só lugar facilita montar perfil de pessoas, que é o
-  que a LGPD pede para evitar.
+3. **Folha com nome só de agentes políticos** (decidido em 23/09/2026).
+   Prefeito, vice, secretários e vereadores aparecem com nome e
+   remuneração, mês a mês. Os demais servidores entram só em agregados por
+   órgão e cargo (quantidade e total pago). Os portais oficiais publicam a
+   folha nominal de todos, mas reunir essa folha com o Diário, a Receita e o
+   TSE num só lugar facilitaria montar perfil de pessoas, o que a LGPD pede
+   para evitar.
