@@ -6,9 +6,11 @@ PUBSUB=http://localhost:8085
 GCS=http://localhost:4443
 WORKER=http://host.docker.internal:8081
 
-echo "Bucket..."
-curl -fsS -X POST "$GCS/storage/v1/b?project=$PROJECT" \
-  -H 'Content-Type: application/json' -d '{"name":"diario-gazettes"}' >/dev/null || true
+for bucket in diario-gazettes diario-dumps; do
+  echo "Bucket $bucket..."
+  curl -fsS -X POST "$GCS/storage/v1/b?project=$PROJECT" \
+    -H 'Content-Type: application/json' -d "{\"name\":\"$bucket\"}" >/dev/null || true
+done
 
 for topic in gazette-fetched gazette-indexed; do
   echo "Tópico $topic..."
