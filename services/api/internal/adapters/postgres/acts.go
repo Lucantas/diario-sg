@@ -17,20 +17,32 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 	where, extra := filterSQL(f, 5)
 	args := append([]any{f.Query, f.Limit, f.Offset, likePattern(f.Query)}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
+		WITH matched AS MATERIALIZED (
+			SELECT a.id, ($1 <> '' AND `+exactPhraseExpr("$4")+`) AS exact,
+			       CASE WHEN $1 = '' THEN 0 ELSE ts_rank(a.search, q) END AS ts,
+			       g.published_at, g.source_url, a.position
+			FROM acts a
+			JOIN gazettes g ON g.id = a.gazette_id
+			CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
+			WHERE ($1 = '' OR `+matchFor("$1", "$4")+`)`+where+`
+		), page AS (
+			SELECT id, exact, CASE WHEN exact THEN 0 ELSE ts END AS rank, published_at, source_url, position, count(*) OVER () AS total
+			FROM matched
+			`+matchedOrderSQL(f)+`
+			LIMIT $2 OFFSET $3
+		)
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
 		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum,
 		       CASE WHEN $1 = '' THEN left(a.body, 280)
 		            ELSE ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`') END,
 		       `+cnpjsSubquery+`,
 		       `+valuesSubquery+`,
-		       count(*) OVER ()
-		FROM acts a
+		       p.total
+		FROM page p
+		JOIN acts a ON a.id = p.id
 		JOIN gazettes g ON g.id = a.gazette_id
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
-		`+exactPhraseFor("$4")+`
-		WHERE ($1 = '' OR `+matchFor("$1", "$4")+`)`+where+`
-		`+orderSQL(f)+`
-		LIMIT $2 OFFSET $3`, args...)
+		`+pageOrderSQL(f), args...)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -127,14 +127,14 @@ Pendências que ficaram desta entrega:
   environment `dev` do GitHub não tem as variáveis, e os workflows de
   infra e deploy falham na autenticação, antes do `terraform plan`. Foi
   validado só com `terraform validate` e `fmt`.
-- [ ] Busca textual ampla é lenta: `contrato` leva ~7 s e `prefeitura`
-  ~5,5 s na base local (153.750 atos), tanto no `main` quanto depois desta
-  entrega. Medido em 23/09/2026: a conferência com `ILIKE` responde por
-  ~0,9 s; `ts_headline` e as subconsultas de CNPJ e valores não mudam o
-  tempo; uma versão enxuta da mesma consulta (menos colunas, sem os testes
-  de parâmetro vazio) roda em 2,7 s, com outro plano. O suspeito é o plano
-  escolhido com o `count(*) OVER ()`, que monta as ~16 mil linhas
-  encontradas antes de ordenar. Vale atacar antes da Entrega 2.
+- [x] Busca textual ampla lenta (resolvido em 23/09/2026): a busca seleciona
+  primeiro só ids e chaves de ordem, numa CTE materializada, e busca o
+  texto, o destaque e as entidades só dos atos da página. Na base local:
+  `contrato` de 3,9 s para 1,2 s, `prefeitura` de 3,1 s para 1,9 s, busca
+  vazia de 2,4 s para 0,2 s, com os mesmos resultados. Termos que aparecem
+  em atos muito grandes (`prefeitura`, `merenda OU alimentação`) ainda
+  levam ~2 s: o custo que sobra é comparar o texto sem acento de cada ato
+  encontrado.
 - [ ] Atualizar o Vite (5 → 8) e o Vitest (3 → 4.1.11 ou mais): o
   `npm audit` aponta um alerta alto no Vite que já existia e um moderado no
   mocker do Vitest, que só usamos em teste. Ambos pedem troca de versão
