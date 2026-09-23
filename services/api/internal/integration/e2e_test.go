@@ -89,7 +89,7 @@ func TestEndToEnd(t *testing.T) {
 	box := &inbox{}
 	notifier := email.NewNotifier(box, "https://web.exemplo")
 
-	idx := usecase.NewIndexGazette(gaz, textStore{}, passthroughExtractor{}, parser.New(), entities.New(), pub)
+	idx := usecase.NewIndexGazette(gaz, textStore{}, passthroughExtractor{}, parser.Set{}, entities.New(), pub)
 	in := usecase.IndexGazetteInput{EditionNumber: "1", PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
 		SourceURL: "https://exemplo/1.pdf", StoragePath: "1.pdf", Checksum: strings.Repeat("b", 64)}
 	for i := 0; i < 2; i++ {

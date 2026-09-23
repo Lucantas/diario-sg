@@ -20,12 +20,12 @@ type ReindexGazettes struct {
 	gazettes  ports.GazetteRepository
 	storage   ports.FileStorage
 	extractor ports.TextExtractor
-	parser    ports.ActParser
+	parsers   ports.ActParsers
 	entities  ports.EntityExtractor
 }
 
-func NewReindexGazettes(g ports.GazetteRepository, s ports.FileStorage, e ports.TextExtractor, p ports.ActParser, x ports.EntityExtractor) *ReindexGazettes {
-	return &ReindexGazettes{gazettes: g, storage: s, extractor: e, parser: p, entities: x}
+func NewReindexGazettes(g ports.GazetteRepository, s ports.FileStorage, e ports.TextExtractor, p ports.ActParsers, x ports.EntityExtractor) *ReindexGazettes {
+	return &ReindexGazettes{gazettes: g, storage: s, extractor: e, parsers: p, entities: x}
 }
 
 func (uc *ReindexGazettes) Execute(ctx context.Context, from, to time.Time) (ReindexResult, error) {
@@ -62,9 +62,10 @@ func (uc *ReindexGazettes) reindexOne(ctx context.Context, g domain.Gazette) err
 	if err != nil {
 		return fmt.Errorf("extrair texto: %w", err)
 	}
-	number := uc.parser.EditionNumber(text)
+	parser := uc.parsers.For(domain.SourceOrDefault(g.Source))
+	number := parser.EditionNumber(text)
 	if number == "" {
 		number = g.EditionNumber
 	}
-	return uc.gazettes.ReplaceActs(ctx, g.ID, number, parseActs(uc.parser, uc.entities, text))
+	return uc.gazettes.ReplaceActs(ctx, g.ID, number, parseActs(parser, uc.entities, text))
 }

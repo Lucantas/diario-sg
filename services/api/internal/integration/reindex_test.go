@@ -35,7 +35,7 @@ func TestReindexReplacesActsWithoutPublishing(t *testing.T) {
 	published := time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC)
 	in := usecase.IndexGazetteInput{EditionNumber: "1", PublishedAt: published,
 		SourceURL: "https://exemplo/1.pdf", StoragePath: "1.pdf", Checksum: strings.Repeat("d", 64)}
-	if err := usecase.NewIndexGazette(gaz, textStore{}, passthroughExtractor{}, parser.New(), entities.New(), pub).Execute(ctx, in); err != nil {
+	if err := usecase.NewIndexGazette(gaz, textStore{}, passthroughExtractor{}, parser.Set{}, entities.New(), pub).Execute(ctx, in); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := db.ExecContext(ctx, `UPDATE acts SET page_start = NULL, page_end = NULL, organ = 'VELHO'`); err != nil {
@@ -46,7 +46,7 @@ func TestReindexReplacesActsWithoutPublishing(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := usecase.NewReindexGazettes(gaz, textStore{}, passthroughExtractor{}, parser.New(), entities.New()).
+	res, err := usecase.NewReindexGazettes(gaz, textStore{}, passthroughExtractor{}, parser.Set{}, entities.New()).
 		Execute(ctx, published, published)
 
 	if err != nil || res != (usecase.ReindexResult{Found: 1, Reindexed: 1}) {

@@ -49,6 +49,9 @@ func classify(title, body string) domain.ActType {
 		if strings.Contains(t, "PRESTAÇÃO DE CONTAS") {
 			return domain.ActPrestacaoContas
 		}
+		if containsAny(t, "HOMOLOGAÇÃO", "ADJUDICAÇÃO") {
+			return domain.ActLicitacao
+		}
 		if strings.Contains(t, "APREENSÃO") {
 			return domain.ActOutro
 		}

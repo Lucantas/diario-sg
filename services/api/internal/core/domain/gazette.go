@@ -4,6 +4,7 @@ import "time"
 
 type Gazette struct {
 	ID            string
+	Source        string
 	EditionNumber string
 	PublishedAt   time.Time
 	IsExtra       bool

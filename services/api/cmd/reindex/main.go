@@ -45,7 +45,7 @@ func main() {
 	defer db.Close()
 
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
-	uc := usecase.NewReindexGazettes(postgres.NewGazetteRepo(db), storage, pdf.New(), parser.New(), entities.New())
+	uc := usecase.NewReindexGazettes(postgres.NewGazetteRepo(db), storage, pdf.New(), parser.Set{}, entities.New())
 	start := time.Now()
 	res, err := uc.Execute(ctx, from, to)
 	log.Info("reindexação finalizada", "result", res, "duration_ms", time.Since(start).Milliseconds())

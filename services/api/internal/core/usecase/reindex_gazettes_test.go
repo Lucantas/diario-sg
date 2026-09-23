@@ -41,7 +41,7 @@ func TestReindexGazettes_ReplacesActsInThePeriodWithoutPublishing(t *testing.T) 
 	seed(repo, "b", day(11), "", domain.Act{Title: "antigo"})
 	seed(repo, "fora", day(20), "9", domain.Act{Title: "antigo"})
 	storage := pathStorage{"a.pdf": "PORTARIA 1\nDECRETO 2 CNPJ", "b.pdf": "EDIÇÃO 1771\nPORTARIA 3", "fora.pdf": "X"}
-	uc := NewReindexGazettes(repo, storage, echoExtractor{}, lineParser{}, cnpjExtractor{})
+	uc := NewReindexGazettes(repo, storage, echoExtractor{}, lineParsers{}, cnpjExtractor{})
 
 	res, err := uc.Execute(context.Background(), day(10), day(11))
 
@@ -67,7 +67,7 @@ func TestReindexGazettes_FailureKeepsOldActsAndContinues(t *testing.T) {
 	repo := newMemGazettes()
 	seed(repo, "sem-pdf", day(10), "1", domain.Act{Title: "antigo"})
 	seed(repo, "ok", day(11), "2", domain.Act{Title: "antigo"})
-	uc := NewReindexGazettes(repo, pathStorage{"ok.pdf": "PORTARIA 1"}, echoExtractor{}, lineParser{}, cnpjExtractor{})
+	uc := NewReindexGazettes(repo, pathStorage{"ok.pdf": "PORTARIA 1"}, echoExtractor{}, lineParsers{}, cnpjExtractor{})
 
 	res, err := uc.Execute(context.Background(), day(10), day(11))
 
@@ -87,7 +87,7 @@ func TestReindexGazettes_StopsWhenContextIsCancelled(t *testing.T) {
 	seed(repo, "a", day(10), "1", domain.Act{Title: "antigo"})
 	seed(repo, "b", day(11), "2", domain.Act{Title: "antigo"})
 	storage := pathStorage{"a.pdf": "PORTARIA 1", "b.pdf": "PORTARIA 2"}
-	uc := NewReindexGazettes(repo, storage, echoExtractor{}, lineParser{}, cnpjExtractor{})
+	uc := NewReindexGazettes(repo, storage, echoExtractor{}, lineParsers{}, cnpjExtractor{})
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
@@ -105,11 +105,28 @@ func TestReindexGazettes_StopsWhenContextIsCancelled(t *testing.T) {
 }
 
 func TestReindexGazettes_RejectsInvertedPeriod(t *testing.T) {
-	uc := NewReindexGazettes(newMemGazettes(), pathStorage{}, echoExtractor{}, lineParser{}, cnpjExtractor{})
+	uc := NewReindexGazettes(newMemGazettes(), pathStorage{}, echoExtractor{}, lineParsers{}, cnpjExtractor{})
 
 	_, err := uc.Execute(context.Background(), day(11), day(10))
 
 	if !errors.Is(err, domain.ErrInvalidInput) {
 		t.Fatalf("esperava ErrInvalidInput, veio %v", err)
+	}
+}
+
+func TestReindexGazettes_UsesTheParserOfTheGazetteSource(t *testing.T) {
+	repo := newMemGazettes()
+	seed(repo, "c", day(10), "7")
+	g := repo.saved["c"]
+	g.Source = domain.SourceDiarioCamara
+	repo.saved["c"] = g
+	uc := NewReindexGazettes(repo, pathStorage{"c.pdf": "PORTARIA 1"}, echoExtractor{}, lineParsers{}, cnpjExtractor{})
+
+	if _, err := uc.Execute(context.Background(), day(10), day(10)); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := repo.acts["c"]; len(got) != 1 || got[0].Title != "câmara: PORTARIA 1" {
+		t.Errorf("deveria usar o parser da Câmara: %+v", got)
 	}
 }
