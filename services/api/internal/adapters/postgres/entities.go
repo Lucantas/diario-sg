@@ -15,7 +15,7 @@ const (
 func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, normalized string) (domain.CompanyReport, error) {
 	report := domain.CompanyReport{CNPJ: normalized, CountByType: map[domain.ActType]int{}}
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at, g.is_extra, g.source_url,
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, g.edition_number, g.published_at, g.is_extra, g.source_url,
 		       substr(a.body, greatest(position(e.value IN a.body) - $3, 1), 2 * $3 + length(e.value)), e.value
 		FROM act_entities e
 		JOIN acts a ON a.id = e.act_id
@@ -30,7 +30,7 @@ func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, no
 	for rows.Next() {
 		var h domain.ActHit
 		var typ, value string
-		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Snippet, &value); err != nil {
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Snippet, &value); err != nil {
 			return report, err
 		}
 		h.Type = domain.ActType(typ)
@@ -80,7 +80,8 @@ func (r *ActRepo) CountByMonth(ctx context.Context, f domain.ActFilter) ([]domai
 		  AND ($2 = '' OR a.type = $2)
 		  AND ($3::date IS NULL OR g.published_at >= $3::date)
 		  AND ($4::date IS NULL OR g.published_at <= $4::date)
-		GROUP BY 1 ORDER BY 1`, f.Query, string(f.Type), nullableDate(f.From), nullableDate(f.To), likePattern(f.Query))
+		  AND ($6 = '' OR a.organ = $6)
+		GROUP BY 1 ORDER BY 1`, f.Query, string(f.Type), nullableDate(f.From), nullableDate(f.To), likePattern(f.Query), f.Organ)
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ func NewActRepo(db *sql.DB) *ActRepo { return &ActRepo{db: db} }
 
 func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActHit, int, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.gazette_id, a.type, a.title, a.position, g.edition_number, g.published_at, g.is_extra, g.source_url,
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, g.edition_number, g.published_at, g.is_extra, g.source_url,
 		       CASE WHEN $1 = '' THEN left(a.body, 280)
 		            ELSE ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`') END,
 		       `+cnpjsSubquery+`,
@@ -28,11 +28,12 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		  AND ($2 = '' OR a.type = $2)
 		  AND ($3::date IS NULL OR g.published_at >= $3::date)
 		  AND ($4::date IS NULL OR g.published_at <= $4::date)
+		  AND ($8 = '' OR a.organ = $8)
 		ORDER BY x.exact DESC,
 		         CASE WHEN $1 = '' OR x.exact THEN 0 ELSE ts_rank(a.search, q) END DESC,
 		         g.published_at DESC, a.position
 		LIMIT $5 OFFSET $6`,
-		f.Query, string(f.Type), nullableDate(f.From), nullableDate(f.To), f.Limit, f.Offset, likePattern(f.Query))
+		f.Query, string(f.Type), nullableDate(f.From), nullableDate(f.To), f.Limit, f.Offset, likePattern(f.Query), f.Organ)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -45,7 +46,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 	for rows.Next() {
 		var h domain.ActHit
 		var typ string
-		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Snippet, pq.Array(&h.CNPJs), &total); err != nil {
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Snippet, pq.Array(&h.CNPJs), &total); err != nil {
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)

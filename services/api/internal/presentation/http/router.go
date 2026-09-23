@@ -109,7 +109,7 @@ func (a *API) actStats(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.ActFilter, bool) {
 	q := r.URL.Query()
-	f := domain.ActFilter{Query: q.Get("q"), Type: domain.ActType(q.Get("type"))}
+	f := domain.ActFilter{Query: q.Get("q"), Type: domain.ActType(q.Get("type")), Organ: q.Get("organ")}
 	f.Limit, _ = strconv.Atoi(q.Get("limit"))
 	f.Offset, _ = strconv.Atoi(q.Get("offset"))
 	var err error
