@@ -32,7 +32,7 @@ func TestStripMarks(t *testing.T) {
 func TestFeedItem(t *testing.T) {
 	h := domain.ActHit{Act: domain.Act{GazetteID: "g1", Type: domain.ActContrato, Title: "EXTRATO", Position: 7,
 		PageStart: 3, Organ: "FMS"}, PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
-		EditionNumber: "1771", Snippet: "valor ⟦global⟧"}
+		EditionNumber: "1771", Snippet: "valor\n⟦global⟧"}
 
 	it := feedItem("https://site", h)
 
