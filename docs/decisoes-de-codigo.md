@@ -183,6 +183,25 @@ decisões de arquitetura, em `adr/`.
 - Citação ABNT reescrita em Go com o mesmo teste do front: as duas precisam
   continuar iguais.
 
+## Entidades e ligações
+
+As regras estão nas ADRs 0004 a 0006. Aqui fica o que o código não
+explica sozinho.
+
+- A regra de chave e certeza fica em funções SQL (`entity_key`,
+  `link_certainty`, `link_diario_acts`), para a indexação e o
+  preenchimento da migration 008 usarem a mesma. O domínio em Go espelha a
+  regra só para validar a entrada, e
+  `TestSQLLinkRuleMatchesTheDomain` confere que as duas concordam.
+- Na reindexação, as ligações dos atos antigos saem antes dos atos, na
+  mesma transação: `entity_links` não tem chave estrangeira para `acts`,
+  porque o registro pode ser de qualquer fonte.
+- Entidade sem nenhuma menção volta com zero atos, não como erro: "não
+  aparece no Diário" é uma resposta.
+- Na base local, a migration 008 criou 85.003 ligações, uma por ato e
+  chave de `act_entities`. Os zeros à esquerda juntaram 1.783 números de
+  contrato em 1.508 entidades.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo
