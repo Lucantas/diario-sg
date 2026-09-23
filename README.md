@@ -112,6 +112,8 @@ make run-scraper LOOKBACK_DAYS=7   # outra janela: passe como variável do make,
                                    # não do shell (o .env incluído tem precedência)
 make reindex FROM=2020-01-01 TO=2026-12-31   # reprocessa edições já indexadas com o parser atual (não dispara alertas)
 make dump DUMPS_BUCKET=diario-dumps          # publica o dump da base no emulador (página em /dados)
+make reports                                 # reportes de erro abertos (STATUS=resolvido|descartado para os fechados)
+make close-report ID=<id> AS=resolvido       # fecha um reporte (ou AS=descartado)
 ```
 
 Testes: `make test` (unitários) e `make test-integration` (Postgres real, num banco
@@ -125,7 +127,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256` e `values_cents` |
+| GET | `/v1/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&limit=&offset=` | Busca textual; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents` e `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`) |
 | GET | `/v1/acts/export?format=csv\|json&<filtros da busca>` | Até 10.000 atos da busca com texto completo. CSV para Excel pt-BR (`;`, BOM, decimal com vírgula); `X-Total-Count` e `X-Export-Truncated` nos cabeçalhos |
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
@@ -133,6 +135,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
+| POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
 | POST | `/v1/subscriptions` | `{"email","query"}` → envia e-mail de confirmação |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |
