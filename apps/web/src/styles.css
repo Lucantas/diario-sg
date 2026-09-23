@@ -148,3 +148,23 @@ a.cnpj { text-decoration-style: dotted; text-underline-offset: 0.15em; }
 .cite { margin-top: 0.6rem; padding: 0.75rem 0.9rem; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
 .cite p { margin: 0 0 0.6rem; font-size: 0.875rem; overflow-wrap: anywhere; user-select: all; }
 .cite button { font-size: 0.875rem; padding: 0.35rem 0.8rem; }
+
+.more-filters { margin: -1rem 0 2rem; }
+.more-filters summary { cursor: pointer; color: var(--slate); font-size: 0.9rem; }
+.more-filters form { margin-top: 0.9rem; }
+.filter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem 1rem; }
+.filter-grid label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.85rem; color: var(--slate); }
+.filter-grid input {
+  font: 400 0.95rem var(--sans); padding: 0.45rem 0.6rem; color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 6px; background: #fff;
+}
+.filter-actions { display: flex; gap: 0.5rem; margin-top: 0.9rem; }
+.filter-actions button, .pager button { font-size: 0.9rem; padding: 0.45rem 0.9rem; }
+.more-filters .fineprint { margin: 0.6rem 0 0; }
+button.secondary { background: transparent; color: var(--action); }
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 0; border-top: 1px solid var(--rule); color: var(--slate); font-size: 0.9rem; }
+.values { color: var(--slate); font-size: 0.875rem; margin: 0.5rem 0 0; }
+
+@media (max-width: 36rem) {
+  .filter-grid { grid-template-columns: 1fr; }
+}
