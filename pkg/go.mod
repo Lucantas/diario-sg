@@ -1,3 +1,3 @@
 module github.com/seu-usuario/diario-sg/pkg
 
-go 1.22
+go 1.25.0

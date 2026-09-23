@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS build
+FROM golang:1.25-alpine AS build
 WORKDIR /src
 COPY pkg/ pkg/
 COPY services/api/go.mod services/api/go.sum services/api/
