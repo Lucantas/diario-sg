@@ -124,6 +124,30 @@ decisões de arquitetura, em `adr/`.
   devolve a página do front: sem ele, o prefixo com `proxy_pass`
   redirecionaria `/dados` para `/dados/`.
 
+## Qualidade visível
+
+- Os avisos de extração (`sem_numero`, `so_titulo`, `muitas_paginas`)
+  são calculados na leitura, em `domain.ActWarnings`, e não gravados:
+  regra nova vale na hora, sem migration nem reindexação. A API devolve
+  códigos e o front escreve o texto.
+- `muitas_paginas` começa em 10 páginas: 339 atos na base de 22/09/2026,
+  quase todos anexos ou atos que o parser não separou.
+- A "tabela quebrada entre páginas" do relatório da fase 1 ficou sem
+  aviso. A regra candidata (`Port. nº` cujo corpo não começa com o verbo)
+  acha 1.209 atos com muitos falsos positivos, e um aviso errado tira o
+  crédito dos certos.
+- O reporte identifica o ato por edição, posição e cópia do título, não
+  pelo `id`, que muda a cada reindexação. Apagar a edição apaga os
+  reportes dela.
+- Reporte sem e-mail: não há como responder sem pedir dado pessoal, e a
+  correção aparece no próprio site.
+- Contra abuso, sem cadastro: campo-isca (quem preenche recebe 202 e nada
+  é gravado), mensagem de até 2.000 caracteres e janela fixa de 5 reportes
+  por minuto por cliente e 60 por instância. O cliente é o primeiro IP do
+  `X-Forwarded-For`, que dá para falsificar; o teto por instância segura
+  esse caso. O pior resultado é lixo na fila, que `make close-report
+  AS=descartado` limpa.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo
