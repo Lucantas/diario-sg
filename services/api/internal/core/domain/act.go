@@ -59,7 +59,10 @@ type ActHit struct {
 	ValuesCents []int64
 }
 
-const ExportLimit = 10000
+const (
+	ExportLimit = 10000
+	FeedLimit   = 50
+)
 
 type ActFilter struct {
 	Query    string
@@ -69,6 +72,7 @@ type ActFilter struct {
 	To       time.Time
 	MinCents int64
 	MaxCents int64
+	Recent   bool
 	Limit    int
 	Offset   int
 }

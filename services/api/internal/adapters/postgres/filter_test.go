@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -40,5 +41,15 @@ func TestFilterSQLOnlyMaximum(t *testing.T) {
 	want := " AND EXISTS (SELECT 1 FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor' AND v.normalized::bigint <= $3)"
 	if where != want || !reflect.DeepEqual(args, []any{int64(900)}) {
 		t.Errorf("veio %q %v", where, args)
+	}
+}
+
+func TestOrderSQLByRelevanceOrByDate(t *testing.T) {
+	recent := orderSQL(domain.ActFilter{Recent: true})
+	if !strings.Contains(recent, "g.published_at DESC") || strings.Contains(recent, "ts_rank") {
+		t.Errorf("ordem cronológica inesperada: %s", recent)
+	}
+	if relevance := orderSQL(domain.ActFilter{}); !strings.Contains(relevance, "ts_rank") {
+		t.Errorf("ordem por relevância inesperada: %s", relevance)
 	}
 }

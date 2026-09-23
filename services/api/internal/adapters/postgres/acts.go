@@ -29,7 +29,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
 		`+exactPhraseFor("$4")+`
 		WHERE ($1 = '' OR `+matchFor("$1", "$4")+`)`+where+`
-		`+orderClause+`
+		`+orderSQL(f)+`
 		LIMIT $2 OFFSET $3`, args...)
 	if err != nil {
 		return nil, 0, err
@@ -119,7 +119,7 @@ func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(dom
 		CROSS JOIN websearch_to_tsquery('`+tsConfig+`', $1) q
 		`+exactPhraseFor("$3")+`
 		WHERE ($1 = '' OR `+matchFor("$1", "$3")+`)`+where+`
-		`+orderClause+`
+		`+orderSQL(f)+`
 		LIMIT $2`, args...)
 	if err != nil {
 		return err

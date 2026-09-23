@@ -92,3 +92,16 @@ func (uc *ListOrgans) Execute(ctx context.Context) ([]domain.OrganCount, error) 
 	})
 	return out, nil
 }
+
+type ActFeed struct{ acts ports.ActRepository }
+
+func NewActFeed(a ports.ActRepository) *ActFeed { return &ActFeed{acts: a} }
+
+func (uc *ActFeed) Execute(ctx context.Context, f domain.ActFilter) ([]domain.ActHit, error) {
+	if err := f.Normalize(); err != nil {
+		return nil, err
+	}
+	f.Recent, f.Limit, f.Offset = true, domain.FeedLimit, 0
+	hits, _, err := uc.acts.Search(ctx, f)
+	return hits, err
+}
