@@ -4,6 +4,7 @@ package integration
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"log/slog"
 	"net/http"
@@ -34,6 +35,12 @@ func (s stringStore) Get(context.Context, string) (io.ReadCloser, error) {
 
 func newOrganServer(t *testing.T) *httptest.Server {
 	t.Helper()
+	srv, _ := newOrganServerWithDB(t)
+	return srv
+}
+
+func newOrganServerWithDB(t *testing.T) (*httptest.Server, *sql.DB) {
+	t.Helper()
 	url := os.Getenv("TEST_DATABASE_URL")
 	if url == "" {
 		t.Skip("TEST_DATABASE_URL não definido")
@@ -59,7 +66,7 @@ func newOrganServer(t *testing.T) *httptest.Server {
 		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
-	return srv
+	return srv, db
 }
 
 type organHits struct {

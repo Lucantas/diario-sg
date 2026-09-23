@@ -22,6 +22,9 @@ type actHitDTO struct {
 	PublishedAt   string   `json:"published_at"`
 	IsExtra       bool     `json:"is_extra"`
 	SourceURL     string   `json:"source_url"`
+	PageStart     *int     `json:"page_start"`
+	PageEnd       *int     `json:"page_end"`
+	PDFSHA256     string   `json:"pdf_sha256"`
 	CNPJs         []string `json:"cnpjs"`
 }
 
@@ -33,11 +36,15 @@ type searchResponse struct {
 }
 
 type actDTO struct {
-	ID       string `json:"id"`
-	Type     string `json:"type"`
-	Title    string `json:"title"`
-	Body     string `json:"body"`
-	Position int    `json:"position"`
+	ID        string `json:"id"`
+	Type      string `json:"type"`
+	Title     string `json:"title"`
+	Body      string `json:"body"`
+	Position  int    `json:"position"`
+	PageStart *int   `json:"page_start"`
+	PageEnd   *int   `json:"page_end"`
+	Organ     string `json:"organ"`
+	OrganName string `json:"organ_name"`
 }
 
 type gazetteDTO struct {
@@ -46,6 +53,7 @@ type gazetteDTO struct {
 	PublishedAt   string   `json:"published_at"`
 	IsExtra       bool     `json:"is_extra"`
 	SourceURL     string   `json:"source_url"`
+	PDFSHA256     string   `json:"pdf_sha256"`
 	Acts          []actDTO `json:"acts"`
 }
 
@@ -99,7 +107,20 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 		ID: h.ID, GazetteID: h.GazetteID, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
 		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
+		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum,
 	}
+}
+
+func toActDTO(a domain.Act) actDTO {
+	return actDTO{ID: a.ID, Type: string(a.Type), Title: a.Title, Body: a.Body, Position: a.Position,
+		PageStart: pageOrNil(a.PageStart), PageEnd: pageOrNil(a.PageEnd), Organ: a.Organ, OrganName: domain.OrganName(a.Organ)}
+}
+
+func pageOrNil(p int) *int {
+	if p <= 0 {
+		return nil
+	}
+	return &p
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

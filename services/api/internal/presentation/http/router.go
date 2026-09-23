@@ -62,9 +62,9 @@ func (a *API) getGazette(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	out := gazetteDTO{ID: g.ID, EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly), IsExtra: g.IsExtra,
-		SourceURL: g.SourceURL, Acts: make([]actDTO, 0, len(acts))}
+		SourceURL: g.SourceURL, PDFSHA256: g.Checksum, Acts: make([]actDTO, 0, len(acts))}
 	for _, act := range acts {
-		out.Acts = append(out.Acts, actDTO{ID: act.ID, Type: string(act.Type), Title: act.Title, Body: act.Body, Position: act.Position})
+		out.Acts = append(out.Acts, toActDTO(act))
 	}
 	writeJSON(w, http.StatusOK, out)
 }
