@@ -19,6 +19,9 @@ const TYPES: { value: ActType | ""; label: string }[] = [
   { value: "licitacao", label: "Licitações" },
   { value: "dispensa", label: "Sem licitação" },
   { value: "decreto", label: "Decretos" },
+  { value: "lei", label: "Leis" },
+  { value: "resolucao", label: "Resoluções" },
+  { value: "prestacao_contas", label: "Prestações de contas" },
   { value: "despacho", label: "Despachos" },
   { value: "edital", label: "Editais" },
 ];
