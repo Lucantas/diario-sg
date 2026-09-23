@@ -59,7 +59,8 @@ func run(l *slog.Logger) error {
 		Index: usecase.NewIndexGazette(gazettes, storage, pdf.New(), parser.New(), entities.New(), publisher),
 		Match: usecase.NewMatchSubscriptions(gazettes, acts, postgres.NewSubscriptionRepo(db),
 			postgres.NewNotificationLog(db), notifier),
-		Log: l,
+		Runs: usecase.NewRecordFetchRun(postgres.NewFetchRunRepo(db)),
+		Log:  l,
 	}
 	return httpapi.Serve(ctx, ":"+cfg.Port, h.Routes(), l)
 }

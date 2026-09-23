@@ -20,4 +20,5 @@ type ObjectStorage interface {
 
 type EventPublisher interface {
 	EditionFetched(ctx context.Context, e domain.FetchedEdition) error
+	RunCompleted(ctx context.Context, r domain.FetchRun) error
 }

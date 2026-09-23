@@ -8,4 +8,5 @@ type Coverage struct {
 	LastIndexedAt time.Time
 	Gazettes      int
 	Acts          int
+	LastRun       FetchRun
 }

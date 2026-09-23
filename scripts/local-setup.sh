@@ -12,7 +12,7 @@ for bucket in diario-gazettes diario-dumps; do
     -H 'Content-Type: application/json' -d "{\"name\":\"$bucket\"}" >/dev/null || true
 done
 
-for topic in gazette-fetched gazette-indexed; do
+for topic in gazette-fetched gazette-indexed fetch-completed; do
   echo "Tópico $topic..."
   curl -fsS -X PUT "$PUBSUB/v1/projects/$PROJECT/topics/$topic" >/dev/null || true
   curl -fsS -X PUT "$PUBSUB/v1/projects/$PROJECT/subscriptions/$topic-push" \

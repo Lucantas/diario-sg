@@ -79,15 +79,26 @@ type entityOutput struct {
 
 type sourcesInput struct{}
 
+type lastRunDTO struct {
+	FinishedAt string `json:"em"`
+	From       string `json:"periodo_de"`
+	To         string `json:"periodo_ate"`
+	Found      int    `json:"encontradas"`
+	Stored     int    `json:"gravadas"`
+	Failed     int    `json:"falhas"`
+	Error      string `json:"erro,omitempty"`
+}
+
 type sourceCoverageDTO struct {
-	Name          string   `json:"nome"`
-	URL           string   `json:"url"`
-	From          string   `json:"de"`
-	To            string   `json:"ate"`
-	Gazettes      int      `json:"edicoes"`
-	Acts          int      `json:"atos"`
-	LastCollected string   `json:"ultima_coleta"`
-	Gaps          []string `json:"lacunas"`
+	Name          string      `json:"nome"`
+	URL           string      `json:"url"`
+	From          string      `json:"de"`
+	To            string      `json:"ate"`
+	Gazettes      int         `json:"edicoes"`
+	Acts          int         `json:"atos"`
+	LastCollected string      `json:"ultima_coleta"`
+	LastRun       *lastRunDTO `json:"ultima_coleta_tentada,omitempty"`
+	Gaps          []string    `json:"lacunas"`
 }
 
 type sourcesOutput struct {
@@ -254,8 +265,16 @@ func (s *server) sources(ctx context.Context, _ *sdk.CallToolRequest, _ sourcesI
 	cov := coverageOf(c)
 	return nil, sourcesOutput{Sources: []sourceCoverageDTO{{
 		Name: sourceName, URL: sourceSite, From: cov.From, To: cov.To, Gazettes: c.Gazettes, Acts: c.Acts,
-		LastCollected: cov.LastCollected, Gaps: cov.Gaps,
+		LastCollected: cov.LastCollected, LastRun: lastRunOf(c.LastRun), Gaps: cov.Gaps,
 	}}}, nil
+}
+
+func lastRunOf(r domain.FetchRun) *lastRunDTO {
+	if r.ID == "" {
+		return nil
+	}
+	return &lastRunDTO{FinishedAt: timestampOrEmpty(r.FinishedAt), From: r.RequestedFrom.Format(time.DateOnly),
+		To: r.RequestedTo.Format(time.DateOnly), Found: r.Found, Stored: r.Stored, Failed: r.Failed, Error: r.Error}
 }
 
 func (s *server) coverage(ctx context.Context) (coverageDTO, error) {

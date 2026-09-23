@@ -43,6 +43,19 @@ func (uc *FetchEditions) ExecuteRange(ctx context.Context, from, to time.Time) (
 	if to.Before(from) {
 		return FetchResult{}, fmt.Errorf("período inválido: %s depois de %s", from.Format(time.DateOnly), to.Format(time.DateOnly))
 	}
+	run := domain.FetchRun{ID: domain.NewRunID(), Source: domain.SourceDiarioPrefeitura, RequestedFrom: from, RequestedTo: to, StartedAt: uc.now()}
+	res, err := uc.collect(ctx, from, to)
+	run.Found, run.Stored, run.Skipped, run.Failed, run.FinishedAt = res.Found, res.Stored, res.Skipped, res.Failed, uc.now()
+	if err != nil {
+		run.Error = err.Error()
+	}
+	if perr := uc.publisher.RunCompleted(ctx, run); perr != nil {
+		err = errors.Join(err, fmt.Errorf("publicar coleta: %w", perr))
+	}
+	return res, err
+}
+
+func (uc *FetchEditions) collect(ctx context.Context, from, to time.Time) (FetchResult, error) {
 	editions, err := uc.source.ListEditions(ctx, from, to)
 	if err != nil {
 		return FetchResult{}, fmt.Errorf("listar edições: %w", err)
