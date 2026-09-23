@@ -312,6 +312,59 @@ resource "google_cloud_run_v2_job" "scraper" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_cloud_run_v2_job" "reindex" {
+  name                = "${local.p}-reindex"
+  project             = var.project_id
+  location            = var.region
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = google_service_account.sa["worker"].email
+      timeout         = "21600s"
+      max_retries     = 0
+
+      containers {
+        image   = "us-docker.pkg.dev/cloudrun/container/job:latest"
+        command = ["/app/reindex"]
+        resources {
+          limits = {
+            cpu    = "1"
+            memory = "1Gi"
+          }
+        }
+        env {
+          name  = "GAZETTE_BUCKET"
+          value = google_storage_bucket.gazettes.name
+        }
+        env {
+          name = "DATABASE_URL"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.database_url.secret_id
+              version = "latest"
+            }
+          }
+        }
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].template[0].containers[0].image,
+      client,
+      client_version,
+    ]
+  }
+
+  depends_on = [
+    google_project_service.apis,
+    google_secret_manager_secret_iam_member.database_url,
+  ]
+}
+
 resource "google_cloud_run_v2_job_iam_member" "scheduler_runs_scraper" {
   project  = var.project_id
   location = var.region

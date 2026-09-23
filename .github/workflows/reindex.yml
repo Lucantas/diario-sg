@@ -1,0 +1,47 @@
+name: Reindex
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [dev, prod]
+        default: dev
+      from:
+        description: Primeira data (AAAA-MM-DD)
+        required: true
+      to:
+        description: Última data (AAAA-MM-DD)
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: reindex-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  reindex:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 370
+    env:
+      FROM: ${{ inputs.from }}
+      TO: ${{ inputs.to }}
+      JOB: diario-${{ inputs.environment }}-reindex
+      REGION: ${{ vars.GCP_REGION }}
+    steps:
+      - name: validar datas
+        run: |
+          for d in "$FROM" "$TO"; do
+            [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "data inválida: $d"; exit 1; }
+          done
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: executar
+        run: gcloud run jobs execute "$JOB" --region "$REGION" --args="-from,$FROM,-to,$TO" --wait

@@ -25,3 +25,7 @@ output "dead_letter_subscriptions" {
     module.queue_gazette_indexed.dlq_subscription,
   ]
 }
+
+output "reindex_job" {
+  value = google_cloud_run_v2_job.reindex.name
+}
