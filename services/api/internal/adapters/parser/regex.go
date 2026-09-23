@@ -36,20 +36,22 @@ func (Regex) Parse(text string) []domain.Act {
 		switch {
 		case isOrganSection(lines, i):
 			flush()
-			if !nonOrganSections[l.text] {
-				organ = l.text
-			}
+			organ = sectionOrgan(l.text, organ)
 		case isContinuation(l.text):
 			flush()
+			organ = ""
 		case isPortariaTrailer(l.text):
 			if current == nil {
-				current = &segment{organ: organ}
+				current = &segment{}
 			}
+			current.organ = ""
 			current.close(l)
 			flush()
+			organ = ""
 		case isPortariaVerb(l.text):
 			flush()
-			current = &segment{title: l.text, organ: organ}
+			organ = ""
+			current = &segment{title: l.text}
 			current.add(l)
 		case isHeader(l.text):
 			flush()
@@ -122,4 +124,14 @@ func (s *segment) act(position int) (domain.Act, bool) {
 	}
 	return domain.Act{Type: classify(title, body), Title: title, Body: body, Position: position,
 		PageStart: s.pageStart, PageEnd: s.pageEnd, Organ: s.organ}, true
+}
+
+func sectionOrgan(acronym, current string) string {
+	switch {
+	case nonOrganSections[acronym]:
+		return current
+	case knownOrgans[acronym]:
+		return acronym
+	}
+	return ""
 }

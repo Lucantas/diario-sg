@@ -10,7 +10,7 @@ import (
 const num = `N\s*[º°.]`
 
 var headerRes = []*regexp.Regexp{
-	regexp.MustCompile(`^(?:DECRETO|PORTARIA|LEI COMPLEMENTAR|LEI|RESOLUÇÃO|DELIBERAÇÃO|INSTRUÇÃO NORMATIVA|ORDEM DE SERVIÇO)(?:\s+[A-Z][A-Z/]{1,12})?\s*(?:[-–]\s*)?(?:SEI\s*)?` + num),
+	regexp.MustCompile(`^(?:DECRETO|PORTARIA|LEI COMPLEMENTAR|LEI|RESOLUÇÃO|DELIBERAÇÃO|INSTRUÇÃO NORMATIVA|ORDEM DE SERVIÇO)(?:\s+[A-Z][A-Z/]{1,12}|\s+“[A-Z]”)?\s*(?:[-–]\s*)?(?:SEI\s*)?` + num),
 	regexp.MustCompile(`^EXTRATO\b`),
 	regexp.MustCompile(`^AVISO\b`),
 	regexp.MustCompile(`^EDITAL\b`),
@@ -43,6 +43,7 @@ var continuationRe = regexp.MustCompile(`^Continuação do D\.O\.E\.`)
 // aparecem no meio de frases ("realizará\nDISPENSA DE LICITAÇÃO ... visando a"),
 // mas aí a linha traz minúsculas.
 func isHeader(line string) bool {
+	line = strings.ReplaceAll(line, "nº", "Nº")
 	if strings.ToUpper(line) != line {
 		return false
 	}
