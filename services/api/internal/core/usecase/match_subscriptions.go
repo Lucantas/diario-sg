@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
@@ -40,7 +41,7 @@ func (uc *MatchSubscriptions) Execute(ctx context.Context, gazetteID string) err
 		if sent {
 			continue
 		}
-		hits, err := uc.acts.SearchInGazette(ctx, g.ID, s.Query)
+		hits, err := uc.acts.SearchInGazette(ctx, g.ID, domain.TranslateOperators(s.Query))
 		if err != nil {
 			errs = append(errs, err)
 			continue

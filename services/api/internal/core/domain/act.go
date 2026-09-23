@@ -55,17 +55,20 @@ type ActHit struct {
 
 	Snippet string
 
-	CNPJs []string
+	CNPJs       []string
+	ValuesCents []int64
 }
 
 type ActFilter struct {
-	Query  string
-	Type   ActType
-	Organ  string
-	From   time.Time
-	To     time.Time
-	Limit  int
-	Offset int
+	Query    string
+	Type     ActType
+	Organ    string
+	From     time.Time
+	To       time.Time
+	MinCents int64
+	MaxCents int64
+	Limit    int
+	Offset   int
 }
 
 func (f *ActFilter) Normalize() error {
@@ -86,6 +89,10 @@ func (f *ActFilter) Normalize() error {
 		return ErrInvalidFilter
 	}
 	f.Organ = organ
+	if f.MinCents < 0 || f.MaxCents < 0 || (f.MaxCents > 0 && f.MinCents > f.MaxCents) {
+		return ErrInvalidFilter
+	}
+	f.Query = TranslateOperators(f.Query)
 	if !f.From.IsZero() && !f.To.IsZero() && f.To.Before(f.From) {
 		return ErrInvalidFilter
 	}
