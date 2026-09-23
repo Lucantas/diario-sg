@@ -15,6 +15,14 @@ import (
 type fakeSource struct {
 	editions []domain.Edition
 	from, to *time.Time
+	name     string
+}
+
+func (f fakeSource) Name() string {
+	if f.name == "" {
+		return domain.SourceDiarioPrefeitura
+	}
+	return f.name
 }
 
 func (f fakeSource) ListEditions(_ context.Context, from, to time.Time) ([]domain.Edition, error) {
@@ -198,5 +206,27 @@ func TestRunErrorIsASummary(t *testing.T) {
 		if got := summarizeRunError(c.err, c.failed); got != c.want {
 			t.Errorf("summarizeRunError(%v, %d) = %q, esperava %q", c.err, c.failed, got, c.want)
 		}
+	}
+}
+
+func TestFetchEditions_TagsEditionsAndRunWithTheSource(t *testing.T) {
+	day := time.Date(2025, 11, 3, 0, 0, 0, 0, time.UTC)
+	src := fakeSource{name: domain.SourceDiarioCamara, editions: []domain.Edition{{PublishedAt: day, URL: "https://camara/2025-11-03.pdf"}}}
+	st := &fakeStorage{objects: map[string][]byte{}}
+	pub := &fakePublisher{}
+
+	if _, err := NewFetchEditions(src, st, pub).ExecuteRange(context.Background(), day, day); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(pub.events) != 1 || pub.events[0].Source != domain.SourceDiarioCamara ||
+		pub.events[0].StoragePath != "raw/diario_camara/2025/11/03/2025-11-03.pdf" {
+		t.Fatalf("edição da Câmara: %+v", pub.events)
+	}
+	if _, ok := st.objects["raw/diario_camara/2025/11/03/2025-11-03.pdf"]; !ok {
+		t.Errorf("PDF não foi para o caminho da Câmara: %v", st.objects)
+	}
+	if len(pub.runs) != 1 || pub.runs[0].Source != domain.SourceDiarioCamara {
+		t.Fatalf("coleta da Câmara: %+v", pub.runs)
 	}
 }

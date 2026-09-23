@@ -48,7 +48,7 @@ func (uc *FetchEditions) ExecuteRange(ctx context.Context, from, to time.Time) (
 	if to.Before(from) {
 		return FetchResult{}, fmt.Errorf("período inválido: %s depois de %s", from.Format(time.DateOnly), to.Format(time.DateOnly))
 	}
-	run := domain.FetchRun{ID: domain.NewRunID(), Source: domain.SourceDiarioPrefeitura, RequestedFrom: from, RequestedTo: to, StartedAt: uc.now()}
+	run := domain.FetchRun{ID: domain.NewRunID(), Source: uc.source.Name(), RequestedFrom: from, RequestedTo: to, StartedAt: uc.now()}
 	res, err := uc.collect(ctx, from, to)
 	run.Found, run.Stored, run.Skipped, run.Failed, run.FinishedAt = res.Found, res.Stored, res.Skipped, res.Failed, uc.now()
 	run.Error = summarizeRunError(err, res.Failed)
@@ -69,6 +69,7 @@ func (uc *FetchEditions) collect(ctx context.Context, from, to time.Time) (Fetch
 	res := FetchResult{Found: len(editions)}
 	var errs []error
 	for _, e := range editions {
+		e.Source = uc.source.Name()
 		done, err := uc.storage.Exists(ctx, e.MarkerPath())
 		if err != nil {
 			res.Failed++

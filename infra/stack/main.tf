@@ -440,6 +440,93 @@ resource "google_cloud_scheduler_job" "scraper" {
   depends_on = [google_cloud_run_v2_job_iam_member.scheduler_runs_scraper]
 }
 
+resource "google_cloud_run_v2_job" "scraper_camara" {
+  name                = "${local.p}-scraper-camara"
+  project             = var.project_id
+  location            = var.region
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = google_service_account.sa["scraper"].email
+      timeout         = "1800s"
+      max_retries     = 1
+
+      containers {
+        image = "us-docker.pkg.dev/cloudrun/container/job:latest"
+        resources {
+          limits = {
+            cpu    = "1"
+            memory = "512Mi"
+          }
+        }
+        env {
+          name  = "GCP_PROJECT_ID"
+          value = var.project_id
+        }
+        env {
+          name  = "GAZETTE_BUCKET"
+          value = google_storage_bucket.gazettes.name
+        }
+        env {
+          name  = "TOPIC_GAZETTE_FETCHED"
+          value = module.queue_gazette_fetched.topic_name
+        }
+        env {
+          name  = "TOPIC_FETCH_COMPLETED"
+          value = module.queue_fetch_completed.topic_name
+        }
+        env {
+          name  = "SOURCE"
+          value = "diario_camara"
+        }
+        env {
+          name  = "LOOKBACK_DAYS"
+          value = tostring(var.scraper_lookback_days)
+        }
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].template[0].containers[0].image,
+      client,
+      client_version,
+    ]
+  }
+
+  depends_on = [google_project_service.apis]
+}
+
+resource "google_cloud_run_v2_job_iam_member" "scheduler_runs_scraper_camara" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_job.scraper_camara.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.sa["scheduler"].email}"
+}
+
+resource "google_cloud_scheduler_job" "scraper_camara" {
+  project   = var.project_id
+  region    = var.region
+  name      = "${local.p}-scraper-camara"
+  schedule  = var.camara_scraper_schedule
+  time_zone = "America/Sao_Paulo"
+
+  http_target {
+    http_method = "POST"
+    uri         = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.scraper_camara.name}:run"
+    oauth_token {
+      service_account_email = google_service_account.sa["scheduler"].email
+      scope                 = "https://www.googleapis.com/auth/cloud-platform"
+    }
+  }
+
+  depends_on = [google_cloud_run_v2_job_iam_member.scheduler_runs_scraper_camara]
+}
+
 resource "google_cloud_run_v2_job" "dump" {
   name                = "${local.p}-dump"
   project             = var.project_id

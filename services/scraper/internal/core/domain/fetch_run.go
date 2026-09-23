@@ -6,7 +6,12 @@ import (
 	"time"
 )
 
-const SourceDiarioPrefeitura = "diario_prefeitura"
+const (
+	SourceDiarioPrefeitura = "diario_prefeitura"
+	SourceDiarioCamara     = "diario_camara"
+)
+
+func ValidSource(s string) bool { return s == SourceDiarioPrefeitura || s == SourceDiarioCamara }
 
 type FetchRun struct {
 	ID            string

@@ -28,6 +28,7 @@ func (p *EventPublisher) EditionFetched(ctx context.Context, e domain.FetchedEdi
 		StoragePath:    e.StoragePath,
 		ChecksumSHA256: e.ChecksumSHA256,
 		FetchedAt:      e.FetchedAt,
+		Source:         e.Source,
 	})
 	if err != nil {
 		return err

@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -54,6 +54,9 @@ run-worker: ## Worker (recebe push do Pub/Sub) em :8081
 
 run-scraper: ## Executa uma coleta (LOOKBACK_DAYS=n ou, para backfill, FROM=AAAA-MM-DD [TO=AAAA-MM-DD])
 	cd services/scraper && go run ./cmd/scraper $(if $(FROM),-from $(FROM)) $(if $(TO),-to $(TO))
+
+run-scraper-camara: ## Coleta o Diário da Câmara (LOOKBACK_DAYS=n ou FROM=AAAA-MM-DD [TO=AAAA-MM-DD]; a Câmara só tem edições por data desde 2020-10-04)
+	cd services/scraper && SOURCE=diario_camara SOURCE_URL= go run ./cmd/scraper $(if $(FROM),-from $(FROM)) $(if $(TO),-to $(TO))
 
 run-web: ## Front em :5173 (proxy /api -> :8080)
 	cd apps/web && npm install && npm run dev
