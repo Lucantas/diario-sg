@@ -132,7 +132,7 @@ Exemplos, com o caminho pelos dados:
 
 ## Servidor MCP
 
-Servidor remoto (HTTP "streamable"), só leitura, sem login no começo, no
+Servidor remoto (HTTP "streamable"), só leitura, com chave por usuário, no
 Cloud Run ao lado da API e chamando os mesmos casos de uso.
 
 **Ferramentas**, cada uma com resposta pequena, estruturada e com
@@ -218,11 +218,20 @@ quase todo o pipeline existente.
 - **Custo.** O Neon gratuito tem limite de armazenamento; despesas e
   empenhos de dez anos devem caber, mas medir antes da carga completa.
 
-## Decisões em aberto
+## Decisões
 
-1. O MCP nasce público e anônimo, ou com chave por usuário (permite limite
-   por pessoa e saber quem usa)?
-2. Folha de pagamento nominal de agentes políticos (prefeito, vice,
-   secretários, vereadores) entra; a dos demais servidores fica só em
-   agregado. Confirmar.
-3. Ordem das etapas C (Câmara) e D (Receita): a proposta põe a Câmara antes.
+1. **MCP com chave por usuário** (decidido em 23/09/2026). Cada pessoa gera
+   uma chave no site; o limite de requisições e o registro de uso são por
+   chave. A chave identifica o uso, não libera dado a mais: as mesmas regras
+   de LGPD valem para todos.
+2. **Ordem: Câmara (C) antes da Receita (D)** (decidido em 23/09/2026).
+
+## Decisão em aberto
+
+- **Até onde vai a folha de pagamento com nome.** A proposta é mostrar a
+  remuneração com nome só de agentes políticos (prefeito, vice,
+  secretários, vereadores) e, para os demais servidores, só agregados por
+  órgão e cargo. Os portais da Prefeitura e da Câmara publicam a folha
+  nominal de todos (a lei obriga), mas reunir essa folha com o Diário, a
+  Receita e o TSE num só lugar facilita montar perfil de pessoas, que é o
+  que a LGPD pede para evitar.
