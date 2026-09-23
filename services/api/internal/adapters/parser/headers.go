@@ -3,6 +3,8 @@ package parser
 import (
 	"regexp"
 	"strings"
+
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
 const num = `N\s*[º°.]`
@@ -25,8 +27,6 @@ var headerRes = []*regexp.Regexp{
 
 var portariaTrailerRe = regexp.MustCompile(`^Port\.?\s*n[º°.]?\s*\d+/\d{2,4}`)
 
-var portariaVerbRe = regexp.MustCompile(`^(?:Nomeia|Nomear|Exonera|Exonerar|Designa|Designar|Torna sem efeito|Tornar sem efeito|Cessar? os efeitos|Declar[ao] vago|Concede|Conceder|Retifica|Retificar|Revoga|Revogar|Dispensa|Dispensar|Prorroga|Prorrogar|Suspende|Suspender|Autoriza|Autorizar|Convoca|Convocar|Cede|Ceder|Averba|Averbar)(?: a pedido| ex officio| de ofício)?:?$`)
-
 var continuationRe = regexp.MustCompile(`^Continuação do D\.O\.E\.`)
 
 func isHeader(line string) bool {
@@ -46,7 +46,7 @@ func isContinuation(line string) bool { return continuationRe.MatchString(line) 
 
 func isPortariaTrailer(line string) bool { return portariaTrailerRe.MatchString(line) }
 
-func isPortariaVerb(line string) bool { return portariaVerbRe.MatchString(line) }
+func isPortariaVerb(line string) bool { return domain.PortariaVerbRe.MatchString(line) }
 
 func startsAct(line string) bool {
 	return isHeader(line) || isContinuation(line) || isPortariaVerb(line)

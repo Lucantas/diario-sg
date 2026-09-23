@@ -28,7 +28,7 @@ Medidos na base local (153.750 atos, 22/09/2026):
   não achou o `Port. nº` que fecha a portaria abreviada; a regra é exata.
 - **Só o título**: 2.320 atos com o corpo igual ao título (975 licitações,
   452 contratos). O texto do ato ficou no ato vizinho ou não foi extraído.
-- **Ato longo demais**: 311 atos ocupam 10 páginas ou mais do PDF (um
+- **Ato longo demais**: 339 atos ocupam 10 páginas ou mais do PDF (um
   "termo de fomento" de 2021 vai da página 19 à 92). Em geral são anexos
   ou atos que o parser não separou.
 - **Tabela quebrada entre páginas** (`docs/fase-1-relatorio.md` §2.3): a
