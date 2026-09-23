@@ -9,6 +9,7 @@ var (
 	ErrInvalidFilter         = errors.New("filtro inválido")
 	ErrInvalidCNPJ           = errors.New("CNPJ inválido: informe 14 dígitos")
 	ErrSubscriptionCancelled = errors.New("inscrição cancelada")
+	ErrUnauthorized          = errors.New("chave de acesso ausente, inválida ou revogada")
 
 	ErrInvalidInput = errors.New("entrada inválida")
 )

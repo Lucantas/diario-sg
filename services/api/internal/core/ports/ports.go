@@ -87,3 +87,10 @@ type ErrorReportRepository interface {
 	List(ctx context.Context, status domain.ReportStatus) ([]domain.ErrorReport, error)
 	Close(ctx context.Context, id string, status domain.ReportStatus) error
 }
+
+type APIKeyRepository interface {
+	Create(ctx context.Context, hash, prefix string) (domain.APIKey, error)
+	FindActive(ctx context.Context, hash string) (domain.APIKey, error)
+	Revoke(ctx context.Context, hash string) error
+	RecordUse(ctx context.Context, keyID, tool string) error
+}
