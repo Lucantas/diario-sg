@@ -18,6 +18,8 @@ type API struct {
 	Stats         *usecase.ActStats
 	Organs        *usecase.ListOrgans
 	PDF           *usecase.GetGazettePDF
+	Export        *usecase.ExportActs
+	PublicWebURL  string
 	Subscriptions *usecase.Subscriptions
 	Log           *slog.Logger
 }
@@ -28,6 +30,7 @@ func (a *API) Routes() http.Handler {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("GET /v1/acts", a.searchActs)
+	mux.HandleFunc("GET /v1/acts/export", a.exportActs)
 	mux.HandleFunc("GET /v1/gazettes/{id}", a.getGazette)
 	mux.HandleFunc("GET /v1/gazettes/{id}/pdf", a.gazettePDF)
 	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
