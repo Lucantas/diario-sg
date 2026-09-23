@@ -58,11 +58,11 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
   duas colunas; pesam 646 MB no total (o Postgres cresceu 167 MB).
 - [ ] Nenhuma edição extra antes de 2020 foi listada. Não confirmei se o
   site não tinha extras nesse período ou se elas usam outro padrão de URL.
-- [ ] Mais atos em `outro` de 2010 a 2019 (10% a 15% por ano, contra 7% a
-  10% depois). Dos 10.054, 4.468 (44%) são `TERMO DE APROVAÇÃO DE
-  PRESTAÇÃO DE CONTAS` e 4.678 (47%) são corrigendas; só ~2% é título
-  quebrado (`SEMAD`, `X`, `CARGO`, vazio). Tipos `corrigenda` e
-  `prestacao_contas` tirariam 91% do `outro` antigo e 55% do de 2020 em diante.
+- [x] Tipos `corrigenda` e `prestacao_contas` (commit `d56077d`). De 2010 a
+  2019 o `outro` era 10% a 15% dos atos por ano, e 91% dele eram termos de
+  aprovação de prestação de contas e corrigendas. Na base inteira, depois
+  da reindexação de 22/09/2026, o `outro` caiu de 16.186 para 3.684 atos
+  (6.973 corrigendas e 5.543 prestações de contas).
 
 **Pronto quando:** a contagem de edições por ano bate com a listagem do site.
 
@@ -82,22 +82,21 @@ Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
   extenso das siglas (1c). A allowlist de siglas da 1c precisa ser aplicada
   no parser (depois `make reindex`), porque siglas falsas (TOTAL, DO, DE…,
   ~3% dos atos) se propagam para os atos seguintes.
-  A allowlist sozinha não basta: o órgão também vaza para seções **sem**
-  sigla. O bloco de portarias do gabinete (`Port. nº`, nomeações e
-  exonerações) herda a última sigla vista antes dele. Em 20/06/2016 as
-  `Port. nº 1360` e `1495` a `1498` (p. 9) e as atas do Conselho Municipal de Saúde
-  ficaram com `SUBCOMP`, e 21 atos anteriores com `EXECUTIVO` (fim de
-  "MENSAGEM … DO PODER / EXECUTIVO" quebrado em duas linhas). A sigla
-  `CMS` dessa edição não é reconhecida porque vem antes de `RESOLUÇÃO “P”
-  nº 015/CMS-SG/16`, que não casa como cabeçalho. Por isso a taxa de
-  preenchimento engana: 2010 a 2013 têm ~40% dos atos com órgão contra
-  ~85% depois, mas lá 12.974 das 14.054 portarias abreviadas ficam sem
-  órgão, o que é o certo (o gabinete não publica sigla), enquanto de 2014
-  em diante elas aparecem com `FMS`, `CMAS`, `CMDCA`, `TOTAL` e
-  `SEMIURBCPARJ`. Não conferi a amostra de 2020 em diante ato a ato. A
-  correção precisa zerar o órgão em marcos de seção (`GABINETE DO
-  PREFEITO`, `GABINETE DA PREFEITA`, `ATOS DO PREFEITO`) além de validar
-  a sigla.
+  Allowlist aplicada e vazamento de órgão corrigido ✅ (commit `d99adda`,
+  base reindexada em 22/09/2026). O órgão vazava para seções sem sigla: o
+  bloco de portarias abreviadas do gabinete herdava a última sigla vista
+  (em 20/06/2016, `Port. nº 1360` e `1495` a `1498` saíam com `SUBCOMP`),
+  e palavras em formato de sigla viravam órgão (`EXECUTIVO`, `TOTAL`,
+  `NOME`, sobrenomes: 5.848 atos). Agora a portaria abreviada fica sem
+  órgão e zera o órgão corrente, `Continuação do D.O.E.` também zera, e
+  uma linha em formato de sigla fora da allowlist (125 siglas, em
+  `parser/organs.go`) separa seção sem virar órgão. `RESOLUÇÃO “P” nº` e
+  cabeçalhos com `nº` minúsculo (`PORTARIA nº 442/SUBRH/SEMAD/2019`)
+  passaram a abrir ato: 1.392 atos que antes ficavam colados ao anterior.
+  Atos com órgão caíram de 112.543 para 80.832, porque os errados saíram;
+  fora as portarias abreviadas, 74% dos atos têm órgão. Falta: nomes por
+  extenso das siglas e o filtro (1c). Sigla nova que a prefeitura criar
+  precisa entrar na allowlist.
 - **Busca de investigador.** Faixa de valor (a partir de `act_entities`),
   operadores booleanos, URL permanente para cada consulta.
 - **Exportação.** CSV/JSON de qualquer busca e dump completo periódico

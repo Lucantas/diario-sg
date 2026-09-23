@@ -138,8 +138,8 @@ com título no fim de cada bloco.
 
 - O bloco de pessoal abre com `GABINETE DA PREFEITA` (e não `DO
   PREFEITO`), que não está em `preambleMarkers`; o corte do preâmbulo cai
-  no primeiro início de ato, o que dá o mesmo resultado nas edições
-  conferidas.
+  no primeiro início de ato. Não conferi se isso perde algum texto antes do
+  primeiro ato nessas edições.
 - As portarias abreviadas do gabinete vêm sem sigla de órgão antes delas.
 - Aparecem cabeçalhos de tabela sozinhos na linha (`SUPERVISOR`, `CARGO`,
   `NOME`, `DESPESA`, `TOTAL`), que casam com o formato de sigla.
