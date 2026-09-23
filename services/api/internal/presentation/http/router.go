@@ -20,10 +20,16 @@ type API struct {
 	PDF           *usecase.GetGazettePDF
 	Export        *usecase.ExportActs
 	Feed          *usecase.ActFeed
+	Reports       *usecase.ErrorReports
 	PublicWebURL  string
 	Subscriptions *usecase.Subscriptions
 	Log           *slog.Logger
 }
+
+const (
+	reportsPerClient   = 5
+	reportsPerInstance = 60
+)
 
 func (a *API) Routes() http.Handler {
 	mux := http.NewServeMux()
@@ -40,6 +46,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/organs", a.listOrgans)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 
+	mux.HandleFunc("POST /v1/reports", a.reportError(newRateLimiter(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)
 	mux.HandleFunc("POST /v1/subscriptions/unsubscribe", a.unsubscribe)
 	return withMiddleware(mux, a.Log)

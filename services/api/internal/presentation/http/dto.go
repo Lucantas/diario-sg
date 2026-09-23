@@ -146,7 +146,7 @@ func writeError(w http.ResponseWriter, err error, log *slog.Logger) {
 		status, msg = http.StatusNotFound, err.Error()
 	case errors.Is(err, domain.ErrInvalidEmail), errors.Is(err, domain.ErrInvalidQuery),
 		errors.Is(err, domain.ErrInvalidFilter), errors.Is(err, domain.ErrInvalidInput),
-		errors.Is(err, domain.ErrInvalidCNPJ):
+		errors.Is(err, domain.ErrInvalidCNPJ), errors.Is(err, domain.ErrInvalidReport):
 		status, msg = http.StatusBadRequest, err.Error()
 	case errors.Is(err, domain.ErrSubscriptionCancelled):
 		status, msg = http.StatusConflict, err.Error()
