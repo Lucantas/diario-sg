@@ -16,6 +16,7 @@ type API struct {
 	Gazette       *usecase.GetGazette
 	Company       *usecase.GetCompany
 	Stats         *usecase.ActStats
+	Organs        *usecase.ListOrgans
 	Subscriptions *usecase.Subscriptions
 	Log           *slog.Logger
 }
@@ -29,6 +30,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/gazettes/{id}", a.getGazette)
 	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
 	mux.HandleFunc("GET /v1/stats/acts", a.actStats)
+	mux.HandleFunc("GET /v1/organs", a.listOrgans)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)
@@ -104,6 +106,20 @@ func (a *API) actStats(w http.ResponseWriter, r *http.Request) {
 	for _, c := range counts {
 		out.Items = append(out.Items, monthCountDTO{Month: c.Month.Format("2006-01"), Count: c.Count})
 	}
+	writeJSON(w, http.StatusOK, out)
+}
+
+func (a *API) listOrgans(w http.ResponseWriter, r *http.Request) {
+	organs, err := a.Organs.Execute(r.Context())
+	if err != nil {
+		writeError(w, err, a.Log)
+		return
+	}
+	out := organsResponse{Items: make([]organDTO, 0, len(organs))}
+	for _, o := range organs {
+		out.Items = append(out.Items, organDTO{Acronym: o.Acronym, Name: o.Name, Acts: o.Acts})
+	}
+	w.Header().Set("Cache-Control", "public, max-age=3600")
 	writeJSON(w, http.StatusOK, out)
 }
 

@@ -96,3 +96,21 @@ func (r *ActRepo) CountByMonth(ctx context.Context, f domain.ActFilter) ([]domai
 	}
 	return out, rows.Err()
 }
+
+func (r *ActRepo) CountByOrgan(ctx context.Context) (map[string]int, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT organ, count(*) FROM acts WHERE organ <> '' GROUP BY organ`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]int{}
+	for rows.Next() {
+		var organ string
+		var n int
+		if err := rows.Scan(&organ, &n); err != nil {
+			return nil, err
+		}
+		out[organ] = n
+	}
+	return out, rows.Err()
+}

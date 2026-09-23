@@ -66,6 +66,16 @@ type statsResponse struct {
 	Items []monthCountDTO `json:"items"`
 }
 
+type organDTO struct {
+	Acronym string `json:"acronym"`
+	Name    string `json:"name"`
+	Acts    int    `json:"acts"`
+}
+
+type organsResponse struct {
+	Items []organDTO `json:"items"`
+}
+
 type subscribeRequest struct {
 	Email string `json:"email"`
 	Query string `json:"query"`
