@@ -33,7 +33,11 @@ func (a *API) issueKey(limiter *ratelimit.Limiter) http.HandlerFunc {
 			return
 		}
 		if req.Website != "" {
-			secret, _ := domain.NewAPIKeySecret()
+			secret, err := domain.NewAPIKeySecret()
+			if err != nil {
+				writeError(w, err, a.Log)
+				return
+			}
 			writeJSON(w, http.StatusCreated, a.issuedKey(secret))
 			return
 		}
@@ -50,11 +54,35 @@ func (a *API) issuedKey(secret string) issuedKeyDTO {
 	return issuedKeyDTO{Key: secret, Prefix: domain.APIKeyPrefix(secret), MCPURL: strings.TrimRight(a.PublicWebURL, "/") + "/api/mcp"}
 }
 
-func (a *API) revokeKey(w http.ResponseWriter, r *http.Request) {
-	secret, _ := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-	if err := a.Keys.Revoke(r.Context(), strings.TrimSpace(secret)); err != nil {
-		writeError(w, err, a.Log)
-		return
+func (a *API) revokeKey(limiter *ratelimit.Limiter) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !limiter.Allow(clientKey(r)) {
+			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitas tentativas seguidas; tente de novo em um minuto"})
+			return
+		}
+		if err := a.Keys.Revoke(r.Context(), bearerToken(r)); err != nil {
+			writeError(w, err, a.Log)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	}
-	w.WriteHeader(http.StatusNoContent)
+}
+
+func bearerToken(r *http.Request) string {
+	fields := strings.Fields(r.Header.Get("Authorization"))
+	if len(fields) != 2 || !strings.EqualFold(fields[0], "bearer") {
+		return ""
+	}
+	return fields[1]
+}
+
+func perClient(limiter *ratelimit.Limiter, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !limiter.Allow(clientKey(r)) {
+			w.Header().Set("Retry-After", "60")
+			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitas chamadas seguidas; tente de novo em um minuto"})
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

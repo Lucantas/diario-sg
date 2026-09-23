@@ -34,6 +34,10 @@ const (
 	reportsPerInstance = 60
 	keysPerClient      = 3
 	keysPerInstance    = 50
+	revokesPerClient   = 10
+	revokesPerInstance = 100
+	mcpPerClient       = 120
+	mcpPerInstance     = 1200
 )
 
 func (a *API) Routes() http.Handler {
@@ -53,9 +57,9 @@ func (a *API) Routes() http.Handler {
 
 	mux.HandleFunc("POST /v1/reports", a.reportError(ratelimit.New(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))
 	mux.HandleFunc("POST /v1/mcp/keys", a.issueKey(ratelimit.New(keysPerClient, keysPerInstance, time.Hour, time.Now)))
-	mux.HandleFunc("DELETE /v1/mcp/keys", a.revokeKey)
+	mux.HandleFunc("DELETE /v1/mcp/keys", a.revokeKey(ratelimit.New(revokesPerClient, revokesPerInstance, time.Minute, time.Now)))
 	if a.MCP != nil {
-		mux.Handle("/mcp", a.MCP)
+		mux.Handle("/mcp", perClient(ratelimit.New(mcpPerClient, mcpPerInstance, time.Minute, time.Now), a.MCP))
 	}
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)
 	mux.HandleFunc("POST /v1/subscriptions/unsubscribe", a.unsubscribe)

@@ -64,9 +64,16 @@ func call[T any](t *testing.T, s *sdk.ClientSession, tool string, args map[strin
 	return out, res
 }
 
+const toolsList = `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`
+
 func statusOf(t *testing.T, method, url, key string) int {
 	t.Helper()
-	req, _ := http.NewRequest(method, url, strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`))
+	return statusWithBody(t, method, url, key, toolsList)
+}
+
+func statusWithBody(t *testing.T, method, url, key, body string) int {
+	t.Helper()
+	req, _ := http.NewRequest(method, url, strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json, text/event-stream")
 	if key != "" {
@@ -108,6 +115,11 @@ func TestMCPWithPerUserKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer session.Close()
+
+	batch := " [" + toolsList + "," + toolsList + "]"
+	if got := statusWithBody(t, http.MethodPost, srv.URL+"/mcp", key, batch); got != http.StatusBadRequest {
+		t.Fatalf("lote JSON-RPC deveria ser 400, veio %d", got)
+	}
 
 	tools, err := session.ListTools(context.Background(), nil)
 	if err != nil {
