@@ -1,7 +1,8 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ActType, Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api";
+import { ActType, Organ, SearchResponse, Source, listOrgans, searchActs, subscribe } from "./api";
 import { Result } from "./components";
-import { SearchState, apiParams, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery } from "./searchState";
+import { SearchState, apiParams, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery, withSource } from "./searchState";
+import { SOURCE_LABEL } from "./types";
 
 const PAGE_SIZE = 20;
 
@@ -97,15 +98,15 @@ export function SearchPage() {
   return (
     <main className="page">
       <header className="masthead">
-        <h1>Diário Oficial de São Gonçalo, pesquisável.</h1>
+        <h1>Diários Oficiais de São Gonçalo, pesquisáveis.</h1>
         <p className="lede">
-          Nomeações, contratos, licitações e decretos publicados pela prefeitura,
-          com busca por nome, empresa ou assunto.
+          Nomeações, contratos, licitações e decretos publicados pela prefeitura e pela
+          Câmara Municipal, com busca por nome, empresa ou assunto.
         </p>
       </header>
 
       <form className="search" onSubmit={onSubmit} role="search">
-        <label htmlFor="q" className="visually-hidden">Buscar no Diário Oficial</label>
+        <label htmlFor="q" className="visually-hidden">Buscar nos Diários Oficiais</label>
         <input
           id="q"
           type="search"
@@ -134,7 +135,18 @@ export function SearchPage() {
         ))}
       </div>
 
-      {organs.length > 0 && (
+      <div className="organ-filter">
+        <label htmlFor="source">Diário</label>
+        <select id="source" value={draft.source}
+          onChange={(e) => go(withSource({ ...draft, q: draft.q.trim() }, e.target.value))}>
+          <option value="">Prefeitura e Câmara</option>
+          {(Object.keys(SOURCE_LABEL) as Source[]).map((src) => (
+            <option key={src} value={src}>{SOURCE_LABEL[src]}</option>
+          ))}
+        </select>
+      </div>
+
+      {organs.length > 0 && draft.source !== "diario_camara" && (
         <div className="organ-filter">
           <label htmlFor="organ">Órgão</label>
           <select id="organ" value={draft.organ} onChange={(e) => go({ ...draft, q: draft.q.trim(), organ: e.target.value, page: 1 })}>

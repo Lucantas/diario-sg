@@ -1,4 +1,14 @@
-import { ActType } from "./api";
+import { ActType, Source } from "./api";
+
+export const SOURCE_LABEL: Record<Source, string> = {
+  diario_prefeitura: "Prefeitura",
+  diario_camara: "Câmara",
+};
+
+export const SOURCE_NAME: Record<Source, string> = {
+  diario_prefeitura: "Diário Oficial do Município de São Gonçalo",
+  diario_camara: "Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo",
+};
 
 export const TYPE_LABEL: Record<ActType, string> = {
   nomeacao: "Nomeação", exoneracao: "Exoneração", contrato: "Contrato",

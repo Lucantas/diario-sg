@@ -4,9 +4,13 @@ export type ActType =
   | "dispensa" | "decreto" | "lei" | "portaria" | "resolucao"
   | "despacho" | "edital" | "ata" | "corrigenda" | "prestacao_contas" | "outro";
 
+export type Source = "diario_prefeitura" | "diario_camara";
+
 export interface ActHit {
   id: string;
   gazette_id: string;
+  source: Source;
+  source_name: string;
   position: number;
   type: ActType;
   title: string;
