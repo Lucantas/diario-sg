@@ -29,6 +29,13 @@ var portariaTrailerRe = regexp.MustCompile(`^Port\.?\s*n[º°.]?\s*\d+/\d{2,4}`)
 
 var continuationRe = regexp.MustCompile(`^Continuação do D\.O\.E\.`)
 
+var civilDefenseNoticeRe = regexp.MustCompile(`^A COORDENADORIA MUNICIPAL DE DEFESA CIVIL\b`)
+
+const (
+	civilDefenseNoticeTitle = "NOTIFICAÇÃO DA DEFESA CIVIL"
+	civilDefenseOrgan       = "COMDEC"
+)
+
 func isHeader(line string) bool {
 	line = strings.ReplaceAll(line, "nº", "Nº")
 	if strings.ToUpper(line) != line {
@@ -47,6 +54,8 @@ func isContinuation(line string) bool { return continuationRe.MatchString(line) 
 func isPortariaTrailer(line string) bool { return portariaTrailerRe.MatchString(line) }
 
 func isPortariaVerb(line string) bool { return domain.PortariaVerbRe.MatchString(line) }
+
+func isCivilDefenseNotice(line string) bool { return civilDefenseNoticeRe.MatchString(line) }
 
 func startsAct(line string) bool {
 	return isHeader(line) || isContinuation(line) || isPortariaVerb(line)
