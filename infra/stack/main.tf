@@ -70,14 +70,14 @@ resource "google_storage_bucket" "gazettes" {
 }
 
 resource "google_service_account" "sa" {
-  for_each     = toset(["api", "worker", "scraper", "web", "pubsub-push", "scheduler"])
+  for_each     = toset(["api", "worker", "scraper", "web", "pubsub-push", "scheduler", "dump"])
   project      = var.project_id
   account_id   = "${local.p}-${each.value}"
   display_name = "${local.p} ${each.value}"
 }
 
 resource "google_service_account_iam_member" "deployer_act_as" {
-  for_each           = toset(["api", "worker", "scraper", "web"])
+  for_each           = toset(["api", "worker", "scraper", "web", "dump"])
   service_account_id = google_service_account.sa[each.value].name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${var.deployer_sa_email}"
@@ -108,6 +108,26 @@ resource "google_storage_bucket_iam_member" "api_reads" {
   member = "serviceAccount:${google_service_account.sa["api"].email}"
 }
 
+resource "google_storage_bucket" "dumps" {
+  project                     = var.project_id
+  name                        = "${var.project_id}-${local.p}-dumps"
+  location                    = var.region
+  uniform_bucket_level_access = true
+  force_destroy               = false
+}
+
+resource "google_storage_bucket_iam_member" "dumps_public_read" {
+  bucket = google_storage_bucket.dumps.name
+  role   = "roles/storage.legacyObjectReader"
+  member = "allUsers"
+}
+
+resource "google_storage_bucket_iam_member" "dump_writes" {
+  bucket = google_storage_bucket.dumps.name
+  role   = "roles/storage.objectUser"
+  member = "serviceAccount:${google_service_account.sa["dump"].email}"
+}
+
 resource "neon_project" "db" {
   name                      = local.p
   region_id                 = var.neon_region
@@ -133,6 +153,7 @@ resource "google_secret_manager_secret_iam_member" "database_url" {
   for_each = {
     api      = "serviceAccount:${google_service_account.sa["api"].email}"
     worker   = "serviceAccount:${google_service_account.sa["worker"].email}"
+    dump     = "serviceAccount:${google_service_account.sa["dump"].email}"
     deployer = "serviceAccount:${var.deployer_sa_email}"
   }
   secret_id = google_secret_manager_secret.database_url.id
@@ -235,8 +256,10 @@ module "web" {
   public                = true
   memory                = "256Mi"
   env = {
-    API_URL  = module.api.uri
-    API_HOST = trimprefix(module.api.uri, "https://")
+    API_URL    = module.api.uri
+    API_HOST   = trimprefix(module.api.uri, "https://")
+    DUMPS_URL  = "https://storage.googleapis.com/${google_storage_bucket.dumps.name}"
+    DUMPS_HOST = "storage.googleapis.com"
   }
   depends_on = [google_project_service.apis]
 }
@@ -399,4 +422,85 @@ resource "google_cloud_scheduler_job" "scraper" {
   }
 
   depends_on = [google_cloud_run_v2_job_iam_member.scheduler_runs_scraper]
+}
+
+resource "google_cloud_run_v2_job" "dump" {
+  name                = "${local.p}-dump"
+  project             = var.project_id
+  location            = var.region
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = google_service_account.sa["dump"].email
+      timeout         = "3600s"
+      max_retries     = 1
+
+      containers {
+        image   = "us-docker.pkg.dev/cloudrun/container/job:latest"
+        command = ["/app/dump"]
+        resources {
+          limits = {
+            cpu    = "1"
+            memory = "1Gi"
+          }
+        }
+        env {
+          name  = "DUMPS_BUCKET"
+          value = google_storage_bucket.dumps.name
+        }
+        env {
+          name = "DATABASE_URL"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.database_url.secret_id
+              version = "latest"
+            }
+          }
+        }
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].template[0].containers[0].image,
+      client,
+      client_version,
+    ]
+  }
+
+  depends_on = [
+    google_project_service.apis,
+    google_secret_manager_secret_iam_member.database_url,
+    google_storage_bucket_iam_member.dump_writes,
+  ]
+}
+
+resource "google_cloud_run_v2_job_iam_member" "scheduler_runs_dump" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_job.dump.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.sa["scheduler"].email}"
+}
+
+resource "google_cloud_scheduler_job" "dump" {
+  project   = var.project_id
+  region    = var.region
+  name      = "${local.p}-dump"
+  schedule  = var.dump_schedule
+  time_zone = "America/Sao_Paulo"
+
+  http_target {
+    http_method = "POST"
+    uri         = "https://run.googleapis.com/v2/projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.dump.name}:run"
+    oauth_token {
+      service_account_email = google_service_account.sa["scheduler"].email
+      scope                 = "https://www.googleapis.com/auth/cloud-platform"
+    }
+  }
+
+  depends_on = [google_cloud_run_v2_job_iam_member.scheduler_runs_dump]
 }

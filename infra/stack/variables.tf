@@ -62,3 +62,9 @@ variable "api_max_instances" {
   type    = number
   default = 3
 }
+
+variable "dump_schedule" {
+  description = "Cron do dump semanal da base (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 4 * * 0"
+}

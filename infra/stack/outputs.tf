@@ -29,3 +29,11 @@ output "dead_letter_subscriptions" {
 output "reindex_job" {
   value = google_cloud_run_v2_job.reindex.name
 }
+
+output "dumps_bucket" {
+  value = google_storage_bucket.dumps.name
+}
+
+output "dump_job" {
+  value = google_cloud_run_v2_job.dump.name
+}
