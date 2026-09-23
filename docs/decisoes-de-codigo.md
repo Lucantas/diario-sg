@@ -93,6 +93,16 @@ decisões de arquitetura, em `adr/`.
 - Consulta própria, sem `ts_headline`: gerar trecho destacado para 10 mil
   atos custaria segundos e a exportação leva o corpo inteiro.
 
+## RSS
+
+- O feed ordena por data (edição mais recente primeiro), não por
+  relevância: leitor de RSS espera novidade no topo.
+- O `guid` do item é `diario-sg:<edição>:<posição>`, não o `id` do ato:
+  o `id` muda a cada reindexação e o leitor mostraria atos antigos como
+  novos. Só muda se a segmentação daquela edição mudar.
+- 50 itens e `Cache-Control` de 15 minutos: leitores consultam a cada
+  poucos minutos e não precisam rodar a busca toda vez.
+
 ## Dump da base
 
 - CSV comum (vírgula, UTF-8 sem BOM, gzip) no dump, CSV de planilha
