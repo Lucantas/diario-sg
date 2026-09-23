@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex dump reports close-report ingest run-api run-worker run-scraper run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -34,6 +34,13 @@ reports: ## Lista reportes de erro enviados pelo site: make reports [STATUS=aber
 close-report: ## Fecha um reporte: make close-report ID=<id> AS=resolvido|descartado
 	@test -n "$(ID)" -a -n "$(AS)" || (echo "uso: make close-report ID=<id> AS=resolvido|descartado"; exit 2)
 	cd services/api && go run ./cmd/reports -close "$(ID)" -as "$(AS)"
+
+keys: ## Lista as chaves do MCP com o uso dos últimos 30 dias
+	cd services/api && go run ./cmd/keys
+
+revoke-key: ## Revoga uma chave do MCP pelo prefixo que aparece no log: make revoke-key PREFIX=<8 caracteres>
+	@test -n "$(PREFIX)" || (echo "uso: make revoke-key PREFIX=<8 caracteres>"; exit 2)
+	cd services/api && go run ./cmd/keys -revoke "$(PREFIX)"
 
 ingest: ## Ingere um PDF baixado manualmente: make ingest FILE=edicao.pdf DATE=AAAA-MM-DD [EDITION=n]
 	@test -n "$(FILE)" -a -n "$(DATE)" || (echo "uso: make ingest FILE=caminho.pdf DATE=AAAA-MM-DD [EDITION=n]"; exit 2)

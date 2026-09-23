@@ -114,6 +114,8 @@ make reindex FROM=2020-01-01 TO=2026-12-31   # reprocessa edições já indexada
 make dump DUMPS_BUCKET=diario-dumps          # publica o dump da base no emulador (página em /dados)
 make reports                                 # reportes de erro abertos (STATUS=resolvido|descartado para os fechados)
 make close-report ID=<id> AS=resolvido       # fecha um reporte (ou AS=descartado)
+make keys                                    # chaves do MCP com o uso dos últimos 30 dias
+make revoke-key PREFIX=<prefixo>             # revoga uma chave pelo prefixo que aparece no log
 ```
 
 Testes: `make test` (unitários) e `make test-integration` (Postgres real, num banco

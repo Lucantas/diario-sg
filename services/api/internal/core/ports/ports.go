@@ -93,6 +93,8 @@ type APIKeyRepository interface {
 	FindActive(ctx context.Context, hash string) (domain.APIKey, error)
 	Revoke(ctx context.Context, hash string) error
 	RecordUse(ctx context.Context, keyID, tool string) error
+	List(ctx context.Context) ([]domain.APIKey, error)
+	RevokeByPrefix(ctx context.Context, prefix string) error
 }
 
 type CoverageReader interface {
