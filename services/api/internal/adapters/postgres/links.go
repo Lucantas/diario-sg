@@ -28,36 +28,36 @@ func NewLinkRepo(db *sql.DB) *LinkRepo { return &LinkRepo{db: db} }
 
 const weakestCertainty = `(ARRAY['fraca', 'forte', 'exata'])[min(array_position(ARRAY['fraca', 'forte', 'exata'], l.certainty))]`
 
-func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key string) (domain.EntityReport, error) {
+func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key, source string) (domain.EntityReport, error) {
 	report := domain.EntityReport{Kind: kind, Key: key, CountByType: map[domain.ActType]int{}}
 	var entityID, certainty string
 	err := r.db.QueryRowContext(ctx, `
-		SELECT e.id, `+weakestCertainty+`
-		FROM entities e JOIN entity_links l ON l.entity_id = e.id AND l.record_kind = $3
+		SELECT e.id, `+weakestCertainty+`, count(DISTINCT l.source)
+		FROM entities e JOIN entity_links l ON l.entity_id = e.id AND l.record_kind = $3 AND ($4 = '' OR l.source = $4)
 		WHERE e.kind = $1 AND e.key = $2
-		GROUP BY e.id`, string(kind), key, domain.RecordAct).Scan(&entityID, &certainty)
+		GROUP BY e.id`, string(kind), key, domain.RecordAct, source).Scan(&entityID, &certainty, &report.Sources)
 	if errors.Is(err, sql.ErrNoRows) {
 		return report, nil
 	}
 	if err != nil {
 		return report, err
 	}
-	report.Certainty = domain.Certainty(certainty)
-	if err := r.linkedActs(ctx, entityID, &report); err != nil {
+	report.Certainty = domain.ReportCertainty(kind, domain.Certainty(certainty), report.Sources)
+	if err := r.linkedActs(ctx, entityID, source, &report); err != nil {
 		return report, err
 	}
-	if err := r.linkedTypes(ctx, entityID, &report); err != nil {
+	if err := r.linkedTypes(ctx, entityID, source, &report); err != nil {
 		return report, err
 	}
 	err = r.db.QueryRowContext(ctx, `
 		SELECT coalesce(sum(v.normalized::bigint), 0)
 		FROM entity_links l JOIN act_entities v ON v.act_id = l.record_id::uuid AND v.kind = 'valor'
-		WHERE l.entity_id = $1 AND l.record_kind = $2`,
-		entityID, domain.RecordAct).Scan(&report.TotalCents)
+		WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($3 = '' OR l.source = $3)`,
+		entityID, domain.RecordAct, source).Scan(&report.TotalCents)
 	return report, err
 }
 
-func (r *LinkRepo) linkedActs(ctx context.Context, entityID string, report *domain.EntityReport) error {
+func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
 		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
@@ -65,9 +65,9 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID string, report *doma
 		FROM entity_links l
 		JOIN acts a ON a.id = l.record_id::uuid
 		JOIN gazettes g ON g.id = a.gazette_id
-		WHERE l.entity_id = $1 AND l.record_kind = $2
+		WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($5 = '' OR l.source = $5)
 		ORDER BY g.published_at DESC, a.position
-		LIMIT $4`, entityID, domain.RecordAct, snippetRadius, reportActsLimit)
+		LIMIT $4`, entityID, domain.RecordAct, snippetRadius, reportActsLimit, source)
 	if err != nil {
 		return err
 	}
@@ -89,12 +89,12 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID string, report *doma
 	return markTitleOnly(ctx, r.db, report.Acts)
 }
 
-func (r *LinkRepo) linkedTypes(ctx context.Context, entityID string, report *domain.EntityReport) error {
+func (r *LinkRepo) linkedTypes(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.type, count(*)
 		FROM entity_links l JOIN acts a ON a.id = l.record_id::uuid
-		WHERE l.entity_id = $1 AND l.record_kind = $2
-		GROUP BY a.type`, entityID, domain.RecordAct)
+		WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($3 = '' OR l.source = $3)
+		GROUP BY a.type`, entityID, domain.RecordAct, source)
 	if err != nil {
 		return err
 	}

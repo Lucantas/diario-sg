@@ -20,13 +20,13 @@ const KEYS = { q: "q", source: "fonte", type: "tipo", organ: "orgao", from: "de"
 export function stateFromQuery(search: string): SearchState {
   const p = new URLSearchParams(search);
   const type = p.get(KEYS.type) ?? "";
-  const source = p.get(KEYS.source) ?? "";
+  const source = asSource(p.get(KEYS.source) ?? "");
   const page = Number(p.get("pagina"));
   return {
     q: p.get(KEYS.q) ?? "",
-    source: source in SOURCE_LABEL ? (source as Source) : "",
-    type: type in TYPE_LABEL ? (type as ActType) : "",
-    organ: p.get(KEYS.organ) ?? "",
+    source,
+    type: Object.prototype.hasOwnProperty.call(TYPE_LABEL, type) ? (type as ActType) : "",
+    organ: source === "diario_camara" ? "" : p.get(KEYS.organ) ?? "",
     from: p.get(KEYS.from) ?? "",
     to: p.get(KEYS.to) ?? "",
     min: p.get(KEYS.min) ?? "",
@@ -35,8 +35,12 @@ export function stateFromQuery(search: string): SearchState {
   };
 }
 
+function asSource(value: string): Source | "" {
+  return Object.prototype.hasOwnProperty.call(SOURCE_LABEL, value) ? (value as Source) : "";
+}
+
 export function withSource(s: SearchState, value: string): SearchState {
-  const source = value in SOURCE_LABEL ? (value as Source) : "";
+  const source = asSource(value);
   return { ...s, source, organ: source === "diario_camara" ? "" : s.organ, page: 1 };
 }
 

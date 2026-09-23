@@ -9,9 +9,10 @@ import (
 )
 
 type Regex struct {
-	pageHeader *regexp.Regexp
-	lineNoise  *regexp.Regexp
-	editionRes []*regexp.Regexp
+	pageHeader    []*regexp.Regexp
+	lineNoise     *regexp.Regexp
+	editionRes    []*regexp.Regexp
+	withoutOrgans bool
 }
 
 func New() Regex { return Regex{editionRes: editionNumberRes} }
@@ -35,7 +36,7 @@ func (r Regex) Parse(text string) []domain.Act {
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
 		switch {
-		case isOrganSection(lines, i):
+		case !r.withoutOrgans && isOrganSection(lines, i):
 			flush()
 			organ = sectionOrgan(l.text, organ)
 		case isContinuation(l.text):

@@ -65,6 +65,7 @@ type readOutput struct {
 type entityInput struct {
 	Kind   string `json:"tipo,omitempty" jsonschema:"cnpj (padrão), processo ou contrato"`
 	Number string `json:"numero" jsonschema:"o CNPJ, o número do processo (como 06.10981/2025-7 ou 8421/2023) ou do contrato (como 55/2026 ou 30/FMS/2011)"`
+	Diario string `json:"diario,omitempty" jsonschema:"diario_prefeitura ou diario_camara; vazio procura nos dois"`
 }
 
 type entityOutput struct {
@@ -234,7 +235,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	if !domain.IsLinkedKind(kind) {
 		return nil, entityOutput{}, domain.ErrInvalidInput
 	}
-	report, err := s.getEntity.Execute(ctx, kind, in.Number)
+	report, err := s.getEntity.Execute(ctx, kind, in.Number, in.Diario)
 	if err != nil {
 		return nil, entityOutput{}, err
 	}
@@ -243,7 +244,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		return nil, entityOutput{}, err
 	}
 	out := entityOutput{Kind: string(report.Kind), Key: report.Key, Certainty: string(report.Certainty),
-		Warning: certaintyWarning(report.Certainty), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
+		Warning: certaintyWarning(report), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
 		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)), Coverage: cov}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
@@ -254,11 +255,15 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	return nil, out, nil
 }
 
-func certaintyWarning(c domain.Certainty) string {
-	if c != domain.CertaintyWeak {
-		return ""
+func certaintyWarning(r domain.EntityReport) string {
+	switch {
+	case r.Kind != domain.EntityCNPJ && r.Sources > 1:
+		return "Este número aparece no Diário da Prefeitura e no da Câmara, que numeram processos e contratos cada um à sua maneira: " +
+			"podem ser registros diferentes. Use diario para ver só um dos dois e confira o campo diario de cada ato."
+	case r.Certainty == domain.CertaintyWeak:
+		return "Número de contrato sem a sigla do órgão: estes atos podem ser de contratos diferentes, de órgãos diferentes, com o mesmo número e ano. Confira o órgão em cada ato."
 	}
-	return "Número de contrato sem a sigla do órgão: estes atos podem ser de contratos diferentes, de órgãos diferentes, com o mesmo número e ano. Confira o órgão em cada ato."
+	return ""
 }
 
 func (s *server) sources(ctx context.Context, _ *sdk.CallToolRequest, _ sourcesInput) (*sdk.CallToolResult, sourcesOutput, error) {

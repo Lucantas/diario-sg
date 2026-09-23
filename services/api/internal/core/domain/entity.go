@@ -33,6 +33,7 @@ type EntityReport struct {
 	Kind        EntityKind
 	Key         string
 	Certainty   Certainty
+	Sources     int
 	TotalActs   int
 	CountByType map[ActType]int
 	TotalCents  int64
