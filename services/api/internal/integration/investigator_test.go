@@ -22,6 +22,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 	httpapi "github.com/seu-usuario/diario-sg/services/api/internal/presentation/http"
+	mcpapi "github.com/seu-usuario/diario-sg/services/api/internal/presentation/mcp"
 	"github.com/seu-usuario/diario-sg/services/api/migrations"
 )
 
@@ -52,7 +53,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	if _, err := postgres.Migrate(ctx, db, migrations.FS); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, `TRUNCATE gazettes, subscriptions CASCADE`); err != nil {
+	if _, err := db.ExecContext(ctx, `TRUNCATE gazettes, subscriptions, api_keys CASCADE`); err != nil {
 		t.Fatal(err)
 	}
 	gaz, acts := postgres.NewGazetteRepo(db), postgres.NewActRepo(db)
@@ -62,10 +63,15 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	if err := idx.Execute(ctx, in); err != nil {
 		t.Fatal(err)
 	}
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
+	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: usecase.NewSearchActs(acts), Read: usecase.NewReadAct(gaz, acts),
+		Company: usecase.NewGetCompany(acts), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
+		PublicWebURL: "https://web.exemplo", Log: log})
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
 		Gazette: usecase.NewGetGazette(gaz, acts), Reports: usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
 		Export: usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), PublicWebURL: "https://web.exemplo",
-		Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
+		Keys: keys, MCP: mcpHandler, Log: log}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
 	return srv, db

@@ -14,6 +14,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 	httpapi "github.com/seu-usuario/diario-sg/services/api/internal/presentation/http"
+	mcpapi "github.com/seu-usuario/diario-sg/services/api/internal/presentation/mcp"
 )
 
 func main() {
@@ -46,16 +47,24 @@ func run(l *slog.Logger) error {
 	acts := postgres.NewActRepo(db)
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
 
+	search := usecase.NewSearchActs(acts)
+	company := usecase.NewGetCompany(acts)
+	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
+	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Company: company,
+		Coverage: usecase.NewSourceCoverage(gazettes), Keys: keys, PublicWebURL: cfg.PublicWebURL, Log: l})
+
 	api := &httpapi.API{
-		Search:        usecase.NewSearchActs(acts),
+		Search:        search,
 		Gazette:       usecase.NewGetGazette(gazettes, acts),
-		Company:       usecase.NewGetCompany(acts),
+		Company:       company,
 		Stats:         usecase.NewActStats(acts),
 		Organs:        usecase.NewListOrgans(acts),
 		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Export:        usecase.NewExportActs(acts),
 		Feed:          usecase.NewActFeed(acts),
 		Reports:       usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
+		Keys:          keys,
+		MCP:           mcpHandler,
 		PublicWebURL:  cfg.PublicWebURL,
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), notifier),
 		Log:           l,

@@ -149,6 +149,8 @@ func writeError(w http.ResponseWriter, err error, log *slog.Logger) {
 		errors.Is(err, domain.ErrInvalidFilter), errors.Is(err, domain.ErrInvalidInput),
 		errors.Is(err, domain.ErrInvalidCNPJ), errors.Is(err, domain.ErrInvalidReport):
 		status, msg = http.StatusBadRequest, err.Error()
+	case errors.Is(err, domain.ErrUnauthorized):
+		status, msg = http.StatusUnauthorized, err.Error()
 	case errors.Is(err, domain.ErrSubscriptionCancelled):
 		status, msg = http.StatusConflict, err.Error()
 	default:
