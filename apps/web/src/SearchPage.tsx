@@ -213,6 +213,7 @@ export function SearchPage() {
 
       <footer className="site-footer">
         <a href="/dados">Dados abertos: a base inteira para baixar</a>
+        <a href="/mcp">Pergunte pela sua IA (MCP)</a>
       </footer>
     </main>
   );
