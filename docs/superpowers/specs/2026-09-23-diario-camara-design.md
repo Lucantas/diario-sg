@@ -49,6 +49,10 @@ exportação, dump e MCP do Diário da Prefeitura.
   `(source, published_at)`.
 - `link_diario_acts(gazette)` passa a gravar a fonte da edição em
   `entity_links.source`.
+- A Prefeitura e a Câmara numeram processos e contratos cada uma à sua
+  maneira. A chave da entidade não muda, mas o relatório de uma entidade
+  (fora CNPJ) com ligações nos dois diários tem certeza `fraca`, e a
+  `entidade` do MCP aceita `diario` para ver só um.
 
 ### Domínio (API)
 
@@ -56,13 +60,16 @@ exportação, dump e MCP do Diário da Prefeitura.
   `domain.SourceName` ("Diário Oficial do Município de São Gonçalo" /
   "Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo").
 - `Gazette.Source`, `ActHit.Source`, `ActFilter.Source`.
-- `Coverage` passa a ser por fonte: `[]SourceCoverage` com fonte, período,
-  edições, atos, última indexação e última coleta.
+- `Coverage` ganha a fonte, e o leitor devolve `[]Coverage`, uma por
+  fonte, com período, edições, atos, última indexação e última coleta.
 
 ### Parser
 
-- `parser.ForSource(source) Regex`: a Câmara soma o seu ruído de página e
-  o seu padrão de número de edição aos da Prefeitura.
+- `parser.ForSource(source) Regex`: a Câmara soma o seu ruído de página ao
+  da Prefeitura e usa o seu próprio padrão de número de edição. Cada linha
+  do cabeçalho sai no máximo uma vez, e só do topo da página, para não
+  levar a assinatura "São Gonçalo, <data>" de um ato que começa a página.
+  O parser da Câmara não detecta órgão.
 - `TERMO DE HOMOLOGAÇÃO` e `TERMO DE ADJUDICAÇÃO` viram `licitacao` nas
   duas fontes.
 - `usecase.IndexGazette` e `ReindexGazettes` recebem um
@@ -73,8 +80,11 @@ exportação, dump e MCP do Diário da Prefeitura.
 - Variável `SOURCE` (`diario_prefeitura`, padrão, ou `diario_camara`); a
   `SOURCE_URL` padrão depende dela.
 - Adaptador `source/cmsg`: `ListEditions` faz `HEAD` em cada dia do
-  período, com 2 s entre pedidos; 200 é edição, 404 é dia sem edição,
-  outro status é erro. `Download` faz `GET`.
+  período, com 2 s entre pedidos; 200 é edição, 404 é dia sem edição.
+  Outro status ou erro de rede ganha mais duas tentativas (10 s e 30 s
+  depois); se ainda falhar, o dia segue como candidato e a falha aparece
+  no download, sem derrubar o resto da coleta. `Download` faz `GET`.
+- `SOURCE_URL` com o endereço da outra fonte é recusada.
 - `Edition.Source`; o caminho no bucket da Câmara segue a ADR 0005:
   `raw/diario_camara/AAAA/MM/DD/AAAA-MM-DD.pdf`. O da Prefeitura não muda.
 - `gazette.fetched.v1` ganha `source` opcional (ausente é a Prefeitura);
@@ -84,7 +94,8 @@ exportação, dump e MCP do Diário da Prefeitura.
 
 ### API, MCP e site
 
-- `GET /v1/acts` e a exportação aceitam `source`; `organ` continua só da
+- `GET /v1/acts` e a exportação aceitam `source` (no CSV, a coluna `fonte`
+  vai no fim, para não deslocar as outras); `organ` continua só da
   Prefeitura. Atos e edições trazem `source` e `source_name`.
 - MCP (o campo se chama `diario`, porque `fontes` já é a lista de links
   de prova de cada ato):
