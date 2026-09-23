@@ -1,8 +1,9 @@
-import { ActType } from "./api";
-import { TYPE_LABEL } from "./types";
+import { ActType, Source } from "./api";
+import { SOURCE_LABEL, TYPE_LABEL } from "./types";
 
 export interface SearchState {
   q: string;
+  source: Source | "";
   type: ActType | "";
   organ: string;
   from: string;
@@ -12,16 +13,18 @@ export interface SearchState {
   page: number;
 }
 
-export const EMPTY_STATE: SearchState = { q: "", type: "", organ: "", from: "", to: "", min: "", max: "", page: 1 };
+export const EMPTY_STATE: SearchState = { q: "", source: "", type: "", organ: "", from: "", to: "", min: "", max: "", page: 1 };
 
-const KEYS = { q: "q", type: "tipo", organ: "orgao", from: "de", to: "ate", min: "valor_min", max: "valor_max" } as const;
+const KEYS = { q: "q", source: "fonte", type: "tipo", organ: "orgao", from: "de", to: "ate", min: "valor_min", max: "valor_max" } as const;
 
 export function stateFromQuery(search: string): SearchState {
   const p = new URLSearchParams(search);
   const type = p.get(KEYS.type) ?? "";
+  const source = p.get(KEYS.source) ?? "";
   const page = Number(p.get("pagina"));
   return {
     q: p.get(KEYS.q) ?? "",
+    source: source in SOURCE_LABEL ? (source as Source) : "",
     type: type in TYPE_LABEL ? (type as ActType) : "",
     organ: p.get(KEYS.organ) ?? "",
     from: p.get(KEYS.from) ?? "",
@@ -30,6 +33,11 @@ export function stateFromQuery(search: string): SearchState {
     max: p.get(KEYS.max) ?? "",
     page: Number.isInteger(page) && page > 1 ? page : 1,
   };
+}
+
+export function withSource(s: SearchState, value: string): SearchState {
+  const source = value in SOURCE_LABEL ? (value as Source) : "";
+  return { ...s, source, organ: source === "diario_camara" ? "" : s.organ, page: 1 };
 }
 
 export function queryFromState(s: SearchState): string {
@@ -49,11 +57,12 @@ export function parseBRL(text: string): string | null {
 }
 
 export function hasSearch(s: SearchState) {
-  return Boolean(s.q || s.type || s.organ || s.from || s.to || s.min || s.max);
+  return Boolean(s.q || s.source || s.type || s.organ || s.from || s.to || s.min || s.max);
 }
 
 export function apiParams(s: SearchState, limit: number): URLSearchParams | null {
   const p = new URLSearchParams({ q: s.q, limit: String(limit), offset: String((s.page - 1) * limit) });
+  if (s.source) p.set("source", s.source);
   if (s.type) p.set("type", s.type);
   if (s.organ) p.set("organ", s.organ);
   if (s.from) p.set("from", s.from);

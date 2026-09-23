@@ -16,7 +16,9 @@ export function Result({ hit }: { hit: ActHit }) {
     <li className="result">
       <p className="meta">
         <span className={`tag tag-${hit.type}`}>{TYPE_LABEL[hit.type]}</span>
-        <a href={hit.source_url + pageFragment(hit)} target="_blank" rel="noopener" title="Abrir o PDF no site da prefeitura">
+        {hit.source === "diario_camara" && <span className="source-badge">Câmara</span>}
+        <a href={hit.source_url + pageFragment(hit)} target="_blank" rel="noopener"
+          title={hit.source === "diario_camara" ? "Abrir o PDF no site da Câmara" : "Abrir o PDF no site da prefeitura"}>
           Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {date}{pages && `, ${pages}`}
         </a>
         <a href={archivedPdfUrl("", hit)} target="_blank" rel="noopener" title="Abrir a cópia do PDF guardada pelo Diário SG">

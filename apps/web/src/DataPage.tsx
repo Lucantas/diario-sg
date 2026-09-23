@@ -39,7 +39,7 @@ export function DataPage() {
         <p className="eyebrow">Dados abertos</p>
         <h1>A base inteira, para baixar.</h1>
         <p className="lede">
-          Toda semana o Diário SG publica tudo o que extraiu do Diário Oficial: edições, atos com o texto
+          Toda semana o Diário SG publica tudo o que extraiu dos Diários Oficiais da Prefeitura e da Câmara: edições, atos com o texto
           completo e os CNPJs e valores encontrados. Em CSV compactado, para abrir em qualquer ferramenta.
         </p>
       </header>

@@ -7,6 +7,7 @@ const hit: ActHit = {
   organ_name: "", snippet: "", edition_number: "1771", published_at: "2026-09-18", is_extra: false,
   source_url: "https://do.pmsg.rj.gov.br/diario/2026_09_18.pdf", cnpjs: [], values_cents: [],
   page_start: 3, page_end: 4, pdf_sha256: "ab".repeat(32), warnings: [],
+  source: "diario_prefeitura", source_name: "Diário Oficial do Município de São Gonçalo",
 };
 const noPage = { ...hit, page_start: null, page_end: null };
 
@@ -51,6 +52,22 @@ describe("formatCitation", () => {
     expect(text).toContain("ed. s/n (extra), 18 set. 2026. PORTARIA");
     expect(text).toContain("<https://do.pmsg.rj.gov.br/diario/2026_09_18.pdf>");
     expect(text).not.toContain("#page");
+  });
+
+  it("cita a Câmara como autora no diário da Câmara", () => {
+    const camara: ActHit = {
+      ...hit, gazette_id: "g2", title: "PORTARIA Nº 156/2025", edition_number: "138", published_at: "2025-11-03",
+      source: "diario_camara", source_name: "Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo",
+      source_url: "https://www.cmsg.rj.gov.br/diariooficialeletronico/PUBLICACOES/2025-11-03.pdf", page_start: 1, page_end: 1,
+      pdf_sha256: "cd".repeat(32),
+    };
+
+    expect(formatCitation(camara, "https://diario.exemplo", accessed)).toBe(
+      "SÃO GONÇALO (RJ). Câmara Municipal. Diário Oficial Eletrônico da Câmara Municipal de São Gonçalo, ed. 138, 3 nov. 2025, p. 1. " +
+      "PORTARIA Nº 156/2025. Disponível em: <https://www.cmsg.rj.gov.br/diariooficialeletronico/PUBLICACOES/2025-11-03.pdf#page=1>. " +
+      "Cópia arquivada em: <https://diario.exemplo/api/v1/gazettes/g2/pdf#page=1>. " +
+      `SHA-256 do PDF: ${"cd".repeat(32)}. Acesso em: 22 set. 2026.`,
+    );
   });
 
   it("não duplica o ponto de título que já termina em ponto", () => {

@@ -3,9 +3,9 @@ import { IssuedKey, issueMcpKey, revokeMcpKey } from "./api";
 import { mcpSnippets } from "./mcp";
 
 const TOOLS: [string, string][] = [
-  ["buscar_atos", "busca no Diário com os mesmos filtros do site"],
+  ["buscar_atos", "busca nos Diários da Prefeitura e da Câmara com os mesmos filtros do site"],
   ["ler_ato", "texto completo de um ato, com citação pronta"],
-  ["entidade", "atos que citam um CNPJ, com contagem por tipo e soma dos valores citados"],
+  ["entidade", "atos que citam um CNPJ, processo ou contrato, com contagem por tipo e soma dos valores citados"],
   ["fontes", "período coberto, última coleta e lacunas conhecidas"],
 ];
 
