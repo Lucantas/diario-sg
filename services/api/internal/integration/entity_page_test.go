@@ -106,6 +106,20 @@ func TestProcessReportGroupsOrgansPhasesAndRelated(t *testing.T) {
 	if _, self := related["processo:28082022"]; self {
 		t.Fatal("a própria entidade não entra em citados junto")
 	}
+	if !anyActMentions(report.Acts, domain.EntityContrato, "30/SEMAD/2023") {
+		t.Fatalf("nenhum ato traz a menção ao contrato 30/SEMAD/2023: %+v", report.Acts)
+	}
+}
+
+func anyActMentions(acts []domain.ActHit, kind domain.EntityKind, key string) bool {
+	for _, a := range acts {
+		for _, m := range a.Mentions {
+			if m.Kind == kind && m.Key == key {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func TestEntityReportMergesOrganVariantsIntoPrincipal(t *testing.T) {
