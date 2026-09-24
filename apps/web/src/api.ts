@@ -6,6 +6,19 @@ export type ActType =
 
 export type Source = "diario_prefeitura" | "diario_camara";
 
+export type Phase =
+  | "licitacao" | "homologacao" | "ata_registro_precos" | "dispensa" | "contrato"
+  | "fiscal" | "aditivo" | "ajuste_contas" | "rescisao" | "outro";
+
+export type EntityKind = "processo" | "contrato";
+
+export interface Mention {
+  kind: EntityKind;
+  key: string;
+  label: string;
+  slug: string;
+}
+
 export interface ActHit {
   id: string;
   gazette_id: string;
@@ -27,6 +40,8 @@ export interface ActHit {
   cnpjs: string[];
   values_cents: number[];
   warnings: string[];
+  mentions: Mention[];
+  phase?: Phase;
 }
 
 export interface SearchResponse {
@@ -46,6 +61,34 @@ export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;
   count_by_type: Partial<Record<ActType, number>>;
+  acts: ActHit[];
+}
+
+export interface OrganCount {
+  organ: string;
+  organ_name: string;
+  acts: number;
+}
+
+export interface Related {
+  kind: EntityKind | "cnpj";
+  key: string;
+  label: string;
+  slug: string;
+  acts: number;
+}
+
+export interface EntityResponse {
+  kind: EntityKind;
+  key: string;
+  label: string;
+  certainty: string;
+  diarios: number;
+  total_acts: number;
+  count_by_phase: Partial<Record<Phase, number>>;
+  organs: OrganCount[];
+  related: Related[];
+  warnings: string[] | null;
   acts: ActHit[];
 }
 
@@ -69,6 +112,10 @@ export function listOrgans() {
 
 export function getCompany(cnpj: string) {
   return request<CompanyResponse>(`/v1/entities/cnpj/${encodeURIComponent(cnpj)}`);
+}
+
+export function getEntity(kind: EntityKind, slug: string) {
+  return request<EntityResponse>(`/v1/entities/${kind}/${encodeURIComponent(slug)}`);
 }
 
 export function subscribe(email: string, query: string) {

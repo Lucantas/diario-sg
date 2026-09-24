@@ -6,7 +6,7 @@ const hit: ActHit = {
   id: "a1", gazette_id: "g1", position: 0, type: "portaria", title: "PORTARIA Nº 10/2026", organ: "SEMAD",
   organ_name: "", snippet: "", edition_number: "1771", published_at: "2026-09-18", is_extra: false,
   source_url: "https://do.pmsg.rj.gov.br/diario/2026_09_18.pdf", cnpjs: [], values_cents: [],
-  page_start: 3, page_end: 4, pdf_sha256: "ab".repeat(32), warnings: [],
+  page_start: 3, page_end: 4, pdf_sha256: "ab".repeat(32), warnings: [], mentions: [],
   source: "diario_prefeitura", source_name: "Diário Oficial do Município de São Gonçalo",
 };
 const noPage = { ...hit, page_start: null, page_end: null };

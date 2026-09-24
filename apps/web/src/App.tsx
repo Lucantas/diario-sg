@@ -2,6 +2,8 @@ import { useState } from "react";
 import { confirmSubscription, unsubscribe } from "./api";
 import { CompanyPage } from "./CompanyPage";
 import { DataPage } from "./DataPage";
+import { EntityPage } from "./EntityPage";
+import { parseEntityPath } from "./entity";
 import { McpPage } from "./McpPage";
 import { SearchPage } from "./SearchPage";
 
@@ -12,6 +14,8 @@ export function App() {
   if (path === "/cancelar") return <TokenPage kind="cancel" token={token} />;
   if (path === "/dados") return <DataPage />;
   if (path === "/mcp") return <McpPage />;
+  const entity = parseEntityPath(path);
+  if (entity) return <EntityPage kind={entity.kind} slug={entity.slug} />;
   const company = path.match(/^\/empresa\/([\d./-]+)$/);
   if (company) return <CompanyPage cnpj={decodeURIComponent(company[1])} />;
   return <SearchPage />;

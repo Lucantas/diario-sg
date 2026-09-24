@@ -67,12 +67,23 @@ button:disabled { opacity: 0.6; cursor: progress; }
 }
 .types button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 
-.organ-filter { display: flex; align-items: center; gap: 0.6rem; margin: -1rem 0 2rem; }
+.organ-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem 0.4rem; margin: -1rem 0 2rem; }
 .organ-filter label { color: var(--slate); font-size: 0.9rem; }
 .organ-filter select {
   flex: 1; min-width: 0; font: 400 0.95rem var(--sans); padding: 0.45rem 0.6rem;
   border: 1px solid var(--rule); border-radius: 6px; background: #fff; color: var(--ink);
 }
+.organ-filter button {
+  font-weight: 400; font-size: 0.9rem; padding: 0.35rem 0.8rem;
+  border: 1px solid var(--rule); background: transparent; color: var(--ink); border-radius: 999px;
+}
+.organ-filter button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+.results h2, .related h2 { font-size: 1.1rem; margin: 2rem 0 0.75rem; }
+.related { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); }
+.related ul { list-style: none; margin: 0; padding: 0; }
+.related li { padding: 0.6rem 0; border-top: 1px solid var(--rule); }
+.related li:first-child { border-top: 0; }
 .meta { flex-wrap: wrap; }
 .organ { border-left: 1px solid var(--rule); padding-left: 0.6rem; }
 
@@ -141,6 +152,10 @@ a { color: var(--action); }
 .cnpjs { color: var(--slate); font-size: 0.875rem; margin: 0.5rem 0 0; }
 .cnpjs a { margin-right: 0.6rem; }
 a.cnpj { text-decoration-style: dotted; text-underline-offset: 0.15em; }
+.phase { color: var(--slate); font-weight: 600; border-left: 1px solid var(--rule); padding-left: 0.6rem; }
+.mentions { color: var(--slate); font-size: 0.875rem; margin: 0.5rem 0 0; }
+.mentions a { margin-right: 0.6rem; }
+a.mention { text-decoration-style: dotted; text-underline-offset: 0.15em; }
 .link-button {
   font: 400 0.875rem var(--sans); padding: 0; margin-top: 0.6rem;
   border: 0; background: none; color: var(--action);

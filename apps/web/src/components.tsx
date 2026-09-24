@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
 import { ActHit } from "./api";
 import { archivedPdfUrl, formatCitation, pageFragment, pageLabel } from "./citation";
+import { entityPath } from "./entity";
 import { ReportForm } from "./ReportForm";
-import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
+import { PHASE_LABEL, TYPE_LABEL, formatCents, formatCnpj } from "./types";
 import { warningText } from "./warnings";
 
 type Panel = "cite" | "report" | null;
@@ -16,6 +17,7 @@ export function Result({ hit }: { hit: ActHit }) {
     <li className="result">
       <p className="meta">
         <span className={`tag tag-${hit.type}`}>{TYPE_LABEL[hit.type]}</span>
+        {hit.phase && <span className="phase">{PHASE_LABEL[hit.phase]}</span>}
         {hit.source === "diario_camara" && <span className="source-badge">Câmara</span>}
         <a href={hit.source_url + pageFragment(hit)} target="_blank" rel="noopener"
           title={hit.source === "diario_camara" ? "Abrir o PDF no site da Câmara" : "Abrir o PDF no site da prefeitura"}>
@@ -39,6 +41,14 @@ export function Result({ hit }: { hit: ActHit }) {
           Empresas citadas:{" "}
           {hit.cnpjs.map((c) => (
             <a key={c} className="cnpj" href={`/empresa/${c}`} title="Ver todos os atos desta empresa">{formatCnpj(c)}</a>
+          ))}
+        </p>
+      )}
+      {hit.mentions.length > 0 && (
+        <p className="mentions">
+          Processos e contratos citados:{" "}
+          {hit.mentions.map((m) => (
+            <a key={`${m.kind}-${m.slug}`} className="mention" href={entityPath(m.kind, m.slug)}>{m.label}</a>
           ))}
         </p>
       )}
