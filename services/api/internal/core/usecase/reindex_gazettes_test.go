@@ -23,7 +23,7 @@ func (s pathStorage) Get(_ context.Context, path string) (io.ReadCloser, error) 
 
 type echoExtractor struct{}
 
-func (echoExtractor) Extract(_ context.Context, r io.Reader) (string, error) {
+func (echoExtractor) Extract(_ context.Context, r io.Reader, _ string) (string, error) {
 	b, err := io.ReadAll(r)
 	return string(b), err
 }

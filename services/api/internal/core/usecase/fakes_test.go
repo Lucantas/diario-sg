@@ -64,7 +64,9 @@ func (memStorage) Get(context.Context, string) (io.ReadCloser, error) {
 
 type fixedExtractor struct{ text string }
 
-func (f fixedExtractor) Extract(context.Context, io.Reader) (string, error) { return f.text, nil }
+func (f fixedExtractor) Extract(context.Context, io.Reader, string) (string, error) {
+	return f.text, nil
+}
 
 type lineParser struct{ tag string }
 
