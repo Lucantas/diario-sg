@@ -3,11 +3,17 @@
 package integration
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
 
 const processGazette = "ATOS DO PREFEITO\nDECRETO Nº 9/2024\nCita o processo nº 2808/2022 sem órgão.\n" +
@@ -56,5 +62,58 @@ func TestSearchHitsDoNotExposePhase(t *testing.T) {
 	}
 	if strings.Contains(body, `"phase"`) {
 		t.Fatalf("a busca não deve trazer phase (só o relatório de entidade, na Task 4): %s", body)
+	}
+}
+
+func TestProcessReportGroupsOrgansPhasesAndRelated(t *testing.T) {
+	_, db := newEntityServer(t)
+
+	report, err := usecase.NewGetEntity(postgres.NewLinkRepo(db)).
+		Execute(context.Background(), domain.EntityProcesso, "2808-2022", "")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Label != "2808/2022" || report.TotalActs != 6 {
+		t.Fatalf("rótulo e total: %q %d", report.Label, report.TotalActs)
+	}
+	wantOrgans := []domain.OrganCount{{Organ: "SEMAD", Acts: 4}, {Organ: "SEMTRAN", Acts: 1}, {Organ: "", Acts: 1}}
+	if fmt.Sprint(report.Organs) != fmt.Sprint(wantOrgans) {
+		t.Fatalf("órgãos: %+v", report.Organs)
+	}
+	if report.CountByPhase[domain.PhaseLicitacao] != 1 || report.CountByPhase[domain.PhaseHomologacao] != 1 ||
+		report.CountByPhase[domain.PhaseContrato] != 2 || report.CountByPhase[domain.PhaseAditivo] != 1 ||
+		report.CountByPhase[domain.PhaseOutro] != 1 {
+		t.Fatalf("fases: %v", report.CountByPhase)
+	}
+	for _, a := range report.Acts {
+		if a.Phase == "" {
+			t.Fatalf("ato sem fase: %q", a.Title)
+		}
+	}
+	related := map[string]domain.RelatedEntity{}
+	for _, r := range report.Related {
+		related[string(r.Kind)+":"+r.Key] = r
+	}
+	contract, cnpj := related["contrato:30/SEMAD/2023"], related["cnpj:12345678000190"]
+	if contract.Acts != 2 || contract.Label != "30/SEMAD/2023" || cnpj.Acts != 2 || cnpj.Label != "12.345.678/0001-90" {
+		t.Fatalf("citados junto: %+v", report.Related)
+	}
+	if _, self := related["processo:28082022"]; self {
+		t.Fatal("a própria entidade não entra em citados junto")
+	}
+}
+
+func TestProcessReportReturnsUpToThreeHundredActs(t *testing.T) {
+	var b strings.Builder
+	for i := 1; i <= 120; i++ {
+		fmt.Fprintf(&b, "DESPACHO DO SECRETÁRIO\nProcesso nº 4444/2024. Despacho %d.\n", i)
+	}
+	_, db := newServerFor(t, b.String())
+
+	report, err := postgres.NewLinkRepo(db).ReportByKey(context.Background(), domain.EntityProcesso, "44442024", "")
+
+	if err != nil || report.TotalActs != 120 || len(report.Acts) != 120 {
+		t.Fatalf("esperava os 120 atos: total %d, devolvidos %d, %v", report.TotalActs, len(report.Acts), err)
 	}
 }

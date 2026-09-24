@@ -20,5 +20,23 @@ func (uc *GetEntity) Execute(ctx context.Context, kind domain.EntityKind, input,
 	if err != nil {
 		return domain.EntityReport{}, err
 	}
-	return uc.reader.ReportByKey(ctx, kind, key, source)
+	report, err := uc.reader.ReportByKey(ctx, kind, key, source)
+	if err != nil {
+		return report, err
+	}
+	return withPhases(report), nil
+}
+
+func withPhases(r domain.EntityReport) domain.EntityReport {
+	acts := make([]domain.ActHit, len(r.Acts))
+	for i, h := range r.Acts {
+		h.Phase = domain.PhaseOf(h.Type, h.Title)
+		acts[i] = h
+	}
+	r.Acts = acts
+	r.CountByPhase = map[domain.Phase]int{}
+	for _, c := range r.TypeTitleCounts {
+		r.CountByPhase[domain.PhaseOf(c.Type, c.Title)] += c.Acts
+	}
+	return r
 }

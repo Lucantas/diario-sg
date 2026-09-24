@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
@@ -57,5 +58,36 @@ func TestGetEntityPassesTheSourceAndRejectsUnknownOnes(t *testing.T) {
 	}
 	if _, err := uc.Execute(context.Background(), domain.EntityProcesso, "310/2025", "tce"); !errors.Is(err, domain.ErrInvalidInput) {
 		t.Fatalf("fonte desconhecida: %v", err)
+	}
+}
+
+type fakeEntityReader struct{ report domain.EntityReport }
+
+func (f fakeEntityReader) ReportByKey(context.Context, domain.EntityKind, string, string) (domain.EntityReport, error) {
+	return f.report, nil
+}
+
+func TestGetEntityFillsPhases(t *testing.T) {
+	reader := fakeEntityReader{domain.EntityReport{
+		Kind: domain.EntityProcesso,
+		Acts: []domain.ActHit{{Act: domain.Act{Type: domain.ActLicitacao, Title: "HOMOLOGAÇÃO"}}},
+		TypeTitleCounts: []domain.TypeTitleCount{
+			{Type: domain.ActLicitacao, Title: "HOMOLOGAÇÃO", Acts: 2},
+			{Type: domain.ActContrato, Title: "EXTRATO DE DISTRATO DE CONTRATO", Acts: 1},
+			{Type: domain.ActDespacho, Title: "DESPACHO", Acts: 4},
+		},
+	}}
+
+	got, err := NewGetEntity(reader).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Acts[0].Phase != domain.PhaseHomologacao {
+		t.Fatalf("fase do ato: %s", got.Acts[0].Phase)
+	}
+	want := map[domain.Phase]int{domain.PhaseHomologacao: 2, domain.PhaseRescisao: 1, domain.PhaseOutro: 4}
+	if !reflect.DeepEqual(got.CountByPhase, want) {
+		t.Fatalf("contagem por fase: %v", got.CountByPhase)
 	}
 }

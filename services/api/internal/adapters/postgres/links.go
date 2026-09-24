@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sort"
 
 	"github.com/lib/pq"
 
@@ -45,10 +46,18 @@ func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key,
 		return report, err
 	}
 	report.Certainty = domain.ReportCertainty(kind, domain.Certainty(certainty), report.Sources)
-	if err := r.linkedActs(ctx, entityID, source, &report); err != nil {
+	if err := r.linkedActs(ctx, entityID, source, reportActsLimit(kind), &report); err != nil {
 		return report, err
 	}
 	if err := r.linkedTypes(ctx, entityID, source, &report); err != nil {
+		return report, err
+	}
+	if err := r.linkedOrgansAndTitles(ctx, entityID, source, &report); err != nil {
+		return report, err
+	}
+	if kind == domain.EntityCNPJ {
+		report.Label = domain.EntityLabel(kind, key)
+	} else if err := r.labelAndRelated(ctx, entityID, source, &report); err != nil {
 		return report, err
 	}
 	if kind != domain.EntityProcesso {
@@ -64,7 +73,7 @@ func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key,
 	return report, err
 }
 
-func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
+func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, limit int, report *domain.EntityReport) error {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
 		       coalesce(a.modality, ''), coalesce(a.main_value_cents, 0),
@@ -76,7 +85,7 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, repo
 		JOIN gazettes g ON g.id = a.gazette_id
 		WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($5 = '' OR l.source = $5)
 		ORDER BY g.published_at DESC, a.position
-		LIMIT $4`, entityID, domain.RecordAct, snippetRadius, reportActsLimit, source)
+		LIMIT $4`, entityID, domain.RecordAct, snippetRadius, limit, source)
 	if err != nil {
 		return err
 	}
@@ -118,6 +127,136 @@ func (r *LinkRepo) linkedTypes(ctx context.Context, entityID, source string, rep
 		}
 		report.CountByType[domain.ActType(typ)] = n
 		report.TotalActs += n
+	}
+	return rows.Err()
+}
+
+func (r *LinkRepo) linkedOrgansAndTitles(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT coalesce(a.organ, ''), a.type, a.title, count(*)
+		FROM entity_links l JOIN acts a ON a.id = l.record_id::uuid
+		WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($3 = '' OR l.source = $3)
+		GROUP BY 1, 2, 3`, entityID, domain.RecordAct, source)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	organs := map[string]int{}
+	for rows.Next() {
+		var organ, typ, title string
+		var n int
+		if err := rows.Scan(&organ, &typ, &title, &n); err != nil {
+			return err
+		}
+		organs[organ] += n
+		report.TypeTitleCounts = append(report.TypeTitleCounts, domain.TypeTitleCount{Type: domain.ActType(typ), Title: title, Acts: n})
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	report.Organs = sortedOrgans(organs)
+	return nil
+}
+
+func sortedOrgans(m map[string]int) []domain.OrganCount {
+	out := make([]domain.OrganCount, 0, len(m))
+	for o, n := range m {
+		out = append(out, domain.OrganCount{Organ: o, Acts: n})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if (out[i].Organ == "") != (out[j].Organ == "") {
+			return out[j].Organ == ""
+		}
+		if out[i].Acts != out[j].Acts {
+			return out[i].Acts > out[j].Acts
+		}
+		return out[i].Organ < out[j].Organ
+	})
+	return out
+}
+
+func (r *LinkRepo) labelAndRelated(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
+	labels, err := r.labels(ctx, entityID, source)
+	if err != nil {
+		return err
+	}
+	report.Label = labelOr(labels, report.Kind, report.Key)
+	if err := r.linkedRelated(ctx, entityID, source, report); err != nil {
+		return err
+	}
+	for i, rel := range report.Related {
+		report.Related[i].Label = labelOr(labels, rel.Kind, rel.Key)
+	}
+	return nil
+}
+
+func labelOr(labels map[string]string, kind domain.EntityKind, key string) string {
+	if kind == domain.EntityCNPJ {
+		return domain.EntityLabel(kind, key)
+	}
+	if l, ok := labels[string(kind)+":"+key]; ok {
+		return l
+	}
+	return key
+}
+
+func (r *LinkRepo) labels(ctx context.Context, entityID, source string) (map[string]string, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		WITH acts_of AS (
+			SELECT l.record_id::uuid AS act_id FROM entity_links l
+			WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($3 = '' OR l.source = $3)
+		)
+		SELECT DISTINCT ON (v.kind, entity_key(v.kind, v.normalized))
+		       v.kind, entity_key(v.kind, v.normalized), v.value
+		FROM act_entities v JOIN acts_of o ON o.act_id = v.act_id
+		WHERE v.kind IN ('`+string(domain.EntityProcesso)+`', '`+string(domain.EntityContrato)+`')
+		GROUP BY v.kind, entity_key(v.kind, v.normalized), v.value
+		ORDER BY v.kind, entity_key(v.kind, v.normalized), count(*) DESC, v.value`,
+		entityID, domain.RecordAct, source)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	labels := map[string]string{}
+	for rows.Next() {
+		var kind, key, value string
+		if err := rows.Scan(&kind, &key, &value); err != nil {
+			return nil, err
+		}
+		labels[kind+":"+key] = domain.EntityLabel(domain.EntityKind(kind), value)
+	}
+	return labels, rows.Err()
+}
+
+const relatedLimit = 20
+
+func (r *LinkRepo) linkedRelated(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
+	rows, err := r.db.QueryContext(ctx, `
+		WITH acts_of AS (
+			SELECT l.record_id, l.source FROM entity_links l
+			WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($3 = '' OR l.source = $3)
+		), related AS (
+			SELECT e.kind, e.key, count(DISTINCT o.record_id) AS acts,
+			       row_number() OVER (PARTITION BY e.kind ORDER BY count(DISTINCT o.record_id) DESC, e.key) AS rank
+			FROM acts_of o
+			JOIN entity_links lr ON lr.record_kind = $2 AND lr.record_id = o.record_id AND lr.source = o.source
+			JOIN entities e ON e.id = lr.entity_id AND e.id <> $1
+			GROUP BY e.kind, e.key
+		)
+		SELECT kind, key, acts FROM related WHERE rank <= $4 ORDER BY kind, acts DESC, key`,
+		entityID, domain.RecordAct, source, relatedLimit)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var rel domain.RelatedEntity
+		var kind string
+		if err := rows.Scan(&kind, &rel.Key, &rel.Acts); err != nil {
+			return err
+		}
+		rel.Kind = domain.EntityKind(kind)
+		report.Related = append(report.Related, rel)
 	}
 	return rows.Err()
 }

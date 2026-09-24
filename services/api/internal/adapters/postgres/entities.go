@@ -6,11 +6,14 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-const (
-	snippetRadius = 120
+const snippetRadius = 120
 
-	reportActsLimit = 100
-)
+func reportActsLimit(kind domain.EntityKind) int {
+	if kind == domain.EntityCNPJ {
+		return 100
+	}
+	return 300
+}
 
 func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, normalized string) (domain.CompanyReport, error) {
 	report := domain.CompanyReport{CNPJ: normalized, CountByType: map[domain.ActType]int{}}
@@ -23,7 +26,7 @@ func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, no
 		JOIN gazettes g ON g.id = a.gazette_id
 		WHERE e.kind = $1 AND e.normalized = $2
 		ORDER BY g.published_at DESC, a.position
-		LIMIT $4`, string(kind), normalized, snippetRadius, reportActsLimit)
+		LIMIT $4`, string(kind), normalized, snippetRadius, reportActsLimit(kind))
 	if err != nil {
 		return report, err
 	}
