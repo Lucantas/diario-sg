@@ -185,8 +185,16 @@ decisões de arquitetura, em `adr/`.
 - Erro de entrada volta como erro da ferramenta, com a mensagem do
   domínio, para a IA corrigir a chamada; erro interno vira "erro interno"
   e fica no log.
-- A cobertura (período, edições, atos) vai em toda resposta e fica em
-  cache por 5 minutos: a contagem de atos percorre um índice inteiro (~0,27 s na base local).
+- A cobertura (período, edições, atos) fica em cache por 5 minutos: a
+  contagem de atos percorre um índice inteiro (~0,27 s na base local).
+- Para economizar contexto, a cobertura vem na primeira página de
+  `buscar_atos`, na `entidade` e em `fontes`, mas não nas páginas seguintes
+  nem no `ler_ato`. Cada ato traz no máximo 20 valores citados, com
+  `valores_total` ao lado. Um termo de referência chegava a centenas de
+  valores. Com `valor_min` ou `valor_max`, `valores_na_faixa_centavos`
+  mostra quais casaram. O filtro continua casando qualquer valor citado.
+- `alertas_coleta` vai em toda resposta enquanto a última coleta tentada
+  de um diário tiver falha. Antes, a falha só aparecia em `fontes`.
 - Citação ABNT reescrita em Go com o mesmo teste do front: as duas precisam
   continuar iguais.
 

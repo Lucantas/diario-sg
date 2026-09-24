@@ -13,6 +13,7 @@ import (
 const (
 	defaultSearchLimit = 10
 	maxActsPerCall     = 20
+	maxValuesPerAct    = 20
 )
 
 var errInternal = errors.New("erro interno; tente de novo em instantes")
@@ -35,7 +36,8 @@ type searchOutput struct {
 	Limit    int             `json:"limite"`
 	Offset   int             `json:"deslocamento"`
 	Acts     []actSummaryDTO `json:"atos"`
-	Coverage []coverageDTO   `json:"cobertura"`
+	Coverage []coverageDTO   `json:"cobertura,omitempty"`
+	Alerts   []string        `json:"alertas_coleta,omitempty"`
 }
 
 type readInput struct {
@@ -59,7 +61,7 @@ type readOutput struct {
 	Warnings      []string      `json:"avisos"`
 	Citation      string        `json:"citacao"`
 	Sources       []sourceDTO   `json:"fontes"`
-	Coverage      []coverageDTO `json:"cobertura"`
+	Alerts        []string      `json:"alertas_coleta,omitempty"`
 }
 
 type entityInput struct {
@@ -78,6 +80,7 @@ type entityOutput struct {
 	CountByType map[string]int  `json:"atos_por_tipo"`
 	Acts        []actSummaryDTO `json:"atos_recentes"`
 	Coverage    []coverageDTO   `json:"cobertura"`
+	Alerts      []string        `json:"alertas_coleta,omitempty"`
 }
 
 type sourcesInput struct{}
@@ -114,7 +117,10 @@ func (s *server) register(srv *sdk.Server) {
 	sdk.AddTool(srv, &sdk.Tool{Name: "buscar_atos", Annotations: readOnly, Description: "Busca atos nos Diários Oficiais de São Gonçalo, " +
 		"da Prefeitura e da Câmara (nomeações, contratos, licitações, dispensas, decretos, resoluções…). " +
 		"Filtre por diario para ver só um dos dois. Os termos encontrados vêm entre ⟦ ⟧ no trecho. " +
-		"Use ler_ato com edicao_id e posicao para o texto completo. Resultado paginado, até 20 atos por chamada."},
+		"Use ler_ato com edicao_id e posicao para o texto completo. Resultado paginado, até 20 atos por chamada. " +
+		"A cobertura e as lacunas vêm só na primeira página (deslocamento 0). Cada ato traz até 20 valores citados " +
+		"(valores_total diz quantos são) e, com valor_min ou valor_max, os que caíram na faixa. " +
+		"alertas_coleta aparece quando a última coleta de um diário falhou."},
 		recorded(s, "buscar_atos", s.search))
 	sdk.AddTool(srv, &sdk.Tool{Name: "ler_ato", Annotations: readOnly, Description: "Texto completo de um ato, " +
 		"com citação pronta (ABNT), link da edição oficial na página do ato e cópia arquivada com SHA-256."},
@@ -164,13 +170,19 @@ func (s *server) search(ctx context.Context, _ *sdk.CallToolRequest, in searchIn
 	if err != nil {
 		return nil, searchOutput{}, err
 	}
-	cov, err := s.coverage(ctx)
+	cs, err := s.cachedCoverage(ctx)
 	if err != nil {
 		return nil, searchOutput{}, err
 	}
-	out := searchOutput{Total: res.Total, Limit: res.Limit, Offset: res.Offset, Acts: make([]actSummaryDTO, 0, len(res.Hits)), Coverage: cov}
+	out := searchOutput{Total: res.Total, Limit: res.Limit, Offset: res.Offset, Acts: make([]actSummaryDTO, 0, len(res.Hits)),
+		Alerts: collectionAlerts(cs)}
+	if f.Offset == 0 {
+		out.Coverage = coveragesOf(cs)
+	}
 	for _, h := range res.Hits {
-		out.Acts = append(out.Acts, summaryOf(h, s.webURL))
+		act := summaryOf(h, s.webURL)
+		act.InRange = valuesInRange(h.ValuesCents, f.MinCents, f.MaxCents)
+		out.Acts = append(out.Acts, act)
 	}
 	return nil, out, nil
 }
@@ -211,7 +223,7 @@ func (s *server) read(ctx context.Context, _ *sdk.CallToolRequest, in readInput)
 	if err != nil {
 		return nil, readOutput{}, err
 	}
-	cov, err := s.coverage(ctx)
+	cs, err := s.cachedCoverage(ctx)
 	if err != nil {
 		return nil, readOutput{}, err
 	}
@@ -223,7 +235,7 @@ func (s *server) read(ctx context.Context, _ *sdk.CallToolRequest, in readInput)
 		IsExtra: g.IsExtra, Type: string(a.Type), Organ: a.Organ, OrganName: domain.OrganName(a.Organ), Title: a.Title, Text: a.Body,
 		Pages:    pageRange(a.PageStart, a.PageEnd),
 		Warnings: domain.ActWarnings(domain.WarningFactsOf(a)),
-		Citation: formatCitation(c, s.webURL, s.now()), Sources: []sourceDTO{src}, Coverage: cov,
+		Citation: formatCitation(c, s.webURL, s.now()), Sources: []sourceDTO{src}, Alerts: collectionAlerts(cs),
 	}, nil
 }
 
@@ -239,13 +251,14 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	if err != nil {
 		return nil, entityOutput{}, err
 	}
-	cov, err := s.coverage(ctx)
+	cs, err := s.cachedCoverage(ctx)
 	if err != nil {
 		return nil, entityOutput{}, err
 	}
 	out := entityOutput{Kind: string(report.Kind), Key: report.Key, Certainty: string(report.Certainty),
 		Warning: certaintyWarning(report), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
-		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)), Coverage: cov}
+		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)),
+		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs)}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
 	}
@@ -288,12 +301,4 @@ func lastRunOf(r domain.FetchRun) *lastRunDTO {
 	}
 	return &lastRunDTO{FinishedAt: timestampOrEmpty(r.FinishedAt), From: r.RequestedFrom.Format(time.DateOnly),
 		To: r.RequestedTo.Format(time.DateOnly), Found: r.Found, Stored: r.Stored, Failed: r.Failed, Error: r.Error}
-}
-
-func (s *server) coverage(ctx context.Context) ([]coverageDTO, error) {
-	cs, err := s.cachedCoverage(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return coveragesOf(cs), nil
 }

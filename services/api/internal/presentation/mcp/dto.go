@@ -67,6 +67,8 @@ type actSummaryDTO struct {
 	Pages         string      `json:"paginas"`
 	CNPJs         []string    `json:"cnpjs"`
 	ValuesCents   []int64     `json:"valores_centavos"`
+	ValuesTotal   int         `json:"valores_total"`
+	InRange       []int64     `json:"valores_na_faixa_centavos,omitempty"`
 	Warnings      []string    `json:"avisos"`
 	Sources       []sourceDTO `json:"fontes"`
 }
@@ -132,10 +134,37 @@ func summaryOf(h domain.ActHit, webURL string) actSummaryDTO {
 		GazetteID: h.GazetteID, Position: h.Position, Diario: domain.SourceOrDefault(h.Source), EditionNumber: h.EditionNumber,
 		PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, Type: string(h.Type),
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ), Title: h.Title, Snippet: h.Snippet,
-		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs), ValuesCents: nonNil(h.ValuesCents),
+		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs),
+		ValuesCents: nonNil(h.ValuesCents[:min(len(h.ValuesCents), maxValuesPerAct)]), ValuesTotal: len(h.ValuesCents),
 		Warnings: domain.ActWarnings(h.WarningFacts()),
 		Sources:  []sourceDTO{sourceOf(citableHit(h), webURL)},
 	}
+}
+
+func valuesInRange(values []int64, minCents, maxCents int64) []int64 {
+	if minCents == 0 && maxCents == 0 {
+		return nil
+	}
+	var in []int64
+	for _, v := range values {
+		if v >= minCents && (maxCents == 0 || v <= maxCents) {
+			in = append(in, v)
+		}
+	}
+	return in
+}
+
+func collectionAlerts(cs []domain.Coverage) []string {
+	var alerts []string
+	for _, c := range cs {
+		r := c.LastRun
+		if r.ID == "" || (r.Failed == 0 && r.Error == "") {
+			continue
+		}
+		alerts = append(alerts, fmt.Sprintf("A última coleta do %s (%s) falhou em %d edição(ões): %s. Edições recentes podem faltar.",
+			domain.SourceName(c.Source), timestampOrEmpty(r.FinishedAt), r.Failed, r.Error))
+	}
+	return alerts
 }
 
 func nonNil[T any](s []T) []T {
