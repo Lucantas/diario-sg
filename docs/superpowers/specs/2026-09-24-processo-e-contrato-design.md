@@ -21,7 +21,7 @@ mesmo agrupamento por órgão.
 - Gravar a fase no banco. Fica para quando um filtro ou padrão precisar
   dela em SQL; a função de domínio passa então a ser chamada na indexação.
 - Soma de valores nas páginas de processo e contrato. A soma de tudo o
-  que é citado conta o mesmo valor várias vezes (commit `c490c88`); cada
+  que é citado conta o mesmo valor várias vezes (commit `4104472`); cada
   ato continua mostrando os seus valores.
 - Página de CNPJ (`/empresa/{cnpj}`), que continua como está.
 

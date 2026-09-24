@@ -86,7 +86,7 @@ os anos. A primeira versão do parser tratava `Port. nº` como cabeçalho, entã
 cada número recebia o corpo da portaria *seguinte* e o último número de cada
 bloco virava um ato só com título (492 casos em 2025–2026). A confirmação
 está em `docs/parser-findings.md` (três evidências, inclusive com
-`pdftotext -layout`). Correção nos commits `cfec2e5` e `84ac19e`; a base foi
+`pdftotext -layout`). Correção nos commits `057b7b9` e `b0ebd67`; a base foi
 reindexada inteira depois disso. A contagem de 18/09/2026 continua 51 atos,
 agora com o corpo certo em cada número.
 

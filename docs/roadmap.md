@@ -45,15 +45,15 @@ mesmo dia em `diario/AAAA_MM_DD_1.pdf`, e `editionLinkRe`
 Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
 
 - [x] Aceitar o sufixo `_N` no link e tratar a edição pela URL, não pela
-  data (commit `41b9d42`).
+  data (commit `4b3165f`).
 - [x] Backfill das extras de 2020 a hoje: 115 edições novas (117 extras
   no total, as mesmas da coleta do Querido Diário).
 - [x] Listar pela letra "a" em vez de "Gonçalo": a continuação de
-  13/12/2023 não tem cabeçalho e nunca era listada (commit `f76d820`).
+  13/12/2023 não tem cabeçalho e nunca era listada (commit `c09e401`).
   A base de 2020 em diante tem 1740 edições, as mesmas da coleta
   completa do raspador do Querido Diário.
 - [x] Número da edição com `N°1. 362` (2025) e `| N.º 190 | em …`
-  (2020-2021) no parser (commit `6d22d12`); 319 edições reindexadas.
+  (2020-2021) no parser (commit `6d30da8`); 319 edições reindexadas.
 - [x] 18 a 20/08/2020 (edições 158 a 160): cabeçalho com "em," coberto
   pelo parser.
 - [x] `is_extra` em `gazettes`, coluna gerada a partir do sufixo `_N` da
@@ -65,7 +65,7 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
   duas colunas; pesam 646 MB no total (o Postgres cresceu 167 MB).
 - [ ] Nenhuma edição extra antes de 2020 foi listada. Não confirmei se o
   site não tinha extras nesse período ou se elas usam outro padrão de URL.
-- [x] Tipos `corrigenda` e `prestacao_contas` (commit `c2f2397`). De 2010 a
+- [x] Tipos `corrigenda` e `prestacao_contas` (commit `6b50d99`). De 2010 a
   2019 o `outro` era 10% a 15% dos atos por ano, e 91% dele eram termos de
   aprovação de prestação de contas e corrigendas. Na base inteira, depois
   da reindexação de 22/09/2026, o `outro` caiu de 16.186 para 3.684 atos
@@ -77,7 +77,7 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
 
 Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
 
-- **Proveniência.** ✅ Página de cada ato (1a, commit `5950b8d..1741bf1`),
+- **Proveniência.** ✅ Página de cada ato (1a, commit `020e97d..9cade9c`),
   link `…pdf#page=N`, SHA-256 do PDF, cópia arquivada servida pela API
   (`/v1/gazettes/{id}/pdf`) e botão "Citar este ato" com edição, data,
   página e os dois links (1b). Produção ganhou o job de reindexação
@@ -85,7 +85,7 @@ Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
   `reindex.yml`); ele precisa rodar uma vez depois do deploy, senão os
   atos de lá ficam com página nula.
 - **Órgão.** ✅ Allowlist no parser e vazamento de órgão corrigidos
-  (commit `6f28706`, base reindexada em 22/09/2026). O órgão vazava para
+  (commit `eb6db74`, base reindexada em 22/09/2026). O órgão vazava para
   seções sem sigla: o bloco de portarias abreviadas do gabinete herdava a
   última sigla vista (em 20/06/2016, `Port. nº 1360` e `1495` a `1498`
   saíam com `SUBCOMP`), e palavras em formato de sigla viravam órgão
@@ -214,7 +214,7 @@ Ainda sem fonte externa.
   contrato, os processos e CNPJs). Os números de processo e de contrato
   na busca viram links para essas páginas, e a `entidade` do MCP ganhou a
   mesma fase, os mesmos órgãos e "citados junto" (commits
-  `85e0038..a233a38`). Desenho em
+  `10d2fa2..6515763`). Desenho em
   `docs/superpowers/specs/2026-09-24-processo-e-contrato-design.md`.
 - **Alerta por entidade.** Inscrição em CNPJ, processo ou contrato, além de
   termo livre.
