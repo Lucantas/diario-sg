@@ -61,7 +61,7 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 func insertActs(ctx context.Context, tx *sql.Tx, gazetteID string, acts []domain.Act) error {
 	insertAct, err := tx.PrepareContext(ctx, `
 		INSERT INTO acts (gazette_id, type, title, body, position, page_start, page_end, organ, modality, main_value_cents)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, nullif($9, ''), nullif($10, 0)) RETURNING id`)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, nullif($9, ''), nullif($10::bigint, 0)) RETURNING id`)
 	if err != nil {
 		return err
 	}
