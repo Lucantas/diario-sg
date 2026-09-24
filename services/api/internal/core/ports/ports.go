@@ -46,7 +46,7 @@ type FileStorage interface {
 }
 
 type TextExtractor interface {
-	Extract(ctx context.Context, r io.Reader) (string, error)
+	Extract(ctx context.Context, r io.Reader, source string) (string, error)
 }
 
 type ActParser interface {

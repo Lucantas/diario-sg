@@ -142,6 +142,20 @@ do bloco nem sempre é seguida da primeira notificação, porque o
 linhas soltas (`Subsecretário Municipal de Defesa Civil`, `Mat. …`) ainda
 podem ficar no fim do ato anterior.
 
+### Títulos sem palavra de cabeçalho clássica
+
+- `AUTO DE INFRAÇÃO` (Fazenda, Meio Ambiente) e `DESIGNAÇÃO DE FISCAL` /
+  `DESIGNAÇÃO DE FISCAIS` (Transportes) abrem atos. Antes ficavam dentro do
+  ato anterior: na edição 1257, a designação de fiscais do contrato da LM
+  Cursos ficou dentro de uma prestação de contas da SEMED, e somou o valor
+  errado ao CNPJ da empresa. `DESIGNAÇÃO` sozinha na linha não abre ato,
+  porque aparece quebrada no meio de títulos de portaria ("DISPÕE SOBRE A /
+  DESIGNAÇÃO / DO GESTOR…").
+- A sigla do órgão procura o próximo texto sem limite de linhas em branco.
+  Quando a sigla fica no pé da página, como `SEMED` na edição 1257, o
+  rodapé e o cabeçalho removidos deixam três linhas em branco até o ato. O
+  limite antigo, de duas linhas, perdia a seção.
+
 ### Edições até abril de 2021
 
 - Não existe `ATOS DO PREFEITO`; o anexo de pessoal começa logo após
@@ -275,3 +289,24 @@ Amostra: 88 edições de 2020-11 a 2026-09, baixadas de
     parser só tira o cabeçalho do topo da página.
 - **Sem órgão.** Os atos da Câmara ficam sem órgão; o filtro de órgão é
   das secretarias da Prefeitura.
+- **Duas colunas.** Os termos de prestação de contas da cota parlamentar
+  (e alguns extratos) vêm em duas colunas lado a lado. Aqui o modo de
+  leitura do `pdftotext` falha, ao contrário do que acontece na Prefeitura:
+  intercala as colunas linha a linha (título A, título B, vereador A,
+  vereador B, processo A, processo B…). O resultado era um ato com dois ou
+  três vereadores e outro só com o título: 57 atos misturados nas 984
+  edições locais. Em algumas edições as colunas ainda vêm defasadas meia
+  linha.
+- **Por isso, na Câmara, o texto sai também com `-layout`.** Uma página
+  conta como de duas colunas quando várias linhas têm texto começando na
+  mesma posição depois de um vão de dois espaços ou mais, e no máximo 25%
+  das linhas com texto atravessam esse vão. Numa página assim, a coluna
+  da esquerda vem antes da da direita, e uma linha que atravessa o vão
+  descarrega as duas colunas antes de entrar. As outras páginas ficam com
+  o texto do modo de leitura. Nas 984 edições: 329 mudaram de texto,
+  os atos misturados foram de 57 para 0, e o total de atos foi de 4.849
+  para 4.853. As diferenças conferidas foram todas para melhor:
+  - resoluções que estavam coladas em outras voltaram a ser atos próprios
+    (2020-11-04);
+  - a cláusula "RATIFICAÇÃO: Ficam mantidas…" deixou de virar um ato de
+    dispensa falso (2024-01-29).
