@@ -23,6 +23,22 @@ func (uc *Subscriptions) Subscribe(ctx context.Context, email, query string) (do
 	if err != nil {
 		return domain.Subscription{}, err
 	}
+	return uc.create(ctx, s)
+}
+
+func (uc *Subscriptions) SubscribeEntity(ctx context.Context, email string, kind domain.EntityKind, value string) (domain.Subscription, error) {
+	ref, err := domain.ParseEntityRef(kind, value)
+	if err != nil {
+		return domain.Subscription{}, err
+	}
+	s, err := domain.NewEntitySubscription(email, ref, uc.now())
+	if err != nil {
+		return domain.Subscription{}, err
+	}
+	return uc.create(ctx, s)
+}
+
+func (uc *Subscriptions) create(ctx context.Context, s domain.Subscription) (domain.Subscription, error) {
 	if err := uc.repo.Create(ctx, &s); err != nil {
 		return domain.Subscription{}, err
 	}

@@ -21,6 +21,7 @@ type Subscription struct {
 	ID               string
 	Email            string
 	Query            string
+	Entity           *EntityRef
 	Status           SubscriptionStatus
 	ConfirmToken     string
 	UnsubscribeToken string
@@ -29,14 +30,38 @@ type Subscription struct {
 }
 
 func NewSubscription(email, query string, now time.Time) (Subscription, error) {
+	s, err := newPendingSubscription(email, now)
+	if err != nil {
+		return Subscription{}, err
+	}
+	s.Query = strings.Join(strings.Fields(query), " ")
+	if n := utf8.RuneCountInString(s.Query); n < 3 || n > 200 {
+		return Subscription{}, ErrInvalidQuery
+	}
+	return s, nil
+}
+
+func NewEntitySubscription(email string, ref EntityRef, now time.Time) (Subscription, error) {
+	s, err := newPendingSubscription(email, now)
+	if err != nil {
+		return Subscription{}, err
+	}
+	s.Entity = &ref
+	return s, nil
+}
+
+func (s Subscription) Subject() string {
+	if s.Entity != nil {
+		return s.Entity.Description()
+	}
+	return "“" + s.Query + "”"
+}
+
+func newPendingSubscription(email string, now time.Time) (Subscription, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	addr, err := mail.ParseAddress(email)
 	if err != nil || addr.Address != email {
 		return Subscription{}, ErrInvalidEmail
-	}
-	query = strings.Join(strings.Fields(query), " ")
-	if n := utf8.RuneCountInString(query); n < 3 || n > 200 {
-		return Subscription{}, ErrInvalidQuery
 	}
 	confirm, err := newToken()
 	if err != nil {
@@ -46,14 +71,8 @@ func NewSubscription(email, query string, now time.Time) (Subscription, error) {
 	if err != nil {
 		return Subscription{}, err
 	}
-	return Subscription{
-		Email:            email,
-		Query:            query,
-		Status:           SubscriptionPending,
-		ConfirmToken:     confirm,
-		UnsubscribeToken: unsub,
-		CreatedAt:        now,
-	}, nil
+	return Subscription{Email: email, Status: SubscriptionPending, ConfirmToken: confirm,
+		UnsubscribeToken: unsub, CreatedAt: now}, nil
 }
 
 func (s *Subscription) Confirm(now time.Time) error {
