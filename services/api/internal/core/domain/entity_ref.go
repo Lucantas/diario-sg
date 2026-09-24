@@ -38,7 +38,7 @@ func entityRefLabel(kind EntityKind, key, value string) string {
 	case EntityCNPJ:
 		return FormatCNPJ(key)
 	case EntityContrato:
-		return key
+		return EntityLabel(kind, strings.ReplaceAll(value, "-", "/"))
 	}
 	return EntityLabel(kind, value)
 }
