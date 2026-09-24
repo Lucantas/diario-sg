@@ -228,6 +228,15 @@ explica sozinho.
 - Na base local, a migration 008 criou 85.003 ligações, uma por ato e
   chave de `act_entities`. Os zeros à esquerda juntaram 1.783 números de
   contrato em 1.508 entidades.
+- Os CNPJs de órgãos públicos ficam numa lista curada em
+  `domain.PublicBody`, conferida no texto dos atos, e não numa regra
+  automática. Buscar "Município de São Gonçalo" perto de um CNPJ pega o
+  fornecedor citado na mesma frase. O Município entra pela raiz
+  (28.636.579), com todas as filiais: a Secretaria de Saúde publica como
+  28.636.579/0009-50. 28.579.636/0001-00 aparece no Diário como CNPJ do
+  Município, com os dígitos trocados, e fica na lista como está grafado.
+  O MCP marca esses CNPJs (`orgao_publico` e `cnpjs_orgaos_publicos`), e
+  o `agrupar` os deixa de fora por padrão.
 
 ## Entrega de mensagens e idempotência
 

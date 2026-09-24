@@ -66,6 +66,7 @@ type actSummaryDTO struct {
 	Snippet       string      `json:"trecho"`
 	Pages         string      `json:"paginas"`
 	CNPJs         []string    `json:"cnpjs"`
+	PublicCNPJs   []string    `json:"cnpjs_orgaos_publicos,omitempty"`
 	ValuesCents   []int64     `json:"valores_centavos"`
 	ValuesTotal   int         `json:"valores_total"`
 	InRange       []int64     `json:"valores_na_faixa_centavos,omitempty"`
@@ -134,11 +135,21 @@ func summaryOf(h domain.ActHit, webURL string) actSummaryDTO {
 		GazetteID: h.GazetteID, Position: h.Position, Diario: domain.SourceOrDefault(h.Source), EditionNumber: h.EditionNumber,
 		PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, Type: string(h.Type),
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ), Title: h.Title, Snippet: h.Snippet,
-		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs),
+		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs), PublicCNPJs: publicOnly(h.CNPJs),
 		ValuesCents: nonNil(h.ValuesCents[:min(len(h.ValuesCents), maxValuesPerAct)]), ValuesTotal: len(h.ValuesCents),
 		Warnings: domain.ActWarnings(h.WarningFacts()),
 		Sources:  []sourceDTO{sourceOf(citableHit(h), webURL)},
 	}
+}
+
+func publicOnly(cnpjs []string) []string {
+	var out []string
+	for _, c := range cnpjs {
+		if _, ok := domain.PublicBody(c); ok {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 func valuesInRange(values []int64, minCents, maxCents int64) []int64 {
