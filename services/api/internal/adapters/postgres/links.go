@@ -65,6 +65,7 @@ func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key,
 func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
+		       coalesce(a.modality, ''), coalesce(a.main_value_cents, 0),
 		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
 		       substr(a.body, greatest(position(l.evidence IN a.body) - $3, 1), 2 * $3 + length(l.evidence)), l.evidence
 		FROM entity_links l
@@ -81,7 +82,7 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, repo
 		var h domain.ActHit
 		var typ, evidence string
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
-			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, &evidence); err != nil {
+			&h.Modality, &h.MainValueCents, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, &evidence); err != nil {
 			return err
 		}
 		h.Type = domain.ActType(typ)

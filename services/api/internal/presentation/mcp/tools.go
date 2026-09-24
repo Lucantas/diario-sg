@@ -27,6 +27,9 @@ type searchInput struct {
 	To       string  `json:"ate,omitempty" jsonschema:"data final da edição, AAAA-MM-DD"`
 	MinValue float64 `json:"valor_min,omitempty" jsonschema:"só atos que citam ao menos um valor a partir deste, em reais"`
 	MaxValue float64 `json:"valor_max,omitempty" jsonschema:"só atos que citam ao menos um valor até este, em reais"`
+	Modality string  `json:"modalidade,omitempty" jsonschema:"modalidade da contratação citada no ato: dispensa, inexigibilidade, pregao, concorrencia, tomada_de_precos, convite, chamamento_publico, credenciamento, adesao_ata ou leilao"`
+	MainMin  float64 `json:"valor_principal_min,omitempty" jsonschema:"só atos cujo valor principal (global, total, do contrato) é a partir deste, em reais"`
+	MainMax  float64 `json:"valor_principal_max,omitempty" jsonschema:"só atos cujo valor principal é até este, em reais"`
 	Limit    int     `json:"limite,omitempty" jsonschema:"atos por página, de 1 a 20 (padrão 10)"`
 	Offset   int     `json:"deslocamento,omitempty" jsonschema:"quantos atos pular, para paginar"`
 }
@@ -56,7 +59,11 @@ type readOutput struct {
 	Organ         string      `json:"orgao"`
 	OrganName     string      `json:"orgao_nome"`
 	Title         string      `json:"titulo"`
+	Modality      string      `json:"modalidade,omitempty"`
+	MainValue     int64       `json:"valor_principal_centavos,omitempty"`
 	Text          string      `json:"texto"`
+	Parties       []partyDTO  `json:"partes,omitempty"`
+	Quota         *quotaDTO   `json:"cota_parlamentar,omitempty"`
 	Pages         string      `json:"paginas"`
 	Warnings      []string    `json:"avisos"`
 	Citation      string      `json:"citacao"`
@@ -124,10 +131,14 @@ func (s *server) register(srv *sdk.Server) {
 		"Use ler_ato com edicao_id e posicao para o texto completo. Resultado paginado, até 20 atos por chamada. " +
 		"A cobertura e as lacunas vêm só na primeira página (deslocamento 0). Cada ato traz até 20 valores citados " +
 		"(valores_total diz quantos são) e, com valor_min ou valor_max, os que caíram na faixa. " +
-		"alertas_coleta aparece quando a última coleta de um diário falhou."},
+		"alertas_coleta aparece quando a última coleta de um diário falhou. " +
+		"modalidade (dispensa, inexigibilidade, pregao…) e valor_principal_centavos (valor global, total ou do contrato) " +
+		"são lidos do texto e podem faltar; o tipo do ato não muda, então um extrato de contrato por dispensa tem tipo contrato e modalidade dispensa."},
 		recorded(s, "buscar_atos", s.search))
 	sdk.AddTool(srv, &sdk.Tool{Name: "ler_ato", Annotations: readOnly, Description: "Texto completo de um ato, " +
-		"com citação pronta (ABNT), link da edição oficial na página do ato e cópia arquivada com SHA-256."},
+		"com citação pronta (ABNT), link da edição oficial na página do ato e cópia arquivada com SHA-256. " +
+		"partes lista cada CNPJ com o nome provável lido do texto ao lado do número (confira no texto); " +
+		"cota_parlamentar traz vereador, mês de referência e valor dos termos de CEAPM da Câmara."},
 		recorded(s, "ler_ato", s.read))
 	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Atos dos Diários (Prefeitura e Câmara) que citam um CNPJ, " +
 		"um processo ou um contrato: total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 mais recentes. " +
@@ -198,7 +209,8 @@ func (s *server) search(ctx context.Context, _ *sdk.CallToolRequest, in searchIn
 }
 
 func filterOf(in searchInput) (domain.ActFilter, error) {
-	f := domain.ActFilter{Query: in.Query, Source: in.Diario, Type: domain.ActType(in.Type), Organ: in.Organ, Limit: in.Limit, Offset: in.Offset}
+	f := domain.ActFilter{Query: in.Query, Source: in.Diario, Type: domain.ActType(in.Type), Organ: in.Organ,
+		Modality: domain.Modality(in.Modality), Limit: in.Limit, Offset: in.Offset}
 	if f.Limit <= 0 {
 		f.Limit = defaultSearchLimit
 	}
@@ -211,6 +223,12 @@ func filterOf(in searchInput) (domain.ActFilter, error) {
 		return f, err
 	}
 	if f.MinCents, err = reaisToCents(in.MinValue); err != nil {
+		return f, err
+	}
+	if f.MainMinCents, err = reaisToCents(in.MainMin); err != nil {
+		return f, err
+	}
+	if f.MainMaxCents, err = reaisToCents(in.MainMax); err != nil {
 		return f, err
 	}
 	f.MaxCents, err = reaisToCents(in.MaxValue)
@@ -243,6 +261,7 @@ func (s *server) read(ctx context.Context, _ *sdk.CallToolRequest, in readInput)
 	return nil, readOutput{
 		GazetteID: g.ID, Position: a.Position, Diario: domain.SourceOrDefault(g.Source), EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly),
 		IsExtra: g.IsExtra, Type: string(a.Type), Organ: a.Organ, OrganName: domain.OrganName(a.Organ), Title: a.Title, Text: a.Body,
+		Modality: string(a.Modality), MainValue: a.MainValueCents, Parties: partiesOf(a.Body), Quota: quotaOf(a),
 		Pages:    pageRange(a.PageStart, a.PageEnd),
 		Warnings: domain.ActWarnings(domain.WarningFactsOf(a)),
 		Citation: formatCitation(c, s.webURL, s.now()), Sources: []sourceDTO{src}, Alerts: collectionAlerts(cs),

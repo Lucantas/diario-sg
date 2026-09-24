@@ -238,6 +238,35 @@ explica sozinho.
   O MCP marca esses CNPJs (`orgao_publico` e `cnpjs_orgaos_publicos`), e
   o `agrupar` os deixa de fora por padrão.
 
+## Modalidade, valor principal, partes e cota parlamentar
+
+- `modality` e `main_value_cents` são calculados na indexação
+  (`domain.ModalityOf`, `domain.MainValueCents`) e gravados, porque viram
+  filtro. Os dados antigos só são preenchidos com reindexação
+  (migration 010).
+- A modalidade é a primeira citada no título ou no texto (dispensa,
+  inexigibilidade, pregão, concorrência, tomada de preços, convite,
+  chamamento público, credenciamento, adesão à ata, leilão). Só vale para
+  contrato, aditivo, dispensa, licitação, ata, edital, despacho e outro:
+  uma portaria que designa pregoeiro não é pregão. O tipo do ato não muda,
+  então um extrato de contrato por dispensa continua `contrato`, com
+  modalidade `dispensa`. Numa amostra do tipo `dispensa` na base local,
+  511 atos são dispensa e 100 são inexigibilidade.
+- O valor principal é o primeiro valor depois de "valor global", "valor
+  total", "valor do contrato", "no valor de", "acréscimo de" e expressões
+  parecidas. Ato sem essa expressão fica sem valor principal, e o filtro
+  por valor principal o deixa de fora.
+- `partes` e `cota_parlamentar` são calculados na leitura do `ler_ato`, sem
+  gravar nada. O nome da parte é o texto antes do CNPJ, cortado no último
+  separador ("Partes:", "Contratada:", "empresa", " e ", outro CNPJ) e na
+  primeira vírgula seguida de minúscula (", inscrita", ", estabelecida").
+  Numa amostra de 50 CNPJs, 49 ganharam nome e dois vieram errados. Por
+  isso o campo se chama `nome_provavel`.
+- A cota parlamentar reconhece as grafias dos termos de 2025 e 2026 ("pelo
+  a", "por", sem "pelo", travessão colado, "relativo" ou "referente"). Os
+  367 termos da base local foram reconhecidos: cerca de 25 por mês, de
+  R$ 10.000,00 em 2025 e R$ 13.000,00 em 2026.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo

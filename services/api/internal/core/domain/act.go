@@ -43,6 +43,9 @@ type Act struct {
 	PageEnd   int
 	Organ     string
 	Entities  []Entity
+
+	Modality       Modality
+	MainValueCents int64
 }
 
 type ActHit struct {
@@ -76,9 +79,13 @@ type ActFilter struct {
 	To       time.Time
 	MinCents int64
 	MaxCents int64
-	Recent   bool
-	Limit    int
-	Offset   int
+	Modality Modality
+
+	MainMinCents int64
+	MainMaxCents int64
+	Recent       bool
+	Limit        int
+	Offset       int
 }
 
 func (f *ActFilter) Normalize() error {
@@ -103,6 +110,12 @@ func (f *ActFilter) Normalize() error {
 	}
 	f.Organ = organ
 	if f.MinCents < 0 || f.MaxCents < 0 || (f.MaxCents > 0 && f.MinCents > f.MaxCents) {
+		return ErrInvalidFilter
+	}
+	if f.MainMinCents < 0 || f.MainMaxCents < 0 || (f.MainMaxCents > 0 && f.MainMinCents > f.MainMaxCents) {
+		return ErrInvalidFilter
+	}
+	if f.Modality != "" && !f.Modality.Valid() {
 		return ErrInvalidFilter
 	}
 	f.Query = TranslateOperators(f.Query)

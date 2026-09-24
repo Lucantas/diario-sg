@@ -9,6 +9,8 @@ func parseActs(p ports.ActParser, x ports.EntityExtractor, text string) []domain
 	acts := p.Parse(text)
 	for i := range acts {
 		acts[i].Entities = x.Extract(acts[i].Body)
+		acts[i].Modality = domain.ModalityOf(acts[i].Type, acts[i].Title, acts[i].Body)
+		acts[i].MainValueCents = domain.MainValueCents(acts[i].Type, acts[i].Body)
 	}
 	return acts
 }
