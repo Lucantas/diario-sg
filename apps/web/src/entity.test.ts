@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ActHit } from "./api";
-import { entityPath, groupByOrgan, parseEntityPath } from "./entity";
+import { entityPath, groupByOrgan, parseEntityPath, selectedOrgan } from "./entity";
 
 const hit = (id: string, organ: string, published_at: string) => ({ id, organ, published_at }) as ActHit;
 
@@ -25,5 +25,11 @@ describe("groupByOrgan", () => {
 
   it("filtra pelo órgão escolhido", () => {
     expect(groupByOrgan(acts, organs, "SEMTRAN").map((g) => g.organ)).toEqual(["SEMTRAN"]);
+  });
+
+  it("trata órgão fora da lista como Todos", () => {
+    expect(groupByOrgan(acts, organs, "SEMED").map((g) => g.organ)).toEqual(["SEMAD", "SEMTRAN", ""]);
+    expect(selectedOrgan(organs, "SEMED")).toBe("");
+    expect(selectedOrgan(organs, "SEMTRAN")).toBe("SEMTRAN");
   });
 });

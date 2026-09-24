@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { EntityKind, EntityResponse, Related, getEntity } from "./api";
 import { Result } from "./components";
-import { entityPath, groupByOrgan } from "./entity";
+import { entityPath, groupByOrgan, selectedOrgan } from "./entity";
 import { PHASES, PHASE_LABEL } from "./types";
 
 const ENTITY_EYEBROW: Record<EntityKind, string> = {
@@ -35,6 +35,7 @@ export function EntityPage({ kind, slug }: { kind: EntityKind; slug: string }) {
   }
 
   const groups = data ? groupByOrgan(data.acts, data.organs, organ) : [];
+  const pressedOrgan = data ? selectedOrgan(data.organs, organ) : "";
 
   return (
     <main className="page">
@@ -72,14 +73,14 @@ export function EntityPage({ kind, slug }: { kind: EntityKind; slug: string }) {
 
           {data.organs.length > 1 && (
             <div className="organ-filter" role="group" aria-label="Filtrar por órgão">
-              <button type="button" aria-pressed={organ === ""} onClick={() => chooseOrgan("")}>
+              <button type="button" aria-pressed={pressedOrgan === ""} onClick={() => chooseOrgan("")}>
                 Todos
               </button>
               {data.organs.map((o) => (
                 <button
                   key={o.organ || "sem-orgao"}
                   type="button"
-                  aria-pressed={organ === o.organ}
+                  aria-pressed={pressedOrgan === o.organ}
                   onClick={() => chooseOrgan(o.organ)}
                 >
                   {o.organ || "Sem órgão"} ({o.acts})

@@ -9,10 +9,15 @@ export function parseEntityPath(pathname: string): { kind: EntityKind; slug: str
   return m ? { kind: m[1] as EntityKind, slug: decodeURIComponent(m[2]) } : null;
 }
 
+export function selectedOrgan(organs: OrganCount[], selected: string) {
+  return organs.some((o) => o.organ === selected) ? selected : "";
+}
+
 export function groupByOrgan(acts: ActHit[], organs: OrganCount[], selected: string) {
   const byDate = [...acts].sort((a, b) => a.published_at.localeCompare(b.published_at) || a.id.localeCompare(b.id));
+  const chosen = selectedOrgan(organs, selected);
   return organs
-    .filter((o) => selected === "" || o.organ === selected)
+    .filter((o) => chosen === "" || o.organ === chosen)
     .map((o) => ({ organ: o.organ, acts: byDate.filter((a) => (a.organ || "") === o.organ) }))
     .filter((g) => g.acts.length > 0);
 }
