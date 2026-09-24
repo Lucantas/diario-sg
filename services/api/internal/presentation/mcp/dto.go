@@ -133,7 +133,7 @@ func summaryOf(h domain.ActHit, webURL string) actSummaryDTO {
 		PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, Type: string(h.Type),
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ), Title: h.Title, Snippet: h.Snippet,
 		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs), ValuesCents: nonNil(h.ValuesCents),
-		Warnings: domain.ActWarnings(h.Title, h.TitleOnly, h.PageStart, h.PageEnd),
+		Warnings: domain.ActWarnings(h.WarningFacts()),
 		Sources:  []sourceDTO{sourceOf(citableHit(h), webURL)},
 	}
 }

@@ -10,7 +10,8 @@ import (
 
 const warningsGazette = "Nomeia:\nFULANO DE TAL para o cargo de Assessor.\n" +
 	"PORTARIA Nº 5/2026\n" +
-	"DECRETO Nº 9/2026\nDispõe sobre o horário das repartições."
+	"DECRETO Nº 9/2026\nDispõe sobre o horário das repartições.\n" +
+	"São Gonçalo, 1º de março de 2026.\nAltera a escala do plantão.\nSão Gonçalo, 2 de março de 2026."
 
 type warnedHits struct {
 	Items []struct {
@@ -34,7 +35,7 @@ func TestWarningsInSearchGazetteAndExport(t *testing.T) {
 	want := map[string][]string{
 		"Nomeia:":            {"sem_numero"},
 		"PORTARIA Nº 5/2026": {"so_titulo"},
-		"DECRETO Nº 9/2026":  {},
+		"DECRETO Nº 9/2026":  {"varios_atos_possiveis"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("avisos na busca: esperava %v, veio %v", want, got)

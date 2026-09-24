@@ -83,7 +83,7 @@ func pageOrderSQL(f domain.ActFilter) string {
 	return pageRelevanceOrder
 }
 
-func markTitleOnly(ctx context.Context, db *sql.DB, hits []domain.ActHit) error {
+func markBodyFacts(ctx context.Context, db *sql.DB, hits []domain.ActHit) error {
 	if len(hits) == 0 {
 		return nil
 	}
@@ -91,22 +91,22 @@ func markTitleOnly(ctx context.Context, db *sql.DB, hits []domain.ActHit) error 
 	for i, h := range hits {
 		ids[i] = h.ID
 	}
-	rows, err := db.QueryContext(ctx, `
-		SELECT id FROM acts WHERE id = ANY($1::uuid[]) AND btrim(body) = btrim(title)`, pq.Array(ids))
+	rows, err := db.QueryContext(ctx, `SELECT id, title, body FROM acts WHERE id = ANY($1::uuid[])`, pq.Array(ids))
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-	titleOnly := map[string]bool{}
+	facts := map[string]domain.WarningFacts{}
 	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
+		var a domain.Act
+		if err := rows.Scan(&a.ID, &a.Title, &a.Body); err != nil {
 			return err
 		}
-		titleOnly[id] = true
+		facts[a.ID] = domain.WarningFactsOf(a)
 	}
 	for i := range hits {
-		hits[i].TitleOnly = titleOnly[hits[i].ID]
+		f := facts[hits[i].ID]
+		hits[i].TitleOnly, hits[i].Signatures = f.TitleOnly, f.Signatures
 	}
 	return rows.Err()
 }

@@ -86,7 +86,7 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, repo
 	if err := rows.Err(); err != nil {
 		return err
 	}
-	return markTitleOnly(ctx, r.db, report.Acts)
+	return markBodyFacts(ctx, r.db, report.Acts)
 }
 
 func (r *LinkRepo) linkedTypes(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
