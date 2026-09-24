@@ -147,14 +147,7 @@ func contractOf(acts []DispensaAct, members []int) (DispensaContract, bool) {
 	return c, valueDispensa && c.ValueCents < c.LimitCents
 }
 
-func sharedWithSupplier(a DispensaAct) bool {
-	for _, other := range a.OtherCNPJs {
-		if _, public := PublicBody(other); !public {
-			return true
-		}
-	}
-	return false
-}
+func sharedWithSupplier(a DispensaAct) bool { return citesAnotherSupplier(a.OtherCNPJs) }
 
 type unionFind struct{ parent []int }
 
