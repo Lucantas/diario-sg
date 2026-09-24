@@ -93,6 +93,9 @@ func TestProcessReportGroupsOrgansPhasesAndRelated(t *testing.T) {
 	}
 	related := map[string]domain.RelatedEntity{}
 	for _, r := range report.Related {
+		if r.Kind == domain.EntityProcesso {
+			t.Fatalf("processo não traz outros processos em citados junto: %+v", r)
+		}
 		related[string(r.Kind)+":"+r.Key] = r
 	}
 	contract, cnpj := related["contrato:30/SEMAD/2023"], related["cnpj:12345678000190"]
@@ -115,5 +118,33 @@ func TestProcessReportReturnsUpToThreeHundredActs(t *testing.T) {
 
 	if err != nil || report.TotalActs != 120 || len(report.Acts) != 120 {
 		t.Fatalf("esperava os 120 atos: total %d, devolvidos %d, %v", report.TotalActs, len(report.Acts), err)
+	}
+}
+
+func TestRelatedLeavesOutEntitiesOfTheSameKind(t *testing.T) {
+	_, db := newServerFor(t, "SEMAD\nEXTRATO DO CONTRATO Nº 30/SEMAD/2023\n"+
+		"Processo nº 2808/2022 e Processo nº 1111/2023. Substitui o Contrato nº 5/SEMAD/2022. "+
+		"Contratada: Empresa Exemplo LTDA, CNPJ: 12.345.678/0001-90.\n")
+	repo := postgres.NewLinkRepo(db)
+
+	for _, c := range []struct {
+		kind  domain.EntityKind
+		key   string
+		wants []domain.EntityKind
+	}{
+		{domain.EntityProcesso, "28082022", []domain.EntityKind{domain.EntityContrato, domain.EntityCNPJ}},
+		{domain.EntityContrato, "30/SEMAD/2023", []domain.EntityKind{domain.EntityProcesso, domain.EntityCNPJ}},
+	} {
+		report, err := repo.ReportByKey(context.Background(), c.kind, c.key, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		kinds := map[domain.EntityKind]bool{}
+		for _, r := range report.Related {
+			kinds[r.Kind] = true
+		}
+		if kinds[c.kind] || !kinds[c.wants[0]] || !kinds[c.wants[1]] {
+			t.Fatalf("%s %s: citados junto com tipos errados: %+v", c.kind, c.key, report.Related)
+		}
 	}
 }

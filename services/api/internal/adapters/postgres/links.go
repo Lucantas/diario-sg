@@ -230,6 +230,13 @@ func (r *LinkRepo) labels(ctx context.Context, entityID, source string) (map[str
 
 const relatedLimit = 20
 
+func relatedKinds(kind domain.EntityKind) []string {
+	if kind == domain.EntityContrato {
+		return []string{string(domain.EntityProcesso), string(domain.EntityCNPJ)}
+	}
+	return []string{string(domain.EntityContrato), string(domain.EntityCNPJ)}
+}
+
 func (r *LinkRepo) linkedRelated(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
 	rows, err := r.db.QueryContext(ctx, `
 		WITH acts_of AS (
@@ -240,11 +247,11 @@ func (r *LinkRepo) linkedRelated(ctx context.Context, entityID, source string, r
 			       row_number() OVER (PARTITION BY e.kind ORDER BY count(DISTINCT o.record_id) DESC, e.key) AS rank
 			FROM acts_of o
 			JOIN entity_links lr ON lr.record_kind = $2 AND lr.record_id = o.record_id AND lr.source = o.source
-			JOIN entities e ON e.id = lr.entity_id AND e.id <> $1
+			JOIN entities e ON e.id = lr.entity_id AND e.kind = ANY($5)
 			GROUP BY e.kind, e.key
 		)
 		SELECT kind, key, acts FROM related WHERE rank <= $4 ORDER BY kind, acts DESC, key`,
-		entityID, domain.RecordAct, source, relatedLimit)
+		entityID, domain.RecordAct, source, relatedLimit, pq.Array(relatedKinds(report.Kind)))
 	if err != nil {
 		return err
 	}
