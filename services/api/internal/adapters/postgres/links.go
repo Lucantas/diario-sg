@@ -99,6 +99,7 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, limi
 			return err
 		}
 		h.Type = domain.ActType(typ)
+		h.Organ = domain.PrincipalOrgan(h.Organ)
 		h.Snippet = highlightFallback(h.Snippet, evidence)
 		h.Mentions = parseMentions(mentions)
 		report.Acts = append(report.Acts, h)
@@ -148,7 +149,7 @@ func (r *LinkRepo) linkedOrgansAndTitles(ctx context.Context, entityID, source s
 		if err := rows.Scan(&organ, &typ, &title, &n); err != nil {
 			return err
 		}
-		organs[organ] += n
+		organs[domain.PrincipalOrgan(organ)] += n
 		report.TypeTitleCounts = append(report.TypeTitleCounts, domain.TypeTitleCount{Type: domain.ActType(typ), Title: title, Acts: n})
 	}
 	if err := rows.Err(); err != nil {

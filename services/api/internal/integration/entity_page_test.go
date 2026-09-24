@@ -108,6 +108,35 @@ func TestProcessReportGroupsOrgansPhasesAndRelated(t *testing.T) {
 	}
 }
 
+func TestEntityReportMergesOrganVariantsIntoPrincipal(t *testing.T) {
+	_, db := newServerFor(t, "ATOS DO PREFEITO\nDECRETO Nº 1/2024\nSem processo.\nFMS\nAVISO DE LICITAÇÃO\nPregão nº 8/2024. Processo nº 3333/2024.\n"+
+		"FMSSG\nEXTRATO DO CONTRATO Nº 12/FMS/2024\nProcesso nº 3333/2024. Valor global: R$ 1.000,00.\n")
+
+	report, err := usecase.NewGetEntity(postgres.NewLinkRepo(db)).
+		Execute(context.Background(), domain.EntityProcesso, "3333-2024", "")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantOrgans := []domain.OrganCount{{Organ: "FMS", Acts: 2}}
+	if fmt.Sprint(report.Organs) != fmt.Sprint(wantOrgans) {
+		t.Fatalf("órgãos: %+v", report.Organs)
+	}
+	for _, w := range domain.EntityWarnings(report) {
+		if strings.Contains(w, "órgãos") {
+			t.Fatalf("variante e principal não são órgãos diferentes: %q", w)
+		}
+	}
+	if len(report.Acts) != 2 {
+		t.Fatalf("esperava 2 atos: %+v", report.Acts)
+	}
+	for _, a := range report.Acts {
+		if a.Organ != "FMS" {
+			t.Fatalf("ato %q com órgão %q, esperava a principal FMS", a.Title, a.Organ)
+		}
+	}
+}
+
 func TestProcessReportReturnsUpToThreeHundredActs(t *testing.T) {
 	var b strings.Builder
 	for i := 1; i <= 120; i++ {
