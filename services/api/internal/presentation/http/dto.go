@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
@@ -80,6 +81,34 @@ type gazetteDTO struct {
 	Acts          []actDTO `json:"acts"`
 }
 
+type organCountDTO struct {
+	Organ     string `json:"organ"`
+	OrganName string `json:"organ_name"`
+	Acts      int    `json:"acts"`
+}
+
+type relatedDTO struct {
+	Kind  string `json:"kind"`
+	Key   string `json:"key"`
+	Label string `json:"label"`
+	Slug  string `json:"slug"`
+	Acts  int    `json:"acts"`
+}
+
+type entityResponse struct {
+	Kind         string          `json:"kind"`
+	Key          string          `json:"key"`
+	Label        string          `json:"label"`
+	Certainty    string          `json:"certainty"`
+	Diarios      int             `json:"diarios"`
+	TotalActs    int             `json:"total_acts"`
+	CountByPhase map[string]int  `json:"count_by_phase"`
+	Organs       []organCountDTO `json:"organs"`
+	Related      []relatedDTO    `json:"related"`
+	Warnings     []string        `json:"warnings"`
+	Acts         []actHitDTO     `json:"acts"`
+}
+
 type companyResponse struct {
 	CNPJ            string         `json:"cnpj"`
 	TotalValueCents int64          `json:"total_value_cents"`
@@ -146,6 +175,40 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 		Phase:    string(h.Phase),
 		Mentions: mentions,
 	}
+}
+
+func toEntityResponse(report domain.EntityReport, rawKey string) entityResponse {
+	countByPhase := make(map[string]int, len(report.CountByPhase))
+	for phase, n := range report.CountByPhase {
+		countByPhase[string(phase)] = n
+	}
+	organs := make([]organCountDTO, 0, len(report.Organs))
+	for _, o := range report.Organs {
+		organs = append(organs, organCountDTO{Organ: o.Organ, OrganName: domain.OrganName(o.Organ), Acts: o.Acts})
+	}
+	related := make([]relatedDTO, 0, len(report.Related))
+	for _, r := range report.Related {
+		related = append(related, relatedDTO{Kind: string(r.Kind), Key: r.Key, Label: r.Label, Slug: domain.EntitySlug(r.Label), Acts: r.Acts})
+	}
+	acts := make([]actHitDTO, 0, len(report.Acts))
+	for _, h := range report.Acts {
+		acts = append(acts, toHitDTO(h))
+	}
+	return entityResponse{
+		Kind: string(report.Kind), Key: report.Key, Label: entityLabelOrFallback(report, rawKey), Certainty: string(report.Certainty),
+		Diarios: report.Sources, TotalActs: report.TotalActs, CountByPhase: countByPhase, Organs: organs, Related: related,
+		Warnings: domain.EntityWarnings(report), Acts: acts,
+	}
+}
+
+func entityLabelOrFallback(report domain.EntityReport, rawKey string) string {
+	if report.Label != "" {
+		return report.Label
+	}
+	if report.Kind == domain.EntityContrato {
+		return strings.ReplaceAll(rawKey, "-", "/")
+	}
+	return rawKey
 }
 
 func toActDTO(a domain.Act) actDTO {

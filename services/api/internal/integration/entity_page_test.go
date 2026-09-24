@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -118,6 +119,44 @@ func TestProcessReportReturnsUpToThreeHundredActs(t *testing.T) {
 
 	if err != nil || report.TotalActs != 120 || len(report.Acts) != 120 {
 		t.Fatalf("esperava os 120 atos: total %d, devolvidos %d, %v", report.TotalActs, len(report.Acts), err)
+	}
+}
+
+func TestEntityRouteServesProcessAndContract(t *testing.T) {
+	srv, _ := newEntityServer(t)
+	var p struct {
+		Label        string                   `json:"label"`
+		TotalActs    int                      `json:"total_acts"`
+		CountByPhase map[string]int           `json:"count_by_phase"`
+		Organs       []struct{ Organ string } `json:"organs"`
+		Warnings     []string                 `json:"warnings"`
+		Acts         []struct{ Phase string } `json:"acts"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/processo/2808-2022", &p)
+	if p.Label != "2808/2022" || p.TotalActs != 6 || len(p.Organs) != 3 || len(p.Warnings) != 1 || p.Acts[0].Phase == "" {
+		t.Fatalf("processo: %+v", p)
+	}
+	var c struct {
+		Key       string `json:"key"`
+		TotalActs int    `json:"total_acts"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/contrato/30-SEMAD-2023", &c)
+	if c.Key != "30/SEMAD/2023" || c.TotalActs != 2 {
+		t.Fatalf("contrato: %+v", c)
+	}
+	for path, status := range map[string]int{
+		"/v1/entities/valor/100":           http.StatusNotFound,
+		"/v1/entities/processo/12":         http.StatusBadRequest,
+		"/v1/entities/processo/99999-2001": http.StatusOK,
+	} {
+		res, err := http.Get(srv.URL + path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		if res.StatusCode != status {
+			t.Errorf("%s: esperava %d, veio %d", path, status, res.StatusCode)
+		}
 	}
 }
 

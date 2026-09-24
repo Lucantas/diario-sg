@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -16,6 +17,7 @@ type API struct {
 	Search        *usecase.SearchActs
 	Gazette       *usecase.GetGazette
 	Company       *usecase.GetCompany
+	Entity        *usecase.GetEntity
 	Stats         *usecase.ActStats
 	Organs        *usecase.ListOrgans
 	PDF           *usecase.GetGazettePDF
@@ -51,6 +53,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/gazettes/{id}", a.getGazette)
 	mux.HandleFunc("GET /v1/gazettes/{id}/pdf", a.gazettePDF)
 	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
+	mux.HandleFunc("GET /v1/entities/{kind}/{key}", a.getEntity)
 	mux.HandleFunc("GET /v1/stats/acts", a.actStats)
 	mux.HandleFunc("GET /v1/organs", a.listOrgans)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
@@ -112,6 +115,20 @@ func (a *API) getCompany(w http.ResponseWriter, r *http.Request) {
 		out.Acts = append(out.Acts, toHitDTO(h))
 	}
 	writeJSON(w, http.StatusOK, out)
+}
+
+func (a *API) getEntity(w http.ResponseWriter, r *http.Request) {
+	kind := domain.EntityKind(r.PathValue("kind"))
+	if kind != domain.EntityProcesso && kind != domain.EntityContrato {
+		writeError(w, fmt.Errorf("%w: tipo de entidade %q", domain.ErrNotFound, kind), a.Log)
+		return
+	}
+	report, err := a.Entity.Execute(r.Context(), kind, r.PathValue("key"), "")
+	if err != nil {
+		writeError(w, err, a.Log)
+		return
+	}
+	writeJSON(w, http.StatusOK, toEntityResponse(report, r.PathValue("key")))
 }
 
 const statsGroupMonth = "month"
