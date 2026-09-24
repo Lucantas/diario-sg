@@ -28,6 +28,7 @@ type API struct {
 	MCP           http.Handler
 	PublicWebURL  string
 	Subscriptions *usecase.Subscriptions
+	Patterns      *usecase.ListPatterns
 	Log           *slog.Logger
 }
 
@@ -56,6 +57,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/entities/{kind}/{key}", a.getEntity)
 	mux.HandleFunc("GET /v1/stats/acts", a.actStats)
 	mux.HandleFunc("GET /v1/organs", a.listOrgans)
+	mux.HandleFunc("GET /v1/patterns", a.listPatterns)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 
 	mux.HandleFunc("POST /v1/reports", a.reportError(ratelimit.New(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))

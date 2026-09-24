@@ -75,6 +75,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db)),
 		Export: usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), Organs: usecase.NewListOrgans(acts), PublicWebURL: "https://web.exemplo",
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), email.NewNotifier(&inbox{}, "https://web.exemplo")),
+		Patterns:      usecase.NewListPatterns(postgres.NewPatternRepo(db)),
 		Keys:          keys, MCP: mcpHandler, Log: log}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)

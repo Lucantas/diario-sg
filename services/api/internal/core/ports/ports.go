@@ -29,6 +29,12 @@ type ActRepository interface {
 	Export(ctx context.Context, f domain.ActFilter, yield func(h domain.ActHit, total int) error) error
 }
 
+type PatternSource interface {
+	DispensaActs(ctx context.Context) ([]domain.DispensaAct, error)
+	MonthlyActCounts(ctx context.Context, types []domain.ActType, source string) ([]domain.MonthlyActCount, error)
+	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)
+}
+
 type ActGrouper interface {
 	Group(ctx context.Context, q domain.GroupQuery) (domain.ActGroups, error)
 }

@@ -61,6 +61,7 @@ func run(l *slog.Logger) error {
 		Company:       company,
 		Entity:        usecase.NewGetEntity(postgres.NewLinkRepo(db)),
 		Stats:         usecase.NewActStats(acts),
+		Patterns:      usecase.NewListPatterns(postgres.NewPatternRepo(db)),
 		Organs:        usecase.NewListOrgans(acts),
 		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Export:        usecase.NewExportActs(acts),
