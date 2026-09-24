@@ -210,10 +210,11 @@ Ainda sem fonte externa.
   juntam os atos do Diário que citam o número, com a fase de cada um
   (calculada na leitura, sem migration), o órgão e o resumo por fase;
   filtro por órgão, aviso quando o número aparece em mais de um órgão e
-  "Citados junto" com os outros processos, contratos e CNPJs dos mesmos
-  atos. Os números de processo e de contrato na busca viram links para
-  essas páginas, e a `entidade` do MCP ganhou a mesma fase, os mesmos
-  órgãos e "citados junto" (commits `0e20251..5a0ce33`). Desenho em
+  "Citados junto" com os contratos e CNPJs dos mesmos atos (na página de
+  contrato, os processos e CNPJs). Os números de processo e de contrato
+  na busca viram links para essas páginas, e a `entidade` do MCP ganhou a
+  mesma fase, os mesmos órgãos e "citados junto" (commits
+  `85e0038..a233a38`). Desenho em
   `docs/superpowers/specs/2026-09-24-processo-e-contrato-design.md`.
 - **Alerta por entidade.** Inscrição em CNPJ, processo ou contrato, além de
   termo livre.

@@ -301,11 +301,18 @@ explica sozinho.
 - Medido na base local (24/09/2026, `GET` repetido após o primeiro
   acesso): `/v1/entities/processo/2808-2022` (46 atos, 9 órgãos) em 12 a
   27 ms; `/v1/entities/contrato/1-2011`, o maior contrato (196 atos), em
-  21 a 26 ms; `/v1/entities/cnpj/28636579000100`, o maior CNPJ da base
-  (5.296 atos, que já existia antes desta mudança), em 86 a 122 ms
-  quente e cerca de 595 ms na primeira chamada — a nova contagem por
-  órgão e por título (`linkedOrgansAndTitles`) roda para os três tipos,
-  mas nenhum dos três chega perto de 1 s.
+  21 a 26 ms. A rota de CNPJ (`/v1/entities/cnpj/{cnpj}`) não passa
+  por aqui: usa `ActRepo.ReportByEntity`, sem a contagem nova. O custo
+  novo para CNPJ fica só na `entidade` do MCP, que chama
+  `LinkRepo.ReportByKey`: para 28636579000100, o maior CNPJ da base
+  (5.296 atos, 50 órgãos, 2.786 pares de tipo e título), o relatório
+  inteiro leva de 508 a 564 ms em seis chamadas seguidas, e a consulta de
+  `linkedOrgansAndTitles` sozinha, 23 a 24 ms no `EXPLAIN ANALYZE`.
+- Órgão, na contagem e em cada ato do relatório, é a sigla principal
+  (`domain.PrincipalOrgan`), como em `/v1/organs`: FMSSG entra como FMS,
+  SEMSAD como SEMSADC. Somando pela sigla crua, 15 processos e contratos
+  da base local apareciam com variante e principal lado a lado, e em 8
+  deles a variante era o único motivo de contar mais de um órgão.
 
 ## Soma por processo na entidade
 

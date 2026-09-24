@@ -141,7 +141,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/gazettes/{id}/pdf` | Cópia arquivada do PDF (`ETag` = SHA-256; abra com `#page=N`) |
 | GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos |
-| GET | `/v1/entities/processo/{n}` e `/v1/entities/contrato/{n}` | Atos ligados ao número (os 300 mais recentes), na ordem da busca; `n` aceita `-` no lugar de `/` (`30-FMS-2011`). Resposta com `label` (grafia mais frequente no Diário), `count_by_phase` (fase de cada ato, calculada na leitura), `organs` (contagem por órgão, com `""` para os atos sem órgão) e `related` (até 20 processos, contratos ou CNPJs citados junto, pelos que têm mais atos); tipo desconhecido é 404, número inválido é 400 |
+| GET | `/v1/entities/processo/{n}` e `/v1/entities/contrato/{n}` | Atos ligados ao número (os 300 mais recentes), do mais recente ao mais antigo e, na mesma edição, na ordem da página; `n` aceita `-` no lugar de `/` (`30-FMS-2011`). Resposta com `label` (grafia mais frequente no Diário), `count_by_phase` (fase de cada ato, calculada na leitura), `organs` (contagem por órgão, com as variantes de sigla somadas na principal e `""` para os atos sem órgão) e `related` (citados junto, até 20 de cada tipo, pelos que têm mais atos: processo lista contratos e CNPJs, contrato lista processos e CNPJs); tipo desconhecido é 404, número inválido é 400 |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
@@ -168,11 +168,12 @@ paginada, até 20 atos; `diario` escolhe Prefeitura ou Câmara), `ler_ato`
 `entidade` (atos que citam um CNPJ, um processo ou um contrato, com a
 certeza da ligação; processo ou contrato que aparece nos dois diários tem
 certeza fraca, e `diario` restringe a um deles; `orgao_publico` marca o
-CNPJ do Município, de fundações, fundos, SG-PREVI e Câmara; para processo e
-contrato vem também `rotulo` (a grafia mais frequente no Diário),
-`atos_por_fase`, `orgaos` (contagem por órgão) e `citados_junto` (até 20
-processos, contratos ou CNPJs citados nos mesmos atos, pelos que têm mais
-atos); cada item de `atos_recentes` ganha `fase`), `agrupar`
+CNPJ do Município, de fundações, fundos, SG-PREVI e Câmara; vem também
+`rotulo` (o número como o Diário escreve), `atos_por_fase`, `orgaos`
+(contagem por órgão) e, em cada item de `atos_recentes`, `fase`, para os
+três tipos, CNPJ inclusive; processo e contrato trazem ainda
+`citados_junto` (até 20 de cada tipo, pelos que têm mais atos: processo
+lista contratos e CNPJs, contrato lista processos e CNPJs)), `agrupar`
 (conta os atos por CNPJ, processo, órgão ou tipo com os filtros da busca,
 e por padrão deixa os CNPJs de órgãos públicos de fora), `pagina_original`
 (texto cru de uma página do PDF arquivado, com o SHA-256, para conferir o
