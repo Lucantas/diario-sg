@@ -46,22 +46,22 @@ type readInput struct {
 }
 
 type readOutput struct {
-	GazetteID     string        `json:"edicao_id"`
-	Position      int           `json:"posicao"`
-	Diario        string        `json:"diario"`
-	EditionNumber string        `json:"edicao"`
-	PublishedAt   string        `json:"data"`
-	IsExtra       bool          `json:"extra"`
-	Type          string        `json:"tipo"`
-	Organ         string        `json:"orgao"`
-	OrganName     string        `json:"orgao_nome"`
-	Title         string        `json:"titulo"`
-	Text          string        `json:"texto"`
-	Pages         string        `json:"paginas"`
-	Warnings      []string      `json:"avisos"`
-	Citation      string        `json:"citacao"`
-	Sources       []sourceDTO   `json:"fontes"`
-	Alerts        []string      `json:"alertas_coleta,omitempty"`
+	GazetteID     string      `json:"edicao_id"`
+	Position      int         `json:"posicao"`
+	Diario        string      `json:"diario"`
+	EditionNumber string      `json:"edicao"`
+	PublishedAt   string      `json:"data"`
+	IsExtra       bool        `json:"extra"`
+	Type          string      `json:"tipo"`
+	Organ         string      `json:"orgao"`
+	OrganName     string      `json:"orgao_nome"`
+	Title         string      `json:"titulo"`
+	Text          string      `json:"texto"`
+	Pages         string      `json:"paginas"`
+	Warnings      []string    `json:"avisos"`
+	Citation      string      `json:"citacao"`
+	Sources       []sourceDTO `json:"fontes"`
+	Alerts        []string    `json:"alertas_coleta,omitempty"`
 }
 
 type entityInput struct {
@@ -132,6 +132,8 @@ func (s *server) register(srv *sdk.Server) {
 		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número. " +
 		"orgao_publico diz quando o CNPJ é do Município, de uma fundação ou fundo municipal, do SG-PREVI ou da Câmara: não é fornecedor."},
 		recorded(s, "entidade", s.entity))
+	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
+		recorded(s, "agrupar", s.group))
 	sdk.AddTool(srv, &sdk.Tool{Name: "fontes", Annotations: readOnly, Description: "Fontes de dados do Diário SG, " +
 		"com o período coberto, a última coleta e as lacunas conhecidas. Consulte antes de concluir que algo não existe."},
 		recorded(s, "fontes", s.sources))

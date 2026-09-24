@@ -6,6 +6,7 @@ const TOOLS: [string, string][] = [
   ["buscar_atos", "busca nos Diários da Prefeitura e da Câmara com os mesmos filtros do site"],
   ["ler_ato", "texto completo de um ato, com citação pronta"],
   ["entidade", "atos que citam um CNPJ, processo ou contrato, com contagem por tipo e soma dos valores citados"],
+  ["agrupar", "conta os atos encontrados por CNPJ, processo, órgão ou tipo, sem os CNPJs de órgãos públicos"],
   ["fontes", "período coberto, última coleta e lacunas conhecidas"],
 ];
 

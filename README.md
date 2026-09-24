@@ -166,8 +166,13 @@ paginada, até 20 atos; `diario` escolhe Prefeitura ou Câmara), `ler_ato`
 (texto completo e citação pronta),
 `entidade` (atos que citam um CNPJ, um processo ou um contrato, com a
 certeza da ligação; processo ou contrato que aparece nos dois diários tem
-certeza fraca, e `diario` restringe a um deles) e `fontes` (período coberto, última coleta e
-lacunas de cada diário). Todo ato vem com o diário, a edição, o link oficial na página do ato, a
+certeza fraca, e `diario` restringe a um deles; `orgao_publico` marca o
+CNPJ do Município, de fundações, fundos, SG-PREVI e Câmara), `agrupar`
+(conta os atos por CNPJ, processo, órgão ou tipo com os filtros da busca,
+e por padrão deixa os CNPJs de órgãos públicos de fora) e `fontes`
+(período coberto, última coleta e lacunas de cada diário). A cobertura vem
+na primeira página da busca, e `alertas_coleta` aparece em toda resposta
+quando a última coleta de um diário falhou. Todo ato vem com o diário, a edição, o link oficial na página do ato, a
 cópia arquivada e o SHA-256 do PDF. Limite de 60 chamadas por minuto por
 chave. Conectores que exigem OAuth (claude.ai, ChatGPT) ainda não
 funcionam. Localmente: `make run-api` e `http://localhost:8080/mcp`.

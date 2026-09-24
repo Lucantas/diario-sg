@@ -133,7 +133,7 @@ func TestMCPWithPerUserKey(t *testing.T) {
 		}
 	}
 	sort.Strings(names)
-	if strings.Join(names, ",") != "buscar_atos,entidade,fontes,ler_ato" {
+	if strings.Join(names, ",") != "agrupar,buscar_atos,entidade,fontes,ler_ato" {
 		t.Fatalf("ferramentas: %v", names)
 	}
 

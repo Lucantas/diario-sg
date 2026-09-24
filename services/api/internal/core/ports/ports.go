@@ -28,6 +28,10 @@ type ActRepository interface {
 	Export(ctx context.Context, f domain.ActFilter, yield func(h domain.ActHit, total int) error) error
 }
 
+type ActGrouper interface {
+	Group(ctx context.Context, q domain.GroupQuery) (domain.ActGroups, error)
+}
+
 type SubscriptionRepository interface {
 	Create(ctx context.Context, s *domain.Subscription) error
 	FindByConfirmToken(ctx context.Context, token string) (domain.Subscription, error)
