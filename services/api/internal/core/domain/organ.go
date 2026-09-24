@@ -7,7 +7,7 @@ type Organ struct {
 	Name    string
 }
 
-type OrganCount struct {
+type OrganListing struct {
 	Organ
 	Acts int
 }

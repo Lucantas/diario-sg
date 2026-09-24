@@ -66,7 +66,7 @@ func ParseEntityInput(kind EntityKind, s string) (string, error) {
 		}
 		return n, nil
 	case EntityContrato:
-		n := strings.ToUpper(strings.Join(strings.Fields(s), ""))
+		n := strings.ToUpper(strings.ReplaceAll(strings.Join(strings.Fields(s), ""), "-", "/"))
 		if !IsContratoShape(n) {
 			return "", ErrInvalidInput
 		}

@@ -24,7 +24,7 @@ func TestListOrgansSortsByActsThenAcronymAndNamesThem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []domain.OrganCount{
+	want := []domain.OrganListing{
 		{Organ: domain.Organ{Acronym: "FMS", Name: domain.OrganName("FMS")}, Acts: 5},
 		{Organ: domain.Organ{Acronym: "SEMAD", Name: domain.OrganName("SEMAD")}, Acts: 3},
 		{Organ: domain.Organ{Acronym: "SEMED", Name: domain.OrganName("SEMED")}, Acts: 3},
@@ -42,7 +42,7 @@ func TestListOrgansAddsVariantsToThePrincipal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []domain.OrganCount{
+	want := []domain.OrganListing{
 		{Organ: domain.Organ{Acronym: "FMS", Name: domain.OrganName("FMS")}, Acts: 7},
 		{Organ: domain.Organ{Acronym: "SEMSADC", Name: domain.OrganName("SEMSADC")}, Acts: 1},
 	}

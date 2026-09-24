@@ -64,6 +64,9 @@ type ActHit struct {
 
 	CNPJs       []string
 	ValuesCents []int64
+
+	Phase    Phase
+	Mentions []EntityMention
 }
 
 const (

@@ -41,6 +41,8 @@ func TestParseEntityInput(t *testing.T) {
 		{EntityProcesso, " 8421/2023 ", "84212023"},
 		{EntityContrato, "001/2017", "1/2017"},
 		{EntityContrato, "30 / fms / 2011", "30/FMS/2011"},
+		{EntityContrato, "30-fms-2011", "30/FMS/2011"},
+		{EntityProcesso, "387-2022", "3872022"},
 	}
 	for _, c := range ok {
 		if got, err := ParseEntityInput(c.kind, c.in); err != nil || got != c.want {

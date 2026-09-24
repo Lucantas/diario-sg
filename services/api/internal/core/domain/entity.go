@@ -32,6 +32,7 @@ type MonthCount struct {
 type EntityReport struct {
 	Kind        EntityKind
 	Key         string
+	Label       string
 	Certainty   Certainty
 	Sources     int
 	TotalActs   int
@@ -43,6 +44,35 @@ type EntityReport struct {
 	ProcessCount       int
 	ProcessSumCents    int64
 	ActsWithoutProcess int
+
+	Organs          []OrganCount
+	CountByPhase    map[Phase]int
+	Related         []RelatedEntity
+	TypeTitleCounts []TypeTitleCount
+}
+
+type OrganCount struct {
+	Organ string
+	Acts  int
+}
+
+type RelatedEntity struct {
+	Kind  EntityKind
+	Key   string
+	Label string
+	Acts  int
+}
+
+type EntityMention struct {
+	Kind  EntityKind
+	Key   string
+	Label string
+}
+
+type TypeTitleCount struct {
+	Type  ActType
+	Title string
+	Acts  int
 }
 
 type ProcessSummary struct {

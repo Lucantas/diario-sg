@@ -75,7 +75,7 @@ type ListOrgans struct{ acts ports.ActRepository }
 
 func NewListOrgans(a ports.ActRepository) *ListOrgans { return &ListOrgans{acts: a} }
 
-func (uc *ListOrgans) Execute(ctx context.Context) ([]domain.OrganCount, error) {
+func (uc *ListOrgans) Execute(ctx context.Context) ([]domain.OrganListing, error) {
 	counts, err := uc.acts.CountByOrgan(ctx)
 	if err != nil {
 		return nil, err
@@ -84,9 +84,9 @@ func (uc *ListOrgans) Execute(ctx context.Context) ([]domain.OrganCount, error) 
 	for acronym, n := range counts {
 		merged[domain.PrincipalOrgan(acronym)] += n
 	}
-	out := make([]domain.OrganCount, 0, len(merged))
+	out := make([]domain.OrganListing, 0, len(merged))
 	for acronym, n := range merged {
-		out = append(out, domain.OrganCount{Organ: domain.Organ{Acronym: acronym, Name: domain.OrganName(acronym)}, Acts: n})
+		out = append(out, domain.OrganListing{Organ: domain.Organ{Acronym: acronym, Name: domain.OrganName(acronym)}, Acts: n})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Acts != out[j].Acts {

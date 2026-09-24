@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	sdk "github.com/modelcontextprotocol/go-sdk/mcp"
@@ -305,7 +306,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		return nil, entityOutput{}, err
 	}
 	out := entityOutput{Kind: string(report.Kind), Key: report.Key, PublicBody: publicBodyOf(report), Certainty: string(report.Certainty),
-		Warning: certaintyWarning(report), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
+		Warning: strings.Join(domain.EntityWarnings(report), " "), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
 		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)),
 		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs),
 		ByProcess: processesOf(report.ByProcess), ProcessSum: report.ProcessSumCents, ProcessTotal: report.ProcessCount, NoProcess: report.ActsWithoutProcess}
@@ -341,17 +342,6 @@ func publicBodyOf(r domain.EntityReport) string {
 	}
 	name, _ := domain.PublicBody(r.Key)
 	return name
-}
-
-func certaintyWarning(r domain.EntityReport) string {
-	switch {
-	case r.Kind != domain.EntityCNPJ && r.Sources > 1:
-		return "Este número aparece no Diário da Prefeitura e no da Câmara, que numeram processos e contratos cada um à sua maneira: " +
-			"podem ser registros diferentes. Use diario para ver só um dos dois e confira o campo diario de cada ato."
-	case r.Certainty == domain.CertaintyWeak:
-		return "Número de contrato sem a sigla do órgão: estes atos podem ser de contratos diferentes, de órgãos diferentes, com o mesmo número e ano. Confira o órgão em cada ato."
-	}
-	return ""
 }
 
 func (s *server) sources(ctx context.Context, _ *sdk.CallToolRequest, _ sourcesInput) (*sdk.CallToolResult, sourcesOutput, error) {
