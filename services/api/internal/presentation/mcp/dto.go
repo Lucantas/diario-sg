@@ -175,10 +175,24 @@ func collectionAlerts(cs []domain.Coverage) []string {
 		if r.ID == "" || (r.Failed == 0 && r.Error == "") {
 			continue
 		}
-		alerts = append(alerts, fmt.Sprintf("A última coleta do %s (%s) falhou em %d edição(ões): %s. Edições recentes podem faltar.",
-			domain.SourceName(c.Source), timestampOrEmpty(r.FinishedAt), r.Failed, r.Error))
+		alerts = append(alerts, fmt.Sprintf("A última coleta do %s (%s) %s. Edições recentes podem faltar.",
+			domain.SourceName(c.Source), timestampOrEmpty(r.FinishedAt), failureOf(r)))
 	}
 	return alerts
+}
+
+func failureOf(r domain.FetchRun) string {
+	editions := "edições"
+	if r.Failed == 1 {
+		editions = "edição"
+	}
+	switch {
+	case r.Failed == 0:
+		return "falhou: " + r.Error
+	case r.Error == "":
+		return fmt.Sprintf("falhou em %d %s", r.Failed, editions)
+	}
+	return fmt.Sprintf("falhou em %d %s: %s", r.Failed, editions, r.Error)
 }
 
 func nonNil[T any](s []T) []T {

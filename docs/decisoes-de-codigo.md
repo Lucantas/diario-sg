@@ -295,8 +295,9 @@ explica sozinho.
   Contar na hora da busca levava 7,8 s para "maria da silva" (752 atos
   candidatos), contra 98 ms da busca. Até a reindexação, a coluna fica 0 e
   nada é excluído.
-- Na base local, 558 dos 161 mil atos passam do limite: 138 com 200 linhas
-  de nome ou mais e 420 entre 50 e 199. Extratos trimestrais de contratos,
+- Na base local, 722 dos 161 mil atos passam do limite: 225 com 200 linhas
+  de nome ou mais e 497 entre 50 e 199. "Renata Rosa Lopes Miranda" sem
+  aspas casava com 207 atos; com `nome`, com 12, e 9 listas ficam de fora. Extratos trimestrais de contratos,
   com uma empresa por linha, também contam como lista.
 
 ## Entrega de mensagens e idempotência
