@@ -216,8 +216,14 @@ Ainda sem fonte externa.
   mesma fase, os mesmos órgãos e "citados junto" (commits
   `10d2fa2..6515763`). Desenho em
   `docs/superpowers/specs/2026-09-24-processo-e-contrato-design.md`.
-- **Alerta por entidade.** Inscrição em CNPJ, processo ou contrato, além de
-  termo livre.
+- **Alerta por entidade.** ✅ Inscrição por e-mail em CNPJ, processo ou
+  contrato, além de termo livre, nas páginas de empresa, processo e
+  contrato. O alerta sai pelas ligações de `entity_links` da edição nova,
+  não pela busca textual, e o e-mail mostra o trecho em volta da menção e
+  o órgão de cada ato. A busca, a exportação e o RSS aceitam
+  `entity=<tipo>:<número>`, e as mesmas páginas têm o link do feed
+  (commits `c1e19df..8e9555e`). Desenho em
+  `docs/superpowers/specs/2026-09-24-alerta-por-entidade-design.md`.
 - **Painéis.** Maiores fornecedores por valor, por secretaria e por ano.
 - **Padrões para verificar** (regras fixas, cada uma com a regra em texto e
   os atos que a acionaram):
@@ -232,6 +238,12 @@ Linguagem: sempre "padrão para verificar", nunca "irregularidade".
 
 **Pronto quando:** cada regra tem teste com atos reais que a acionam e atos
 reais parecidos que não acionam.
+
+Pendências:
+
+- [ ] Na nuvem: aplicar a migration 012 (inscrição de entidade) antes de
+  publicar a imagem nova da API e do worker; o worker antigo não lê
+  inscrição sem `query`.
 
 ## Entrega 3 — Quem é o fornecedor
 
