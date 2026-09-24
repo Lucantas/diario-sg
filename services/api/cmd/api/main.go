@@ -10,6 +10,7 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pdf"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
@@ -51,7 +52,7 @@ func run(l *slog.Logger) error {
 	company := usecase.NewGetCompany(acts)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db)),
-		Group:    usecase.NewGroupActs(acts),
+		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
 		Coverage: usecase.NewSourceCoverage(gazettes), Keys: keys, PublicWebURL: cfg.PublicWebURL, Log: l})
 
 	api := &httpapi.API{

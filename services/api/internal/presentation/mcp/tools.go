@@ -151,6 +151,8 @@ func (s *server) register(srv *sdk.Server) {
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
 		recorded(s, "agrupar", s.group))
+	sdk.AddTool(srv, &sdk.Tool{Name: "pagina_original", Annotations: readOnly, Description: pageDescription},
+		recorded(s, "pagina_original", s.page))
 	sdk.AddTool(srv, &sdk.Tool{Name: "fontes", Annotations: readOnly, Description: "Fontes de dados do Diário SG, " +
 		"com o período coberto, a última coleta e as lacunas conhecidas. Consulte antes de concluir que algo não existe."},
 		recorded(s, "fontes", s.sources))
