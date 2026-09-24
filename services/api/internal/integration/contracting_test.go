@@ -118,3 +118,23 @@ type readWithFacts struct {
 		ValueCents int64  `json:"valor_centavos"`
 	} `json:"cota_parlamentar"`
 }
+
+func TestIndexesAMainValueAboveTheIntegerRange(t *testing.T) {
+	srv, _ := newServerFor(t, "EXTRATO DO CONTRATO Nº 9/2026\nPregão Eletrônico nº 1/2026.\nValor global: R$ 5.563.722.283,00.")
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	out, _ := call[struct {
+		Acts []struct {
+			MainValue int64 `json:"valor_principal_centavos"`
+		} `json:"atos"`
+	}](t, session, "buscar_atos", map[string]any{})
+
+	if len(out.Acts) != 1 || out.Acts[0].MainValue != 556372228300 {
+		t.Fatalf("valor principal acima de 2^31 centavos: %+v", out.Acts)
+	}
+}
