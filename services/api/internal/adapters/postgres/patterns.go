@@ -20,10 +20,10 @@ func (r *PatternRepo) DispensaActs(ctx context.Context) ([]domain.DispensaAct, e
 		SELECT a.id, e.key, a.organ, g.published_at, a.main_value_cents, a.body,
 		       coalesce((SELECT array_agg(p.key || '|' || pl.evidence ORDER BY p.key)
 		                 FROM entity_links pl JOIN entities p ON p.id = pl.entity_id AND p.kind = 'processo'
-		                 WHERE pl.record_kind = $1 AND pl.record_id = a.id::text), '{}')
+		                 WHERE pl.source = $2 AND pl.record_kind = $1 AND pl.record_id = a.id::text), '{}')
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
-		JOIN entity_links l ON l.record_kind = $1 AND l.record_id = a.id::text
+		JOIN entity_links l ON l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text
 		JOIN entities e ON e.id = l.entity_id AND e.kind = 'cnpj'
 		WHERE (a.type = 'dispensa' OR a.modality = 'dispensa') AND a.type <> 'aditivo'
 		  AND a.main_value_cents > 0 AND g.source = $2`, domain.RecordAct, domain.SourceDiarioPrefeitura)
