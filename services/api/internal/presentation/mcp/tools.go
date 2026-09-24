@@ -79,6 +79,9 @@ type entityOutput struct {
 	TotalActs   int             `json:"total_atos"`
 	TotalCents  int64           `json:"soma_valores_centavos"`
 	CountByType map[string]int  `json:"atos_por_tipo"`
+	ByProcess   []processDTO    `json:"por_processo,omitempty"`
+	ProcessSum  int64           `json:"soma_maior_valor_por_processo_centavos,omitempty"`
+	NoProcess   int             `json:"atos_sem_processo,omitempty"`
 	Acts        []actSummaryDTO `json:"atos_recentes"`
 	Coverage    []coverageDTO   `json:"cobertura"`
 	Alerts      []string        `json:"alertas_coleta,omitempty"`
@@ -130,6 +133,9 @@ func (s *server) register(srv *sdk.Server) {
 		"um processo ou um contrato: total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 mais recentes. " +
 		"A soma é do que aparece no texto dos atos, não do que foi pago. A certeza diz quão seguro é juntar esses atos: " +
 		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número. " +
+		"por_processo agrupa os atos pelos processos citados, com o maior valor de cada um; " +
+		"soma_maior_valor_por_processo_centavos soma esses maiores valores, para não contar a mesma contratação várias vezes " +
+		"(extrato, aditivo e homologação citam o mesmo valor). " +
 		"orgao_publico diz quando o CNPJ é do Município, de uma fundação ou fundo municipal, do SG-PREVI ou da Câmara: não é fornecedor."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
@@ -262,7 +268,8 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	out := entityOutput{Kind: string(report.Kind), Key: report.Key, PublicBody: publicBodyOf(report), Certainty: string(report.Certainty),
 		Warning: certaintyWarning(report), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
 		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)),
-		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs)}
+		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs),
+		ByProcess: processesOf(report.ByProcess), ProcessSum: report.SumOfProcessMaxCents(), NoProcess: report.ActsWithoutProcess}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
 	}
@@ -270,6 +277,23 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		out.Acts = append(out.Acts, summaryOf(h, s.webURL))
 	}
 	return nil, out, nil
+}
+
+type processDTO struct {
+	Key           string `json:"processo"`
+	Acts          int    `json:"atos"`
+	MaxValueCents int64  `json:"maior_valor_centavos"`
+	First         string `json:"primeira_data"`
+	Last          string `json:"ultima_data"`
+}
+
+func processesOf(ps []domain.ProcessSummary) []processDTO {
+	out := make([]processDTO, 0, len(ps))
+	for _, p := range ps {
+		out = append(out, processDTO{Key: p.Key, Acts: p.Acts, MaxValueCents: p.MaxValueCents,
+			First: p.First.Format(time.DateOnly), Last: p.Last.Format(time.DateOnly)})
+	}
+	return out
 }
 
 func publicBodyOf(r domain.EntityReport) string {

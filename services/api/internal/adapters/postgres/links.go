@@ -49,6 +49,11 @@ func (r *LinkRepo) ReportByKey(ctx context.Context, kind domain.EntityKind, key,
 	if err := r.linkedTypes(ctx, entityID, source, &report); err != nil {
 		return report, err
 	}
+	if kind != domain.EntityProcesso {
+		if err := r.linkedProcesses(ctx, entityID, source, &report); err != nil {
+			return report, err
+		}
+	}
 	err = r.db.QueryRowContext(ctx, `
 		SELECT coalesce(sum(v.normalized::bigint), 0)
 		FROM entity_links l JOIN act_entities v ON v.act_id = l.record_id::uuid AND v.kind = 'valor'
@@ -109,4 +114,47 @@ func (r *LinkRepo) linkedTypes(ctx context.Context, entityID, source string, rep
 		report.TotalActs += n
 	}
 	return rows.Err()
+}
+
+const processSummaryLimit = 20
+
+func (r *LinkRepo) linkedProcesses(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
+	rows, err := r.db.QueryContext(ctx, `
+		WITH acts_of AS (
+			SELECT l.record_id, l.source FROM entity_links l
+			WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($3 = '' OR l.source = $3)
+		), processes AS (
+			SELECT pe.key, o.record_id
+			FROM acts_of o
+			JOIN entity_links lp ON lp.record_kind = $2 AND lp.record_id = o.record_id AND lp.source = o.source
+			JOIN entities pe ON pe.id = lp.entity_id AND pe.kind = '`+string(domain.EntityProcesso)+`'
+		)
+		SELECT p.key, count(DISTINCT p.record_id),
+		       coalesce(max((SELECT max(v.normalized::bigint) FROM act_entities v WHERE v.act_id = p.record_id::uuid AND v.kind = 'valor')), 0),
+		       min(g.published_at), max(g.published_at),
+		       (SELECT count(*) FROM acts_of o WHERE NOT EXISTS (SELECT 1 FROM processes q WHERE q.record_id = o.record_id))
+		FROM processes p
+		JOIN acts a ON a.id = p.record_id::uuid
+		JOIN gazettes g ON g.id = a.gazette_id
+		GROUP BY p.key
+		ORDER BY count(DISTINCT p.record_id) DESC, p.key
+		LIMIT $4`, entityID, domain.RecordAct, source, processSummaryLimit)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var p domain.ProcessSummary
+		if err := rows.Scan(&p.Key, &p.Acts, &p.MaxValueCents, &p.First, &p.Last, &report.ActsWithoutProcess); err != nil {
+			return err
+		}
+		report.ByProcess = append(report.ByProcess, p)
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if len(report.ByProcess) == 0 {
+		report.ActsWithoutProcess = report.TotalActs
+	}
+	return nil
 }

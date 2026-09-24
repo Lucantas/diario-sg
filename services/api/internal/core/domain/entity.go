@@ -38,4 +38,23 @@ type EntityReport struct {
 	CountByType map[ActType]int
 	TotalCents  int64
 	Acts        []ActHit
+
+	ByProcess          []ProcessSummary
+	ActsWithoutProcess int
+}
+
+type ProcessSummary struct {
+	Key           string
+	Acts          int
+	MaxValueCents int64
+	First         time.Time
+	Last          time.Time
+}
+
+func (r EntityReport) SumOfProcessMaxCents() int64 {
+	var sum int64
+	for _, p := range r.ByProcess {
+		sum += p.MaxValueCents
+	}
+	return sum
 }

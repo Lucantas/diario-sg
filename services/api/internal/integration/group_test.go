@@ -78,3 +78,30 @@ func TestMCPGroupRejectsUnknownGrouping(t *testing.T) {
 		t.Fatal("agrupar por empresa deveria ser erro de entrada")
 	}
 }
+
+func TestMCPEntitySummarizesByProcess(t *testing.T) {
+	srv, _ := newServerFor(t, "ATOS DO PREFEITO\n"+groupGazette)
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	out, _ := call[struct {
+		TotalCents int64 `json:"soma_valores_centavos"`
+		ProcessSum int64 `json:"soma_maior_valor_por_processo_centavos"`
+		ByProcess  []struct {
+			Key           string `json:"processo"`
+			Acts          int    `json:"atos"`
+			MaxValueCents int64  `json:"maior_valor_centavos"`
+		} `json:"por_processo"`
+	}](t, session, "entidade", map[string]any{"numero": "01.742.126/0001-02"})
+
+	if len(out.ByProcess) != 1 || out.ByProcess[0].Acts != 2 || out.ByProcess[0].MaxValueCents != 5000000 {
+		t.Fatalf("os dois atos da ALL FOOD são do mesmo processo: %+v", out.ByProcess)
+	}
+	if out.ProcessSum != 5000000 || out.TotalCents != 6250000 {
+		t.Fatalf("soma por processo %d; soma de tudo que foi citado %d", out.ProcessSum, out.TotalCents)
+	}
+}
