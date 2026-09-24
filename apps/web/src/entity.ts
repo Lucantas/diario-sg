@@ -1,4 +1,14 @@
-import { ActHit, EntityKind, OrganCount } from "./api";
+import { ActHit, AlertEntityKind, EntityKind, OrganCount } from "./api";
+
+const ALERT_PREFIX: Record<AlertEntityKind, string> = { cnpj: "o CNPJ", processo: "o processo", contrato: "o contrato" };
+
+export function entityFeedUrl(kind: AlertEntityKind, value: string) {
+  return `/api/v1/feeds/acts?${new URLSearchParams({ entity: `${kind}:${value}` })}`;
+}
+
+export function alertSubjectLabel(kind: AlertEntityKind, label: string) {
+  return `${ALERT_PREFIX[kind]} ${label}`;
+}
 
 export function entityPath(kind: EntityKind, slug: string) {
   return `/${kind}/${slug}`;

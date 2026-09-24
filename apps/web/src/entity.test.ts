@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ActHit } from "./api";
-import { entityPath, groupByOrgan, parseEntityPath, selectedOrgan } from "./entity";
+import { alertSubjectLabel, entityFeedUrl, entityPath, groupByOrgan, parseEntityPath, selectedOrgan } from "./entity";
 
 const hit = (id: string, organ: string, published_at: string) => ({ id, organ, published_at }) as ActHit;
 
@@ -31,5 +31,18 @@ describe("groupByOrgan", () => {
     expect(groupByOrgan(acts, organs, "SEMED").map((g) => g.organ)).toEqual(["SEMAD", "SEMTRAN", ""]);
     expect(selectedOrgan(organs, "SEMED")).toBe("");
     expect(selectedOrgan(organs, "SEMTRAN")).toBe("SEMTRAN");
+  });
+});
+
+describe("entityFeedUrl", () => {
+  it("leva o tipo e o número no parâmetro entity", () => {
+    expect(entityFeedUrl("contrato", "30/FMS/2011")).toBe("/api/v1/feeds/acts?entity=contrato%3A30%2FFMS%2F2011");
+  });
+});
+
+describe("alertSubjectLabel", () => {
+  it("nomeia a entidade como no e-mail", () => {
+    expect(alertSubjectLabel("cnpj", "12.345.678/0001-90")).toBe("o CNPJ 12.345.678/0001-90");
+    expect(alertSubjectLabel("processo", "8.189/2025")).toBe("o processo 8.189/2025");
   });
 });

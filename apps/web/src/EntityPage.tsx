@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { EntityKind, EntityResponse, Related, getEntity } from "./api";
 import { Result } from "./components";
+import { EntityAlert } from "./EntityAlert";
 import { entityPath, groupByOrgan, selectedOrgan } from "./entity";
 import { PHASES, PHASE_LABEL } from "./types";
 
@@ -118,6 +119,8 @@ export function EntityPage({ kind, slug }: { kind: EntityKind; slug: string }) {
               </ul>
             </section>
           )}
+
+          <EntityAlert kind={kind} value={data.label} label={data.label} />
         </>
       )}
     </main>

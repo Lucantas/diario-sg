@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ActType, Organ, SearchResponse, Source, listOrgans, searchActs, subscribe } from "./api";
+import { AlertForm } from "./AlertForm";
 import { Result } from "./components";
 import { SearchState, apiParams, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery, withSource } from "./searchState";
 import { SOURCE_LABEL } from "./types";
@@ -221,7 +222,13 @@ export function SearchPage() {
                 onClick={() => goToPage(state.page + 1)}>Próxima</button>
             </nav>
           )}
-          {state.q.length >= 3 && <AlertForm query={state.q} />}
+          {state.q.length >= 3 && (
+            <AlertForm
+              title={`Avisar quando “${state.q}” aparecer de novo`}
+              description="Você recebe um e-mail no dia em que uma nova edição mencionar este termo. Os filtros não entram no alerta."
+              onSubscribe={(email) => subscribe(email, state.q)}
+            />
+          )}
           <FeedLink state={state} />
         </section>
       )}
@@ -256,44 +263,3 @@ function FeedLink({ state }: { state: SearchState }) {
     </p>
   );
 }
-
-function AlertForm({ query }: { query: string }) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [error, setError] = useState("");
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    setStatus("sending");
-    try {
-      await subscribe(email, query);
-      setStatus("sent");
-    } catch (err) {
-      setError((err as Error).message);
-      setStatus("error");
-    }
-  }
-
-  if (status === "sent") {
-    return (
-      <p className="notice">
-        Enviamos um link para {email}. O alerta começa a valer depois que você confirmar.
-      </p>
-    );
-  }
-
-  return (
-    <form className="alert" onSubmit={onSubmit}>
-      <h2>Avisar quando “{query}” aparecer de novo</h2>
-      <p>Você recebe um e-mail no dia em que uma nova edição mencionar este termo. Os filtros não entram no alerta.</p>
-      <div className="alert-row">
-        <label htmlFor="email" className="visually-hidden">Seu e-mail</label>
-        <input id="email" type="email" required value={email}
-          onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
-        <button type="submit" disabled={status === "sending"}>Criar alerta</button>
-      </div>
-      {status === "error" && <p className="notice notice-error">{error}</p>}
-    </form>
-  );
-}
-

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActType, CompanyResponse, getCompany } from "./api";
 import { Result } from "./components";
+import { EntityAlert } from "./EntityAlert";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
 export function CompanyPage({ cnpj }: { cnpj: string }) {
@@ -57,6 +58,8 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
               {data.acts.map((h) => <Result key={h.id} hit={h} />)}
             </ol>
           </section>
+
+          <EntityAlert kind="cnpj" value={cnpj} label={formatCnpj(cnpj)} />
         </>
       )}
     </main>

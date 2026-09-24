@@ -12,6 +12,14 @@ export type Phase =
 
 export type EntityKind = "processo" | "contrato";
 
+export type AlertEntityKind = EntityKind | "cnpj";
+
+export interface Subscription {
+  query: string;
+  subject: string;
+  status: string;
+}
+
 export interface Mention {
   kind: EntityKind;
   key: string;
@@ -119,14 +127,21 @@ export function getEntity(kind: EntityKind, slug: string) {
 }
 
 export function subscribe(email: string, query: string) {
-  return request<{ query: string; status: string }>("/v1/subscriptions", {
+  return request<Subscription>("/v1/subscriptions", {
     method: "POST",
     body: JSON.stringify({ email, query }),
   });
 }
 
+export function subscribeEntity(email: string, kind: AlertEntityKind, value: string) {
+  return request<Subscription>("/v1/subscriptions", {
+    method: "POST",
+    body: JSON.stringify({ email, entity: { kind, value } }),
+  });
+}
+
 export function confirmSubscription(token: string) {
-  return request<{ query: string }>("/v1/subscriptions/confirm", {
+  return request<Subscription>("/v1/subscriptions/confirm", {
     method: "POST",
     body: JSON.stringify({ token }),
   });

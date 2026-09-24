@@ -30,7 +30,7 @@ function TokenPage({ kind, token }: { kind: "confirm" | "cancel"; token: string 
     try {
       if (confirm) {
         const s = await confirmSubscription(token);
-        setMessage(`Alerta confirmado. Você será avisado quando “${s.query}” aparecer.`);
+        setMessage(`Alerta confirmado. Você será avisado quando houver ato novo sobre ${s.subject}.`);
       } else {
         await unsubscribe(token);
         setMessage("Alerta cancelado. Você não receberá mais e-mails sobre ele.");
