@@ -173,7 +173,9 @@ e por padrão deixa os CNPJs de órgãos públicos de fora), `pagina_original`
 (texto cru de uma página do PDF arquivado, com o SHA-256, para conferir o
 que o parser leu) e `fontes`
 (período coberto, última coleta e lacunas de cada diário). `buscar_atos` e
-`agrupar` aceitam `modalidade` e `valor_principal_min`/`valor_principal_max`;
+`agrupar` aceitam `modalidade`, `valor_principal_min`/`valor_principal_max`
+e `nome` (pessoa ou empresa com as palavras juntas, sem as listas longas de
+nomes, a menos que venha `incluir_listas`);
 `ler_ato` traz `partes` (cada CNPJ com o nome provável ao lado) e, nos termos
 de CEAPM da Câmara, `cota_parlamentar` (vereador, mês e valor). A cobertura vem
 na primeira página da busca, e `alertas_coleta` aparece em toda resposta

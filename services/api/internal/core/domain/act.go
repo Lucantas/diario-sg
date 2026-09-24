@@ -46,6 +46,7 @@ type Act struct {
 
 	Modality       Modality
 	MainValueCents int64
+	NameLines      int
 }
 
 type ActHit struct {
@@ -83,6 +84,8 @@ type ActFilter struct {
 
 	MainMinCents int64
 	MainMaxCents int64
+	Name         string
+	IncludeLists bool
 	Recent       bool
 	Limit        int
 	Offset       int
@@ -119,6 +122,7 @@ func (f *ActFilter) Normalize() error {
 		return ErrInvalidFilter
 	}
 	f.Query = TranslateOperators(f.Query)
+	f.Name = cleanName(f.Name)
 	if !f.From.IsZero() && !f.To.IsZero() && f.To.Before(f.From) {
 		return ErrInvalidFilter
 	}

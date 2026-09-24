@@ -77,7 +77,7 @@ func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, no
 
 func (r *ActRepo) CountByMonth(ctx context.Context, f domain.ActFilter) ([]domain.MonthCount, error) {
 	where, extra := filterSQL(f, 3)
-	args := append([]any{f.Query, likePattern(f.Query)}, extra...)
+	args := append([]any{f.TextQuery(), likePattern(f.TextQuery())}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT date_trunc('month', g.published_at)::date AS month, count(*)
 		FROM acts a

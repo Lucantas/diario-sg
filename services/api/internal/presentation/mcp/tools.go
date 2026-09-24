@@ -20,6 +20,8 @@ var errInternal = errors.New("erro interno; tente de novo em instantes")
 
 type searchInput struct {
 	Query    string  `json:"consulta,omitempty" jsonschema:"termos da busca em português; aceita \"frase exata\", OU e -excluir"`
+	Name     string  `json:"nome,omitempty" jsonschema:"nome de pessoa ou empresa como aparece no texto; casa só com as palavras juntas, nessa ordem"`
+	Lists    bool    `json:"incluir_listas,omitempty" jsonschema:"com nome, incluir também atos que são listas longas de nomes (padrão: não)"`
 	Diario   string  `json:"diario,omitempty" jsonschema:"diario_prefeitura ou diario_camara; vazio busca nos dois"`
 	Type     string  `json:"tipo,omitempty" jsonschema:"tipo do ato: nomeacao, exoneracao, contrato, aditivo, licitacao, dispensa, decreto, lei, portaria, resolucao, despacho, edital, ata, corrigenda, prestacao_contas ou outro"`
 	Organ    string  `json:"orgao,omitempty" jsonschema:"sigla do órgão da Prefeitura, como SEMED"`
@@ -41,6 +43,7 @@ type searchOutput struct {
 	Acts     []actSummaryDTO `json:"atos"`
 	Coverage []coverageDTO   `json:"cobertura,omitempty"`
 	Alerts   []string        `json:"alertas_coleta,omitempty"`
+	Omitted  int             `json:"atos_em_listas_omitidos,omitempty"`
 }
 
 type readInput struct {
@@ -133,7 +136,9 @@ func (s *server) register(srv *sdk.Server) {
 		"(valores_total diz quantos são) e, com valor_min ou valor_max, os que caíram na faixa. " +
 		"alertas_coleta aparece quando a última coleta de um diário falhou. " +
 		"modalidade (dispensa, inexigibilidade, pregao…) e valor_principal_centavos (valor global, total ou do contrato) " +
-		"são lidos do texto e podem faltar; o tipo do ato não muda, então um extrato de contrato por dispensa tem tipo contrato e modalidade dispensa."},
+		"são lidos do texto e podem faltar; o tipo do ato não muda, então um extrato de contrato por dispensa tem tipo contrato e modalidade dispensa. " +
+		"Para procurar uma pessoa ou empresa use nome em vez de consulta: casa só com as palavras juntas e deixa de fora atos que são listas " +
+		"longas de nomes (resultados de concurso, convocações); atos_em_listas_omitidos diz quantos ficaram de fora e incluir_listas os traz."},
 		recorded(s, "buscar_atos", s.search))
 	sdk.AddTool(srv, &sdk.Tool{Name: "ler_ato", Annotations: readOnly, Description: "Texto completo de um ato, " +
 		"com citação pronta (ABNT), link da edição oficial na página do ato e cópia arquivada com SHA-256. " +
@@ -207,11 +212,22 @@ func (s *server) search(ctx context.Context, _ *sdk.CallToolRequest, in searchIn
 		act.InRange = valuesInRange(h.ValuesCents, f.MinCents, f.MaxCents)
 		out.Acts = append(out.Acts, act)
 	}
+	if f.ExcludesNameLists() {
+		if out.Omitted, err = s.omittedLists(ctx, f, res.Total); err != nil {
+			return nil, searchOutput{}, err
+		}
+	}
 	return nil, out, nil
 }
 
+func (s *server) omittedLists(ctx context.Context, f domain.ActFilter, total int) (int, error) {
+	f.IncludeLists, f.Limit, f.Offset = true, 1, 0
+	res, err := s.searchActs.Execute(ctx, f)
+	return res.Total - total, err
+}
+
 func filterOf(in searchInput) (domain.ActFilter, error) {
-	f := domain.ActFilter{Query: in.Query, Source: in.Diario, Type: domain.ActType(in.Type), Organ: in.Organ,
+	f := domain.ActFilter{Query: in.Query, Name: in.Name, IncludeLists: in.Lists, Source: in.Diario, Type: domain.ActType(in.Type), Organ: in.Organ,
 		Modality: domain.Modality(in.Modality), Limit: in.Limit, Offset: in.Offset}
 	if f.Limit <= 0 {
 		f.Limit = defaultSearchLimit
