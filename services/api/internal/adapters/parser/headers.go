@@ -19,6 +19,8 @@ var headerRes = []*regexp.Regexp{
 	regexp.MustCompile(`^ATA D[AEO]\b`),
 	regexp.MustCompile(`^CHAMAMENTO PÚBLICO\b`),
 	regexp.MustCompile(`^NOTIFICAÇÃO\b`),
+	regexp.MustCompile(`^AUTO DE INFRAÇÃO\b`),
+	regexp.MustCompile(`^DESIGNAÇÃO DE FISCA(?:L|IS)\b`),
 	regexp.MustCompile(`^CONTRATO\s+(?:DE\s+[A-ZÇÃÕÉ]+\s+)?(?:` + num + `\s*)?\d`),
 	regexp.MustCompile(`^(?:DISPENSA DE LICITAÇÃO|INEXIGIBILIDADE DE LICITAÇÃO|RATIFICAÇÃO|HOMOLOGAÇÃO|ADJUDICAÇÃO)\b`),
 	regexp.MustCompile(`^PREGÃO ELETRÔNICO\b`),
@@ -71,11 +73,10 @@ func isOrganSection(lines []line, i int) bool {
 	if !organRe.MatchString(lines[i].text) || isHeader(lines[i].text) {
 		return false
 	}
-	for j := i + 1; j < len(lines) && j <= i+2; j++ {
-		if lines[j].text == "" {
-			continue
+	for _, next := range lines[i+1:] {
+		if next.text != "" {
+			return startsAct(next.text)
 		}
-		return startsAct(lines[j].text)
 	}
 	return false
 }
