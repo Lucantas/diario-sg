@@ -81,20 +81,21 @@ type entityInput struct {
 }
 
 type entityOutput struct {
-	Kind        string          `json:"tipo"`
-	Key         string          `json:"chave"`
-	PublicBody  string          `json:"orgao_publico,omitempty"`
-	Certainty   string          `json:"certeza,omitempty"`
-	Warning     string          `json:"aviso,omitempty"`
-	TotalActs   int             `json:"total_atos"`
-	TotalCents  int64           `json:"soma_valores_centavos"`
-	CountByType map[string]int  `json:"atos_por_tipo"`
-	ByProcess   []processDTO    `json:"por_processo,omitempty"`
-	ProcessSum  int64           `json:"soma_maior_valor_por_processo_centavos,omitempty"`
-	NoProcess   int             `json:"atos_sem_processo,omitempty"`
-	Acts        []actSummaryDTO `json:"atos_recentes"`
-	Coverage    []coverageDTO   `json:"cobertura"`
-	Alerts      []string        `json:"alertas_coleta,omitempty"`
+	Kind         string          `json:"tipo"`
+	Key          string          `json:"chave"`
+	PublicBody   string          `json:"orgao_publico,omitempty"`
+	Certainty    string          `json:"certeza,omitempty"`
+	Warning      string          `json:"aviso,omitempty"`
+	TotalActs    int             `json:"total_atos"`
+	TotalCents   int64           `json:"soma_valores_centavos"`
+	CountByType  map[string]int  `json:"atos_por_tipo"`
+	ByProcess    []processDTO    `json:"por_processo,omitempty"`
+	ProcessSum   int64           `json:"soma_maior_valor_por_processo_centavos,omitempty"`
+	ProcessTotal int             `json:"processos_total,omitempty"`
+	NoProcess    int             `json:"atos_sem_processo,omitempty"`
+	Acts         []actSummaryDTO `json:"atos_recentes"`
+	Coverage     []coverageDTO   `json:"cobertura"`
+	Alerts       []string        `json:"alertas_coleta,omitempty"`
 }
 
 type sourcesInput struct{}
@@ -149,9 +150,10 @@ func (s *server) register(srv *sdk.Server) {
 		"um processo ou um contrato: total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 mais recentes. " +
 		"A soma é do que aparece no texto dos atos, não do que foi pago. A certeza diz quão seguro é juntar esses atos: " +
 		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número. " +
-		"por_processo agrupa os atos pelos processos citados, com o maior valor de cada um; " +
-		"soma_maior_valor_por_processo_centavos soma esses maiores valores, para não contar a mesma contratação várias vezes " +
-		"(extrato, aditivo e homologação citam o mesmo valor). " +
+		"por_processo agrupa os atos pelos processos citados (até 20; processos_total diz quantos são), com o maior valor de cada um; " +
+		"soma_maior_valor_por_processo_centavos soma esses maiores valores de todos os processos, para não contar a mesma contratação várias vezes " +
+		"(extrato, aditivo e homologação citam o mesmo valor); um ato que cita dois processos entra uma vez só. " +
+		"O maior valor é o maior citado no ato, que pode ser de outro contrato mencionado nele: confira no texto. " +
 		"orgao_publico diz quando o CNPJ é do Município, de uma fundação ou fundo municipal, do SG-PREVI ou da Câmara: não é fornecedor."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
@@ -306,7 +308,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		Warning: certaintyWarning(report), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
 		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)),
 		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs),
-		ByProcess: processesOf(report.ByProcess), ProcessSum: report.SumOfProcessMaxCents(), NoProcess: report.ActsWithoutProcess}
+		ByProcess: processesOf(report.ByProcess), ProcessSum: report.ProcessSumCents, ProcessTotal: report.ProcessCount, NoProcess: report.ActsWithoutProcess}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
 	}

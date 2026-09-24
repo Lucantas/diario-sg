@@ -156,6 +156,26 @@ func (r *LinkRepo) linkedProcesses(ctx context.Context, entityID, source string,
 	}
 	if len(report.ByProcess) == 0 {
 		report.ActsWithoutProcess = report.TotalActs
+		return nil
 	}
-	return nil
+	return r.processTotals(ctx, entityID, source, report)
+}
+
+func (r *LinkRepo) processTotals(ctx context.Context, entityID, source string, report *domain.EntityReport) error {
+	return r.db.QueryRowContext(ctx, `
+		WITH acts_of AS (
+			SELECT l.record_id, l.source FROM entity_links l
+			WHERE l.entity_id = $1 AND l.record_kind = $2 AND ($3 = '' OR l.source = $3)
+		), processes AS (
+			SELECT pe.key, o.record_id,
+			       coalesce((SELECT max(v.normalized::bigint) FROM act_entities v WHERE v.act_id = o.record_id::uuid AND v.kind = 'valor'), 0) AS value
+			FROM acts_of o
+			JOIN entity_links lp ON lp.record_kind = $2 AND lp.record_id = o.record_id AND lp.source = o.source
+			JOIN entities pe ON pe.id = lp.entity_id AND pe.kind = '`+string(domain.EntityProcesso)+`'
+		), process_max AS (
+			SELECT DISTINCT ON (key) key, record_id, value FROM processes ORDER BY key, value DESC, record_id
+		)
+		SELECT (SELECT count(*) FROM process_max),
+		       coalesce((SELECT sum(value) FROM (SELECT DISTINCT ON (record_id) value FROM process_max ORDER BY record_id) s), 0)`,
+		entityID, domain.RecordAct, source).Scan(&report.ProcessCount, &report.ProcessSumCents)
 }

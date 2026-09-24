@@ -40,6 +40,8 @@ type EntityReport struct {
 	Acts        []ActHit
 
 	ByProcess          []ProcessSummary
+	ProcessCount       int
+	ProcessSumCents    int64
 	ActsWithoutProcess int
 }
 
@@ -49,12 +51,4 @@ type ProcessSummary struct {
 	MaxValueCents int64
 	First         time.Time
 	Last          time.Time
-}
-
-func (r EntityReport) SumOfProcessMaxCents() int64 {
-	var sum int64
-	for _, p := range r.ByProcess {
-		sum += p.MaxValueCents
-	}
-	return sum
 }

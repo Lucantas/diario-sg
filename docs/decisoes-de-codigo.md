@@ -253,9 +253,12 @@ explica sozinho.
   modalidade `dispensa`. Numa amostra do tipo `dispensa` na base local,
   511 atos são dispensa e 100 são inexigibilidade.
 - O valor principal é o primeiro valor depois de "valor global", "valor
-  total", "valor do contrato", "no valor de", "acréscimo de" e expressões
-  parecidas. Ato sem essa expressão fica sem valor principal, e o filtro
-  por valor principal o deixa de fora.
+  total", "valor do contrato", "acréscimo de" e expressões parecidas. Só
+  sem nenhuma delas vale o primeiro depois de "valor mensal", "valor
+  anual", "valor estimado" ou "no valor de": "valor mensal de R$ 1.000,00,
+  perfazendo o valor global de R$ 12.000,00" fica com o global. Ato sem
+  essas expressões fica sem valor principal, e o filtro por valor principal
+  o deixa de fora.
 - `partes` e `cota_parlamentar` são calculados na leitura do `ler_ato`, sem
   gravar nada. O nome da parte é o texto antes do CNPJ, cortado no último
   separador ("Partes:", "Contratada:", "empresa", " e ", outro CNPJ) e na
@@ -267,12 +270,22 @@ explica sozinho.
   367 termos da base local foram reconhecidos: cerca de 25 por mês, de
   R$ 10.000,00 em 2025 e R$ 13.000,00 em 2026.
 
+## Soma por processo na entidade
+
+- `soma_maior_valor_por_processo_centavos` soma o maior valor de cada
+  processo ligado à entidade, de todos eles, não só dos 20 listados
+  (`processos_total` diz quantos são). Quando o maior valor de dois
+  processos vem do mesmo ato (um extrato que cita o processo e o apensado),
+  o ato entra uma vez só.
+
 ## Busca por nome
 
-- O `nome` do MCP vira uma frase entre aspas somada à `consulta`, então só
-  casa com as palavras juntas e na ordem, mesmo com quebra de linha no
-  meio. Sem isso, um nome sem aspas casava com qualquer ato que citasse as
-  palavras separadas.
+- O `nome` do MCP é buscado como frase entre aspas, então só casa com as
+  palavras juntas e na ordem, mesmo com quebra de linha no meio. Sem isso,
+  um nome sem aspas casava com qualquer ato que citasse as palavras
+  separadas. Sem `consulta`, o nome é a própria consulta (com o ranking de
+  frase exata); com `consulta`, ele é um filtro à parte, para não estragar
+  a busca por substring de números como "nº06.10981/2025-7".
 - Resultados de concurso, convocações e homologações citam centenas de
   nomes, e um nome comum aparece em dezenas delas. Com `nome`, a busca
   deixa de fora os atos com 50 linhas ou mais que são só um nome em
