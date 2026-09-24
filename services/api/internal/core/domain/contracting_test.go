@@ -43,6 +43,10 @@ func TestMainValueCents(t *testing.T) {
 		{"acréscimo do aditivo", ActAditivo, "Fica acrescido o valor, com acréscimo de R$ 12.500,00 ao contrato.", 1250000},
 		{"sem expressão de valor principal", ActContrato, "Itens: R$ 1,00; R$ 2,00.", 0},
 		{"tipo sem valor principal", ActNomeacao, "no valor de R$ 3.000,00", 0},
+		{"global vence o mensal citado antes", ActContrato,
+			"valor mensal de R$ 1.000,00, perfazendo o valor global de R$ 12.000,00.", 1200000},
+		{"mensal sozinho ainda vale", ActContrato, "pelo valor mensal de R$ 1.000,00.", 100000},
+		{"palavras com r entre o rótulo e o valor", ActContrato, "VALOR GLOBAL PARA O EXERCÍCIO: R$ 1.000,00", 100000},
 	}
 	for _, c := range cases {
 		if got := MainValueCents(c.typ, c.body); got != c.want {

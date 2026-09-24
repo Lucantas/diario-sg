@@ -105,3 +105,30 @@ func TestMCPEntitySummarizesByProcess(t *testing.T) {
 		t.Fatalf("soma por processo %d; soma de tudo que foi citado %d", out.ProcessSum, out.TotalCents)
 	}
 }
+
+func TestMCPEntityCountsAnActCitingTwoProcessesOnce(t *testing.T) {
+	gazette := "ATOS DO PREFEITO\nSEMED\nEXTRATO DO CONTRATO Nº 5/2026\nContratada: ALL FOOD LTDA, CNPJ 01.742.126/0001-02.\n" +
+		"Processo nº 300/2026, apensado ao Processo nº 301/2026. Valor global: R$ 30.000,00."
+	srv, _ := newServerFor(t, gazette)
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	out, _ := call[struct {
+		ProcessSum   int64 `json:"soma_maior_valor_por_processo_centavos"`
+		ProcessTotal int   `json:"processos_total"`
+		ByProcess    []struct {
+			Key string `json:"processo"`
+		} `json:"por_processo"`
+	}](t, session, "entidade", map[string]any{"numero": "01.742.126/0001-02"})
+
+	if len(out.ByProcess) != 2 || out.ProcessTotal != 2 {
+		t.Fatalf("o ato cita dois processos: %+v", out)
+	}
+	if out.ProcessSum != 3000000 {
+		t.Fatalf("o mesmo contrato entra uma vez só na soma: %d", out.ProcessSum)
+	}
+}

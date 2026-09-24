@@ -64,19 +64,25 @@ func ModalityOf(t ActType, title, body string) Modality {
 	return best
 }
 
-var mainValueRe = regexp.MustCompile(`(?i)(?:valor\s+(?:global|total|estimado|anual|mensal|do\s+contrato|do\s+aditivo|do\s+termo|contratado|registrado|homologado|adjudicado)|no\s+valor\s+(?:global\s+|total\s+)?de|pelo\s+valor\s+de|import[âa]ncia\s+de|acr[ée]scimo\s+de|montante\s+de)[^R\d]{0,40}R\$\s?(\d{1,3}(?:\.\d{3})+|\d+),(\d{2})\b`)
+const moneyAfterLabel = `[^$]{0,40}R\$\s?(\d{1,3}(?:\.\d{3})+|\d+),(\d{2})\b`
+
+var mainValueRes = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)(?:valor\s+(?:global|total|do\s+contrato|do\s+aditivo|do\s+termo|contratado|registrado|homologado|adjudicado)|no\s+valor\s+(?:global|total)\s+de|pelo\s+valor\s+(?:global\s+|total\s+)?de|import[âa]ncia\s+de|acr[ée]scimo\s+de|montante\s+de)` + moneyAfterLabel),
+	regexp.MustCompile(`(?i)(?:valor\s+(?:estimado|anual|mensal)|no\s+valor\s+de)` + moneyAfterLabel),
+}
 
 func MainValueCents(t ActType, body string) int64 {
 	if !contractingTypes[t] && t != ActPrestacaoContas {
 		return 0
 	}
-	m := mainValueRe.FindStringSubmatch(body)
-	if m == nil {
-		return 0
+	for _, re := range mainValueRes {
+		if m := re.FindStringSubmatch(body); m != nil {
+			cents, err := strconv.ParseInt(nonDigitRe.ReplaceAllString(m[1], "")+m[2], 10, 64)
+			if err != nil {
+				return 0
+			}
+			return cents
+		}
 	}
-	cents, err := strconv.ParseInt(nonDigitRe.ReplaceAllString(m[1], "")+m[2], 10, 64)
-	if err != nil {
-		return 0
-	}
-	return cents
+	return 0
 }

@@ -14,14 +14,18 @@ func NameLines(body string) int {
 }
 
 func (f ActFilter) TextQuery() string {
-	if f.Name == "" {
+	if f.Query != "" || f.Name == "" {
 		return f.Query
 	}
-	return strings.TrimSpace(f.Query + ` "` + f.Name + `"`)
+	return f.NamePhrase()
+}
+
+func (f ActFilter) NamePhrase() string {
+	return `"` + f.Name + `"`
 }
 
 func (f ActFilter) ExcludesNameLists() bool {
-	return f.Name != "" && !f.IncludeLists
+	return cleanName(f.Name) != "" && !f.IncludeLists
 }
 
 func cleanName(name string) string {

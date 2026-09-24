@@ -80,11 +80,13 @@ func extract(ctx context.Context, path, source string, pageFlags ...string) (str
 var pagesRe = regexp.MustCompile(`(?m)^Pages:\s+(\d+)`)
 
 func pageCount(ctx context.Context, path string) (int, error) {
-	info, err := exec.CommandContext(ctx, "pdfinfo", path).Output()
-	if err != nil {
-		return 0, fmt.Errorf("pdfinfo: %w", err)
+	var info, stderr bytes.Buffer
+	cmd := exec.CommandContext(ctx, "pdfinfo", path)
+	cmd.Stdout, cmd.Stderr = &info, &stderr
+	if err := cmd.Run(); err != nil {
+		return 0, fmt.Errorf("pdfinfo: %w: %s", err, stderr.String())
 	}
-	m := pagesRe.FindSubmatch(info)
+	m := pagesRe.FindSubmatch(info.Bytes())
 	if m == nil {
 		return 0, fmt.Errorf("pdfinfo sem o número de páginas")
 	}
