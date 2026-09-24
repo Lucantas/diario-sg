@@ -35,6 +35,11 @@ type PatternSource interface {
 	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)
 }
 
+type PanelSource interface {
+	PanelActs(ctx context.Context, source string) ([]domain.PanelAct, error)
+	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)
+}
+
 type ActGrouper interface {
 	Group(ctx context.Context, q domain.GroupQuery) (domain.ActGroups, error)
 }

@@ -79,7 +79,11 @@ func (r *PatternRepo) MonthlyActCounts(ctx context.Context, types []domain.ActTy
 }
 
 func (r *PatternRepo) HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error) {
-	rows, err := r.db.QueryContext(ctx, `
+	return hitsByIDs(ctx, r.db, ids)
+}
+
+func hitsByIDs(ctx context.Context, db *sql.DB, ids []string) ([]domain.ActHit, error) {
+	rows, err := db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
 		       coalesce(a.modality, ''), coalesce(a.main_value_cents, 0),
 		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
@@ -108,5 +112,5 @@ func (r *PatternRepo) HitsByIDs(ctx context.Context, ids []string) ([]domain.Act
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return hits, markBodyFacts(ctx, r.db, hits)
+	return hits, markBodyFacts(ctx, db, hits)
 }
