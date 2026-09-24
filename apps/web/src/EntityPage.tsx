@@ -49,7 +49,7 @@ export function EntityPage({ kind, slug }: { kind: EntityKind; slug: string }) {
 
       {data && (
         <>
-          {(data.warnings ?? []).map((w) => <p key={w} className="notice">{w}</p>)}
+          {data.warnings.map((w) => <p key={w} className="notice">{w}</p>)}
 
           <dl className="summary">
             <div>

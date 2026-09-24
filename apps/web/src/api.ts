@@ -88,7 +88,7 @@ export interface EntityResponse {
   count_by_phase: Partial<Record<Phase, number>>;
   organs: OrganCount[];
   related: Related[];
-  warnings: string[] | null;
+  warnings: string[];
   acts: ActHit[];
 }
 

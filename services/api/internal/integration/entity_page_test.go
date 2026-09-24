@@ -137,12 +137,16 @@ func TestEntityRouteServesProcessAndContract(t *testing.T) {
 		t.Fatalf("processo: %+v", p)
 	}
 	var c struct {
-		Key       string `json:"key"`
-		TotalActs int    `json:"total_acts"`
+		Key       string   `json:"key"`
+		TotalActs int      `json:"total_acts"`
+		Warnings  []string `json:"warnings"`
 	}
 	getJSON(t, srv.URL+"/v1/entities/contrato/30-SEMAD-2023", &c)
 	if c.Key != "30/SEMAD/2023" || c.TotalActs != 2 {
 		t.Fatalf("contrato: %+v", c)
+	}
+	if c.Warnings == nil || len(c.Warnings) != 0 {
+		t.Fatalf("contrato sem aviso deve trazer warnings como lista vazia, não null: %+v", c.Warnings)
 	}
 	for path, status := range map[string]int{
 		"/v1/entities/valor/100":           http.StatusNotFound,

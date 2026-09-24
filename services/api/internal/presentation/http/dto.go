@@ -194,10 +194,14 @@ func toEntityResponse(report domain.EntityReport, rawKey string) entityResponse 
 	for _, h := range report.Acts {
 		acts = append(acts, toHitDTO(h))
 	}
+	warnings := domain.EntityWarnings(report)
+	if warnings == nil {
+		warnings = []string{}
+	}
 	return entityResponse{
 		Kind: string(report.Kind), Key: report.Key, Label: entityLabelOrFallback(report, rawKey), Certainty: string(report.Certainty),
 		Diarios: report.Sources, TotalActs: report.TotalActs, CountByPhase: countByPhase, Organs: organs, Related: related,
-		Warnings: domain.EntityWarnings(report), Acts: acts,
+		Warnings: warnings, Acts: acts,
 	}
 }
 
