@@ -18,6 +18,8 @@ func TestParseEntityRef(t *testing.T) {
 		{EntityProcesso, "Processo nº 8.189/2025", EntityRef{EntityProcesso, "81892025", "8.189/2025"}},
 		{EntityContrato, "012/2024", EntityRef{EntityContrato, "12/2024", "012/2024"}},
 		{EntityContrato, "30-fms-2011", EntityRef{EntityContrato, "30/FMS/2011", "30/FMS/2011"}},
+		{EntityProcesso, "8.189 / 2025", EntityRef{EntityProcesso, "81892025", "8.189/2025"}},
+		{EntityContrato, "30 / FMS / 2011", EntityRef{EntityContrato, "30/FMS/2011", "30/FMS/2011"}},
 	}
 	for _, c := range cases {
 		got, err := ParseEntityRef(c.kind, c.value)

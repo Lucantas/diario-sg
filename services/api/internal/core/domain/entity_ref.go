@@ -30,7 +30,13 @@ func ParseEntityRef(kind EntityKind, value string) (EntityRef, error) {
 	if err != nil {
 		return EntityRef{}, err
 	}
-	return EntityRef{Kind: kind, Key: key, Label: entityRefLabel(kind, key, value)}, nil
+	label := entityRefLabel(kind, key, strings.Join(strings.Fields(value), ""))
+	if kind != EntityCNPJ {
+		if labelKey, err := ParseEntityInput(kind, label); err != nil || labelKey != key {
+			return EntityRef{}, ErrInvalidInput
+		}
+	}
+	return EntityRef{Kind: kind, Key: key, Label: label}, nil
 }
 
 func entityRefLabel(kind EntityKind, key, value string) string {
