@@ -270,6 +270,43 @@ explica sozinho.
   367 termos da base local foram reconhecidos: cerca de 25 por mês, de
   R$ 10.000,00 em 2025 e R$ 13.000,00 em 2026.
 
+## Páginas de processo e de contrato
+
+- A fase (`domain.Phase`, `domain.PhaseOf`) é calculada na leitura, por
+  título e tipo do ato, sem migration nem reindexação: regra nova vale na
+  hora, como os avisos de extração. Vira coluna gravada só quando um
+  filtro ou um padrão para verificar (Entrega 2) precisar dela em SQL;
+  nesse dia a função de domínio passa a ser chamada na indexação, como
+  `modality` e `main_value_cents` já são.
+- O órgão fica fora da chave de processo e de contrato (ADR 0004 não
+  muda): um mesmo número pode ser de processos diferentes em órgãos
+  diferentes, ou uma ata de registro de preços usada por vários. A página
+  soma os atos de todos os órgãos e avisa quando aparece em mais de um,
+  para quem lê conferir o órgão em cada ato em vez de presumir que é um
+  processo só.
+- O rótulo (`domain.EntityLabel`) é a grafia mais frequente entre as
+  ligações (`2.808/2022`, `001/2011`), não a chave normalizada
+  (`28082022`, `12011`): é o que aparece no Diário e o que quem investiga
+  procura.
+- "Citados junto" (`Related`) traz só os outros tipos: de um processo,
+  contratos e CNPJs citados nos mesmos atos; de um contrato, processos e
+  CNPJs. Um processo não lista outros processos nem um contrato outros
+  contratos, porque a citação mais comum nesse caso é o número apensado
+  ou substituído, não uma relação direta.
+- A busca (`/v1/acts`) e a exportação não trazem `phase`: fase só faz
+  sentido dentro da linha do tempo de um processo ou contrato, não solta
+  num resultado de busca qualquer. A exportação também não traz
+  `mentions`: é uma lista de atos para abrir em planilha, não para
+  navegar entre páginas.
+- Medido na base local (24/09/2026, `GET` repetido após o primeiro
+  acesso): `/v1/entities/processo/2808-2022` (46 atos, 9 órgãos) em 12 a
+  27 ms; `/v1/entities/contrato/1-2011`, o maior contrato (196 atos), em
+  21 a 26 ms; `/v1/entities/cnpj/28636579000100`, o maior CNPJ da base
+  (5.296 atos, que já existia antes desta mudança), em 86 a 122 ms
+  quente e cerca de 595 ms na primeira chamada — a nova contagem por
+  órgão e por título (`linkedOrgansAndTitles`) roda para os três tipos,
+  mas nenhum dos três chega perto de 1 s.
+
 ## Soma por processo na entidade
 
 - `soma_maior_valor_por_processo_centavos` soma o maior valor de cada

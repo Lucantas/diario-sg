@@ -173,8 +173,8 @@ Pendências:
 
 - [ ] Na nuvem, o scraper passa a exigir `TOPIC_FETCH_COMPLETED`: aplicar
   o Terraform (fila nova) antes de publicar a imagem nova do scraper.
-- [ ] Páginas de processo e contrato no site ficam para a Entrega 2, já
-  lendo de `entity_links`.
+- [x] Páginas de processo e contrato no site (resolvido em 24/09/2026):
+  ver Entrega 2, lendo de `entity_links`.
 
 ## Etapa C1 do plano de fontes — Diário da Câmara (entregue)
 
@@ -206,9 +206,15 @@ Pendências:
 
 Ainda sem fonte externa.
 
-- **Página de processo e de contrato.** `/processo/{n}` e `/contrato/{n}`
-  juntam, em ordem, licitação → homologação → extrato → aditivos → rescisão,
-  pelo nº extraído.
+- **Página de processo e de contrato.** ✅ `/processo/{n}` e `/contrato/{n}`
+  juntam os atos do Diário que citam o número, com a fase de cada um
+  (calculada na leitura, sem migration), o órgão e o resumo por fase;
+  filtro por órgão, aviso quando o número aparece em mais de um órgão e
+  "Citados junto" com os outros processos, contratos e CNPJs dos mesmos
+  atos. Os números de processo e de contrato na busca viram links para
+  essas páginas, e a `entidade` do MCP ganhou a mesma fase, os mesmos
+  órgãos e "citados junto" (commits `0e20251..5a0ce33`). Desenho em
+  `docs/superpowers/specs/2026-09-24-processo-e-contrato-design.md`.
 - **Alerta por entidade.** Inscrição em CNPJ, processo ou contrato, além de
   termo livre.
 - **Painéis.** Maiores fornecedores por valor, por secretaria e por ano.

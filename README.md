@@ -135,12 +135,13 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&source=&type=&organ=&modality=&from=&to=&min_value=&max_value=&main_value_min=&main_value_max=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa; `modality` (`dispensa`, `inexigibilidade`, `pregao`…) e `main_value_min`/`main_value_max` filtram pela modalidade e pelo valor principal lidos do texto (`modality` e `main_value_cents` em cada ato). Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents` e `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`) |
+| GET | `/v1/acts?q=&source=&type=&organ=&modality=&from=&to=&min_value=&max_value=&main_value_min=&main_value_max=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa; `modality` (`dispensa`, `inexigibilidade`, `pregao`…) e `main_value_min`/`main_value_max` filtram pela modalidade e pelo valor principal lidos do texto (`modality` e `main_value_cents` em cada ato). Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents`, `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`) e `mentions` (processos e contratos citados no ato, cada um com `kind`, `key`, `label` e `slug` para a URL das páginas de processo/contrato); `phase` só aparece no relatório de `/v1/entities/processo` e `/v1/entities/contrato` |
 | GET | `/v1/acts/export?format=csv\|json&<filtros da busca>` | Até 10.000 atos da busca com texto completo e a coluna `fonte`. CSV para Excel pt-BR (`;`, BOM, decimal com vírgula); `X-Total-Count` e `X-Export-Truncated` nos cabeçalhos |
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/gazettes/{id}/pdf` | Cópia arquivada do PDF (`ETag` = SHA-256; abra com `#page=N`) |
 | GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos |
+| GET | `/v1/entities/processo/{n}` e `/v1/entities/contrato/{n}` | Atos ligados ao número (os 300 mais recentes), na ordem da busca; `n` aceita `-` no lugar de `/` (`30-FMS-2011`). Resposta com `label` (grafia mais frequente no Diário), `count_by_phase` (fase de cada ato, calculada na leitura), `organs` (contagem por órgão, com `""` para os atos sem órgão) e `related` (até 20 processos, contratos ou CNPJs citados junto, pelos que têm mais atos); tipo desconhecido é 404, número inválido é 400 |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
@@ -167,7 +168,11 @@ paginada, até 20 atos; `diario` escolhe Prefeitura ou Câmara), `ler_ato`
 `entidade` (atos que citam um CNPJ, um processo ou um contrato, com a
 certeza da ligação; processo ou contrato que aparece nos dois diários tem
 certeza fraca, e `diario` restringe a um deles; `orgao_publico` marca o
-CNPJ do Município, de fundações, fundos, SG-PREVI e Câmara), `agrupar`
+CNPJ do Município, de fundações, fundos, SG-PREVI e Câmara; para processo e
+contrato vem também `rotulo` (a grafia mais frequente no Diário),
+`atos_por_fase`, `orgaos` (contagem por órgão) e `citados_junto` (até 20
+processos, contratos ou CNPJs citados nos mesmos atos, pelos que têm mais
+atos); cada item de `atos_recentes` ganha `fase`), `agrupar`
 (conta os atos por CNPJ, processo, órgão ou tipo com os filtros da busca,
 e por padrão deixa os CNPJs de órgãos públicos de fora), `pagina_original`
 (texto cru de uma página do PDF arquivado, com o SHA-256, para conferir o
