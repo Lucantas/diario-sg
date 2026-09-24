@@ -46,6 +46,17 @@ func TestFilterSQLOnlyMaximum(t *testing.T) {
 	}
 }
 
+func TestFilterSQLModalityAndMainValue(t *testing.T) {
+	f := domain.ActFilter{Modality: domain.ModalityDispensa, MainMinCents: 4000000, MainMaxCents: 6200000}
+
+	where, args := filterSQL(f, 5)
+
+	want := " AND a.modality = $5 AND a.main_value_cents >= $6 AND a.main_value_cents <= $7"
+	if where != want || !reflect.DeepEqual(args, []any{"dispensa", int64(4000000), int64(6200000)}) {
+		t.Errorf("veio %q %v", where, args)
+	}
+}
+
 func TestOrderSQLByRelevanceOrByDate(t *testing.T) {
 	recent := orderSQL(domain.ActFilter{Recent: true})
 	if !strings.Contains(recent, "g.published_at DESC") || strings.Contains(recent, "ts_rank") {

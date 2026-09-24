@@ -135,7 +135,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&source=&type=&organ=&from=&to=&min_value=&max_value=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents` e `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`) |
+| GET | `/v1/acts?q=&source=&type=&organ=&modality=&from=&to=&min_value=&max_value=&main_value_min=&main_value_max=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa; `modality` (`dispensa`, `inexigibilidade`, `pregao`…) e `main_value_min`/`main_value_max` filtram pela modalidade e pelo valor principal lidos do texto (`modality` e `main_value_cents` em cada ato). Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents` e `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`) |
 | GET | `/v1/acts/export?format=csv\|json&<filtros da busca>` | Até 10.000 atos da busca com texto completo e a coluna `fonte`. CSV para Excel pt-BR (`;`, BOM, decimal com vírgula); `X-Total-Count` e `X-Export-Truncated` nos cabeçalhos |
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
@@ -170,7 +170,10 @@ certeza fraca, e `diario` restringe a um deles; `orgao_publico` marca o
 CNPJ do Município, de fundações, fundos, SG-PREVI e Câmara), `agrupar`
 (conta os atos por CNPJ, processo, órgão ou tipo com os filtros da busca,
 e por padrão deixa os CNPJs de órgãos públicos de fora) e `fontes`
-(período coberto, última coleta e lacunas de cada diário). A cobertura vem
+(período coberto, última coleta e lacunas de cada diário). `buscar_atos` e
+`agrupar` aceitam `modalidade` e `valor_principal_min`/`valor_principal_max`;
+`ler_ato` traz `partes` (cada CNPJ com o nome provável ao lado) e, nos termos
+de CEAPM da Câmara, `cota_parlamentar` (vereador, mês e valor). A cobertura vem
 na primeira página da busca, e `alertas_coleta` aparece em toda resposta
 quando a última coleta de um diário falhou. Todo ato vem com o diário, a edição, o link oficial na página do ato, a
 cópia arquivada e o SHA-256 do PDF. Limite de 60 chamadas por minuto por

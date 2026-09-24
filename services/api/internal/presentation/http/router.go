@@ -153,7 +153,8 @@ func (a *API) listOrgans(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.ActFilter, bool) {
 	q := r.URL.Query()
-	f := domain.ActFilter{Query: q.Get("q"), Source: q.Get("source"), Type: domain.ActType(q.Get("type")), Organ: q.Get("organ")}
+	f := domain.ActFilter{Query: q.Get("q"), Source: q.Get("source"), Type: domain.ActType(q.Get("type")), Organ: q.Get("organ"),
+		Modality: domain.Modality(q.Get("modality"))}
 	f.Limit, _ = strconv.Atoi(q.Get("limit"))
 	f.Offset, _ = strconv.Atoi(q.Get("offset"))
 	var err error
@@ -170,6 +171,14 @@ func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.Ac
 		return f, false
 	}
 	if f.MaxCents, err = parseReais(q.Get("max_value")); err != nil {
+		writeError(w, err, a.Log)
+		return f, false
+	}
+	if f.MainMinCents, err = parseReais(q.Get("main_value_min")); err != nil {
+		writeError(w, err, a.Log)
+		return f, false
+	}
+	if f.MainMaxCents, err = parseReais(q.Get("main_value_max")); err != nil {
 		writeError(w, err, a.Log)
 		return f, false
 	}

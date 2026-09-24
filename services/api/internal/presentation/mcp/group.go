@@ -20,6 +20,9 @@ type groupInput struct {
 	To            string  `json:"ate,omitempty" jsonschema:"data final da edição, AAAA-MM-DD"`
 	MinValue      float64 `json:"valor_min,omitempty" jsonschema:"só atos que citam ao menos um valor a partir deste, em reais"`
 	MaxValue      float64 `json:"valor_max,omitempty" jsonschema:"só atos que citam ao menos um valor até este, em reais"`
+	Modality      string  `json:"modalidade,omitempty" jsonschema:"modalidade da contratação, como em buscar_atos"`
+	MainMin       float64 `json:"valor_principal_min,omitempty" jsonschema:"só atos cujo valor principal é a partir deste, em reais"`
+	MainMax       float64 `json:"valor_principal_max,omitempty" jsonschema:"só atos cujo valor principal é até este, em reais"`
 	Limit         int     `json:"limite,omitempty" jsonschema:"grupos, de 1 a 50 (padrão 20)"`
 }
 
@@ -57,7 +60,7 @@ const groupDescription = "Agrupa os atos encontrados por cnpj, processo, orgao o
 
 func (s *server) group(ctx context.Context, _ *sdk.CallToolRequest, in groupInput) (*sdk.CallToolResult, groupOutput, error) {
 	f, err := filterOf(searchInput{Query: in.Query, Diario: in.Diario, Type: in.Type, Organ: in.Organ, From: in.From, To: in.To,
-		MinValue: in.MinValue, MaxValue: in.MaxValue})
+		MinValue: in.MinValue, MaxValue: in.MaxValue, Modality: in.Modality, MainMin: in.MainMin, MainMax: in.MainMax})
 	if err != nil {
 		return nil, groupOutput{}, err
 	}

@@ -30,6 +30,8 @@ type actHitDTO struct {
 	PDFSHA256     string   `json:"pdf_sha256"`
 	CNPJs         []string `json:"cnpjs"`
 	ValuesCents   []int64  `json:"values_cents"`
+	Modality      string   `json:"modality,omitempty"`
+	MainValue     int64    `json:"main_value_cents,omitempty"`
 	Warnings      []string `json:"warnings"`
 }
 
@@ -120,6 +122,7 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
 		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
 		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum, ValuesCents: values,
+		Modality: string(h.Modality), MainValue: h.MainValueCents,
 		Warnings: domain.ActWarnings(h.WarningFacts()),
 	}
 }

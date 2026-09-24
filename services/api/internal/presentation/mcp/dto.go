@@ -63,6 +63,8 @@ type actSummaryDTO struct {
 	Organ         string      `json:"orgao"`
 	OrganName     string      `json:"orgao_nome"`
 	Title         string      `json:"titulo"`
+	Modality      string      `json:"modalidade,omitempty"`
+	MainValue     int64       `json:"valor_principal_centavos,omitempty"`
 	Snippet       string      `json:"trecho"`
 	Pages         string      `json:"paginas"`
 	CNPJs         []string    `json:"cnpjs"`
@@ -135,6 +137,7 @@ func summaryOf(h domain.ActHit, webURL string) actSummaryDTO {
 		GazetteID: h.GazetteID, Position: h.Position, Diario: domain.SourceOrDefault(h.Source), EditionNumber: h.EditionNumber,
 		PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, Type: string(h.Type),
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ), Title: h.Title, Snippet: h.Snippet,
+		Modality: string(h.Modality), MainValue: h.MainValueCents,
 		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs), PublicCNPJs: publicOnly(h.CNPJs),
 		ValuesCents: nonNil(h.ValuesCents[:min(len(h.ValuesCents), maxValuesPerAct)]), ValuesTotal: len(h.ValuesCents),
 		Warnings: domain.ActWarnings(h.WarningFacts()),
@@ -192,4 +195,34 @@ func reaisToCents(reais float64) (int64, error) {
 		return 0, errNegativeValue
 	}
 	return int64(math.Round(reais * 100)), nil
+}
+
+type partyDTO struct {
+	CNPJ       string `json:"cnpj"`
+	Name       string `json:"nome_provavel,omitempty"`
+	PublicBody string `json:"orgao_publico,omitempty"`
+}
+
+type quotaDTO struct {
+	Councillor string `json:"vereador"`
+	FullName   string `json:"nome_civil"`
+	Month      string `json:"mes_referencia"`
+	ValueCents int64  `json:"valor_centavos"`
+}
+
+func partiesOf(body string) []partyDTO {
+	ps := domain.PartiesOf(body)
+	out := make([]partyDTO, 0, len(ps))
+	for _, p := range ps {
+		out = append(out, partyDTO{CNPJ: p.CNPJ, Name: p.Name, PublicBody: p.PublicBody})
+	}
+	return out
+}
+
+func quotaOf(a domain.Act) *quotaDTO {
+	q, ok := domain.ParliamentaryQuotaOf(a.Type, a.Body)
+	if !ok {
+		return nil
+	}
+	return &quotaDTO{Councillor: q.Councillor, FullName: q.FullName, Month: q.Month, ValueCents: q.ValueCents}
 }

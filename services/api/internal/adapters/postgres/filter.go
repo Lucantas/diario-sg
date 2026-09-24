@@ -32,6 +32,15 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 	if !f.To.IsZero() {
 		b.WriteString(" AND g.published_at <= " + param(f.To.Format(time.DateOnly)) + "::date")
 	}
+	if f.Modality != "" {
+		b.WriteString(" AND a.modality = " + param(string(f.Modality)))
+	}
+	if f.MainMinCents > 0 {
+		b.WriteString(" AND a.main_value_cents >= " + param(f.MainMinCents))
+	}
+	if f.MainMaxCents > 0 {
+		b.WriteString(" AND a.main_value_cents <= " + param(f.MainMaxCents))
+	}
 	if f.MinCents > 0 || f.MaxCents > 0 {
 		b.WriteString(" AND EXISTS (SELECT 1 FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor'")
 		if f.MinCents > 0 {
