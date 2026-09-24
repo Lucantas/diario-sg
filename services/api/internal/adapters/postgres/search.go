@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"sort"
 	"strings"
 
 	"github.com/lib/pq"
@@ -48,6 +49,30 @@ const cnpjsSubquery = `(SELECT coalesce(array_agg(DISTINCT e.normalized), '{}')
 
 const valuesSubquery = `(SELECT coalesce(array_agg(v.normalized::bigint ORDER BY v.normalized::bigint DESC), '{}')
 		        FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor')`
+
+const mentionsSubquery = `(SELECT coalesce(array_agg(DISTINCT m.kind || '|' || entity_key(m.kind, m.normalized) || '|' || m.value), '{}')
+		        FROM act_entities m WHERE m.act_id = a.id AND m.kind IN ('processo', 'contrato'))`
+
+func parseMentions(raw []string) []domain.EntityMention {
+	seen := map[string]bool{}
+	var out []domain.EntityMention
+	for _, r := range raw {
+		parts := strings.SplitN(r, "|", 3)
+		if len(parts) != 3 || seen[parts[0]+parts[1]] {
+			continue
+		}
+		seen[parts[0]+parts[1]] = true
+		kind := domain.EntityKind(parts[0])
+		out = append(out, domain.EntityMention{Kind: kind, Key: parts[1], Label: domain.EntityLabel(kind, parts[2])})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Kind != out[j].Kind {
+			return out[i].Kind > out[j].Kind
+		}
+		return out[i].Key < out[j].Key
+	})
+	return out
+}
 
 const (
 	relevanceOrder = `ORDER BY x.exact DESC,

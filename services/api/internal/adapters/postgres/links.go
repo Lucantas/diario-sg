@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -67,7 +69,8 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, repo
 		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
 		       coalesce(a.modality, ''), coalesce(a.main_value_cents, 0),
 		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
-		       substr(a.body, greatest(position(l.evidence IN a.body) - $3, 1), 2 * $3 + length(l.evidence)), l.evidence
+		       substr(a.body, greatest(position(l.evidence IN a.body) - $3, 1), 2 * $3 + length(l.evidence)), l.evidence,
+		       `+mentionsSubquery+`
 		FROM entity_links l
 		JOIN acts a ON a.id = l.record_id::uuid
 		JOIN gazettes g ON g.id = a.gazette_id
@@ -81,12 +84,14 @@ func (r *LinkRepo) linkedActs(ctx context.Context, entityID, source string, repo
 	for rows.Next() {
 		var h domain.ActHit
 		var typ, evidence string
+		var mentions []string
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
-			&h.Modality, &h.MainValueCents, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, &evidence); err != nil {
+			&h.Modality, &h.MainValueCents, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, &evidence, pq.Array(&mentions)); err != nil {
 			return err
 		}
 		h.Type = domain.ActType(typ)
 		h.Snippet = highlightFallback(h.Snippet, evidence)
+		h.Mentions = parseMentions(mentions)
 		report.Acts = append(report.Acts, h)
 	}
 	if err := rows.Err(); err != nil {

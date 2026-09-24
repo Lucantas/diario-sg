@@ -30,6 +30,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		            ELSE ts_headline('`+tsConfig+`', a.body, q, '`+headlineOpts+`') END,
 		       `+cnpjsSubquery+`,
 		       `+valuesSubquery+`,
+		       `+mentionsSubquery+`,
 		       p.total
 		FROM page p
 		JOIN acts a ON a.id = p.id
@@ -48,13 +49,15 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 	for rows.Next() {
 		var h domain.ActHit
 		var typ string
+		var mentions []string
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
 			&h.Modality, &h.MainValueCents,
-			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
+			&h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source, &h.Snippet, pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), pq.Array(&mentions), &total); err != nil {
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)
 		h.Snippet = highlightFallback(h.Snippet, phraseOf(f.TextQuery()))
+		h.Mentions = parseMentions(mentions)
 		hits = append(hits, h)
 	}
 	if err := rows.Err(); err != nil {
