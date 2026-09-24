@@ -226,13 +226,23 @@ Ainda sem fonte externa.
   `docs/superpowers/specs/2026-09-24-alerta-por-entidade-design.md`.
 - **Painéis.** Maiores fornecedores por valor, por secretaria e por ano.
 - **Padrões para verificar** (regras fixas, cada uma com a regra em texto e
-  os atos que a acionaram):
-  - várias dispensas para o mesmo fornecedor/objeto abaixo do limite legal
-    numa janela curta (possível fracionamento);
-  - aditivos que somam mais de 25% do valor original do contrato;
-  - contratação emergencial renovada seguidamente;
-  - picos de nomeação e exoneração nos meses antes das eleições (2020 e 2024
-    estão na base, dá para comparar com anos sem eleição).
+  os atos que a acionaram), em `/padroes` e `GET /v1/patterns`, calculados
+  na leitura. Desenho em
+  `docs/superpowers/specs/2026-09-24-padroes-para-verificar-design.md`.
+  - ✅ Dispensas do mesmo fornecedor que, somadas no ano, passam do limite
+    da dispensa por valor (art. 24, II, da Lei 8.666; art. 75, II, da Lei
+    14.133, com o limite de cada ano). A contratação é o processo; a mesma
+    dispensa publicada várias vezes, republicações e processos citados no
+    mesmo ato contam uma vez. Na base local, 1 caso (2020).
+  - ✅ Picos de nomeação e de exoneração nos seis meses antes da eleição
+    municipal, a partir de 1,5 vez a mediana do mesmo mês nos anos sem
+    eleição. Na base local, 6 meses (2012, 2016 e 2020).
+  - [ ] Aditivos que somam mais de 25% do valor original do contrato: o
+    valor lido do aditivo quase sempre é o de uma prorrogação, não o
+    acréscimo; precisa de extração própria.
+  - [ ] Contratação emergencial renovada seguidamente: "emergência" aparece
+    em contextos variados; precisa de regra de texto mais estreita.
+  - [ ] Dispensa por valor de obras (inciso I) no fracionamento.
 
 Linguagem: sempre "padrão para verificar", nunca "irregularidade".
 

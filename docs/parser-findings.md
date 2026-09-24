@@ -155,6 +155,12 @@ podem ficar no fim do ato anterior.
   Quando a sigla fica no pé da página, como `SEMED` na edição 1257, o
   rodapé e o cabeçalho removidos deixam três linhas em branco até o ato. O
   limite antigo, de duas linhas, perdia a seção.
+- `AUTORIZAÇÃO DA DESPESA E ADJUDICAÇÃO` ainda não abre ato. Em
+  30/07/2026, duas autorizações de dispensa da SMTC (processos 7405/2026 e
+  07537/2026, fornecedores diferentes) ficaram coladas no edital 023/2026
+  da SEMHAB, que ganhou o CNPJ, o valor e a modalidade delas. A regra de
+  fracionamento dos padrões contorna isso juntando os processos citados no
+  mesmo ato; corrigir o parser pede `make reindex`.
 
 ### Edições até abril de 2021
 
