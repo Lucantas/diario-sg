@@ -224,7 +224,22 @@ Ainda sem fonte externa.
   `entity=<tipo>:<número>`, e as mesmas páginas têm o link do feed
   (commits `c1e19df..8e9555e`). Desenho em
   `docs/superpowers/specs/2026-09-24-alerta-por-entidade-design.md`.
-- **Painéis.** Maiores fornecedores por valor, por secretaria e por ano.
+- **Painéis.** ✅ Maiores fornecedores pelo valor declarado nos extratos,
+  em `/paineis` e `GET /v1/panels/suppliers`, calculados na leitura, com
+  filtro de ano e secretaria e os totais por ano e por secretaria. Cada
+  contratação (atos da mesma empresa ligados pelo processo ou pelo
+  contrato) conta uma vez, pelo maior valor de contrato; ata de registro de
+  preços sem contrato fica à parte, como teto; aditivos, homologações e
+  atos com mais de uma empresa ficam de fora, assim como multas, sanções,
+  notificações e cancelamentos. Na base local, 1.373 contratações de 906
+  empresas: R$ 904,7 milhões contratados e R$ 1,22 bilhão em atas (commits
+  `27ccf2f..6b03e6c`). Desenho em
+  `docs/superpowers/specs/2026-09-24-paineis-design.md`.
+  - [ ] Nome da empresa (Entrega 3).
+  - [ ] Valor de aditivos e prorrogações, com a mesma extração própria
+    adiada nos padrões.
+  - [ ] Valor de ata que é preço unitário (há atas com "valor" de R$ 2,58):
+    o valor principal lido do texto pega o primeiro "valor … R$".
 - **Padrões para verificar** (regras fixas, cada uma com a regra em texto e
   os atos que a acionaram), em `/padroes` e `GET /v1/patterns`, calculados
   na leitura. Desenho em
