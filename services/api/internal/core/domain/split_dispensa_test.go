@@ -112,3 +112,53 @@ func TestFindSplitDispensasIgnoresWhatIsNotAValueDispensa(t *testing.T) {
 		}
 	}
 }
+
+func TestFindSplitDispensasKeepsEqualContractsApartWhenOneIsRepublished(t *testing.T) {
+	cnpj := "11222333000181"
+	body := "art. 24, inciso II da Lei 8.666. Valor: R$ 9.000,00"
+	acts := []DispensaAct{
+		dispensaAct("p1", cnpj, "SEMED", civilDate(2019, 3, 1), 900000, body, "1.111/2019"),
+		dispensaAct("p2", cnpj, "SEMED", civilDate(2019, 4, 1), 900000, body, "2.222/2019"),
+		dispensaAct("p2-rep", cnpj, "SEMED", civilDate(2019, 4, 8), 900000, body+" Republicado por incorreção.", "2.222/2019"),
+	}
+
+	got := FindSplitDispensas(acts)
+
+	if len(got) != 1 || len(got[0].Contracts) != 2 || got[0].TotalCents != 1800000 {
+		t.Fatalf("a republicação com processo fica na própria contratação: %+v", got)
+	}
+}
+
+func TestFindSplitDispensasSkipsActsWithAnotherPrivateCNPJ(t *testing.T) {
+	cnpj := "11222333000181"
+	body := "art. 75, inciso II, da Lei 14.133."
+	shared := dispensaAct("dois-fornecedores", cnpj, "SEMED", civilDate(2025, 3, 1), 4000000, body, "2.222/2025")
+	shared.OtherCNPJs = []string{"99888777000166"}
+	withMunicipality := dispensaAct("com-municipio", cnpj, "SEMED", civilDate(2025, 4, 1), 4000000, body, "3.333/2025")
+	withMunicipality.OtherCNPJs = []string{"28636579000100"}
+	acts := []DispensaAct{
+		dispensaAct("a", cnpj, "SEMED", civilDate(2025, 2, 1), 4000000, body, "1.111/2025"),
+		shared,
+	}
+
+	if got := FindSplitDispensas(acts); len(got) != 0 {
+		t.Fatalf("o valor de um ato com dois fornecedores não é de nenhum deles: %+v", got)
+	}
+	if got := FindSplitDispensas(append(acts[:1:1], withMunicipality)); len(got) != 1 {
+		t.Fatalf("o CNPJ do Município não conta como outro fornecedor: %+v", got)
+	}
+}
+
+func TestFindSplitDispensasUsesTheLimitOfTheFirstPublication(t *testing.T) {
+	cnpj := "11222333000181"
+	body := "art. 24, inciso II da Lei 8.666."
+	acts := []DispensaAct{
+		dispensaAct("ratificacao", cnpj, "SEMED", civilDate(2018, 7, 10), 1000000, body, "1.111/2018"),
+		dispensaAct("extrato", cnpj, "SEMED", civilDate(2018, 7, 20), 1000000, body, "1.111/2018"),
+		dispensaAct("outra", cnpj, "SEMED", civilDate(2018, 8, 1), 500000, body, "2.222/2018"),
+	}
+
+	if got := FindSplitDispensas(acts); len(got) != 0 {
+		t.Fatalf("R$ 10.000 em 10/07/2018 passa do limite de R$ 8.000 e não é dispensa por valor: %+v", got)
+	}
+}

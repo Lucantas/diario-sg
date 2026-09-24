@@ -14,6 +14,7 @@ var publicBodies = map[string]string{
 	"04541202000100": "Fundação de Artes, Esporte e Lazer de São Gonçalo",
 	"11109114000190": "Fundo Municipal de Assistência Social",
 	"29846003000122": "Câmara Municipal de São Gonçalo",
+	"37724760000151": "Fundo Municipal de Cultura",
 }
 
 func PublicBody(cnpj string) (string, bool) {

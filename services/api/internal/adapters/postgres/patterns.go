@@ -20,7 +20,10 @@ func (r *PatternRepo) DispensaActs(ctx context.Context) ([]domain.DispensaAct, e
 		SELECT a.id, e.key, a.organ, g.published_at, a.main_value_cents, a.body,
 		       coalesce((SELECT array_agg(p.key || '|' || pl.evidence ORDER BY p.key)
 		                 FROM entity_links pl JOIN entities p ON p.id = pl.entity_id AND p.kind = 'processo'
-		                 WHERE pl.source = $2 AND pl.record_kind = $1 AND pl.record_id = a.id::text), '{}')
+		                 WHERE pl.source = $2 AND pl.record_kind = $1 AND pl.record_id = a.id::text), '{}'),
+		       coalesce((SELECT array_agg(o.key ORDER BY o.key)
+		                 FROM entity_links ol JOIN entities o ON o.id = ol.entity_id AND o.kind = 'cnpj'
+		                 WHERE ol.source = $2 AND ol.record_kind = $1 AND ol.record_id = a.id::text AND o.key <> e.key), '{}')
 		FROM acts a
 		JOIN gazettes g ON g.id = a.gazette_id
 		JOIN entity_links l ON l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text
@@ -35,7 +38,7 @@ func (r *PatternRepo) DispensaActs(ctx context.Context) ([]domain.DispensaAct, e
 	for rows.Next() {
 		var a domain.DispensaAct
 		var processes []string
-		if err := rows.Scan(&a.ActID, &a.CNPJ, &a.Organ, &a.PublishedAt, &a.ValueCents, &a.Body, pq.Array(&processes)); err != nil {
+		if err := rows.Scan(&a.ActID, &a.CNPJ, &a.Organ, &a.PublishedAt, &a.ValueCents, &a.Body, pq.Array(&processes), pq.Array(&a.OtherCNPJs)); err != nil {
 			return nil, err
 		}
 		for _, p := range processes {

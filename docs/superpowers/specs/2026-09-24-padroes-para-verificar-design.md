@@ -72,18 +72,23 @@ Medidos na base local (Diário da Prefeitura, 2010 a 2026):
    aplicam a regra e são testadas sem banco.
 3. **Contratação é o processo**, por CNPJ. Atos do mesmo CNPJ que citam um
    mesmo processo são a mesma contratação, e um ato que cita dois processos
-   junta os dois (componentes ligados). Ato sem processo, ou que se diz
-   republicado, junta-se à contratação do mesmo CNPJ com o mesmo valor no
-   mesmo ano; sem par, é contratação própria. O valor da contratação é o
+   junta os dois (componentes ligados). Ato sem processo, ou republicado e
+   ainda sozinho depois da junção por processo, junta-se à contratação do
+   mesmo CNPJ com o mesmo valor no mesmo ano; sem par, é contratação
+   própria. O valor da contratação é o
    maior entre os atos; a data é a da primeira publicação.
 4. **Só dispensa por valor de compras e serviços**: a contratação entra se
    algum ato dela cita o inciso II do art. 24 (Lei 8.666) ou do art. 75
-   (Lei 14.133). Obras (inciso I) ficam para depois. Fora também: aditivos,
-   atos que citam emergência ou calamidade, contratações com valor igual
-   ou acima do limite e CNPJs de órgãos públicos (`domain.PublicBody`).
+   (Lei 14.133), nas duas ordens ("art. 75, inciso II" e "inciso II do
+   artigo 75"). Obras (inciso I) ficam para depois. Fora também: aditivos,
+   atos que citam emergência ou calamidade, atos com outro CNPJ que não seja
+   de órgão público (o valor principal não é de um só fornecedor),
+   contratações com valor igual ou acima do limite e CNPJs de órgãos
+   públicos (`domain.PublicBody`, que passa a incluir o Fundo Municipal de
+   Cultura, 37.724.760/0001-51).
 5. **Limite de cada contratação** pela data da primeira publicação e pela
-   lei citada; o caso usa o maior limite entre as contratações do grupo
-   (o mais favorável ao órgão).
+   lei citada em qualquer ato dela; o caso usa o maior limite entre as
+   contratações do grupo (o mais favorável ao órgão).
 6. **Pico antes da eleição**: mês entre os seis anteriores ao mês da
    eleição com contagem de atos do tipo pelo menos 1,5 vez a mediana do
    mesmo mês nos anos sem eleição municipal (só meses que existem na

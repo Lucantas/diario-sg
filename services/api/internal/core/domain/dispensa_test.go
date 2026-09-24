@@ -12,6 +12,8 @@ func TestCitesValueDispensa(t *testing.T) {
 		"conforme artigo 75, inciso II da Lei de Licitações n.º 14.133",
 		"nos termos do art. 75, II, da Lei 14.133",
 		"Art. 75, caput, inciso II",
+		"nos termos do Inciso II do Artigo 75 da Lei Federal Nº14.133/2021",
+		"nos termos do inciso II do artigo 24 da Lei Federal nº 8.666/1993",
 	}
 	no := []string{
 		"art. 24, inciso XIII, da Lei Federal nº 8.666/93",
@@ -19,6 +21,8 @@ func TestCitesValueDispensa(t *testing.T) {
 		"art. 75, inciso III",
 		"art. 75, inciso VIII",
 		"Dispensa de Licitação",
+		"inciso III do artigo 75",
+		"inciso II do artigo 76",
 	}
 	for _, s := range yes {
 		if !CitesValueDispensa(s) {

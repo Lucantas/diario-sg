@@ -10,6 +10,7 @@ type DispensaProcess struct{ Key, Label string }
 type DispensaAct struct {
 	ActID       string
 	CNPJ        string
+	OtherCNPJs  []string
 	Processes   []DispensaProcess
 	Organ       string
 	PublishedAt time.Time
@@ -37,7 +38,7 @@ type SplitDispensa struct {
 func FindSplitDispensas(acts []DispensaAct) []SplitDispensa {
 	byCNPJ := map[string][]DispensaAct{}
 	for _, a := range acts {
-		if _, public := PublicBody(a.CNPJ); public || CitesEmergency(a.Body) || a.ValueCents <= 0 {
+		if _, public := PublicBody(a.CNPJ); public || sharedWithSupplier(a) || CitesEmergency(a.Body) || a.ValueCents <= 0 {
 			continue
 		}
 		byCNPJ[a.CNPJ] = append(byCNPJ[a.CNPJ], a)
@@ -92,7 +93,7 @@ func valueDispensaContracts(acts []DispensaAct) []DispensaContract {
 		}
 	}
 	for i, a := range acts {
-		if len(a.Processes) > 0 && !IsRepublication(a.Body) {
+		if len(a.Processes) > 0 && (!IsRepublication(a.Body) || groups.size(i) > 1) {
 			continue
 		}
 		if j, ok := sameValueSameYear(acts, i, groups); ok {
@@ -120,7 +121,7 @@ func sameValueSameYear(acts []DispensaAct, i int, groups *unionFind) (int, bool)
 
 func contractOf(acts []DispensaAct, members []int) (DispensaContract, bool) {
 	var c DispensaContract
-	valueDispensa := false
+	valueDispensa, citesLei14133 := false, false
 	seenProcess, seenOrgan := map[string]bool{}, map[string]bool{}
 	for _, i := range members {
 		a := acts[i]
@@ -128,7 +129,7 @@ func contractOf(acts []DispensaAct, members []int) (DispensaContract, bool) {
 			c.FirstPublished = a.PublishedAt
 		}
 		c.ValueCents = max(c.ValueCents, a.ValueCents)
-		c.LimitCents = max(c.LimitCents, DispensaLimitCents(a.PublishedAt, CitesLei14133(a.Body)))
+		citesLei14133 = citesLei14133 || CitesLei14133(a.Body)
 		valueDispensa = valueDispensa || CitesValueDispensa(a.Body)
 		c.ActIDs = append(c.ActIDs, a.ActID)
 		for _, p := range a.Processes {
@@ -142,7 +143,17 @@ func contractOf(acts []DispensaAct, members []int) (DispensaContract, bool) {
 			c.Organs = append(c.Organs, a.Organ)
 		}
 	}
+	c.LimitCents = DispensaLimitCents(c.FirstPublished, citesLei14133)
 	return c, valueDispensa && c.ValueCents < c.LimitCents
+}
+
+func sharedWithSupplier(a DispensaAct) bool {
+	for _, other := range a.OtherCNPJs {
+		if _, public := PublicBody(other); !public {
+			return true
+		}
+	}
+	return false
 }
 
 type unionFind struct{ parent []int }
@@ -170,6 +181,16 @@ func (u *unionFind) union(i, j int) {
 	} else if rj < ri {
 		u.parent[ri] = rj
 	}
+}
+
+func (u *unionFind) size(i int) int {
+	n, root := 0, u.find(i)
+	for j := range u.parent {
+		if u.find(j) == root {
+			n++
+		}
+	}
+	return n
 }
 
 func (u *unionFind) sets() [][]int {
