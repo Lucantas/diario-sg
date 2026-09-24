@@ -222,7 +222,7 @@ func (s *server) read(ctx context.Context, _ *sdk.CallToolRequest, in readInput)
 		GazetteID: g.ID, Position: a.Position, Diario: domain.SourceOrDefault(g.Source), EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly),
 		IsExtra: g.IsExtra, Type: string(a.Type), Organ: a.Organ, OrganName: domain.OrganName(a.Organ), Title: a.Title, Text: a.Body,
 		Pages:    pageRange(a.PageStart, a.PageEnd),
-		Warnings: domain.ActWarnings(a.Title, domain.IsTitleOnly(a.Title, a.Body), a.PageStart, a.PageEnd),
+		Warnings: domain.ActWarnings(domain.WarningFactsOf(a)),
 		Citation: formatCitation(c, s.webURL, s.now()), Sources: []sourceDTO{src}, Coverage: cov,
 	}, nil
 }

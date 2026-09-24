@@ -127,7 +127,7 @@ func csvRecord(base string, h domain.ActHit) []string {
 		h.PublishedAt.Format(time.DateOnly), h.EditionNumber, extra, string(h.Type), h.Organ, csvCell(domain.OrganName(h.Organ)),
 		csvCell(h.Title), pageText(h.PageStart), pageText(h.PageEnd), strings.Join(values, " | "), strings.Join(h.CNPJs, " | "),
 		h.SourceURL + pageSuffix(h), archivedURL(base, h), h.Checksum,
-		strings.Join(domain.ActWarnings(h.Title, h.TitleOnly, h.PageStart, h.PageEnd), " | "), csvCell(h.Body),
+		strings.Join(domain.ActWarnings(h.WarningFacts()), " | "), csvCell(h.Body),
 		domain.SourceOrDefault(h.Source),
 	}
 }

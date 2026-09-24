@@ -42,7 +42,7 @@ func (r *ActRepo) ReportByEntity(ctx context.Context, kind domain.EntityKind, no
 	if err := rows.Err(); err != nil {
 		return report, err
 	}
-	if err := markTitleOnly(ctx, r.db, report.Acts); err != nil {
+	if err := markBodyFacts(ctx, r.db, report.Acts); err != nil {
 		return report, err
 	}
 

@@ -133,12 +133,19 @@ decisões de arquitetura, em `adr/`.
 
 ## Qualidade visível
 
-- Os avisos de extração (`sem_numero`, `so_titulo`, `muitas_paginas`)
-  são calculados na leitura, em `domain.ActWarnings`, e não gravados:
+- Os avisos de extração (`sem_numero`, `so_titulo`, `muitas_paginas`,
+  `varios_atos_possiveis`) são calculados na leitura, em `domain.ActWarnings`, e não gravados:
   regra nova vale na hora, sem migration nem reindexação. A API devolve
   códigos e o front escreve o texto.
 - `muitas_paginas` começa em 10 páginas: 339 atos na base de 22/09/2026,
   quase todos anexos ou atos que o parser não separou.
+- `varios_atos_possiveis` aparece quando o texto tem mais de uma
+  assinatura datada ("São Gonçalo, 3 de julho de 2024"). Na base local
+  de 23/09/2026 são cerca de 2.900 atos (1,8%), e numa amostra quase todos juntavam
+  dois atos (duas portarias de 2014 num ato só, uma portaria de 2020 sem
+  "Nº" colada na anterior). A contagem é feita em Go, lendo o corpo dos
+  atos da página, e não em SQL, para não depender de como a base compara
+  maiúsculas acentuadas.
 - A "tabela quebrada entre páginas" do relatório da fase 1 ficou sem
   aviso. A regra candidata (`Port. nº` cujo corpo não começa com o verbo)
   acha 1.209 atos com muitos falsos positivos, e um aviso errado tira o

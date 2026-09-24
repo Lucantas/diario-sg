@@ -19,6 +19,12 @@ describe("warningText", () => {
     );
   });
 
+  it("avisa quando o texto pode juntar mais de um ato", () => {
+    expect(warningText("varios_atos_possiveis", pages)).toBe(
+      "O texto tem mais de uma assinatura com data. A extração pode ter juntado mais de um ato; confira no PDF.",
+    );
+  });
+
   it("ignora avisos que o site ainda não conhece", () => {
     expect(warningText("novo_aviso", pages)).toBe("");
     expect(warningText("toString", pages)).toBe("");

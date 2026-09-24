@@ -63,7 +63,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 			return nil, 0, err
 		}
 	}
-	return hits, total, markTitleOnly(ctx, r.db, hits)
+	return hits, total, markBodyFacts(ctx, r.db, hits)
 }
 
 func matchedSQL(where string) string {
@@ -166,7 +166,8 @@ func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(dom
 			return err
 		}
 		h.Type = domain.ActType(typ)
-		h.TitleOnly = domain.IsTitleOnly(h.Title, h.Body)
+		f := domain.WarningFactsOf(h.Act)
+		h.TitleOnly, h.Signatures = f.TitleOnly, f.Signatures
 		if err := yield(h, total); err != nil {
 			return err
 		}

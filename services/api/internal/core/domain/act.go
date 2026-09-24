@@ -54,6 +54,7 @@ type ActHit struct {
 	SourceURL     string
 	Checksum      string
 	TitleOnly     bool
+	Signatures    int
 
 	Snippet string
 

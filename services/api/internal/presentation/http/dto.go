@@ -120,14 +120,14 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
 		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
 		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum, ValuesCents: values,
-		Warnings: domain.ActWarnings(h.Title, h.TitleOnly, h.PageStart, h.PageEnd),
+		Warnings: domain.ActWarnings(h.WarningFacts()),
 	}
 }
 
 func toActDTO(a domain.Act) actDTO {
 	return actDTO{ID: a.ID, Type: string(a.Type), Title: a.Title, Body: a.Body, Position: a.Position,
 		PageStart: pageOrNil(a.PageStart), PageEnd: pageOrNil(a.PageEnd), Organ: a.Organ, OrganName: domain.OrganName(a.Organ),
-		Warnings: domain.ActWarnings(a.Title, domain.IsTitleOnly(a.Title, a.Body), a.PageStart, a.PageEnd)}
+		Warnings: domain.ActWarnings(domain.WarningFactsOf(a))}
 }
 
 func pageOrNil(p int) *int {

@@ -7,6 +7,8 @@ const TEXTS = new Map<string, (hit: PageRange) => string>([
   ["so_titulo", () => "Só o título deste ato foi extraído. O texto dele está no PDF."],
   ["muitas_paginas", (hit) =>
     `Este ato ocupa ${(hit.page_end ?? 0) - (hit.page_start ?? 0) + 1} páginas. Ele pode ter engolido atos vizinhos; confira no PDF.`],
+  ["varios_atos_possiveis", () =>
+    "O texto tem mais de uma assinatura com data. A extração pode ter juntado mais de um ato; confira no PDF."],
 ]);
 
 export function warningText(code: string, hit: PageRange) {
