@@ -51,6 +51,7 @@ func run(l *slog.Logger) error {
 	company := usecase.NewGetCompany(acts)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db)),
+		Group:    usecase.NewGroupActs(acts),
 		Coverage: usecase.NewSourceCoverage(gazettes), Keys: keys, PublicWebURL: cfg.PublicWebURL, Log: l})
 
 	api := &httpapi.API{

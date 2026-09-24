@@ -17,7 +17,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 	where, extra := filterSQL(f, 5)
 	args := append([]any{f.Query, f.Limit, f.Offset, likePattern(f.Query)}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
-		WITH matched AS MATERIALIZED (`+matchedSQL(where)+`), page AS (
+		WITH matched AS MATERIALIZED (`+matchedSQL("$1", "$4", where)+`), page AS (
 			SELECT id, exact, CASE WHEN exact THEN 0 ELSE ts END AS rank, published_at, source_url, position, count(*) OVER () AS total
 			FROM matched
 			`+matchedOrderSQL(f)+`
@@ -59,30 +59,22 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 		return nil, 0, err
 	}
 	if len(hits) == 0 && f.Offset > 0 {
-		if total, err = r.countMatched(ctx, where, args); err != nil {
+		if total, err = r.countMatchedIn(ctx, f); err != nil {
 			return nil, 0, err
 		}
 	}
 	return hits, total, markBodyFacts(ctx, r.db, hits)
 }
 
-func matchedSQL(where string) string {
+func matchedSQL(query, like, where string) string {
 	return `
-			SELECT a.id, ($1 <> '' AND ` + exactPhraseExpr("$4") + `) AS exact,
-			       CASE WHEN $1 = '' THEN 0 ELSE ts_rank(a.search, q) END AS ts,
+			SELECT a.id, (` + query + ` <> '' AND ` + exactPhraseExpr(like) + `) AS exact,
+			       CASE WHEN ` + query + ` = '' THEN 0 ELSE ts_rank(a.search, q) END AS ts,
 			       g.published_at, g.source_url, a.position
 			FROM acts a
 			JOIN gazettes g ON g.id = a.gazette_id
-			CROSS JOIN websearch_to_tsquery('` + tsConfig + `', $1) q
-			WHERE ($1 = '' OR ` + matchFor("$1", "$4") + `)` + where
-}
-
-func (r *ActRepo) countMatched(ctx context.Context, where string, args []any) (int, error) {
-	var total int
-	err := r.db.QueryRowContext(ctx, `
-		SELECT count(*) FROM (`+matchedSQL(where)+`) m
-		WHERE $2::int IS NOT NULL AND $3::int IS NOT NULL`, args...).Scan(&total)
-	return total, err
+			CROSS JOIN websearch_to_tsquery('` + tsConfig + `', ` + query + `) q
+			WHERE (` + query + ` = '' OR ` + matchFor(query, like) + `)` + where
 }
 
 func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) ([]domain.ActHit, error) {

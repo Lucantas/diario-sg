@@ -69,7 +69,7 @@ func TestMCPSearchSaysWhichValuesAreInRangeAndTruncatesTheList(t *testing.T) {
 	}
 
 	read, _ := call[struct {
-		Coverage []any `json:"cobertura"`
+		Coverage []any  `json:"cobertura"`
 		Text     string `json:"texto"`
 	}](t, session, "ler_ato", map[string]any{"edicao_id": act.GazetteID, "posicao": act.Position})
 	if read.Text == "" || read.Coverage != nil {
