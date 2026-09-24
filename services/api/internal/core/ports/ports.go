@@ -20,6 +20,7 @@ type GazetteRepository interface {
 type ActRepository interface {
 	Search(ctx context.Context, f domain.ActFilter) (hits []domain.ActHit, total int, err error)
 	SearchInGazette(ctx context.Context, gazetteID, query string) ([]domain.ActHit, error)
+	EntityHitsInGazette(ctx context.Context, gazetteID string, ref domain.EntityRef) ([]domain.ActHit, error)
 	ListByGazette(ctx context.Context, gazetteID string) ([]domain.Act, error)
 
 	ReportByEntity(ctx context.Context, kind domain.EntityKind, normalized string) (domain.CompanyReport, error)

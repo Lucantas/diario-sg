@@ -111,6 +111,38 @@ func (r *ActRepo) SearchInGazette(ctx context.Context, gazetteID, query string) 
 	return hits, rows.Err()
 }
 
+func (r *ActRepo) EntityHitsInGazette(ctx context.Context, gazetteID string, ref domain.EntityRef) ([]domain.ActHit, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT a.id, a.gazette_id, a.type, a.title, a.position, a.organ, a.body,
+		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.source, min(l.evidence), `+cnpjsSubquery+`
+		FROM entities e
+		JOIN entity_links l ON l.entity_id = e.id AND l.record_kind = $4
+		JOIN acts a ON a.id = l.record_id::uuid
+		JOIN gazettes g ON g.id = a.gazette_id
+		WHERE e.kind = $2 AND e.key = $3 AND a.gazette_id = $1
+		GROUP BY a.id, g.id
+		ORDER BY a.position
+		LIMIT 20`, gazetteID, string(ref.Kind), ref.Key, domain.RecordAct)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var hits []domain.ActHit
+	for rows.Next() {
+		var h domain.ActHit
+		var typ, body, evidence string
+		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Position, &h.Organ, &body, &h.EditionNumber,
+			&h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Source, &evidence, pq.Array(&h.CNPJs)); err != nil {
+			return nil, err
+		}
+		h.Type = domain.ActType(typ)
+		h.Snippet = domain.MentionSnippet(body, evidence)
+		hits = append(hits, h)
+	}
+	return hits, rows.Err()
+}
+
 func (r *ActRepo) ListByGazette(ctx context.Context, gazetteID string) ([]domain.Act, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT id, gazette_id, type, title, body, position, coalesce(page_start, 0), coalesce(page_end, 0), organ,

@@ -41,7 +41,7 @@ func (uc *MatchSubscriptions) Execute(ctx context.Context, gazetteID string) err
 		if sent {
 			continue
 		}
-		hits, err := uc.acts.SearchInGazette(ctx, g.ID, domain.TranslateOperators(s.Query))
+		hits, err := uc.hitsFor(ctx, s, g.ID)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -59,4 +59,11 @@ func (uc *MatchSubscriptions) Execute(ctx context.Context, gazetteID string) err
 	}
 
 	return errors.Join(errs...)
+}
+
+func (uc *MatchSubscriptions) hitsFor(ctx context.Context, s domain.Subscription, gazetteID string) ([]domain.ActHit, error) {
+	if s.Entity != nil {
+		return uc.acts.EntityHitsInGazette(ctx, gazetteID, *s.Entity)
+	}
+	return uc.acts.SearchInGazette(ctx, gazetteID, domain.TranslateOperators(s.Query))
 }
