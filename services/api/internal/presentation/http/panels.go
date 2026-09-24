@@ -52,7 +52,7 @@ func (a *API) supplierPanel(w http.ResponseWriter, r *http.Request) {
 	f := domain.PanelFilter{Organ: domain.PrincipalOrgan(strings.ToUpper(strings.TrimSpace(q.Get("organ"))))}
 	if y := q.Get("year"); y != "" {
 		year, err := strconv.Atoi(y)
-		if err != nil {
+		if err != nil || year == 0 {
 			writeError(w, domain.ErrInvalidFilter, a.Log)
 			return
 		}

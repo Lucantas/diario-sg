@@ -22,9 +22,15 @@ export function PanelsPage() {
     setError("");
     getSupplierPanel(panelApiPath(params))
       .then((res) => { if (!cancelled) setPanel(res); })
-      .catch((err: Error) => { if (!cancelled) setError(err.message); });
+      .catch((err: Error) => {
+        if (cancelled) return;
+        setPanel(null);
+        setError(err.message);
+      });
     return () => { cancelled = true; };
   }, [params]);
+
+  const current = panel ? { ...params, organ: panel.organ } : params;
 
   function go(next: PanelParams) {
     window.history.pushState(null, "", panelHref(next));
@@ -41,11 +47,11 @@ export function PanelsPage() {
       <p className="notice">
         Valor declarado nos extratos do Diário, não o que foi pago. Cada contratação (atos da mesma empresa ligados
         pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato. Ata de registro de preços é um
-        teto e aparece à parte. Ficam de fora aditivos, homologações (que trazem o valor do certame inteiro) e atos que
-        citam mais de uma empresa. Confira sempre a edição original.
+        teto e aparece à parte. Ficam de fora aditivos, homologações (que trazem o valor do certame inteiro), multas,
+        cancelamentos e atos que citam mais de uma empresa. Confira sempre a edição original.
       </p>
 
-      <Filters panel={panel} params={params} onChange={go} />
+      <Filters panel={panel} params={current} onChange={go} />
 
       {error && <p className="notice notice-error">{error}</p>}
       {!error && panel === null && <p className="count">Carregando…</p>}
@@ -70,14 +76,14 @@ export function PanelsPage() {
           </section>
 
           <Totals
-            title={params.organ ? `Por ano, em ${params.organ}` : "Por ano"}
-            rows={panel.years.map((y) => ({ key: String(y.year), label: String(y.year), amounts: y, active: params.year === y.year,
-              onClick: () => go({ ...params, year: params.year === y.year ? null : y.year }) }))}
+            title={current.organ ? `Por ano, em ${current.organ}` : "Por ano"}
+            rows={panel.years.map((y) => ({ key: String(y.year), label: String(y.year), amounts: y, active: current.year === y.year,
+              onClick: () => go({ ...current, year: current.year === y.year ? null : y.year }) }))}
           />
           <Totals
-            title={params.year ? `Por secretaria, em ${params.year}` : "Por secretaria"}
+            title={current.year ? `Por secretaria, em ${current.year}` : "Por secretaria"}
             rows={panel.organs.slice(0, TOP_ORGANS).map((o) => ({ key: o.organ, label: o.organ, hint: o.organ_name, amounts: o,
-              active: params.organ === o.organ, onClick: () => go({ ...params, organ: params.organ === o.organ ? "" : o.organ }) }))}
+              active: current.organ === o.organ, onClick: () => go({ ...current, organ: current.organ === o.organ ? "" : o.organ }) }))}
           />
         </>
       )}

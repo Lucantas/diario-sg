@@ -118,7 +118,7 @@ func TestSupplierPanelCountsTheContractOnceAndTheAtaApart(t *testing.T) {
 		t.Fatalf("filtro inesperado: %+v", filtered)
 	}
 
-	for _, q := range []string{"year=abc", "year=1999", "source=diario_x"} {
+	for _, q := range []string{"year=abc", "year=0", "year=1999", "source=diario_x"} {
 		if r, _ := fetch(t, srv.URL+"/v1/panels/suppliers?"+q); r.StatusCode != http.StatusBadRequest {
 			t.Fatalf("%s deveria dar 400, veio %d", q, r.StatusCode)
 		}

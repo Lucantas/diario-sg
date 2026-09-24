@@ -42,8 +42,8 @@ Medidos na base local (Diário da Prefeitura, 2010 a 2026):
 - **O Diário não traz o nome da empresa de forma estruturada.** Nome vem da
   Receita Federal, na Entrega 3; o painel mostra o CNPJ.
 
-Com as regras abaixo, a base local fica com 1.386 contratações de 918
-fornecedores: R$ 933,8 milhões contratados e R$ 1,21 bilhão registrados em
+Com as regras abaixo, a base local fica com 1.373 contratações de 906
+fornecedores: R$ 904,7 milhões contratados e R$ 1,22 bilhão registrados em
 atas. O maior contratado é o CNPJ 14.180.324/0001-63 (R$ 126,1 milhões,
 dos quais R$ 106,3 milhões do contrato 010/SEMED/2025).
 
@@ -61,10 +61,13 @@ dos quais R$ 106,3 milhões do contrato 010/SEMED/2025).
    valor no mesmo ano.
 4. **O valor de cada ato** tem um de três papéis:
    - **nenhum**: fase de homologação, aditivo, rescisão, ajuste de contas ou
-     fiscal (`domain.PhaseOf`), ou texto de homologação, adjudicação, aviso
-     ou resultado no começo do ato;
+     fiscal (`domain.PhaseOf`), ou texto de homologação, adjudicação, aviso,
+     resultado, multa, sanção, penalidade, notificação ou cancelamento no
+     começo do ato (a revisão achou uma multa de R$ 16 milhões de 2018
+     contada como contrato);
    - **registrado**: ato que começa por "ata de registro de preços" ou
-     "extrato trimestral", ou com fase de ata de registro de preços sem
+     "extrato (de publicação) trimestral", ou com fase de ata de registro de
+     preços sem
      partes nem número de contrato no começo do texto;
    - **contratado**: todos os outros (contrato, dispensa, adesão a ata,
      chamamento com as partes, contrato de gestão).
@@ -115,7 +118,7 @@ dos quais R$ 106,3 milhões do contrato 010/SEMED/2025).
   e as referências (processo e contrato) ligados em `entity_links` da mesma
   fonte, título e os 400 primeiros caracteres do corpo. `HitsByIDs` vira
   função do pacote, usada pelos dois repositórios.
-- `usecase.SupplierPanel.Execute(ctx, source, filter)`: valida a fonte,
+- `usecase.GetSupplierPanel.Execute(ctx, source, filter)`: valida a fonte,
   monta o painel e carrega os atos de maior valor de cada linha.
 
 ### HTTP
