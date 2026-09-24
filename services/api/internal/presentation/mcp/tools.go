@@ -172,7 +172,10 @@ func (s *server) register(srv *sdk.Server) {
 		"soma_maior_valor_por_processo_centavos soma esses maiores valores de todos os processos, para não contar a mesma contratação várias vezes " +
 		"(extrato, aditivo e homologação citam o mesmo valor); um ato que cita dois processos entra uma vez só. " +
 		"O maior valor é o maior citado no ato, que pode ser de outro contrato mencionado nele: confira no texto. " +
-		"orgao_publico diz quando o CNPJ é do Município, de uma fundação ou fundo municipal, do SG-PREVI ou da Câmara: não é fornecedor."},
+		"orgao_publico diz quando o CNPJ é do Município, de uma fundação ou fundo municipal, do SG-PREVI ou da Câmara: não é fornecedor. " +
+		"rotulo é o número como o Diário escreve. fase de cada ato e atos_por_fase são deduzidas do título e do tipo do ato: confira no texto. " +
+		"orgaos lista os órgãos dos atos; um número em mais de um órgão pode ser de processos ou contratos diferentes. " +
+		"citados_junto (só processo e contrato) traz os contratos, ou processos, e os CNPJs citados nos mesmos atos, até 20 de cada tipo."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
 		recorded(s, "agrupar", s.group))
@@ -327,8 +330,8 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)),
 		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs),
 		ByProcess: processesOf(report.ByProcess), ProcessSum: report.ProcessSumCents, ProcessTotal: report.ProcessCount, NoProcess: report.ActsWithoutProcess}
+	out.CountByPhase = countByPhaseOf(report.CountByPhase)
 	if kind == domain.EntityProcesso || kind == domain.EntityContrato {
-		out.CountByPhase = countByPhaseOf(report.CountByPhase)
 		out.Related = relatedOf(report.Related)
 	}
 	out.Organs = organsOf(report.Organs)

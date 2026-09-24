@@ -268,6 +268,9 @@ func TestMCPEntityIncludesPhaseOrgansAndRelated(t *testing.T) {
 	if len(cnpj.Organs) == 0 {
 		t.Fatalf("cnpj deveria trazer órgãos: %+v", cnpj)
 	}
+	if cnpj.CountByPhase["contrato"] != 1 || cnpj.CountByPhase["homologacao"] != 1 {
+		t.Fatalf("cnpj deveria trazer atos_por_fase: %+v", cnpj.CountByPhase)
+	}
 	if len(cnpj.Related) != 0 {
 		t.Fatalf("cnpj não deveria trazer citados_junto: %+v", cnpj.Related)
 	}
