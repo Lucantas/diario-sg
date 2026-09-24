@@ -60,6 +60,7 @@ type actSummaryDTO struct {
 	PublishedAt   string      `json:"data"`
 	IsExtra       bool        `json:"extra"`
 	Type          string      `json:"tipo"`
+	Phase         string      `json:"fase,omitempty"`
 	Organ         string      `json:"orgao"`
 	OrganName     string      `json:"orgao_nome"`
 	Title         string      `json:"titulo"`
@@ -135,7 +136,7 @@ func citableAct(g domain.Gazette, a domain.Act) citable {
 func summaryOf(h domain.ActHit, webURL string) actSummaryDTO {
 	return actSummaryDTO{
 		GazetteID: h.GazetteID, Position: h.Position, Diario: domain.SourceOrDefault(h.Source), EditionNumber: h.EditionNumber,
-		PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, Type: string(h.Type),
+		PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, Type: string(h.Type), Phase: string(h.Phase),
 		Organ: h.Organ, OrganName: domain.OrganName(h.Organ), Title: h.Title, Snippet: h.Snippet,
 		Modality: string(h.Modality), MainValue: h.MainValueCents,
 		Pages: pageRange(h.PageStart, h.PageEnd), CNPJs: nonNil(h.CNPJs), PublicCNPJs: publicOnly(h.CNPJs),

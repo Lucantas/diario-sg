@@ -160,6 +160,72 @@ func TestEntityRouteServesProcessAndContract(t *testing.T) {
 	}
 }
 
+func TestMCPEntityIncludesPhaseOrgansAndRelated(t *testing.T) {
+	srv, _ := newEntityServer(t)
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	type organOut struct {
+		Organ     string `json:"orgao"`
+		OrganName string `json:"orgao_nome"`
+		Acts      int    `json:"atos"`
+	}
+	type relatedOut struct {
+		Kind  string `json:"tipo"`
+		Key   string `json:"chave"`
+		Label string `json:"rotulo"`
+		Acts  int    `json:"atos"`
+	}
+	type entityOut struct {
+		Label        string         `json:"rotulo"`
+		CountByPhase map[string]int `json:"atos_por_fase"`
+		Organs       []organOut     `json:"orgaos"`
+		Related      []relatedOut   `json:"citados_junto"`
+		Warning      string         `json:"aviso"`
+		Acts         []struct {
+			Phase string `json:"fase"`
+		} `json:"atos_recentes"`
+	}
+
+	process, res := call[entityOut](t, session, "entidade", map[string]any{"tipo": "processo", "numero": "2808/2022"})
+	if res.IsError {
+		t.Fatalf("entidade processo: %+v", res)
+	}
+	if process.Label != "2808/2022" || process.CountByPhase["contrato"] != 2 || len(process.Organs) != 3 {
+		t.Fatalf("processo: %+v", process)
+	}
+	var foundContract bool
+	for _, r := range process.Related {
+		if r.Kind == "contrato" && r.Key == "30/SEMAD/2023" {
+			foundContract = true
+		}
+	}
+	if !foundContract {
+		t.Fatalf("citados junto sem o contrato: %+v", process.Related)
+	}
+	if !strings.Contains(process.Warning, "aparece em 2 órgãos") {
+		t.Fatalf("aviso: %q", process.Warning)
+	}
+	if len(process.Acts) == 0 || process.Acts[0].Phase == "" {
+		t.Fatalf("ato recente sem fase: %+v", process.Acts)
+	}
+
+	cnpj, res2 := call[entityOut](t, session, "entidade", map[string]any{"numero": "12.345.678/0001-90"})
+	if res2.IsError {
+		t.Fatalf("entidade cnpj: %+v", res2)
+	}
+	if len(cnpj.Organs) == 0 {
+		t.Fatalf("cnpj deveria trazer órgãos: %+v", cnpj)
+	}
+	if len(cnpj.Related) != 0 {
+		t.Fatalf("cnpj não deveria trazer citados_junto: %+v", cnpj.Related)
+	}
+}
+
 func TestRelatedLeavesOutEntitiesOfTheSameKind(t *testing.T) {
 	_, db := newServerFor(t, "SEMAD\nEXTRATO DO CONTRATO Nº 30/SEMAD/2023\n"+
 		"Processo nº 2808/2022 e Processo nº 1111/2023. Substitui o Contrato nº 5/SEMAD/2022. "+

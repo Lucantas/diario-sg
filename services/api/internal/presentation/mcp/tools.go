@@ -82,21 +82,38 @@ type entityInput struct {
 }
 
 type entityOutput struct {
-	Kind         string          `json:"tipo"`
-	Key          string          `json:"chave"`
-	PublicBody   string          `json:"orgao_publico,omitempty"`
-	Certainty    string          `json:"certeza,omitempty"`
-	Warning      string          `json:"aviso,omitempty"`
-	TotalActs    int             `json:"total_atos"`
-	TotalCents   int64           `json:"soma_valores_centavos"`
-	CountByType  map[string]int  `json:"atos_por_tipo"`
-	ByProcess    []processDTO    `json:"por_processo,omitempty"`
-	ProcessSum   int64           `json:"soma_maior_valor_por_processo_centavos,omitempty"`
-	ProcessTotal int             `json:"processos_total,omitempty"`
-	NoProcess    int             `json:"atos_sem_processo,omitempty"`
-	Acts         []actSummaryDTO `json:"atos_recentes"`
-	Coverage     []coverageDTO   `json:"cobertura"`
-	Alerts       []string        `json:"alertas_coleta,omitempty"`
+	Kind         string             `json:"tipo"`
+	Key          string             `json:"chave"`
+	Label        string             `json:"rotulo,omitempty"`
+	PublicBody   string             `json:"orgao_publico,omitempty"`
+	Certainty    string             `json:"certeza,omitempty"`
+	Warning      string             `json:"aviso,omitempty"`
+	TotalActs    int                `json:"total_atos"`
+	TotalCents   int64              `json:"soma_valores_centavos"`
+	CountByType  map[string]int     `json:"atos_por_tipo"`
+	CountByPhase map[string]int     `json:"atos_por_fase,omitempty"`
+	Organs       []organDTO         `json:"orgaos,omitempty"`
+	Related      []relatedEntityDTO `json:"citados_junto,omitempty"`
+	ByProcess    []processDTO       `json:"por_processo,omitempty"`
+	ProcessSum   int64              `json:"soma_maior_valor_por_processo_centavos,omitempty"`
+	ProcessTotal int                `json:"processos_total,omitempty"`
+	NoProcess    int                `json:"atos_sem_processo,omitempty"`
+	Acts         []actSummaryDTO    `json:"atos_recentes"`
+	Coverage     []coverageDTO      `json:"cobertura"`
+	Alerts       []string           `json:"alertas_coleta,omitempty"`
+}
+
+type organDTO struct {
+	Organ     string `json:"orgao"`
+	OrganName string `json:"orgao_nome"`
+	Acts      int    `json:"atos"`
+}
+
+type relatedEntityDTO struct {
+	Kind  string `json:"tipo"`
+	Key   string `json:"chave"`
+	Label string `json:"rotulo"`
+	Acts  int    `json:"atos"`
 }
 
 type sourcesInput struct{}
@@ -305,11 +322,16 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	if err != nil {
 		return nil, entityOutput{}, err
 	}
-	out := entityOutput{Kind: string(report.Kind), Key: report.Key, PublicBody: publicBodyOf(report), Certainty: string(report.Certainty),
+	out := entityOutput{Kind: string(report.Kind), Key: report.Key, Label: report.Label, PublicBody: publicBodyOf(report), Certainty: string(report.Certainty),
 		Warning: strings.Join(domain.EntityWarnings(report), " "), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
 		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)),
 		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs),
 		ByProcess: processesOf(report.ByProcess), ProcessSum: report.ProcessSumCents, ProcessTotal: report.ProcessCount, NoProcess: report.ActsWithoutProcess}
+	if kind == domain.EntityProcesso || kind == domain.EntityContrato {
+		out.CountByPhase = countByPhaseOf(report.CountByPhase)
+		out.Related = relatedOf(report.Related)
+	}
+	out.Organs = organsOf(report.Organs)
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
 	}
@@ -317,6 +339,39 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		out.Acts = append(out.Acts, summaryOf(h, s.webURL))
 	}
 	return nil, out, nil
+}
+
+func countByPhaseOf(cs map[domain.Phase]int) map[string]int {
+	if len(cs) == 0 {
+		return nil
+	}
+	out := make(map[string]int, len(cs))
+	for phase, n := range cs {
+		out[string(phase)] = n
+	}
+	return out
+}
+
+func organsOf(os []domain.OrganCount) []organDTO {
+	if len(os) == 0 {
+		return nil
+	}
+	out := make([]organDTO, 0, len(os))
+	for _, o := range os {
+		out = append(out, organDTO{Organ: o.Organ, OrganName: domain.OrganName(o.Organ), Acts: o.Acts})
+	}
+	return out
+}
+
+func relatedOf(rs []domain.RelatedEntity) []relatedEntityDTO {
+	if len(rs) == 0 {
+		return nil
+	}
+	out := make([]relatedEntityDTO, 0, len(rs))
+	for _, r := range rs {
+		out = append(out, relatedEntityDTO{Kind: string(r.Kind), Key: r.Key, Label: r.Label, Acts: r.Acts})
+	}
+	return out
 }
 
 type processDTO struct {
