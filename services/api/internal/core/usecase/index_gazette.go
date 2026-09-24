@@ -53,7 +53,7 @@ func (uc *IndexGazette) Execute(ctx context.Context, in IndexGazetteInput) error
 	}
 	defer rc.Close()
 
-	text, err := uc.extractor.Extract(ctx, rc)
+	text, err := uc.extractor.Extract(ctx, rc, source)
 	if err != nil {
 		return fmt.Errorf("extrair texto: %w", err)
 	}

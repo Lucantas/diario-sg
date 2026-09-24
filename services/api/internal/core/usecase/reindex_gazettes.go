@@ -58,11 +58,12 @@ func (uc *ReindexGazettes) reindexOne(ctx context.Context, g domain.Gazette) err
 		return fmt.Errorf("baixar: %w", err)
 	}
 	defer rc.Close()
-	text, err := uc.extractor.Extract(ctx, rc)
+	source := domain.SourceOrDefault(g.Source)
+	text, err := uc.extractor.Extract(ctx, rc, source)
 	if err != nil {
 		return fmt.Errorf("extrair texto: %w", err)
 	}
-	parser := uc.parsers.For(domain.SourceOrDefault(g.Source))
+	parser := uc.parsers.For(source)
 	number := parser.EditionNumber(text)
 	if number == "" {
 		number = g.EditionNumber

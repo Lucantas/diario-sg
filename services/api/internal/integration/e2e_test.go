@@ -49,7 +49,7 @@ func (textStore) Get(context.Context, string) (io.ReadCloser, error) {
 
 type passthroughExtractor struct{}
 
-func (passthroughExtractor) Extract(_ context.Context, r io.Reader) (string, error) {
+func (passthroughExtractor) Extract(_ context.Context, r io.Reader, _ string) (string, error) {
 	b, err := io.ReadAll(r)
 	return string(b), err
 }
