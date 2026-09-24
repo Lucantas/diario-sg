@@ -5,6 +5,7 @@ import { DataPage } from "./DataPage";
 import { EntityPage } from "./EntityPage";
 import { parseEntityPath } from "./entity";
 import { McpPage } from "./McpPage";
+import { PatternsPage } from "./PatternsPage";
 import { SearchPage } from "./SearchPage";
 
 export function App() {
@@ -14,6 +15,7 @@ export function App() {
   if (path === "/cancelar") return <TokenPage kind="cancel" token={token} />;
   if (path === "/dados") return <DataPage />;
   if (path === "/mcp") return <McpPage />;
+  if (path === "/padroes") return <PatternsPage />;
   const entity = parseEntityPath(path);
   if (entity) return <EntityPage kind={entity.kind} slug={entity.slug} />;
   const company = path.match(/^\/empresa\/([\d./-]+)$/);

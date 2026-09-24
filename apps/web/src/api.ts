@@ -100,6 +100,28 @@ export interface EntityResponse {
   acts: ActHit[];
 }
 
+export interface PatternSearch {
+  type: ActType;
+  from: string;
+  to: string;
+  source: Source;
+}
+
+export interface Finding {
+  title: string;
+  detail: string;
+  acts: ActHit[];
+  search: PatternSearch | null;
+}
+
+export interface Pattern {
+  id: string;
+  title: string;
+  rule: string;
+  caveat: string;
+  findings: Finding[];
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
@@ -112,6 +134,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function searchActs(params: URLSearchParams) {
   return request<SearchResponse>(`/v1/acts?${params}`);
+}
+
+export function listPatterns() {
+  return request<{ items: Pattern[] }>("/v1/patterns");
 }
 
 export function listOrgans() {

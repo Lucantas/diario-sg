@@ -84,6 +84,11 @@ button:disabled { opacity: 0.6; cursor: progress; }
 .related ul { list-style: none; margin: 0; padding: 0; }
 .related li { padding: 0.6rem 0; border-top: 1px solid var(--rule); }
 .related li:first-child { border-top: 0; }
+.pattern { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); }
+.pattern h2 { font-size: 1.25rem; margin: 0 0 0.75rem; }
+.finding { padding: 1.25rem 0; border-top: 1px solid var(--rule); }
+.finding h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.5rem; }
+.finding ol { list-style: none; margin: 1rem 0 0; padding: 0; }
 .meta { flex-wrap: wrap; }
 .organ { border-left: 1px solid var(--rule); padding-left: 0.6rem; }
 
