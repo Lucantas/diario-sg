@@ -10,31 +10,35 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
+type baseHitDTO struct {
+	ID            string   `json:"id"`
+	GazetteID     string   `json:"gazette_id"`
+	Source        string   `json:"source"`
+	SourceName    string   `json:"source_name"`
+	Position      int      `json:"position"`
+	Type          string   `json:"type"`
+	Title         string   `json:"title"`
+	Organ         string   `json:"organ"`
+	OrganName     string   `json:"organ_name"`
+	Snippet       string   `json:"snippet"`
+	EditionNumber string   `json:"edition_number"`
+	PublishedAt   string   `json:"published_at"`
+	IsExtra       bool     `json:"is_extra"`
+	SourceURL     string   `json:"source_url"`
+	PageStart     *int     `json:"page_start"`
+	PageEnd       *int     `json:"page_end"`
+	PDFSHA256     string   `json:"pdf_sha256"`
+	CNPJs         []string `json:"cnpjs"`
+	ValuesCents   []int64  `json:"values_cents"`
+	Modality      string   `json:"modality,omitempty"`
+	MainValue     int64    `json:"main_value_cents,omitempty"`
+	Warnings      []string `json:"warnings"`
+}
+
 type actHitDTO struct {
-	ID            string       `json:"id"`
-	GazetteID     string       `json:"gazette_id"`
-	Source        string       `json:"source"`
-	SourceName    string       `json:"source_name"`
-	Position      int          `json:"position"`
-	Type          string       `json:"type"`
-	Title         string       `json:"title"`
-	Organ         string       `json:"organ"`
-	OrganName     string       `json:"organ_name"`
-	Snippet       string       `json:"snippet"`
-	EditionNumber string       `json:"edition_number"`
-	PublishedAt   string       `json:"published_at"`
-	IsExtra       bool         `json:"is_extra"`
-	SourceURL     string       `json:"source_url"`
-	PageStart     *int         `json:"page_start"`
-	PageEnd       *int         `json:"page_end"`
-	PDFSHA256     string       `json:"pdf_sha256"`
-	CNPJs         []string     `json:"cnpjs"`
-	ValuesCents   []int64      `json:"values_cents"`
-	Modality      string       `json:"modality,omitempty"`
-	MainValue     int64        `json:"main_value_cents,omitempty"`
-	Warnings      []string     `json:"warnings"`
-	Phase         string       `json:"phase,omitempty"`
-	Mentions      []mentionDTO `json:"mentions"`
+	baseHitDTO
+	Phase    string       `json:"phase,omitempty"`
+	Mentions []mentionDTO `json:"mentions"`
 }
 
 type mentionDTO struct {
@@ -131,13 +135,15 @@ func toHitDTO(h domain.ActHit) actHitDTO {
 		mentions = append(mentions, mentionDTO{Kind: string(m.Kind), Key: m.Key, Label: m.Label, Slug: domain.EntitySlug(m.Label)})
 	}
 	return actHitDTO{
-		ID: h.ID, GazetteID: h.GazetteID, Source: domain.SourceOrDefault(h.Source), SourceName: domain.SourceName(h.Source), Position: h.Position, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
-		Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
-		EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
-		PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum, ValuesCents: values,
-		Modality: string(h.Modality), MainValue: h.MainValueCents,
-		Warnings: domain.ActWarnings(h.WarningFacts()),
-		Phase:    string(domain.PhaseOf(h.Type, h.Title)),
+		baseHitDTO: baseHitDTO{
+			ID: h.ID, GazetteID: h.GazetteID, Source: domain.SourceOrDefault(h.Source), SourceName: domain.SourceName(h.Source), Position: h.Position, Type: string(h.Type), Title: h.Title, Snippet: h.Snippet,
+			Organ: h.Organ, OrganName: domain.OrganName(h.Organ),
+			EditionNumber: h.EditionNumber, PublishedAt: h.PublishedAt.Format(time.DateOnly), IsExtra: h.IsExtra, SourceURL: h.SourceURL, CNPJs: cnpjs,
+			PageStart: pageOrNil(h.PageStart), PageEnd: pageOrNil(h.PageEnd), PDFSHA256: h.Checksum, ValuesCents: values,
+			Modality: string(h.Modality), MainValue: h.MainValueCents,
+			Warnings: domain.ActWarnings(h.WarningFacts()),
+		},
+		Phase:    string(h.Phase),
 		Mentions: mentions,
 	}
 }

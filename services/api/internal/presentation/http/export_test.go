@@ -1,7 +1,9 @@
 package http
 
 import (
+	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -37,6 +39,22 @@ func TestCSVRecord(t *testing.T) {
 		"1200,00 | 300,00", "1 | 2", "https://do/x.pdf#page=3", "https://site/api/v1/gazettes/g1/pdf#page=3", "abc", "", "'=corpo", "diario_prefeitura"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("veio\n%q\nesperava\n%q", got, want)
+	}
+}
+
+func TestExportItemDTODoesNotExposePhaseOrMentions(t *testing.T) {
+	h := domain.ActHit{Act: domain.Act{GazetteID: "g1", Type: domain.ActContrato, Title: "EXTRATO"},
+		PublishedAt: time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC),
+		Phase:       domain.PhaseContrato,
+		Mentions:    []domain.EntityMention{{Kind: domain.EntityProcesso, Key: "28082022", Label: "2808/2022"}}}
+
+	out, err := json.Marshal(exportItemDTO{baseHitDTO: toHitDTO(h).baseHitDTO, Body: h.Body, ArchivedPDFURL: "https://site/pdf"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if strings.Contains(string(out), `"phase"`) || strings.Contains(string(out), `"mentions"`) {
+		t.Fatalf("exportação não deve trazer phase/mentions: %s", out)
 	}
 }
 

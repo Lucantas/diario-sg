@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -93,6 +94,19 @@ func TestExportJSON(t *testing.T) {
 	r, _ = fetch(t, srv.URL+"/v1/acts/export?format=xml")
 	if r.StatusCode != http.StatusBadRequest {
 		t.Fatalf("formato desconhecido deve dar 400, veio %d", r.StatusCode)
+	}
+}
+
+func TestExportJSONDoesNotExposePhaseOrMentions(t *testing.T) {
+	srv, _ := newEntityServer(t)
+
+	_, body := fetch(t, srv.URL+"/v1/acts/export?format=json&q="+url.QueryEscape("30/SEMAD/2023"))
+
+	if !strings.Contains(body, "SEMAD") {
+		t.Fatalf("esperava achar o contrato exportado: %s", body)
+	}
+	if strings.Contains(body, `"phase"`) || strings.Contains(body, `"mentions"`) {
+		t.Fatalf("exportação JSON não deve trazer phase nem mentions: %s", body)
 	}
 }
 

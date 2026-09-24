@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -42,5 +43,18 @@ func TestSearchHitsCarryProcessAndContractMentions(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("esperava a menção ao contrato 30/SEMAD/2023: %+v", res.Items)
+	}
+}
+
+func TestSearchHitsDoNotExposePhase(t *testing.T) {
+	srv, _ := newEntityServer(t)
+
+	_, body := fetch(t, srv.URL+"/v1/acts?q="+url.QueryEscape("2808/2022"))
+
+	if !strings.Contains(body, `"mentions"`) {
+		t.Fatalf("esperava mentions nos itens da busca: %s", body)
+	}
+	if strings.Contains(body, `"phase"`) {
+		t.Fatalf("a busca não deve trazer phase (só o relatório de entidade, na Task 4): %s", body)
 	}
 }

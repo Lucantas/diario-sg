@@ -90,7 +90,7 @@ func (e *exportWriter) write(h domain.ActHit, total int) error {
 			return err
 		}
 	}
-	return json.NewEncoder(e.w).Encode(exportItemDTO{actHitDTO: toHitDTO(h), Body: h.Body, ArchivedPDFURL: archivedURL(e.base, h)})
+	return json.NewEncoder(e.w).Encode(exportItemDTO{baseHitDTO: toHitDTO(h).baseHitDTO, Body: h.Body, ArchivedPDFURL: archivedURL(e.base, h)})
 }
 
 func (e *exportWriter) close() error {
@@ -108,7 +108,7 @@ func (e *exportWriter) close() error {
 }
 
 type exportItemDTO struct {
-	actHitDTO
+	baseHitDTO
 	Snippet        string `json:"snippet,omitempty"`
 	Body           string `json:"body"`
 	ArchivedPDFURL string `json:"archived_pdf_url"`
