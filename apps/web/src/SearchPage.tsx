@@ -237,6 +237,7 @@ export function SearchPage() {
         <a href="/dados">Dados abertos: a base inteira para baixar</a>
         <a href="/mcp">Pergunte pela sua IA (MCP)</a>
         <a href="/padroes">Padrões para verificar</a>
+        <a href="/paineis">Maiores fornecedores</a>
       </footer>
     </main>
   );

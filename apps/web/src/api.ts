@@ -122,6 +122,31 @@ export interface Pattern {
   findings: Finding[];
 }
 
+export interface PanelAmounts {
+  contracts: number;
+  contracted_cents: number;
+  registered_cents: number;
+}
+
+export interface SupplierRow extends PanelAmounts {
+  cnpj: string;
+  first: string;
+  last: string;
+  organs: string[];
+  largest: ActHit | null;
+}
+
+export interface SupplierPanel extends PanelAmounts {
+  source: Source;
+  year: number | null;
+  organ: string;
+  organ_name: string;
+  suppliers: number;
+  items: SupplierRow[];
+  years: (PanelAmounts & { year: number })[];
+  organs: (PanelAmounts & { organ: string; organ_name: string })[];
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
@@ -138,6 +163,10 @@ export function searchActs(params: URLSearchParams) {
 
 export function listPatterns() {
   return request<{ items: Pattern[] }>("/v1/patterns");
+}
+
+export function getSupplierPanel(path: string) {
+  return request<SupplierPanel>(path);
 }
 
 export function listOrgans() {

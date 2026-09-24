@@ -89,6 +89,21 @@ button:disabled { opacity: 0.6; cursor: progress; }
 .finding { padding: 1.25rem 0; border-top: 1px solid var(--rule); }
 .finding h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.5rem; }
 .finding ol { list-style: none; margin: 1rem 0 0; padding: 0; }
+.panel-filters { margin: 1.5rem 0 0; }
+.panel-filters .organ-filter { margin: 0 0 0.75rem; }
+.panel-heading { font-size: 1.25rem; margin: 2.5rem 0 0.5rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); }
+.suppliers { list-style: decimal; margin: 0; padding-left: 1.75rem; }
+.supplier { padding: 1rem 0; border-bottom: 1px solid var(--rule); }
+.supplier h3 { font-size: 1.05rem; margin: 0 0 0.25rem; }
+.supplier-values { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0 0 0.25rem; }
+.supplier .fineprint { margin: 0; }
+.largest summary { cursor: pointer; color: var(--action); font-size: 0.9rem; margin-top: 0.5rem; }
+.largest ol { list-style: none; margin: 0.5rem 0 0; padding: 0; }
+.totals table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.totals th, .totals td { padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+.totals th:first-child { text-align: left; padding-left: 0; }
+.totals thead th { color: var(--slate); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.totals button[aria-pressed="true"] { font-weight: 700; text-decoration: none; background: var(--marker); }
 .meta { flex-wrap: wrap; }
 .organ { border-left: 1px solid var(--rule); padding-left: 0.6rem; }
 
