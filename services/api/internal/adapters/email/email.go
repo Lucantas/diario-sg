@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
@@ -42,13 +44,13 @@ func (n *Notifier) link(path, token string) string {
 
 var confirmTmpl = template.Must(template.New("c").Parse(`
 <p>Recebemos um pedido para avisar este e-mail quando o Diário Oficial da Prefeitura ou da Câmara de São Gonçalo publicar algo sobre:</p>
-<p><strong>{{.Query}}</strong></p>
+<p><strong>{{.Subject}}</strong></p>
 <p><a href="{{.Link}}">Confirmar alerta</a></p>
 <p>Se não foi você, ignore esta mensagem: nada será enviado sem confirmação.</p>`))
 
 func (n *Notifier) SendConfirmation(ctx context.Context, s domain.Subscription) error {
 	var b bytes.Buffer
-	if err := confirmTmpl.Execute(&b, map[string]string{"Query": s.Query, "Link": n.link("/confirmar", s.ConfirmToken)}); err != nil {
+	if err := confirmTmpl.Execute(&b, map[string]string{"Subject": s.Subject(), "Link": n.link("/confirmar", s.ConfirmToken)}); err != nil {
 		return err
 	}
 	return n.sender.Send(ctx, Message{To: s.Email, Subject: "Confirme seu alerta do Diário Oficial", HTML: b.String()})
@@ -57,8 +59,8 @@ func (n *Notifier) SendConfirmation(ctx context.Context, s domain.Subscription) 
 var matchesTmpl = template.Must(template.New("m").Funcs(template.FuncMap{
 	"plain": func(s string) string { return strings.NewReplacer("⟦", "", "⟧", "").Replace(s) },
 }).Parse(`
-<p>A edição {{.Edition}} do {{.SourceName}} de {{.Date}} tem {{len .Hits}} resultado(s) para <strong>{{.Query}}</strong>:</p>
-{{range .Hits}}<p><strong>{{.Title}}</strong><br>{{plain .Snippet}}</p>{{end}}
+<p>A edição {{.Edition}} do {{.SourceName}} de {{.Date}} tem {{len .Hits}} resultado(s) para <strong>{{.Subject}}</strong>:</p>
+{{range .Hits}}<p><strong>{{.Title}}</strong>{{if .Organ}} ({{.Organ}}){{end}}<br>{{plain .Snippet}}</p>{{end}}
 <p><a href="{{.Source}}">Abrir a edição original</a></p>
 <p style="font-size:12px"><a href="{{.Unsub}}">Cancelar este alerta</a></p>`))
 
@@ -66,13 +68,18 @@ func (n *Notifier) SendMatches(ctx context.Context, s domain.Subscription, g dom
 	var b bytes.Buffer
 	err := matchesTmpl.Execute(&b, map[string]any{
 		"Edition": g.EditionNumber, "SourceName": domain.SourceName(g.Source), "Date": g.PublishedAt.Format("02/01/2006"), "Hits": hits,
-		"Query": s.Query, "Source": g.SourceURL, "Unsub": n.link("/cancelar", s.UnsubscribeToken),
+		"Subject": s.Subject(), "Source": g.SourceURL, "Unsub": n.link("/cancelar", s.UnsubscribeToken),
 	})
 	if err != nil {
 		return err
 	}
-	subject := fmt.Sprintf("“%s” no Diário da %s de %s", s.Query, domain.SourceLabel(g.Source), g.PublishedAt.Format("02/01"))
+	subject := fmt.Sprintf("%s no Diário da %s de %s", upperFirst(s.Subject()), domain.SourceLabel(g.Source), g.PublishedAt.Format("02/01"))
 	return n.sender.Send(ctx, Message{To: s.Email, Subject: subject, HTML: b.String()})
+}
+
+func upperFirst(s string) string {
+	r, size := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[size:]
 }
 
 type LogSender struct{ Log *slog.Logger }
