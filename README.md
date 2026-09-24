@@ -169,7 +169,9 @@ certeza da ligação; processo ou contrato que aparece nos dois diários tem
 certeza fraca, e `diario` restringe a um deles; `orgao_publico` marca o
 CNPJ do Município, de fundações, fundos, SG-PREVI e Câmara), `agrupar`
 (conta os atos por CNPJ, processo, órgão ou tipo com os filtros da busca,
-e por padrão deixa os CNPJs de órgãos públicos de fora) e `fontes`
+e por padrão deixa os CNPJs de órgãos públicos de fora), `pagina_original`
+(texto cru de uma página do PDF arquivado, com o SHA-256, para conferir o
+que o parser leu) e `fontes`
 (período coberto, última coleta e lacunas de cada diário). `buscar_atos` e
 `agrupar` aceitam `modalidade` e `valor_principal_min`/`valor_principal_max`;
 `ler_ato` traz `partes` (cada CNPJ com o nome provável ao lado) e, nos termos

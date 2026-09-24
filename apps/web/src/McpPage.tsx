@@ -7,6 +7,7 @@ const TOOLS: [string, string][] = [
   ["ler_ato", "texto completo de um ato, com citação pronta"],
   ["entidade", "atos que citam um CNPJ, processo ou contrato, com contagem por tipo e soma dos valores citados"],
   ["agrupar", "conta os atos encontrados por CNPJ, processo, órgão ou tipo, sem os CNPJs de órgãos públicos"],
+  ["pagina_original", "texto cru de uma página do PDF arquivado, para conferir o que foi extraído"],
   ["fontes", "período coberto, última coleta e lacunas conhecidas"],
 ];
 

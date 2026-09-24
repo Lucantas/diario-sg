@@ -53,6 +53,10 @@ type TextExtractor interface {
 	Extract(ctx context.Context, r io.Reader, source string) (string, error)
 }
 
+type PageExtractor interface {
+	ExtractPage(ctx context.Context, r io.Reader, source string, page int) (text string, pages int, err error)
+}
+
 type ActParser interface {
 	Parse(text string) []domain.Act
 

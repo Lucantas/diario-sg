@@ -66,7 +66,8 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: usecase.NewSearchActs(acts), Read: usecase.NewReadAct(gaz, acts),
-		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db)), Group: usecase.NewGroupActs(acts), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
+		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db)), Group: usecase.NewGroupActs(acts),
+		Page: usecase.NewReadPage(gaz, stringStore(text), singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
 		PublicWebURL: "https://web.exemplo", Log: log})
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
 		Gazette: usecase.NewGetGazette(gaz, acts), Reports: usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
