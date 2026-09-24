@@ -15,7 +15,7 @@ func NewActRepo(db *sql.DB) *ActRepo { return &ActRepo{db: db} }
 
 func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActHit, int, error) {
 	where, extra := filterSQL(f, 5)
-	args := append([]any{f.Query, f.Limit, f.Offset, likePattern(f.Query)}, extra...)
+	args := append([]any{f.TextQuery(), f.Limit, f.Offset, likePattern(f.TextQuery())}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
 		WITH matched AS MATERIALIZED (`+matchedSQL("$1", "$4", where)+`), page AS (
 			SELECT id, exact, CASE WHEN exact THEN 0 ELSE ts END AS rank, published_at, source_url, position, count(*) OVER () AS total
@@ -54,7 +54,7 @@ func (r *ActRepo) Search(ctx context.Context, f domain.ActFilter) ([]domain.ActH
 			return nil, 0, err
 		}
 		h.Type = domain.ActType(typ)
-		h.Snippet = highlightFallback(h.Snippet, phraseOf(f.Query))
+		h.Snippet = highlightFallback(h.Snippet, phraseOf(f.TextQuery()))
 		hits = append(hits, h)
 	}
 	if err := rows.Err(); err != nil {
@@ -134,7 +134,7 @@ func (r *ActRepo) ListByGazette(ctx context.Context, gazetteID string) ([]domain
 
 func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(domain.ActHit, int) error) error {
 	where, extra := filterSQL(f, 4)
-	args := append([]any{f.Query, f.Limit, likePattern(f.Query)}, extra...)
+	args := append([]any{f.TextQuery(), f.Limit, likePattern(f.TextQuery())}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.body, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
 		       coalesce(a.modality, ''), coalesce(a.main_value_cents, 0),

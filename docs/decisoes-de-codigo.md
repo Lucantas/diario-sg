@@ -267,6 +267,25 @@ explica sozinho.
   367 termos da base local foram reconhecidos: cerca de 25 por mês, de
   R$ 10.000,00 em 2025 e R$ 13.000,00 em 2026.
 
+## Busca por nome
+
+- O `nome` do MCP vira uma frase entre aspas somada à `consulta`, então só
+  casa com as palavras juntas e na ordem, mesmo com quebra de linha no
+  meio. Sem isso, um nome sem aspas casava com qualquer ato que citasse as
+  palavras separadas.
+- Resultados de concurso, convocações e homologações citam centenas de
+  nomes, e um nome comum aparece em dezenas delas. Com `nome`, a busca
+  deixa de fora os atos com 50 linhas ou mais que são só um nome em
+  maiúsculas (`domain.NameLines`) e diz quantos ficaram de fora em
+  `atos_em_listas_omitidos`; `incluir_listas` os traz de volta.
+- A contagem é gravada em `acts.name_lines` (migration 011) na indexação.
+  Contar na hora da busca levava 7,8 s para "maria da silva" (752 atos
+  candidatos), contra 98 ms da busca. Até a reindexação, a coluna fica 0 e
+  nada é excluído.
+- Na base local, 558 dos 161 mil atos passam do limite: 138 com 200 linhas
+  de nome ou mais e 420 entre 50 e 199. Extratos trimestrais de contratos,
+  com uma empresa por linha, também contam como lista.
+
 ## Entrega de mensagens e idempotência
 
 - Pub/Sub entrega pelo menos uma vez. A edição é identificada pelo

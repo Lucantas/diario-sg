@@ -13,6 +13,8 @@ type groupInput struct {
 	By            string  `json:"por" jsonschema:"cnpj, processo, orgao ou tipo"`
 	IncludePublic bool    `json:"incluir_orgaos_publicos,omitempty" jsonschema:"no agrupamento por cnpj, incluir o Município, fundações, fundos, SG-PREVI e Câmara (padrão: não)"`
 	Query         string  `json:"consulta,omitempty" jsonschema:"termos da busca em português; aceita \"frase exata\", OU e -excluir"`
+	Name          string  `json:"nome,omitempty" jsonschema:"nome de pessoa ou empresa, como em buscar_atos"`
+	Lists         bool    `json:"incluir_listas,omitempty" jsonschema:"com nome, incluir também listas longas de nomes (padrão: não)"`
 	Diario        string  `json:"diario,omitempty" jsonschema:"diario_prefeitura ou diario_camara; vazio agrupa os dois"`
 	Type          string  `json:"tipo,omitempty" jsonschema:"tipo do ato, como em buscar_atos"`
 	Organ         string  `json:"orgao,omitempty" jsonschema:"sigla do órgão da Prefeitura, como SEMED"`
@@ -59,7 +61,7 @@ const groupDescription = "Agrupa os atos encontrados por cnpj, processo, orgao o
 	"Use entidade para ver todos os atos de um CNPJ ou processo."
 
 func (s *server) group(ctx context.Context, _ *sdk.CallToolRequest, in groupInput) (*sdk.CallToolResult, groupOutput, error) {
-	f, err := filterOf(searchInput{Query: in.Query, Diario: in.Diario, Type: in.Type, Organ: in.Organ, From: in.From, To: in.To,
+	f, err := filterOf(searchInput{Query: in.Query, Name: in.Name, Lists: in.Lists, Diario: in.Diario, Type: in.Type, Organ: in.Organ, From: in.From, To: in.To,
 		MinValue: in.MinValue, MaxValue: in.MaxValue, Modality: in.Modality, MainMin: in.MainMin, MainMax: in.MainMax})
 	if err != nil {
 		return nil, groupOutput{}, err

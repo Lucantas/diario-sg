@@ -1,0 +1,1 @@
+ALTER TABLE acts ADD COLUMN name_lines integer NOT NULL DEFAULT 0;

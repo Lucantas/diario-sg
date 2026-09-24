@@ -64,7 +64,7 @@ func (r *ActRepo) Group(ctx context.Context, q domain.GroupQuery) (domain.ActGro
 }
 
 func groupKeySQL(q domain.GroupQuery) (string, []any) {
-	base := []any{q.Filter.Query, q.Limit, likePattern(q.Filter.Query)}
+	base := []any{q.Filter.TextQuery(), q.Limit, likePattern(q.Filter.TextQuery())}
 	switch q.By {
 	case domain.GroupByOrgan:
 		return `SELECT coalesce(a.organ, '') AS key, m.id, m.published_at FROM matched m JOIN acts a ON a.id = m.id`, base
@@ -84,7 +84,7 @@ func (r *ActRepo) countMatchedIn(ctx context.Context, f domain.ActFilter) (int, 
 	where, extra := filterSQL(f, 3)
 	var total int
 	err := r.db.QueryRowContext(ctx, `SELECT count(*) FROM (`+matchedSQL("$1", "$2", where)+`) m`,
-		append([]any{f.Query, likePattern(f.Query)}, extra...)...).Scan(&total)
+		append([]any{f.TextQuery(), likePattern(f.TextQuery())}, extra...)...).Scan(&total)
 	return total, err
 }
 

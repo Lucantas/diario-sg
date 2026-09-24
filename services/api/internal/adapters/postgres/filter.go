@@ -41,6 +41,9 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 	if f.MainMaxCents > 0 {
 		b.WriteString(" AND a.main_value_cents <= " + param(f.MainMaxCents))
 	}
+	if f.ExcludesNameLists() {
+		b.WriteString(" AND a.name_lines < " + param(domain.NameListMinLines))
+	}
 	if f.MinCents > 0 || f.MaxCents > 0 {
 		b.WriteString(" AND EXISTS (SELECT 1 FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor'")
 		if f.MinCents > 0 {
