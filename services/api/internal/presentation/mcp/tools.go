@@ -73,6 +73,7 @@ type entityInput struct {
 type entityOutput struct {
 	Kind        string          `json:"tipo"`
 	Key         string          `json:"chave"`
+	PublicBody  string          `json:"orgao_publico,omitempty"`
 	Certainty   string          `json:"certeza,omitempty"`
 	Warning     string          `json:"aviso,omitempty"`
 	TotalActs   int             `json:"total_atos"`
@@ -128,7 +129,8 @@ func (s *server) register(srv *sdk.Server) {
 	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Atos dos Diários (Prefeitura e Câmara) que citam um CNPJ, " +
 		"um processo ou um contrato: total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 mais recentes. " +
 		"A soma é do que aparece no texto dos atos, não do que foi pago. A certeza diz quão seguro é juntar esses atos: " +
-		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número."},
+		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número. " +
+		"orgao_publico diz quando o CNPJ é do Município, de uma fundação ou fundo municipal, do SG-PREVI ou da Câmara: não é fornecedor."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "fontes", Annotations: readOnly, Description: "Fontes de dados do Diário SG, " +
 		"com o período coberto, a última coleta e as lacunas conhecidas. Consulte antes de concluir que algo não existe."},
@@ -255,7 +257,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	if err != nil {
 		return nil, entityOutput{}, err
 	}
-	out := entityOutput{Kind: string(report.Kind), Key: report.Key, Certainty: string(report.Certainty),
+	out := entityOutput{Kind: string(report.Kind), Key: report.Key, PublicBody: publicBodyOf(report), Certainty: string(report.Certainty),
 		Warning: certaintyWarning(report), TotalActs: report.TotalActs, TotalCents: report.TotalCents,
 		CountByType: map[string]int{}, Acts: make([]actSummaryDTO, 0, min(len(report.Acts), maxActsPerCall)),
 		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs)}
@@ -266,6 +268,14 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		out.Acts = append(out.Acts, summaryOf(h, s.webURL))
 	}
 	return nil, out, nil
+}
+
+func publicBodyOf(r domain.EntityReport) string {
+	if r.Kind != domain.EntityCNPJ {
+		return ""
+	}
+	name, _ := domain.PublicBody(r.Key)
+	return name
 }
 
 func certaintyWarning(r domain.EntityReport) string {

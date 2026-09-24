@@ -98,3 +98,37 @@ func TestMCPWarnsAboutAFailedCollectionInEveryAnswer(t *testing.T) {
 		t.Fatalf("alerta da coleta que falhou: %v", out.Alerts)
 	}
 }
+
+const publicBodyGazette = "EXTRATO DO CONTRATO Nº 7/2026\n" +
+	"Partes: MUNICÍPIO DE SÃO GONÇALO, CNPJ 28.636.579/0001-00, e ALL FOOD SERVIÇOS LTDA, CNPJ 01.742.126/0001-02.\n" +
+	"Valor global: R$ 50.000,00."
+
+func TestMCPMarksPublicBodyCNPJs(t *testing.T) {
+	srv, _ := newServerFor(t, publicBodyGazette)
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	found, _ := call[struct {
+		Acts []struct {
+			CNPJs       []string `json:"cnpjs"`
+			PublicCNPJs []string `json:"cnpjs_orgaos_publicos"`
+		} `json:"atos"`
+	}](t, session, "buscar_atos", map[string]any{})
+	entity, _ := call[struct {
+		PublicBody string `json:"orgao_publico"`
+	}](t, session, "entidade", map[string]any{"numero": "28.636.579/0001-00"})
+	supplier, _ := call[struct {
+		PublicBody string `json:"orgao_publico"`
+	}](t, session, "entidade", map[string]any{"numero": "01.742.126/0001-02"})
+
+	if len(found.Acts) != 1 || len(found.Acts[0].CNPJs) != 2 || len(found.Acts[0].PublicCNPJs) != 1 {
+		t.Fatalf("o ato deveria separar o CNPJ do Município: %+v", found.Acts)
+	}
+	if entity.PublicBody != "Município de São Gonçalo" || supplier.PublicBody != "" {
+		t.Fatalf("orgao_publico: Município %q, fornecedor %q", entity.PublicBody, supplier.PublicBody)
+	}
+}
