@@ -137,17 +137,39 @@ type organsResponse struct {
 }
 
 type subscribeRequest struct {
-	Email string `json:"email"`
-	Query string `json:"query"`
+	Email  string       `json:"email"`
+	Query  string       `json:"query"`
+	Entity *entityInput `json:"entity"`
+}
+
+type entityInput struct {
+	Kind  string `json:"kind"`
+	Value string `json:"value"`
 }
 
 type tokenRequest struct {
 	Token string `json:"token"`
 }
 
+type subscriptionEntityDTO struct {
+	Kind  string `json:"kind"`
+	Key   string `json:"key"`
+	Label string `json:"label"`
+}
+
 type subscriptionDTO struct {
-	Query  string `json:"query"`
-	Status string `json:"status"`
+	Query   string                 `json:"query"`
+	Subject string                 `json:"subject"`
+	Entity  *subscriptionEntityDTO `json:"entity"`
+	Status  string                 `json:"status"`
+}
+
+func toSubscriptionDTO(s domain.Subscription) subscriptionDTO {
+	dto := subscriptionDTO{Query: s.Query, Subject: s.Subject(), Status: string(s.Status)}
+	if s.Entity != nil {
+		dto.Entity = &subscriptionEntityDTO{Kind: string(s.Entity.Kind), Key: s.Entity.Key, Label: s.Entity.Label}
+	}
+	return dto
 }
 
 func toHitDTO(h domain.ActHit) actHitDTO {

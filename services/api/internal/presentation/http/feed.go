@@ -61,12 +61,8 @@ func (a *API) actFeed(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err, a.Log)
 		return
 	}
-	title := "Diário SG: atos publicados"
-	if q := strings.TrimSpace(r.URL.Query().Get("q")); q != "" {
-		title = "Diário SG: " + q
-	}
 	feed := rss{Version: "2.0", Channel: rssChannel{
-		Title:       title,
+		Title:       feedTitle(f),
 		Link:        siteSearchURL(a.PublicWebURL, f),
 		Description: "Atos mais recentes dos Diários Oficiais de São Gonçalo (Prefeitura e Câmara) que casam com esta busca.",
 		Language:    "pt-br",
@@ -109,7 +105,28 @@ const (
 	stopMark  = "⟧"
 )
 
+func feedTitle(f domain.ActFilter) string {
+	switch {
+	case f.Entity != nil:
+		return "Diário SG: " + f.Entity.Description()
+	case strings.TrimSpace(f.Query) != "":
+		return "Diário SG: " + strings.TrimSpace(f.Query)
+	}
+	return "Diário SG: atos publicados"
+}
+
+func entityPageURL(base string, ref domain.EntityRef) string {
+	base = strings.TrimRight(base, "/")
+	if ref.Kind == domain.EntityCNPJ {
+		return base + "/empresa/" + ref.Key
+	}
+	return base + "/" + string(ref.Kind) + "/" + url.PathEscape(domain.EntitySlug(ref.Label))
+}
+
 func siteSearchURL(base string, f domain.ActFilter) string {
+	if f.Entity != nil {
+		return entityPageURL(base, *f.Entity)
+	}
 	var params []string
 	add := func(key, value string) {
 		if value != "" {

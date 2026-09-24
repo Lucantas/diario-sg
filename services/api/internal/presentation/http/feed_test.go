@@ -54,3 +54,29 @@ func TestFeedItem(t *testing.T) {
 		t.Errorf("item da Câmara sem a fonte: %q", it.Description)
 	}
 }
+
+func TestSiteSearchURLOfEntityIsTheEntityPage(t *testing.T) {
+	cases := map[domain.EntityRef]string{
+		{Kind: domain.EntityCNPJ, Key: "12345678000190", Label: "12.345.678/0001-90"}: "https://site/empresa/12345678000190",
+		{Kind: domain.EntityContrato, Key: "30/FMS/2011", Label: "30/FMS/2011"}:       "https://site/contrato/30-FMS-2011",
+		{Kind: domain.EntityProcesso, Key: "81892025", Label: "8.189/2025"}:           "https://site/processo/8.189-2025",
+	}
+	for ref, want := range cases {
+		if got := siteSearchURL("https://site/", domain.ActFilter{Entity: &ref}); got != want {
+			t.Errorf("veio %s, esperava %s", got, want)
+		}
+	}
+}
+
+func TestFeedTitle(t *testing.T) {
+	ref := domain.EntityRef{Kind: domain.EntityCNPJ, Key: "12345678000190", Label: "12.345.678/0001-90"}
+	for f, want := range map[*domain.ActFilter]string{
+		{}:                 "Diário SG: atos publicados",
+		{Query: "merenda"}: "Diário SG: merenda",
+		{Entity: &ref}:     "Diário SG: CNPJ 12.345.678/0001-90",
+	} {
+		if got := feedTitle(*f); got != want {
+			t.Errorf("veio %q, esperava %q", got, want)
+		}
+	}
+}

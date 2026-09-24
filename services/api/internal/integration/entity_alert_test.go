@@ -5,6 +5,10 @@ package integration
 import (
 	"context"
 	"database/sql"
+	"encoding/xml"
+	"io"
+	"net/http"
+	neturl "net/url"
 	"strings"
 	"testing"
 	"time"
@@ -113,4 +117,67 @@ func onlyGazetteID(t *testing.T, db *sql.DB) string {
 		t.Fatal(err)
 	}
 	return id
+}
+
+func TestEntityFilterInSearchAndFeed(t *testing.T) {
+	srv, _ := newServerFor(t, entityAlertGazette)
+
+	for _, entity := range []string{"contrato:12-2024", "contrato:012/2024", "cnpj:12.345.678/0001-90"} {
+		var res struct {
+			Total int `json:"total"`
+			Items []struct {
+				Title string `json:"title"`
+			} `json:"items"`
+		}
+		getJSON(t, srv.URL+"/v1/acts?entity="+neturl.QueryEscape(entity), &res)
+		if res.Total != 1 || !strings.Contains(res.Items[0].Title, "012/2024") {
+			t.Fatalf("busca com entity=%s inesperada: %+v", entity, res)
+		}
+	}
+	if r, _ := fetch(t, srv.URL+"/v1/acts?entity=contrato:abc"); r.StatusCode != http.StatusBadRequest {
+		t.Fatalf("entity inválido deve dar 400, veio %d", r.StatusCode)
+	}
+
+	_, body := fetch(t, srv.URL+"/v1/feeds/acts?entity=cnpj:12345678000190")
+	var doc feedDoc
+	if err := xml.Unmarshal([]byte(body), &doc); err != nil {
+		t.Fatal(err)
+	}
+	if doc.Channel.Title != "Diário SG: CNPJ 12.345.678/0001-90" || doc.Channel.Link != "https://web.exemplo/empresa/12345678000190" ||
+		len(doc.Channel.Items) != 1 {
+		t.Fatalf("feed de entidade inesperado: %+v", doc.Channel)
+	}
+}
+
+func TestSubscribeToEntityThroughTheAPI(t *testing.T) {
+	srv, _ := newServerFor(t, entityAlertGazette)
+
+	r, body := postWithBody(t, srv.URL+"/v1/subscriptions", `{"email":"rep@jornal.com","entity":{"kind":"cnpj","value":"12.345.678/0001-90"}}`)
+	if r.StatusCode != http.StatusAccepted || !strings.Contains(body, `"subject":"CNPJ 12.345.678/0001-90"`) ||
+		!strings.Contains(body, `"key":"12345678000190"`) {
+		t.Fatalf("inscrição de entidade inesperada: %d %s", r.StatusCode, body)
+	}
+	for _, payload := range []string{
+		`{"email":"rep@jornal.com","query":"merenda","entity":{"kind":"cnpj","value":"12.345.678/0001-90"}}`,
+		`{"email":"rep@jornal.com","entity":{"kind":"valor","value":"100"}}`,
+		`{"email":"rep@jornal.com","entity":{"kind":"contrato","value":"abc"}}`,
+	} {
+		if r, body := postWithBody(t, srv.URL+"/v1/subscriptions", payload); r.StatusCode != http.StatusBadRequest {
+			t.Fatalf("%s: esperava 400, veio %d %s", payload, r.StatusCode, body)
+		}
+	}
+}
+
+func postWithBody(t *testing.T, url, body string) (*http.Response, string) {
+	t.Helper()
+	r, err := http.Post(url, "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Body.Close()
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return r, string(b)
 }

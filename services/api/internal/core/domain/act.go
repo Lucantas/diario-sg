@@ -88,6 +88,7 @@ type ActFilter struct {
 	MainMinCents int64
 	MainMaxCents int64
 	Name         string
+	Entity       *EntityRef
 	IncludeLists bool
 	Recent       bool
 	Limit        int

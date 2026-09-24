@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/entities"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/parser"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
@@ -73,7 +74,8 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Gazette: usecase.NewGetGazette(gaz, acts), Reports: usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
 		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db)),
 		Export: usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), Organs: usecase.NewListOrgans(acts), PublicWebURL: "https://web.exemplo",
-		Keys: keys, MCP: mcpHandler, Log: log}
+		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), email.NewNotifier(&inbox{}, "https://web.exemplo")),
+		Keys:          keys, MCP: mcpHandler, Log: log}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
 	return srv, db

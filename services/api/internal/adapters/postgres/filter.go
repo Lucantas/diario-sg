@@ -47,6 +47,10 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 	if f.ExcludesNameLists() {
 		b.WriteString(" AND a.name_lines < " + param(domain.NameListMinLines))
 	}
+	if f.Entity != nil {
+		b.WriteString(" AND a.id IN (SELECT l.record_id::uuid FROM entities e JOIN entity_links l ON l.entity_id = e.id AND l.record_kind = '" +
+			domain.RecordAct + "' WHERE e.kind = " + param(string(f.Entity.Kind)) + " AND e.key = " + param(f.Entity.Key) + ")")
+	}
 	if f.MinCents > 0 || f.MaxCents > 0 {
 		b.WriteString(" AND EXISTS (SELECT 1 FROM act_entities v WHERE v.act_id = a.id AND v.kind = 'valor'")
 		if f.MinCents > 0 {

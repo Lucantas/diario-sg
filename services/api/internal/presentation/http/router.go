@@ -199,6 +199,10 @@ func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.Ac
 		writeError(w, err, a.Log)
 		return f, false
 	}
+	if f.Entity, err = domain.ParseEntityFilter(q.Get("entity")); err != nil {
+		writeError(w, err, a.Log)
+		return f, false
+	}
 	return f, true
 }
 
@@ -208,12 +212,21 @@ func (a *API) subscribe(w http.ResponseWriter, r *http.Request) {
 		writeError(w, domain.ErrInvalidInput, a.Log)
 		return
 	}
-	s, err := a.Subscriptions.Subscribe(r.Context(), req.Email, req.Query)
+	var s domain.Subscription
+	var err error
+	switch {
+	case req.Entity != nil && req.Query != "":
+		err = domain.ErrInvalidInput
+	case req.Entity != nil:
+		s, err = a.Subscriptions.SubscribeEntity(r.Context(), req.Email, domain.EntityKind(req.Entity.Kind), req.Entity.Value)
+	default:
+		s, err = a.Subscriptions.Subscribe(r.Context(), req.Email, req.Query)
+	}
 	if err != nil {
 		writeError(w, err, a.Log)
 		return
 	}
-	writeJSON(w, http.StatusAccepted, subscriptionDTO{Query: s.Query, Status: string(s.Status)})
+	writeJSON(w, http.StatusAccepted, toSubscriptionDTO(s))
 }
 
 func (a *API) confirm(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +240,7 @@ func (a *API) confirm(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err, a.Log)
 		return
 	}
-	writeJSON(w, http.StatusOK, subscriptionDTO{Query: s.Query, Status: string(s.Status)})
+	writeJSON(w, http.StatusOK, toSubscriptionDTO(s))
 }
 
 func (a *API) unsubscribe(w http.ResponseWriter, r *http.Request) {
