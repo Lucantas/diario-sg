@@ -17,7 +17,7 @@ var panelActTypes = []string{string(domain.ActContrato), string(domain.ActDispen
 
 func (r *PanelRepo) PanelActs(ctx context.Context, source string) ([]domain.PanelAct, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT a.id, a.type, a.title, a.organ, g.published_at, a.main_value_cents, left(a.body, 400),
+		SELECT a.id, a.type, a.title, a.organ, g.published_at, a.main_value_cents, left(a.body, $4),
 		       coalesce((SELECT array_agg(DISTINCT e.key)
 		                 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind = 'cnpj'
 		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}'),
@@ -26,7 +26,7 @@ func (r *PanelRepo) PanelActs(ctx context.Context, source string) ([]domain.Pane
 		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}')
 		FROM acts a JOIN gazettes g ON g.id = a.gazette_id
 		WHERE g.source = $2 AND a.type = ANY($3) AND a.main_value_cents > 0`,
-		domain.RecordAct, source, pq.Array(panelActTypes))
+		domain.RecordAct, source, pq.Array(panelActTypes), domain.PanelHeadRunes)
 	if err != nil {
 		return nil, err
 	}
