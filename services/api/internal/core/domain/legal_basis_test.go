@@ -25,6 +25,14 @@ func TestLegalBasisOf(t *testing.T) {
 		{"art. 75, inciso III da Lei 14.133", nil},
 		{"art. 24 da Lei 8.666", nil},
 		{"Art. 24. Inciso XXII", nil},
+		{"FUNDAMENTO LEGAL: ARTIGO 24, INCISOS I E II DA LEI FEDERAL N.º 8.666/93.", []LegalBasis{Art24I, Art24II}},
+		{"art. 24, incisos II e IV, da Lei 8.666/93", []LegalBasis{Art24II, Art24IV}},
+		{"art. 24, I, II e IV da Lei 8.666/93", []LegalBasis{Art24I, Art24II, Art24IV}},
+		{"prevista nos incisos I e II do art. 75 da Lei Federal nº 14.133/2021", []LegalBasis{Art75I, Art75II}},
+		{"incisos I e II, do artigo 24 da Lei 8.666", []LegalBasis{Art24I, Art24II}},
+		{"de acordo com o art.24, incisos II e III, da Lei nº. 9.503, de 23 de setembro de 1997", nil},
+		{"art. 24, incisos II e XIII, da Lei 8.666/93", []LegalBasis{Art24II}},
+		{"art. 24, II, e art. 26 da Lei 8.666/93", []LegalBasis{Art24II}},
 	}
 	for _, c := range cases {
 		if got := LegalBasisOf(c.body); !slices.Equal(got, c.want) {

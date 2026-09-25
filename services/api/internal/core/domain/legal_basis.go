@@ -28,16 +28,23 @@ const (
 var (
 	procurementLawRe    = regexp.MustCompile(`(?i)8\.?666|14\.?133|lei\s+(?:federal\s+)?de\s+licita[çc][õo]es`)
 	legalBasisVetoRe    = regexp.MustCompile(`(?i)vedad|hip[óo]tese|recontrata`)
-	articleThenIncisoRe = regexp.MustCompile(`(?i)art(?:igo)?\.?\s*(24|75)\s*,?\s*(?:caput\s*,?\s*)?(?:inciso\s*|inc\.\s*)?([IVX]+)(?:[^IVXa-zà-ú]|$)`)
-	incisoThenArticleRe = regexp.MustCompile(`(?i)inciso\s*([IVX]+)\s*,?\s*d[oa]\s*art(?:igo)?\.?\s*(24|75)(?:\D|$)`)
+	incisoListRe        = `(?:incisos?\s*|incs?\.\s*)?[IVX]+(?:\s*(?:,|e|ou)\s*(?:inc(?:iso|\.)?\s*)?[IVX]+\b)*`
+	articleThenIncisoRe = regexp.MustCompile(`(?i)art(?:igo)?\.?\s*(24|75)\s*,?\s*(?:caput\s*,?\s*)?(` + incisoListRe + `)(?:[^IVXa-zà-ú]|$)`)
+	incisoThenArticleRe = regexp.MustCompile(`(?i)incisos?\s*(` + incisoListRe + `)\s*,?\s*d[oa]\s*art(?:igo)?\.?\s*(24|75)(?:\D|$)`)
+	romanNumeralRe      = regexp.MustCompile(`(?i)\b[IVX]+\b`)
 )
 
 func LegalBasisOf(body string) []LegalBasis {
 	var out []LegalBasis
-	add := func(m []int, article, inciso string) {
-		b := LegalBasis("art" + article + ":" + strings.ToUpper(inciso))
-		if slices.Contains(knownLegalBases, b) && !slices.Contains(out, b) && citesProcurementLaw(body, m) {
-			out = append(out, b)
+	add := func(m []int, article, incisos string) {
+		if !citesProcurementLaw(body, m) {
+			return
+		}
+		for _, inciso := range romanNumeralRe.FindAllString(incisos, -1) {
+			b := LegalBasis("art" + article + ":" + strings.ToUpper(inciso))
+			if slices.Contains(knownLegalBases, b) && !slices.Contains(out, b) {
+				out = append(out, b)
+			}
 		}
 	}
 	for _, m := range articleThenIncisoRe.FindAllStringSubmatchIndex(body, -1) {

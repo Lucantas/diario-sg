@@ -191,3 +191,18 @@ func TestFindSplitDispensasKeepsWorksBelowTheWorksLimit(t *testing.T) {
 		t.Fatalf("R$ 110 mil em obras está abaixo do limite de 2024: %+v", got)
 	}
 }
+
+func TestFindSplitDispensasCountsActCitingBothIncisosAsGoods(t *testing.T) {
+	cnpj := "11222333000181"
+	both := "FUNDAMENTO LEGAL: ARTIGO 24, INCISOS I E II DA LEI FEDERAL N.º 8.666/93."
+	acts := []DispensaAct{
+		dispensaAct("a", cnpj, "SEMDUR", civilDate(2020, 3, 1), 1000000, both, "1.000/2020"),
+		dispensaAct("b", cnpj, "SEMDUR", civilDate(2020, 8, 1), 1000000, both, "2.000/2020"),
+	}
+
+	got := FindSplitDispensas(acts)
+
+	if len(got) != 1 || got[0].Category != DispensaGoods || got[0].LimitCents != 1760000 {
+		t.Fatalf("incisos I e II juntos ficam no limite de compras: %+v", got)
+	}
+}
