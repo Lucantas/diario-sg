@@ -99,7 +99,7 @@ func TestPatternsFlagSplitDispensasAndIgnoreRepublishedProcesses(t *testing.T) {
 		t.Fatalf("padrões inesperados: %+v", res)
 	}
 	split := res.Items[0].Findings
-	if len(split) != 1 || !strings.HasPrefix(split[0].Title, "CNPJ 53.775.862/0001-52 em 2020: 2 dispensas somam R$ 28.911,60") ||
+	if len(split) != 1 || !strings.HasPrefix(split[0].Title, "CNPJ 53.775.862/0001-52 em 2020: 2 dispensas de compras e serviços somam R$ 28.911,60") ||
 		len(split[0].Acts) != 3 || split[0].Search != nil {
 		t.Fatalf("fracionamento inesperado: %+v", split)
 	}

@@ -19,6 +19,7 @@ type DispensaAct struct {
 }
 
 type DispensaContract struct {
+	Category       DispensaCategory
 	Processes      []DispensaProcess
 	FirstPublished time.Time
 	ValueCents     int64
@@ -28,6 +29,7 @@ type DispensaContract struct {
 }
 
 type SplitDispensa struct {
+	Category   DispensaCategory
 	CNPJ       string
 	Year       int
 	Contracts  []DispensaContract
@@ -45,12 +47,13 @@ func FindSplitDispensas(acts []DispensaAct) []SplitDispensa {
 	}
 	var out []SplitDispensa
 	for cnpj, list := range byCNPJ {
-		byYear := map[int][]DispensaContract{}
+		byYear := map[splitKey][]DispensaContract{}
 		for _, c := range valueDispensaContracts(list) {
-			byYear[c.FirstPublished.Year()] = append(byYear[c.FirstPublished.Year()], c)
+			k := splitKey{c.FirstPublished.Year(), c.Category}
+			byYear[k] = append(byYear[k], c)
 		}
-		for year, contracts := range byYear {
-			if s, ok := splitOf(cnpj, year, contracts); ok {
+		for k, contracts := range byYear {
+			if s, ok := splitOf(cnpj, k, contracts); ok {
 				out = append(out, s)
 			}
 		}
@@ -59,13 +62,21 @@ func FindSplitDispensas(acts []DispensaAct) []SplitDispensa {
 		if out[i].Year != out[j].Year {
 			return out[i].Year < out[j].Year
 		}
-		return out[i].CNPJ < out[j].CNPJ
+		if out[i].CNPJ != out[j].CNPJ {
+			return out[i].CNPJ < out[j].CNPJ
+		}
+		return out[i].Category < out[j].Category
 	})
 	return out
 }
 
-func splitOf(cnpj string, year int, contracts []DispensaContract) (SplitDispensa, bool) {
-	s := SplitDispensa{CNPJ: cnpj, Year: year, Contracts: contracts}
+type splitKey struct {
+	year     int
+	category DispensaCategory
+}
+
+func splitOf(cnpj string, k splitKey, contracts []DispensaContract) (SplitDispensa, bool) {
+	s := SplitDispensa{Category: k.category, CNPJ: cnpj, Year: k.year, Contracts: contracts}
 	for _, c := range contracts {
 		s.TotalCents += c.ValueCents
 		s.LimitCents = max(s.LimitCents, c.LimitCents)
@@ -121,7 +132,7 @@ func sameValueSameYear(acts []DispensaAct, i int, groups *unionFind) (int, bool)
 
 func contractOf(acts []DispensaAct, members []int) (DispensaContract, bool) {
 	var c DispensaContract
-	valueDispensa, citesLei14133 := false, false
+	citesGoods, citesWorks, citesLei14133 := false, false, false
 	seenProcess, seenOrgan := map[string]bool{}, map[string]bool{}
 	for _, i := range members {
 		a := acts[i]
@@ -130,7 +141,8 @@ func contractOf(acts []DispensaAct, members []int) (DispensaContract, bool) {
 		}
 		c.ValueCents = max(c.ValueCents, a.ValueCents)
 		citesLei14133 = citesLei14133 || CitesLei14133(a.Body)
-		valueDispensa = valueDispensa || CitesValueDispensa(a.Body)
+		citesGoods = citesGoods || CitesValueDispensa(a.Body)
+		citesWorks = citesWorks || CitesWorksDispensa(a.Body)
 		c.ActIDs = append(c.ActIDs, a.ActID)
 		for _, p := range a.Processes {
 			if !seenProcess[p.Key] {
@@ -143,8 +155,16 @@ func contractOf(acts []DispensaAct, members []int) (DispensaContract, bool) {
 			c.Organs = append(c.Organs, a.Organ)
 		}
 	}
-	c.LimitCents = DispensaLimitCents(c.FirstPublished, citesLei14133)
-	return c, valueDispensa && c.ValueCents < c.LimitCents
+	switch {
+	case citesGoods:
+		c.Category = DispensaGoods
+	case citesWorks:
+		c.Category = DispensaWorks
+	default:
+		return c, false
+	}
+	c.LimitCents = DispensaLimitCents(c.FirstPublished, citesLei14133, c.Category)
+	return c, c.ValueCents < c.LimitCents
 }
 
 func sharedWithSupplier(a DispensaAct) bool { return citesAnotherSupplier(a.OtherCNPJs) }

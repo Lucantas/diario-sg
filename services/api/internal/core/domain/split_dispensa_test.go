@@ -162,3 +162,32 @@ func TestFindSplitDispensasUsesTheLimitOfTheFirstPublication(t *testing.T) {
 		t.Fatalf("R$ 10.000 em 10/07/2018 passa do limite de R$ 8.000 e não é dispensa por valor: %+v", got)
 	}
 }
+
+func TestFindSplitDispensasFlagsWorksWithTheirOwnLimit(t *testing.T) {
+	cnpj := "11222333000181"
+	works := "RATIFICO a dispensa de licitação com fundamento no art. 24, inciso I, da Lei 8.666/93, para serviços de engenharia."
+	acts := []DispensaAct{
+		dispensaAct("obra-1", cnpj, "SEMDUR", civilDate(2019, 3, 1), 2500000, works, "1.000/2019"),
+		dispensaAct("obra-2", cnpj, "SEMDUR", civilDate(2019, 8, 1), 2000000, works, "2.000/2019"),
+		dispensaAct("compra", cnpj, "SEMDUR", civilDate(2019, 9, 1), 1500000, semmaRatificacao, "3.000/2019"),
+	}
+
+	got := FindSplitDispensas(acts)
+
+	if len(got) != 1 || got[0].Category != DispensaWorks || got[0].LimitCents != 3300000 || got[0].TotalCents != 4500000 || len(got[0].Contracts) != 2 {
+		t.Fatalf("esperava só o caso de obras, sem somar a compra: %+v", got)
+	}
+}
+
+func TestFindSplitDispensasKeepsWorksBelowTheWorksLimit(t *testing.T) {
+	cnpj := "11222333000181"
+	works := "com fundamento no art. 75, inciso I, da Lei 14.133/2021, obra de reforma."
+	acts := []DispensaAct{
+		dispensaAct("obra-1", cnpj, "SEMDUR", civilDate(2024, 3, 1), 6000000, works, "1.000/2024"),
+		dispensaAct("obra-2", cnpj, "SEMDUR", civilDate(2024, 8, 1), 5000000, works, "2.000/2024"),
+	}
+
+	if got := FindSplitDispensas(acts); len(got) != 0 {
+		t.Fatalf("R$ 110 mil em obras está abaixo do limite de 2024: %+v", got)
+	}
+}

@@ -50,26 +50,35 @@ func TestDispensaTextFlags(t *testing.T) {
 
 func TestDispensaLimitCents(t *testing.T) {
 	cases := []struct {
-		day   time.Time
-		cites bool
-		want  int64
+		day      time.Time
+		cites    bool
+		category DispensaCategory
+		want     int64
 	}{
-		{civilDate(2016, 5, 1), false, 800000},
-		{civilDate(2018, 7, 18), false, 800000},
-		{civilDate(2018, 7, 19), false, 1760000},
-		{civilDate(2021, 3, 31), true, 1760000},
-		{civilDate(2021, 4, 1), true, 5000000},
-		{civilDate(2022, 6, 1), false, 1760000},
-		{civilDate(2023, 6, 1), true, 5720833},
-		{civilDate(2023, 12, 29), false, 1760000},
-		{civilDate(2023, 12, 30), false, 5720833},
-		{civilDate(2024, 3, 1), false, 5990602},
-		{civilDate(2025, 3, 1), false, 6272559},
-		{civilDate(2026, 3, 1), false, 6549211},
+		{civilDate(2016, 5, 1), false, DispensaGoods, 800000},
+		{civilDate(2018, 7, 18), false, DispensaGoods, 800000},
+		{civilDate(2018, 7, 19), false, DispensaGoods, 1760000},
+		{civilDate(2021, 3, 31), true, DispensaGoods, 1760000},
+		{civilDate(2021, 4, 1), true, DispensaGoods, 5000000},
+		{civilDate(2022, 6, 1), false, DispensaGoods, 1760000},
+		{civilDate(2023, 6, 1), true, DispensaGoods, 5720833},
+		{civilDate(2023, 12, 29), false, DispensaGoods, 1760000},
+		{civilDate(2023, 12, 30), false, DispensaGoods, 5720833},
+		{civilDate(2024, 3, 1), false, DispensaGoods, 5990602},
+		{civilDate(2025, 3, 1), false, DispensaGoods, 6272559},
+		{civilDate(2026, 3, 1), false, DispensaGoods, 6549211},
+		{civilDate(2018, 7, 18), false, DispensaWorks, 1500000},
+		{civilDate(2018, 7, 19), false, DispensaWorks, 3300000},
+		{civilDate(2021, 4, 1), true, DispensaWorks, 10000000},
+		{civilDate(2022, 6, 1), false, DispensaWorks, 3300000},
+		{civilDate(2023, 6, 1), true, DispensaWorks, 11441665},
+		{civilDate(2024, 3, 1), false, DispensaWorks, 11981202},
+		{civilDate(2025, 3, 1), false, DispensaWorks, 12545115},
+		{civilDate(2026, 3, 1), false, DispensaWorks, 13098420},
 	}
 	for _, c := range cases {
-		if got := DispensaLimitCents(c.day, c.cites); got != c.want {
-			t.Errorf("%s (14.133=%v): %d, esperava %d", c.day.Format("2006-01-02"), c.cites, got, c.want)
+		if got := DispensaLimitCents(c.day, c.cites, c.category); got != c.want {
+			t.Errorf("%s (14.133=%v, %s): %d, esperava %d", c.day.Format("2006-01-02"), c.cites, c.category, got, c.want)
 		}
 	}
 }

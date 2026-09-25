@@ -32,6 +32,8 @@ type PatternReport struct {
 
 var monthNames = [...]string{"", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"}
 
+var dispensaCategoryLabel = map[DispensaCategory]string{DispensaGoods: "compras e serviços", DispensaWorks: "obras e serviços de engenharia"}
+
 var peakTypeLabel = map[ActType]string{ActNomeacao: "nomeação", ActExoneracao: "exoneração"}
 
 func PatternCatalog() map[PatternID]Pattern {
@@ -39,11 +41,13 @@ func PatternCatalog() map[PatternID]Pattern {
 		PatternSplitDispensa: {
 			ID:    PatternSplitDispensa,
 			Title: "Dispensas do mesmo fornecedor que, somadas no ano, passam do limite",
-			Rule: "Duas ou mais contratações do mesmo CNPJ no mesmo ano, cada uma por dispensa de licitação em razão do valor " +
-				"(art. 24, II, da Lei 8.666 ou art. 75, II, da Lei 14.133), cada uma abaixo do limite da dispensa e com soma acima dele. " +
-				"Uma contratação reúne os atos que citam o mesmo processo; republicações e atos sem número de processo com o mesmo valor " +
-				"no mesmo ano contam como a mesma contratação. Limite de compras e serviços: R$ 8.000,00 até 18/07/2018, R$ 17.600,00 " +
-				"depois, e pela Lei 14.133 R$ 50.000,00, atualizados todo ano (R$ 65.492,11 em 2026).",
+			Rule: "Duas ou mais contratações do mesmo CNPJ no mesmo ano e da mesma categoria, cada uma por dispensa de licitação em " +
+				"razão do valor, cada uma abaixo do limite da dispensa e com soma acima dele. Compras e serviços: art. 24, II, da Lei " +
+				"8.666 ou art. 75, II, da Lei 14.133, com limite de R$ 8.000,00 até 18/07/2018, R$ 17.600,00 depois, e pela Lei 14.133 " +
+				"R$ 50.000,00, atualizados todo ano (R$ 65.492,11 em 2026). Obras e serviços de engenharia: art. 24, I, ou art. 75, I, " +
+				"com limite de R$ 15.000,00 até 18/07/2018, R$ 33.000,00 depois, e pela Lei 14.133 R$ 100.000,00, atualizados todo ano " +
+				"(R$ 130.984,20 em 2026). Uma contratação reúne os atos que citam o mesmo processo; republicações e atos sem número de " +
+				"processo com o mesmo valor no mesmo ano contam como a mesma contratação.",
 			Caveat: "A lei soma o que cada unidade gestora gasta no ano com objetos de mesma natureza. O Diário não diz a natureza do " +
 				"objeto de forma padronizada, e o mesmo fornecedor pode vender coisas diferentes para órgãos diferentes. Só entram atos " +
 				"em que o CNPJ e o valor foram lidos do texto, então parte das dispensas fica de fora.",
@@ -61,8 +65,8 @@ func PatternCatalog() map[PatternID]Pattern {
 }
 
 func SplitDispensaFinding(s SplitDispensa) Finding {
-	f := Finding{Title: fmt.Sprintf("CNPJ %s em %d: %d dispensas somam %s, acima do limite de %s",
-		FormatCNPJ(s.CNPJ), s.Year, len(s.Contracts), FormatBRL(s.TotalCents), FormatBRL(s.LimitCents))}
+	f := Finding{Title: fmt.Sprintf("CNPJ %s em %d: %d dispensas de %s somam %s, acima do limite de %s",
+		FormatCNPJ(s.CNPJ), s.Year, len(s.Contracts), dispensaCategoryLabel[s.Category], FormatBRL(s.TotalCents), FormatBRL(s.LimitCents))}
 	parts := make([]string, 0, len(s.Contracts))
 	for _, c := range s.Contracts {
 		parts = append(parts, contractSummary(c))
