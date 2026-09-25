@@ -149,6 +149,30 @@ contratado, valor em atas, período, secretarias e o link do ato de maior
 valor) e as tabelas por ano e por secretaria, em que cada linha aplica o
 filtro. Link "Painéis" no rodapé da página inicial.
 
+## Ajustes depois da entrega (25/09/2026)
+
+Uma auditoria dos 4.358 atos com valor que o painel lê, rodando a regra do
+painel sobre a base local, achou atos que não são contratação nova contados
+como contratados. O título nem sempre diz o que o ato é ("CONTRATO N°
+005/2019 … OBJETO: O presente termo aditivo tem por objeto a prorrogação"),
+então o painel lê o começo do corpo:
+
+- nos primeiros 400 caracteres: termo aditivo, aditamento, prorrogação do
+  contrato, do prazo ou da ata, rerratificação, "Onde se lê"/"Leia-se",
+  corrigenda, revogação, readequação, reajuste, designação de fiscal,
+  editais e publicação de chamamento, termo de permissão de uso e ata de
+  reunião ou assembleia ficam sem valor;
+- nos primeiros 800: "HOMOLOGO", "HOMOLOGANDO", "fica a homologação" ficam
+  sem valor, salvo em dispensa e inexigibilidade, em que a homologação é a
+  própria contratação;
+- extrato de ata numerada ("EXTRATO DE ATA 024/SEMDUR/2021 DE REGISTRO DE
+  PREÇOS") é ata.
+
+O valor principal também deixou de pegar o preço unitário das tabelas de
+preços (ver `docs/parser-findings.md`). Na base local, as contratações com
+valor passaram de 1.373 para 1.299, o contratado de R$ 904,7 milhões para R$
+833,6 milhões e as atas de R$ 1,22 bilhão para R$ 1,30 bilhão.
+
 ## Testes
 
 - Domínio:

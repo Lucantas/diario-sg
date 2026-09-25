@@ -63,8 +63,11 @@ Querido Diário até 30/08/2024 há 46 edições extras de 2020 em diante.
   243 por ano), 78.832 atos. A base local vai de 05/01/2010 a hoje, com
   4.301 edições. Os PDFs antigos têm texto extraível e o mesmo layout de
   duas colunas; pesam 646 MB no total (o Postgres cresceu 167 MB).
-- [ ] Nenhuma edição extra antes de 2020 foi listada. Não confirmei se o
-  site não tinha extras nesse período ou se elas usam outro padrão de URL.
+- [x] Nenhuma edição extra antes de 2020 (conferido em 25/09/2026): a
+  listagem de 2019 traz 243 edições, todas no padrão `AAAA_MM_DD.pdf`, o
+  mesmo número da base; e a URL de extra (`AAAA_MM_DD_1.pdf`) responde 500,
+  como arquivo que não existe, nos 2.561 dias com edição de 2010 a 2019
+  (uma extra conhecida, de 2023, responde 200).
 - [x] Tipos `corrigenda` e `prestacao_contas` (commit `6b50d99`). De 2010 a
   2019 o `outro` era 10% a 15% dos atos por ano, e 91% dele eram termos de
   aprovação de prestação de contas e corrigendas. Na base inteira, depois
@@ -189,7 +192,10 @@ em `docs/superpowers/specs/2026-09-23-diario-camara-design.md`.
 Pendências:
 
 - [ ] Edições de 2018 a 2020-10-03 existem, mas não por URL com a data; a
-  busca do site da Câmara recusa robôs (WAF). Falta achar outra lista.
+  busca do site da Câmara recusa robôs (WAF), a página antiga era uma busca
+  com captcha e o Wayback Machine só guardou essa página (conferido em
+  25/09/2026). Sem contornar captcha, falta uma lista oficial: pedido pela
+  LAI à Câmara com as URLs ou os PDFs do período.
 - [ ] Na nuvem: aplicar o Terraform (job e agendamento novos, migration
   009) antes do primeiro deploy com o job da Câmara, e rodar o backfill
   desde 2020-10-04 fora do agendamento (leva mais de uma hora; o job tem
@@ -235,6 +241,17 @@ Ainda sem fonte externa.
   empresas: R$ 904,7 milhões contratados e R$ 1,22 bilhão em atas (commits
   `27ccf2f..6b03e6c`). Desenho em
   `docs/superpowers/specs/2026-09-24-paineis-design.md`.
+  - ✅ Dupla contagem (25/09/2026): aditivos e prorrogações publicados com
+    título de contrato ou de pregão ("OBJETO: O presente termo aditivo tem
+    por objeto a prorrogação…"), rerratificação, corrigenda, revogação,
+    readequação e prorrogação de ata, designação de fiscal, editais e
+    publicação de chamamento, homologação de pregão e atas de reunião de
+    conselho contavam como contratação nova; "HOMOLOGO a dispensa" continua
+    contando, porque é a própria contratação. O parser deixou de abrir ato
+    em "EXTRATO DE TOMATE" dentro da lista de itens de uma ata. Na base
+    local, as contratações com valor passaram de 1.336 para 1.299 e o
+    contratado de R$ 904,9 milhões para R$ 833,6 milhões; as atas ficaram
+    em R$ 1,30 bilhão.
   - [ ] Nome da empresa (Entrega 3).
   - [ ] Valor de aditivos e prorrogações, com a mesma extração própria
     adiada nos padrões.

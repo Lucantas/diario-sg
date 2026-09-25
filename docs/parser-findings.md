@@ -277,6 +277,11 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
    `Port. nº` sem nada antes vira ato só com o número, para não perdê-lo.
 9. `Continuação do D.O.E.` é fronteira de seção, como a sigla de órgão: encerra
    o ato anterior e não entra em nenhum ato.
+10. `EXTRATO` abre ato, salvo quando é produto ou parte de formulário:
+    "EXTRATO DE TOMATE –", "EXTRATO DE MALTE,", "EXTRATO DE ALOE VERA." (itens
+    da lista de uma ata de registro de preços) e "EXTRATO BANCÁRIO" (quadro da
+    prestação de contas). Antes, o total da ata ia parar num ato "EXTRATO DE
+    TOMATE" e era contado como contrato.
 
 Os números do parser (atos por edição, % em `outro`, erros conhecidos) estão em
 `docs/fase-1-relatorio.md`.
