@@ -73,6 +73,10 @@ func TestMainValueCents(t *testing.T) {
 			"no valor global de R$ 12.000,00, sendo R$ 1.000,00 por mês.", 1200000},
 		{"total com dois-pontos e valores emendados continua valendo", ActAta,
 			"60 UNID. 20 VALOR TOTAL ITENS: R$ 12.288,37 R$ 240,85 R$ 3.612,75", 1228837},
+		{"tabela sem total limpo não desce para o valor mensal", ActOutro,
+			"R$ 7,25 R$ 5,70 VALOR TOTAL R$ 3,60 R$ 8,69 R$ 5,50 quadro social desta Entidade, no valor de R$ 40.000,00 (quarenta mil reais) por CAF", 0},
+		{"total repetido na linha de total", ActLicitacao,
+			"Resma 12.500 R$ 20,72 VALOR TOTAL R$ 259.000,00 R$ 259.000,00 São Gonçalo", 25900000},
 		{"total sem cabeçalho de tabela continua valendo", ActAta,
 			"Modelo: K31201Y Valor Total R$ 800,00 São Gonçalo, 26 de agosto de 2021.", 80000},
 	}

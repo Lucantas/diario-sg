@@ -79,7 +79,7 @@ var (
 	brandColumnBeforeLabelRe = regexp.MustCompile(`(?i)(?:^|\s)marca\s*$`)
 	registeredLabelRe        = regexp.MustCompile(`(?i)^valor\s+registrado`)
 	unitAfterLabelRe         = regexp.MustCompile(`(?i)\bunit`)
-	anotherValueNextRe       = regexp.MustCompile(`^\s*R\$\s?\d`)
+	anotherValueNextRe       = regexp.MustCompile(`^\s*R\$\s?([\d.]+,\d{2})`)
 )
 
 func MainValueCents(t ActType, body string) int64 {
@@ -87,34 +87,43 @@ func MainValueCents(t ActType, body string) int64 {
 		return 0
 	}
 	for _, re := range mainValueRes {
-		if cents, ok := firstMainValue(re, body); ok {
+		cents, found, sawPriceTable := firstMainValue(re, body)
+		if found {
 			return cents
+		}
+		if sawPriceTable {
+			return 0
 		}
 	}
 	return 0
 }
 
-func firstMainValue(re *regexp.Regexp, body string) (int64, bool) {
+func firstMainValue(re *regexp.Regexp, body string) (cents int64, found, sawPriceTable bool) {
 	for offset := 0; offset < len(body); {
 		m := re.FindStringSubmatchIndex(body[offset:])
 		if m == nil {
-			return 0, false
+			return 0, false, sawPriceTable
 		}
 		for i := range m {
 			m[i] += offset
 		}
 		if isPriceTableHeader(body, m) {
+			sawPriceTable = true
 			offset = m[0] + 1
 			continue
 		}
 		cents, err := strconv.ParseInt(nonDigitRe.ReplaceAllString(body[m[2]:m[3]], "")+body[m[4]:m[5]], 10, 64)
-		return cents, err == nil
+		return cents, err == nil, sawPriceTable
 	}
-	return 0, false
+	return 0, false, sawPriceTable
 }
 
 func isTableCell(body string, m []int) bool {
-	return !strings.Contains(body[m[0]:m[2]], ":") && anotherValueNextRe.MatchString(body[m[1]:])
+	if strings.Contains(body[m[0]:m[2]], ":") {
+		return false
+	}
+	next := anotherValueNextRe.FindStringSubmatch(body[m[1]:])
+	return next != nil && next[1] != body[m[2]:m[3]]+","+body[m[4]:m[5]]
 }
 
 func isPriceTableHeader(body string, m []int) bool {
