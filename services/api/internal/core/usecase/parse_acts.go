@@ -12,6 +12,8 @@ func parseActs(p ports.ActParser, x ports.EntityExtractor, text string) []domain
 		acts[i].Modality = domain.ModalityOf(acts[i].Type, acts[i].Title, acts[i].Body)
 		acts[i].MainValueCents = domain.MainValueCents(acts[i].Type, acts[i].Body)
 		acts[i].NameLines = domain.NameLines(acts[i].Body)
+		acts[i].LegalBasis = domain.LegalBasisOf(acts[i].Body)
+		acts[i].DeclaredIncreaseBP = domain.DeclaredIncreaseBasisPoints(acts[i].Type, acts[i].Title, acts[i].Body)
 	}
 	return acts
 }

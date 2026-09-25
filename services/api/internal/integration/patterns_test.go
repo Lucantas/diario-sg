@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -150,5 +151,41 @@ func setOnlyGazetteDate(t *testing.T, db *sql.DB, day string) {
 	t.Helper()
 	if _, err := db.Exec(`UPDATE gazettes SET published_at = $1`, day); err != nil {
 		t.Fatal(err)
+	}
+}
+
+const (
+	fmsAditivo2015 = `EXTRATO DE TERMO ADITIVO DE CONTRATO
+PROCEDIMENTO ADMINISTRATIVO N.º 0767/2014 CONTRATO FMS N.° 007/2015
+PARTES: FUNDAÇÃO MUNICIPAL DE SAÚDE DE SÃO GONÇALO, e COMERCIAL DE EQUIPAMENTOS CNL DE SÃO GONÇALO LTDA ME,
+inscrita no CNPJ/MF sob o n.º 13.391.199/0001-78.
+OBJETO: O presente Termo Aditivo tem por objetivo o acréscimo equivalente a 46,37% do valor inicial contratado, o que perfaz
+um total de R$ 240.802,53 (duzentos e quarenta mil, oitocentos e dois Reais e cinquenta e três Centavos).`
+	pgmEmergencial2022 = `EXTRATO DE CONTRATO
+Espécie: Emergencial: Base Legal: art. 24, inc. IV, da Lei n.º 8666/93. Processo: Processo n.º 2360/2022 Partes: Procuradoria
+Geral do Município de São Gonçalo X Lógica Tecnologia Ltda Objeto: Locação de Equipamentos de Informática Valor: R$ 91.020,00
+(noventa e um mil, vinte reais)`
+)
+
+func TestIndexingStoresLegalBasisAndDeclaredIncrease(t *testing.T) {
+	_, db := newServerFor(t, fmsAditivo2015)
+	indexAt(t, db, time.Date(2022, 1, 21, 0, 0, 0, 0, time.UTC), pgmEmergencial2022)
+
+	rows, err := db.Query(`SELECT a.type, array_to_string(a.legal_basis, ','), a.declared_increase_bp FROM acts a ORDER BY a.declared_increase_bp DESC`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	var got []string
+	for rows.Next() {
+		var typ, basis string
+		var bp int
+		if err := rows.Scan(&typ, &basis, &bp); err != nil {
+			t.Fatal(err)
+		}
+		got = append(got, fmt.Sprintf("%s|%s|%d", typ, basis, bp))
+	}
+	if strings.Join(got, " ") != "aditivo||4637 contrato|art24:IV|0" {
+		t.Fatalf("fatos gravados inesperados: %v", got)
 	}
 }

@@ -44,9 +44,11 @@ type Act struct {
 	Organ     string
 	Entities  []Entity
 
-	Modality       Modality
-	MainValueCents int64
-	NameLines      int
+	Modality           Modality
+	MainValueCents     int64
+	NameLines          int
+	LegalBasis         []LegalBasis
+	DeclaredIncreaseBP int
 }
 
 type ActHit struct {
