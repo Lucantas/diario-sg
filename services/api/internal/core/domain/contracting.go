@@ -74,8 +74,10 @@ var mainValueRes = []*regexp.Regexp{
 const tableHeaderBeforeWindow = 30
 
 var (
-	headerBeforeLabelRe = regexp.MustCompile(`(?i)(?:valor\s+unit[áa]rio|\bunit\.|\bmarca)\s*$`)
-	unitAfterLabelRe    = regexp.MustCompile(`(?i)\bunit`)
+	unitColumnBeforeLabelRe  = regexp.MustCompile(`(?i)(?:valor\s+unit[áa]rio|\bunit\.)\s*$`)
+	brandColumnBeforeLabelRe = regexp.MustCompile(`(?i)(?:^|\s)marca\s*$`)
+	registeredLabelRe        = regexp.MustCompile(`(?i)^valor\s+registrado`)
+	unitAfterLabelRe         = regexp.MustCompile(`(?i)\bunit`)
 )
 
 func MainValueCents(t ActType, body string) int64 {
@@ -83,21 +85,35 @@ func MainValueCents(t ActType, body string) int64 {
 		return 0
 	}
 	for _, re := range mainValueRes {
-		for _, m := range re.FindAllStringSubmatchIndex(body, -1) {
-			if isPriceTableHeader(body, m) {
-				continue
-			}
-			cents, err := strconv.ParseInt(nonDigitRe.ReplaceAllString(body[m[2]:m[3]], "")+body[m[4]:m[5]], 10, 64)
-			if err != nil {
-				return 0
-			}
+		if cents, ok := firstMainValue(re, body); ok {
 			return cents
 		}
 	}
 	return 0
 }
 
+func firstMainValue(re *regexp.Regexp, body string) (int64, bool) {
+	for offset := 0; offset < len(body); {
+		m := re.FindStringSubmatchIndex(body[offset:])
+		if m == nil {
+			return 0, false
+		}
+		for i := range m {
+			m[i] += offset
+		}
+		if isPriceTableHeader(body, m) {
+			offset = m[0] + 1
+			continue
+		}
+		cents, err := strconv.ParseInt(nonDigitRe.ReplaceAllString(body[m[2]:m[3]], "")+body[m[4]:m[5]], 10, 64)
+		return cents, err == nil
+	}
+	return 0, false
+}
+
 func isPriceTableHeader(body string, m []int) bool {
 	before := body[max(0, m[0]-tableHeaderBeforeWindow):m[0]]
-	return headerBeforeLabelRe.MatchString(before) || unitAfterLabelRe.MatchString(body[m[0]:m[2]])
+	label := body[m[0]:m[2]]
+	return unitColumnBeforeLabelRe.MatchString(before) || unitAfterLabelRe.MatchString(label) ||
+		(registeredLabelRe.MatchString(label) && brandColumnBeforeLabelRe.MatchString(before))
 }

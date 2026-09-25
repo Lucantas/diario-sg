@@ -59,6 +59,12 @@ func TestMainValueCents(t *testing.T) {
 			"INCLUSIVE OPERADOR VALOR UNITÁRIO VALOR TOTAL R$ 40,00 R$ 211.200,00 R$ 120,00 R$ 950.400,00 VALOR TOTAL ITENS: R$ 1.161.600,00", 116160000},
 		{"preço unitário citado antes do total", ActContrato,
 			"ao preço unitário de R$ 5,00, com valor total de R$ 500,00.", 50000},
+		{"marca do item antes do total", ActLicitacao,
+			"01-01 UNID. 6,80 197 11.375,00 S/MARCA Valor Total R$ 1.567.580,00", 156758000},
+		{"coluna de marca e valor total sem unitário", ActLicitacao,
+			"precificados item por item. MARCA VALOR TOTAL YAMAHA DAS JBL SHURE PIONER RMV R$ 1.715.000,00", 171500000},
+		{"rótulo verdadeiro logo depois do cabeçalho", ActLicitacao,
+			"OG MED VALOR UNIT. VALOR TOTAL 4,790 9.580,00 Valor Total R$ 9.580,00", 958000},
 		{"total sem cabeçalho de tabela continua valendo", ActAta,
 			"Modelo: K31201Y Valor Total R$ 800,00 São Gonçalo, 26 de agosto de 2021.", 80000},
 	}
