@@ -27,6 +27,8 @@ var headerRes = []*regexp.Regexp{
 	regexp.MustCompile(`^(?:CONCESSÃO DE LICENÇA|CONVOCAÇÃO|ERRATA|CORRIGENDA|RETIFICAÇÃO|REPUBLICAÇÃO|COMUNICADO|APOSTILA)\b`),
 }
 
+var notAnActExtractRe = regexp.MustCompile(`^EXTRATO\s+(?:DE\s+)?(?:TOMATE|MALTE|ALOE|BANCÁRIO)\b`)
+
 var portariaTrailerRe = regexp.MustCompile(`^Port\.?\s*n[º°.]?\s*\d+/\d{2,4}`)
 
 var continuationRe = regexp.MustCompile(`^Continuação do D\.O\.E\.`)
@@ -40,7 +42,7 @@ const (
 
 func isHeader(line string) bool {
 	line = strings.ReplaceAll(line, "nº", "Nº")
-	if strings.ToUpper(line) != line {
+	if strings.ToUpper(line) != line || notAnActExtractRe.MatchString(line) {
 		return false
 	}
 	for _, re := range headerRes {

@@ -68,3 +68,18 @@ DO GESTOR PARA CONTRATAÇÃO DE SERVIÇOS DE ENGENHARIA.`)
 		t.Fatalf("DESIGNAÇÃO no meio do título não abre ato: %+v", acts)
 	}
 }
+
+func TestProductExtractInsideAPriceListIsNotAnAct(t *testing.T) {
+	acts := New().Parse(`EXTRATO DA ATA DE REGISTRO DE PREÇOS Nº 012/SEMED/2019
+O MUNICÍPIO DE SÃO GONÇALO torna público o extrato da ata.
+ITEM ESPECIFICAÇÃO
+EXTRATO DE TOMATE –
+embalagem de 300g, deve estar isento de fermentação.
+EXTRATO DE ALOE VERA.
+EXTRATO BANCÁRIO
+VALOR TOTAL R$ 5.279.936,30`)
+
+	if len(acts) != 1 {
+		t.Fatalf("produto da lista não abre ato: %+v", acts)
+	}
+}
