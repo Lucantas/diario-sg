@@ -28,6 +28,8 @@ func TestDeclaredIncreaseBasisPoints(t *testing.T) {
 			"Processo administrativo nº 59.856/2021 Publicado no D.O.E. em 20/03/2023. Onde se lê: “fica o contrato nº 001/SEMDUR/2022 aditivado em R$3.232.568,41 correspondente a um acréscimo financeiro de aproximadamente 20,99%", 0},
 		{"limite da lei", ActAditivo, "EXTRATO DE TERMO ADITIVO",
 			"Objeto: acréscimo de itens, respeitado o limite de até 25% previsto no art. 65 da Lei 8.666/93.", 0},
+		{"lista de produtos colada", ActAditivo, "EXTRATO DO TERCEIRO TERMO ADITIVO DE PRORROGAÇÃO AO CONTRATO Nº 002/2015.",
+			"Isenta de lactose, carboidrato 100% maltodextrina, e com soro do leite e caseína como fonte protéica, com DHA e ARA e nucleotídeos, acrescida de vitaminas, minerais e outros oligoelementos.", 0},
 		{"não é aditivo", ActContrato, "EXTRATO DE CONTRATO", "Objeto: acréscimo de 10% no valor.", 0},
 	}
 	for _, c := range cases {

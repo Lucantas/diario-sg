@@ -71,6 +71,11 @@ func supplierAliases(acts []EmergencyAct) map[string]string {
 				aliases[key] = p.CNPJ
 			}
 		}
+		if private := privateCNPJs(a.CNPJs); len(private) == 1 {
+			if key := SupplierNameKey(SupplierNameOf(a.Body)); key != "" {
+				aliases[key] = private[0]
+			}
+		}
 	}
 	return aliases
 }
@@ -120,12 +125,7 @@ func emergencyContracts(acts []EmergencyAct, aliases map[string]string) []emerge
 }
 
 func emergencySupplierOf(a EmergencyAct, aliases map[string]string) (emergencySupplier, bool) {
-	var private []string
-	for _, cnpj := range a.CNPJs {
-		if _, public := PublicBody(cnpj); !public {
-			private = append(private, cnpj)
-		}
-	}
+	private := privateCNPJs(a.CNPJs)
 	name := SupplierNameOf(a.Body)
 	switch {
 	case len(private) == 1:
@@ -176,5 +176,15 @@ func renewalsOf(contracts []emergencyContract) []RenewedEmergency {
 		}
 	}
 	flush()
+	return out
+}
+
+func privateCNPJs(cnpjs []string) []string {
+	var out []string
+	for _, cnpj := range cnpjs {
+		if _, public := PublicBody(cnpj); !public {
+			out = append(out, cnpj)
+		}
+	}
 	return out
 }

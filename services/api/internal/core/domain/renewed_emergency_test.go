@@ -68,3 +68,15 @@ func TestFindRenewedEmergenciesStartsOverAfterTwoYears(t *testing.T) {
 		t.Fatalf("contratações três anos depois não são renovação seguida: %+v", got)
 	}
 }
+
+func TestFindRenewedEmergenciesJoinsNameReadFromAnActWithTheCNPJ(t *testing.T) {
+	withCNPJ := emergencyAct("a", "FMS", civilDate(2018, 8, 9), "Contratado: CENTRO FLUMINENSE DE OXIGENOTERAPIA HIPERBÁRICA LTDA. Objeto: tratamento. art. 24, inciso IV", "contrato:4/2018")
+	withCNPJ.CNPJs = []string{"08116346000161"}
+	nameOnly := emergencyAct("b", "FMS", civilDate(2019, 9, 9), "RATIFICO com fundamento no art. 24, inciso IV em favor da empresa Centro Fluminense de Oxigenoterapia Hiperbárica Ltda, para tratamento", "processo:31672019")
+
+	got := FindRenewedEmergencies([]EmergencyAct{withCNPJ, nameOnly})
+
+	if len(got) != 1 || got[0].Supplier != "cnpj:08116346000161" || len(got[0].Contracts) != 2 {
+		t.Fatalf("o nome lido do ato com CNPJ deveria juntar as duas: %+v", got)
+	}
+}

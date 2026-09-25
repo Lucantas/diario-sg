@@ -14,7 +14,6 @@ const (
 var (
 	addendumTitleRe      = regexp.MustCompile(`(?i)aditiv`)
 	increaseThenPctRe    = regexp.MustCompile(`(?i)acr[ée]scimo(?:[^.;%]|\.\d){0,200}?(\d{1,3})(?:,(\d{1,2}))?\d*\s?%`)
-	pctThenIncreaseRe    = regexp.MustCompile(`(?i)(\d{1,3})(?:,(\d{1,2}))?\d*\s?%(?:[^.;]|\.\d){0,40}?acr[ée]scid`)
 	readjustmentRe       = regexp.MustCompile(`(?i)reajust|repactua|reequil|revis[ãa]o\s+de\s+pre[çc]o|ipca|igp|[íi]ndice`)
 	quantitativeRe       = regexp.MustCompile(`(?i)quantitativ|qualitativ`)
 	legalCeilingBeforeRe = regexp.MustCompile(`(?i)(?:at[ée]|limite\s+de|limites?\s+legal)\s*$`)
@@ -37,11 +36,9 @@ func DeclaredIncreaseBasisPoints(t ActType, title, body string) int {
 	if rectificationRe.MatchString(text) || (readjustmentRe.MatchString(head) && !quantitativeRe.MatchString(head)) {
 		return 0
 	}
-	for _, re := range []*regexp.Regexp{increaseThenPctRe, pctThenIncreaseRe} {
-		for _, m := range re.FindAllStringSubmatchIndex(text, -1) {
-			if bp, ok := increaseAt(text, m); ok {
-				return bp
-			}
+	for _, m := range increaseThenPctRe.FindAllStringSubmatchIndex(text, -1) {
+		if bp, ok := increaseAt(text, m); ok {
+			return bp
 		}
 	}
 	return 0
