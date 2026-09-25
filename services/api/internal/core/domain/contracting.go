@@ -71,13 +71,23 @@ var mainValueRes = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)(?:valor\s+(?:estimado|anual|mensal)|no\s+valor\s+de)` + moneyAfterLabel),
 }
 
+const tableHeaderBeforeWindow = 30
+
+var (
+	headerBeforeLabelRe = regexp.MustCompile(`(?i)(?:valor\s+unit[áa]rio|\bunit\.|\bmarca)\s*$`)
+	unitAfterLabelRe    = regexp.MustCompile(`(?i)\bunit`)
+)
+
 func MainValueCents(t ActType, body string) int64 {
 	if !contractingTypes[t] && t != ActPrestacaoContas {
 		return 0
 	}
 	for _, re := range mainValueRes {
-		if m := re.FindStringSubmatch(body); m != nil {
-			cents, err := strconv.ParseInt(nonDigitRe.ReplaceAllString(m[1], "")+m[2], 10, 64)
+		for _, m := range re.FindAllStringSubmatchIndex(body, -1) {
+			if isPriceTableHeader(body, m) {
+				continue
+			}
+			cents, err := strconv.ParseInt(nonDigitRe.ReplaceAllString(body[m[2]:m[3]], "")+body[m[4]:m[5]], 10, 64)
 			if err != nil {
 				return 0
 			}
@@ -85,4 +95,9 @@ func MainValueCents(t ActType, body string) int64 {
 		}
 	}
 	return 0
+}
+
+func isPriceTableHeader(body string, m []int) bool {
+	before := body[max(0, m[0]-tableHeaderBeforeWindow):m[0]]
+	return headerBeforeLabelRe.MatchString(before) || unitAfterLabelRe.MatchString(body[m[0]:m[2]])
 }

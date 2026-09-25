@@ -47,6 +47,20 @@ func TestMainValueCents(t *testing.T) {
 			"valor mensal de R$ 1.000,00, perfazendo o valor global de R$ 12.000,00.", 1200000},
 		{"mensal sozinho ainda vale", ActContrato, "pelo valor mensal de R$ 1.000,00.", 100000},
 		{"palavras com r entre o rótulo e o valor", ActContrato, "VALOR GLOBAL PARA O EXERCÍCIO: R$ 1.000,00", 100000},
+		{"cabeçalho de tabela pula para o valor global", ActAta,
+			"RAZÃO SOCIAL/NOME: LAZZARI MARTINEZ COMERCIO VAREJISTA Quantidade Valor Unitário Valor Total 200 R$ 6,58 R$ 1.316,00 100 R$ 2,71 R$ 271,00 Valor Global: R$ 1.587,00 3. VALIDADE DA ATA", 158700},
+		{"cabeçalho de tabela sem outro valor fica sem valor", ActAta,
+			"RAZÃO SOCIAL/NOME: MILLENIUM COMERCIO SERVIÇO LTDA Quantidade Valor Unitário Valor Total 200 R$ 46,74 R$ 9.348,00 3. VALIDADE DA ATA", 0},
+		{"cabeçalho com unitário depois do total", ActAta,
+			"UNID QUANT Unid 2940 Unid 172 MARCA VALOR VALOR TOTAL UNIT. Nacional R$ 290,00 R$ 852.600,00", 0},
+		{"coluna de marca e valor registrado", ActAta,
+			"Fornecimento de copos de 200 ml de água (cx. c/48). MARCA VALOR REGISTRADO AGUÁ SOL R$ 8,99 MONTANHA R$ 18,99", 0},
+		{"cabeçalho e depois o total dos itens", ActLicitacao,
+			"INCLUSIVE OPERADOR VALOR UNITÁRIO VALOR TOTAL R$ 40,00 R$ 211.200,00 R$ 120,00 R$ 950.400,00 VALOR TOTAL ITENS: R$ 1.161.600,00", 116160000},
+		{"preço unitário citado antes do total", ActContrato,
+			"ao preço unitário de R$ 5,00, com valor total de R$ 500,00.", 50000},
+		{"total sem cabeçalho de tabela continua valendo", ActAta,
+			"Modelo: K31201Y Valor Total R$ 800,00 São Gonçalo, 26 de agosto de 2021.", 80000},
 	}
 	for _, c := range cases {
 		if got := MainValueCents(c.typ, c.body); got != c.want {
