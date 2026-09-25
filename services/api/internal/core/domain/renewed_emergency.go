@@ -64,16 +64,30 @@ func FindRenewedEmergencies(acts []EmergencyAct) []RenewedEmergency {
 }
 
 func supplierAliases(acts []EmergencyAct) map[string]string {
-	aliases := map[string]string{}
+	candidates := map[string]map[string]bool{}
+	add := func(name, cnpj string) {
+		if key := SupplierNameKey(name); key != "" {
+			if candidates[key] == nil {
+				candidates[key] = map[string]bool{}
+			}
+			candidates[key][cnpj] = true
+		}
+	}
 	for _, a := range acts {
 		for _, p := range PartiesOf(a.Body) {
-			if key := SupplierNameKey(p.Name); p.PublicBody == "" && key != "" {
-				aliases[key] = p.CNPJ
+			if p.PublicBody == "" {
+				add(p.Name, p.CNPJ)
 			}
 		}
 		if private := privateCNPJs(a.CNPJs); len(private) == 1 {
-			if key := SupplierNameKey(SupplierNameOf(a.Body)); key != "" {
-				aliases[key] = private[0]
+			add(SupplierNameOf(a.Body), private[0])
+		}
+	}
+	aliases := map[string]string{}
+	for key, cnpjs := range candidates {
+		if len(cnpjs) == 1 {
+			for cnpj := range cnpjs {
+				aliases[key] = cnpj
 			}
 		}
 	}
@@ -89,12 +103,17 @@ func emergencyContracts(acts []EmergencyAct, aliases map[string]string) []emerge
 	})
 	groups := newUnionFind(len(acts))
 	firstByRef := map[string]int{}
+	organsByRef := emergencyRefOrgans(acts)
 	for i, a := range acts {
 		for _, ref := range a.Refs {
-			if j, ok := firstByRef[ref]; ok {
+			key, ok := scopedRef(PrincipalOrgan(a.Organ), ref, organsByRef)
+			if !ok {
+				continue
+			}
+			if j, seen := firstByRef[key]; seen {
 				groups.union(i, j)
 			} else {
-				firstByRef[ref] = i
+				firstByRef[key] = i
 			}
 		}
 	}
@@ -113,7 +132,7 @@ func emergencyContracts(acts []EmergencyAct, aliases map[string]string) []emerge
 				}
 			}
 		}
-		if len(suppliers) != 1 {
+		if len(suppliers) != 1 || c.organ == "" {
 			continue
 		}
 		for _, s := range suppliers {
@@ -187,4 +206,34 @@ func privateCNPJs(cnpjs []string) []string {
 		}
 	}
 	return out
+}
+
+func emergencyRefOrgans(acts []EmergencyAct) map[string]map[string]bool {
+	out := map[string]map[string]bool{}
+	for _, a := range acts {
+		organ := PrincipalOrgan(a.Organ)
+		if organ == "" {
+			continue
+		}
+		for _, ref := range a.Refs {
+			if out[ref] == nil {
+				out[ref] = map[string]bool{}
+			}
+			out[ref][organ] = true
+		}
+	}
+	return out
+}
+
+func scopedRef(organ, ref string, organsByRef map[string]map[string]bool) (string, bool) {
+	if organ != "" {
+		return organ + "|" + ref, true
+	}
+	if len(organsByRef[ref]) != 1 {
+		return "", false
+	}
+	for only := range organsByRef[ref] {
+		organ = only
+	}
+	return organ + "|" + ref, true
 }

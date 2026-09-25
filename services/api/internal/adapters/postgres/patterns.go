@@ -57,7 +57,8 @@ func (r *PatternRepo) AddendumActs(ctx context.Context) ([]domain.AddendumAct, e
 		                 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind = 'contrato'
 		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}')
 		FROM acts a JOIN gazettes g ON g.id = a.gazette_id
-		WHERE a.declared_increase_bp > 0 AND g.source = $2`, domain.RecordAct, domain.SourceDiarioPrefeitura)
+		WHERE a.declared_increase_bp > 0 AND g.source = $2
+		ORDER BY g.published_at, a.id`, domain.RecordAct, domain.SourceDiarioPrefeitura)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,10 @@ func (r *PatternRepo) AddendumActs(ctx context.Context) ([]domain.AddendumAct, e
 	return out, rows.Err()
 }
 
-var emergencyBases = []string{string(domain.Art24IV), string(domain.Art75VIII)}
+var (
+	emergencyBases    = []string{string(domain.Art24IV), string(domain.Art75VIII)}
+	emergencyActTypes = []string{string(domain.ActDispensa), string(domain.ActContrato), string(domain.ActOutro), string(domain.ActLicitacao)}
+)
 
 func (r *PatternRepo) EmergencyActs(ctx context.Context) ([]domain.EmergencyAct, error) {
 	rows, err := r.db.QueryContext(ctx, `
@@ -85,8 +89,9 @@ func (r *PatternRepo) EmergencyActs(ctx context.Context) ([]domain.EmergencyAct,
 		                 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind IN ('processo', 'contrato')
 		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}')
 		FROM acts a JOIN gazettes g ON g.id = a.gazette_id
-		WHERE a.legal_basis <> '{}' AND a.legal_basis && $3 AND g.source = $2`,
-		domain.RecordAct, domain.SourceDiarioPrefeitura, pq.Array(emergencyBases))
+		WHERE a.legal_basis <> '{}' AND a.legal_basis && $3 AND g.source = $2 AND a.type = ANY($4)
+		ORDER BY g.published_at, a.id`,
+		domain.RecordAct, domain.SourceDiarioPrefeitura, pq.Array(emergencyBases), pq.Array(emergencyActTypes))
 	if err != nil {
 		return nil, err
 	}

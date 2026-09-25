@@ -46,7 +46,8 @@ func PatternCatalog() map[PatternID]Pattern {
 			Rule: "Duas ou mais contratações do mesmo CNPJ no mesmo ano e da mesma categoria, cada uma por dispensa de licitação em " +
 				"razão do valor, cada uma abaixo do limite da dispensa e com soma acima dele. Compras e serviços: art. 24, II, da Lei " +
 				"8.666 ou art. 75, II, da Lei 14.133, com limite de R$ 8.000,00 até 18/07/2018, R$ 17.600,00 depois, e pela Lei 14.133 " +
-				"R$ 50.000,00, atualizados todo ano (R$ 65.492,11 em 2026). Obras e serviços de engenharia: art. 24, I, ou art. 75, I, " +
+				"R$ 50.000,00, atualizados todo ano (R$ 65.492,11 em 2026). Obras e serviços de engenharia (e, pela Lei 14.133, " +
+				"manutenção de veículos): art. 24, I, ou art. 75, I, " +
 				"com limite de R$ 15.000,00 até 18/07/2018, R$ 33.000,00 depois, e pela Lei 14.133 R$ 100.000,00, atualizados todo ano " +
 				"(R$ 130.984,20 em 2026). Uma contratação reúne os atos que citam o mesmo processo; republicações e atos sem número de " +
 				"processo com o mesmo valor no mesmo ano contam como a mesma contratação.",
@@ -60,7 +61,7 @@ func PatternCatalog() map[PatternID]Pattern {
 			Rule: "Aditivos do mesmo contrato (mesmo número de contrato e mesmo órgão) cujos acréscimos declarados no texto somam " +
 				"mais de 25% do valor inicial, ou mais de 50% quando o contrato é de reforma (art. 65, § 1º, da Lei 8.666; art. 125 da " +
 				"Lei 14.133). Só entram os percentuais que o próprio aditivo declara como acréscimo; reajuste e retificação não contam, " +
-				"e cada aditivo (primeiro, segundo…) conta uma vez.",
+				"supressões não abatem, e cada aditivo (primeiro, segundo…) conta uma vez.",
 			Caveat: "O limite vale para acréscimos de quantidade ou de objeto, não para reajuste de preço, e o texto nem sempre separa " +
 				"os dois. Aditivos que só dizem o valor em reais ficam de fora, porque o valor declarado costuma ser o novo total do " +
 				"contrato. O percentual pode ter sido calculado sobre bases diferentes em cada aditivo.",
@@ -73,7 +74,8 @@ func PatternCatalog() map[PatternID]Pattern {
 				"atos que citam o mesmo processo ou contrato; a empresa é o CNPJ ou, sem CNPJ no texto, o nome lido do ato. A Lei " +
 				"8.666 veda prorrogar a contratação emergencial, e a Lei 14.133 veda também recontratar a mesma empresa.",
 			Caveat: "Uma nova emergência pode justificar outra contratação. O nome da empresa é lido do texto e pode vir incompleto; " +
-				"contratações no mesmo mês, para objetos diferentes, não contam como renovação.",
+				"contratações no mesmo mês, para objetos diferentes, não contam como renovação. A prorrogação por aditivo do mesmo " +
+				"contrato conta como a mesma contratação e não aparece aqui.",
 		},
 		PatternElectionHiring: {
 			ID:    PatternElectionHiring,

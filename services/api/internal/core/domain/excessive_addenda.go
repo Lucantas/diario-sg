@@ -36,8 +36,12 @@ func FindExcessiveAddenda(acts []AddendumAct) []ExcessiveAddendum {
 		if a.IncreaseBP <= 0 {
 			continue
 		}
+		organ := PrincipalOrgan(a.Organ)
+		if organ == "" {
+			continue
+		}
 		for _, key := range a.ContractKeys {
-			k := addendumContract{key, PrincipalOrgan(a.Organ)}
+			k := addendumContract{key, organ}
 			byContract[k] = append(byContract[k], a)
 		}
 	}
@@ -64,22 +68,22 @@ func excessiveAddendumOf(k addendumContract, list []AddendumAct) (ExcessiveAdden
 		return list[i].ActID < list[j].ActID
 	})
 	e := ExcessiveAddendum{ContractKey: k.key, Organ: k.organ, LimitBP: addendumLimitBP}
-	seenOrdinal, seenIncrease := map[int]bool{}, map[int]bool{}
+	seenOrdinal, seenIncrease, unnumberedIncrease := map[int]bool{}, map[int]bool{}, map[int]bool{}
 	for _, a := range list {
-		if MentionsRenovation(a.Body) {
+		if MentionsRenovation(a.Title, a.Body) {
 			e.LimitBP = renovationAddendumLimitBP
 		}
-		if ord := AddendumOrdinal(a.Title, a.Body); ord > 0 {
-			if seenOrdinal[ord] {
-				continue
-			}
-			seenOrdinal[ord] = true
-		} else {
-			if seenIncrease[a.IncreaseBP] {
-				continue
-			}
-			seenIncrease[a.IncreaseBP] = true
+		ord := AddendumOrdinal(a.Title, a.Body)
+		repeated := seenIncrease[a.IncreaseBP]
+		if ord > 0 {
+			repeated = seenOrdinal[ord] || unnumberedIncrease[a.IncreaseBP]
 		}
+		if repeated {
+			continue
+		}
+		seenOrdinal[ord] = ord > 0
+		seenIncrease[a.IncreaseBP] = true
+		unnumberedIncrease[a.IncreaseBP] = unnumberedIncrease[a.IncreaseBP] || ord == 0
 		e.TotalBP += a.IncreaseBP
 		e.Acts = append(e.Acts, a)
 	}

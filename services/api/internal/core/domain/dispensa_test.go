@@ -11,7 +11,7 @@ func TestCitesValueDispensa(t *testing.T) {
 		"fundamento legal o art. 24, inciso II c/c 23, II da Lei nº 8.666/93",
 		"conforme artigo 75, inciso II da Lei de Licitações n.º 14.133",
 		"nos termos do art. 75, II, da Lei 14.133",
-		"Art. 75, caput, inciso II",
+		"Art. 75, caput, inciso II da Lei nº 14.133/2021",
 		"nos termos do Inciso II do Artigo 75 da Lei Federal Nº14.133/2021",
 		"nos termos do inciso II do artigo 24 da Lei Federal nº 8.666/1993",
 	}

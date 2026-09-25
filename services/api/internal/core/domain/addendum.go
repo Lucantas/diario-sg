@@ -13,7 +13,9 @@ const (
 
 var (
 	addendumTitleRe      = regexp.MustCompile(`(?i)aditiv`)
-	increaseThenPctRe    = regexp.MustCompile(`(?i)acr[ée]scimo(?:[^.;%]|\.\d){0,200}?(\d{1,3})(?:,(\d{1,2}))?\d*\s?%`)
+	increaseThenPctRe    = regexp.MustCompile(`(?i)acr[ée]scimo(?:[^.;%]|\.\d){0,200}?(\d{1,3})(?:[,.](\d{1,2}))?\d*\s?%`)
+	pctThenIncreaseRe    = regexp.MustCompile(`(?i)(\d{1,3})(?:[,.](\d{1,2}))?\d*\s?%\s*(?:\([^)]{0,80}\)\s*)?de\s+acr[ée]scimo`)
+	reductionRe          = regexp.MustCompile(`(?i)decr[ée]scimo|supress|desconto|redu[çc]`)
 	readjustmentRe       = regexp.MustCompile(`(?i)reajust|repactua|reequil|revis[ãa]o\s+de\s+pre[çc]o|ipca|igp|[íi]ndice`)
 	quantitativeRe       = regexp.MustCompile(`(?i)quantitativ|qualitativ`)
 	legalCeilingBeforeRe = regexp.MustCompile(`(?i)(?:at[ée]|limite\s+de|limites?\s+legal)\s*$`)
@@ -36,7 +38,19 @@ func DeclaredIncreaseBasisPoints(t ActType, title, body string) int {
 	if rectificationRe.MatchString(text) || (readjustmentRe.MatchString(head) && !quantitativeRe.MatchString(head)) {
 		return 0
 	}
+	total := 0
+	for _, m := range pctThenIncreaseRe.FindAllStringSubmatchIndex(text, -1) {
+		if bp, ok := increaseAt(text, m); ok {
+			total += bp
+		}
+	}
+	if total > 0 {
+		return total
+	}
 	for _, m := range increaseThenPctRe.FindAllStringSubmatchIndex(text, -1) {
+		if reductionRe.MatchString(text[m[0]:m[1]]) {
+			continue
+		}
 		if bp, ok := increaseAt(text, m); ok {
 			return bp
 		}
@@ -72,7 +86,11 @@ func AddendumOrdinal(title, body string) int {
 	return ordinalWords[word]
 }
 
-func MentionsRenovation(body string) bool { return renovationRe.MatchString(body) }
+const renovationHeadRunes = 800
+
+func MentionsRenovation(title, body string) bool {
+	return renovationRe.MatchString(title + " " + firstRunes(body, renovationHeadRunes))
+}
 
 func firstRunes(s string, n int) string {
 	r := []rune(s)

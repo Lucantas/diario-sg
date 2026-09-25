@@ -80,3 +80,31 @@ func TestFindRenewedEmergenciesJoinsNameReadFromAnActWithTheCNPJ(t *testing.T) {
 		t.Fatalf("o nome lido do ato com CNPJ deveria juntar as duas: %+v", got)
 	}
 }
+
+func TestFindRenewedEmergenciesKeepsTheSameNumberInDifferentOrgansApart(t *testing.T) {
+	alfa := "EXTRATO DE CONTRATO Espécie: Emergencial. Partes: Secretaria Municipal de Assistência Social x Alfa Serviços Ltda. Objeto: limpeza"
+	beta := "EXTRATO DE CONTRATO Espécie: Emergencial. Partes: Fundação Municipal de Saúde x Beta Serviços Ltda. Objeto: limpeza"
+	acts := []EmergencyAct{
+		emergencyAct("alfa-1", "SEMAS", civilDate(2022, 1, 10), alfa, "contrato:1/2022"),
+		emergencyAct("beta-1", "FMS", civilDate(2022, 1, 12), beta, "contrato:1/2022"),
+		emergencyAct("alfa-2", "SEMAS", civilDate(2022, 7, 10), alfa, "contrato:9/2022"),
+	}
+
+	got := FindRenewedEmergencies(acts)
+
+	if len(got) != 1 || got[0].Supplier != "nome:alfa servicos" || got[0].Organ != "SEMAS" || len(got[0].Contracts) != 2 {
+		t.Fatalf("o contrato 1/2022 da FMS não é o da SEMAS: %+v", got)
+	}
+}
+
+func TestFindRenewedEmergenciesSkipsContractsWithoutOrgan(t *testing.T) {
+	body := "em favor da empresa Gama Serviços Ltda, art. 24, IV"
+	acts := []EmergencyAct{
+		emergencyAct("1", "", civilDate(2022, 1, 10), body, "processo:1"),
+		emergencyAct("2", "", civilDate(2022, 7, 10), body, "processo:2"),
+	}
+
+	if got := FindRenewedEmergencies(acts); len(got) != 0 {
+		t.Fatalf("sem órgão não dá para dizer que é o mesmo órgão: %+v", got)
+	}
+}

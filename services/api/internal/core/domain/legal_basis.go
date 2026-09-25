@@ -19,27 +19,42 @@ const (
 
 var knownLegalBases = []LegalBasis{Art24I, Art24II, Art24IV, Art75I, Art75II, Art75VIII}
 
+const (
+	lawBeforeWindow  = 60
+	lawAfterWindow   = 100
+	vetoBeforeWindow = 80
+)
+
 var (
+	procurementLawRe    = regexp.MustCompile(`(?i)8\.?666|14\.?133|lei\s+(?:federal\s+)?de\s+licita[çc][õo]es`)
+	legalBasisVetoRe    = regexp.MustCompile(`(?i)vedad|hip[óo]tese|recontrata`)
 	articleThenIncisoRe = regexp.MustCompile(`(?i)art(?:igo)?\.?\s*(24|75)\s*,?\s*(?:caput\s*,?\s*)?(?:inciso\s*|inc\.\s*)?([IVX]+)(?:[^IVXa-zà-ú]|$)`)
 	incisoThenArticleRe = regexp.MustCompile(`(?i)inciso\s*([IVX]+)\s*,?\s*d[oa]\s*art(?:igo)?\.?\s*(24|75)(?:\D|$)`)
 )
 
 func LegalBasisOf(body string) []LegalBasis {
 	var out []LegalBasis
-	add := func(article, inciso string) {
+	add := func(m []int, article, inciso string) {
 		b := LegalBasis("art" + article + ":" + strings.ToUpper(inciso))
-		if slices.Contains(knownLegalBases, b) && !slices.Contains(out, b) {
+		if slices.Contains(knownLegalBases, b) && !slices.Contains(out, b) && citesProcurementLaw(body, m) {
 			out = append(out, b)
 		}
 	}
-	for _, m := range articleThenIncisoRe.FindAllStringSubmatch(body, -1) {
-		add(m[1], m[2])
+	for _, m := range articleThenIncisoRe.FindAllStringSubmatchIndex(body, -1) {
+		add(m, body[m[2]:m[3]], body[m[4]:m[5]])
 	}
-	for _, m := range incisoThenArticleRe.FindAllStringSubmatch(body, -1) {
-		add(m[2], m[1])
+	for _, m := range incisoThenArticleRe.FindAllStringSubmatchIndex(body, -1) {
+		add(m, body[m[4]:m[5]], body[m[2]:m[3]])
 	}
 	slices.Sort(out)
 	return out
+}
+
+func citesProcurementLaw(body string, m []int) bool {
+	before := body[max(0, m[0]-lawBeforeWindow):m[0]]
+	after := body[m[1]:min(len(body), m[1]+lawAfterWindow)]
+	vetoZone := body[max(0, m[0]-vetoBeforeWindow):m[0]]
+	return !legalBasisVetoRe.MatchString(vetoZone) && procurementLawRe.MatchString(before+" "+after)
 }
 
 func citesAny(body string, bases ...LegalBasis) bool {

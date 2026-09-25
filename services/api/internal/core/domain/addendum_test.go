@@ -1,6 +1,9 @@
 package domain
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestDeclaredIncreaseBasisPoints(t *testing.T) {
 	cases := []struct {
@@ -30,6 +33,11 @@ func TestDeclaredIncreaseBasisPoints(t *testing.T) {
 			"Objeto: acréscimo de itens, respeitado o limite de até 25% previsto no art. 65 da Lei 8.666/93.", 0},
 		{"lista de produtos colada", ActAditivo, "EXTRATO DO TERCEIRO TERMO ADITIVO DE PRORROGAÇÃO AO CONTRATO Nº 002/2015.",
 			"Isenta de lactose, carboidrato 100% maltodextrina, e com soro do leite e caseína como fonte protéica, com DHA e ARA e nucleotídeos, acrescida de vitaminas, minerais e outros oligoelementos.", 0},
+		{"vários itens com decréscimo no meio", ActAditivo, "EXTRATO DO PRIMEIRO TERMO ADITIVO AO CONTRATO Nº 05/2016.",
+			"OBJETO: O presente contrato tem por objeto a alteração do valor do contrato nos seguintes percentuais: 8,97% (oito, vírgula noventa e sete por cento) de decréscimo, previsto inicialmente e 46,61 % (quarenta e seis, vírgula sessenta e um por cento) de acréscimo, para obra de reforma e ampliação do PAM COELHO e 1,17% (um, vírgula dezessete por cento) de decréscimo previsto inicialmente e 15,77% (quinze, vírgula setenta e sete por cento) de acréscimo para construção das unidades de acolhimento", 6238},
+		{"supressão depois do acréscimo", ActAditivo, "EXTRATO DE TERMO ADITIVO", "Objeto: acréscimo de R$ 50.000,00 e supressão de 30% de itens.", 0},
+		{"desconto depois do acréscimo", ActAditivo, "EXTRATO DE TERMO ADITIVO", "Objeto: acréscimo de R$ 10.000,00, mantido o desconto de 18% da proposta.", 0},
+		{"decimal com ponto", ActAditivo, "EXTRATO DE TERMO ADITIVO", "Objeto: acréscimo de 1.72 % do valor inicial.", 172},
 		{"não é aditivo", ActContrato, "EXTRATO DE CONTRATO", "Objeto: acréscimo de 10% no valor.", 0},
 	}
 	for _, c := range cases {
@@ -56,8 +64,9 @@ func TestAddendumOrdinal(t *testing.T) {
 }
 
 func TestMentionsRenovation(t *testing.T) {
-	if !MentionsRenovation("contratação de empresa de engenharia para reforma e construção de novas instalações") ||
-		MentionsRenovation("aquisição de equipamentos") || MentionsRenovation("reformulação do contrato") {
+	if !MentionsRenovation("", "contratação de empresa de engenharia para reforma e construção de novas instalações") ||
+		MentionsRenovation("", "aquisição de equipamentos") || MentionsRenovation("", "reformulação do contrato") ||
+		MentionsRenovation("TERMO ADITIVO", "aquisição de equipamentos. "+strings.Repeat("x", 900)+" DECISÃO: reforma da sede") {
 		t.Error("MentionsRenovation")
 	}
 }

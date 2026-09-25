@@ -52,3 +52,27 @@ func TestFindExcessiveAddendaCountsTheSamePercentOnceWithoutOrdinal(t *testing.T
 		t.Fatalf("a mesma publicação repetida não soma: %+v", got)
 	}
 }
+
+func TestFindExcessiveAddendaCountsARepublicationWithoutOrdinalOnce(t *testing.T) {
+	acts := []AddendumAct{
+		addendumAct("2", "8/2020", "SEMED", civilDate(2020, 3, 1), "EXTRATO DO SEGUNDO TERMO ADITIVO", "acréscimo de 20%", 2000),
+		addendumAct("rep", "8/2020", "SEMED", civilDate(2020, 3, 9), "EXTRATO DE TERMO ADITIVO", "acréscimo de 20% (omitido)", 2000),
+		addendumAct("sem-ord", "9/2020", "SEMED", civilDate(2020, 3, 1), "EXTRATO DE TERMO ADITIVO", "acréscimo de 20%", 2000),
+		addendumAct("3", "9/2020", "SEMED", civilDate(2020, 3, 9), "EXTRATO DO TERCEIRO TERMO ADITIVO", "acréscimo de 20%", 2000),
+	}
+
+	if got := FindExcessiveAddenda(acts); len(got) != 0 {
+		t.Fatalf("a mesma publicação com e sem ordinal não soma: %+v", got)
+	}
+}
+
+func TestFindExcessiveAddendaSkipsContractsWithoutOrgan(t *testing.T) {
+	acts := []AddendumAct{
+		addendumAct("a", "12/2020", "", civilDate(2020, 3, 1), "EXTRATO DO PRIMEIRO TERMO ADITIVO", "acréscimo de 15%", 1500),
+		addendumAct("b", "12/2020", "", civilDate(2020, 9, 1), "EXTRATO DO SEGUNDO TERMO ADITIVO", "acréscimo de 12%", 1200),
+	}
+
+	if got := FindExcessiveAddenda(acts); len(got) != 0 {
+		t.Fatalf("contrato sem órgão pode ser de órgãos diferentes: %+v", got)
+	}
+}
