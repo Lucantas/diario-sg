@@ -95,7 +95,8 @@ func TestPatternsFlagSplitDispensasAndIgnoreRepublishedProcesses(t *testing.T) {
 	var res patternsResponse
 	getJSON(t, srv.URL+"/v1/patterns", &res)
 
-	if len(res.Items) != 2 || res.Items[0].ID != "fracionamento_dispensa" || res.Items[1].ID != "pico_pessoal_eleicao" {
+	if len(res.Items) != 4 || res.Items[0].ID != "fracionamento_dispensa" || res.Items[1].ID != "aditivo_acima_do_limite" ||
+		res.Items[2].ID != "emergencial_renovada" || res.Items[3].ID != "pico_pessoal_eleicao" {
 		t.Fatalf("padrões inesperados: %+v", res)
 	}
 	split := res.Items[0].Findings
@@ -108,8 +109,8 @@ func TestPatternsFlagSplitDispensasAndIgnoreRepublishedProcesses(t *testing.T) {
 			t.Fatalf("o mesmo processo publicado três vezes não é fracionamento: %+v", f)
 		}
 	}
-	if res.Items[1].Findings == nil || len(res.Items[1].Findings) != 0 {
-		t.Fatalf("sem nomeações não há pico: %+v", res.Items[1])
+	if res.Items[3].Findings == nil || len(res.Items[3].Findings) != 0 {
+		t.Fatalf("sem nomeações não há pico: %+v", res.Items[3])
 	}
 }
 
@@ -187,5 +188,47 @@ func TestIndexingStoresLegalBasisAndDeclaredIncrease(t *testing.T) {
 	}
 	if strings.Join(got, " ") != "aditivo||4637 contrato|art24:IV|0" {
 		t.Fatalf("fatos gravados inesperados: %v", got)
+	}
+}
+
+const (
+	pgmEmergencial2021 = `EXTRATO DE CONTRATO:
+Espécie: Emergencial. Base Legal: art. 24, inc. IV, da Lei n.º
+8.666/93
+Processo n.º 2042/21
+Partes: Prefeitura Municipal de São Gonçalo – Procuradoria
+Geral x LOGICA TECNOLOGIA EIRELI - EPP.
+Objeto: Locação de Equipamentos de Informática com
+suprimentos
+Valor Mensal R$ 11.710,00; Prazo: 06 (seis) meses.`
+	pgmRatificacao2022 = `TERMO DE RATIFICAÇÃO EMERGENCIA
+RECONHEÇO E RATIFICO com base no Art. 26 da Lei Federal n.º 8.666/93, e a vista do Parecer da Procuradoria-Geral do Município,
+a Dispensa Emergencial, Processo n.º 2360/2022 fundamento no art. 24, inciso IV da Lei n.º 8.666/93, para contratação de locação
+de equipamentos de informática.`
+	pgmEmergencialJul2022 = `EXTRATO DE CONTRATO
+Espécie: Emergencial: Base Legal: art. 24, inc. IV, da Lei nº 8666/93. Processo: Processo nº 34550/2022 Partes: Procuradoria
+Geral do Município de São Gonçalo X Lógica Tecnologia Ltda Objeto: Locação de Equipamentos de Informática Valor: R$ 120.000,00
+(cento e vinte mil reais)`
+)
+
+func TestPatternsFlagExcessiveAddendaAndRenewedEmergencies(t *testing.T) {
+	srv, db := newServerFor(t, "ATOS DO PREFEITO\nFMS\n"+fmsAditivo2015)
+	setOnlyGazetteDate(t, db, "2015-09-08")
+	indexAt(t, db, time.Date(2021, 1, 22, 0, 0, 0, 0, time.UTC), "ATOS DO PREFEITO\nPGM\n"+pgmEmergencial2021)
+	indexAt(t, db, time.Date(2022, 1, 20, 0, 0, 0, 0, time.UTC), pgmRatificacao2022)
+	indexAt(t, db, time.Date(2022, 1, 21, 0, 0, 0, 0, time.UTC), "ATOS DO PREFEITO\nPGM\n"+pgmEmergencial2022)
+	indexAt(t, db, time.Date(2022, 7, 28, 0, 0, 0, 0, time.UTC), "ATOS DO PREFEITO\nPGM\n"+pgmEmergencialJul2022)
+
+	var res patternsResponse
+	getJSON(t, srv.URL+"/v1/patterns", &res)
+
+	addenda := res.Items[1].Findings
+	if len(addenda) != 1 || addenda[0].Title != "Contrato 7/2015 (FMS): aditivos somam 46,37% de acréscimo, acima do limite de 25%" || len(addenda[0].Acts) != 1 {
+		t.Fatalf("aditivo inesperado: %+v", addenda)
+	}
+	renewed := res.Items[2].Findings
+	if len(renewed) != 1 || renewed[0].Title != "LOGICA TECNOLOGIA EIRELI em PGM: 3 contratações emergenciais seguidas, de 22/01/2021 a 28/07/2022" ||
+		len(renewed[0].Acts) != 4 {
+		t.Fatalf("emergencial inesperada: %+v", renewed)
 	}
 }

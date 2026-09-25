@@ -9,8 +9,10 @@ import (
 type PatternID string
 
 const (
-	PatternSplitDispensa  PatternID = "fracionamento_dispensa"
-	PatternElectionHiring PatternID = "pico_pessoal_eleicao"
+	PatternSplitDispensa    PatternID = "fracionamento_dispensa"
+	PatternElectionHiring   PatternID = "pico_pessoal_eleicao"
+	PatternExcessiveAddenda PatternID = "aditivo_acima_do_limite"
+	PatternRenewedEmergency PatternID = "emergencial_renovada"
 )
 
 type Pattern struct {
@@ -51,6 +53,27 @@ func PatternCatalog() map[PatternID]Pattern {
 			Caveat: "A lei soma o que cada unidade gestora gasta no ano com objetos de mesma natureza. O Diário não diz a natureza do " +
 				"objeto de forma padronizada, e o mesmo fornecedor pode vender coisas diferentes para órgãos diferentes. Só entram atos " +
 				"em que o CNPJ e o valor foram lidos do texto, então parte das dispensas fica de fora.",
+		},
+		PatternExcessiveAddenda: {
+			ID:    PatternExcessiveAddenda,
+			Title: "Aditivos que somam mais acréscimo do que a lei permite",
+			Rule: "Aditivos do mesmo contrato (mesmo número de contrato e mesmo órgão) cujos acréscimos declarados no texto somam " +
+				"mais de 25% do valor inicial, ou mais de 50% quando o contrato é de reforma (art. 65, § 1º, da Lei 8.666; art. 125 da " +
+				"Lei 14.133). Só entram os percentuais que o próprio aditivo declara como acréscimo; reajuste e retificação não contam, " +
+				"e cada aditivo (primeiro, segundo…) conta uma vez.",
+			Caveat: "O limite vale para acréscimos de quantidade ou de objeto, não para reajuste de preço, e o texto nem sempre separa " +
+				"os dois. Aditivos que só dizem o valor em reais ficam de fora, porque o valor declarado costuma ser o novo total do " +
+				"contrato. O percentual pode ter sido calculado sobre bases diferentes em cada aditivo.",
+		},
+		PatternRenewedEmergency: {
+			ID:    PatternRenewedEmergency,
+			Title: "Contratação emergencial da mesma empresa, uma depois da outra",
+			Rule: "Duas ou mais contratações por dispensa emergencial (art. 24, IV, da Lei 8.666 ou art. 75, VIII, da Lei 14.133) da " +
+				"mesma empresa no mesmo órgão, cada uma começando entre 30 dias e 24 meses depois da anterior. A contratação reúne os " +
+				"atos que citam o mesmo processo ou contrato; a empresa é o CNPJ ou, sem CNPJ no texto, o nome lido do ato. A Lei " +
+				"8.666 veda prorrogar a contratação emergencial, e a Lei 14.133 veda também recontratar a mesma empresa.",
+			Caveat: "Uma nova emergência pode justificar outra contratação. O nome da empresa é lido do texto e pode vir incompleto; " +
+				"contratações no mesmo mês, para objetos diferentes, não contam como renovação.",
 		},
 		PatternElectionHiring: {
 			ID:    PatternElectionHiring,
@@ -105,4 +128,63 @@ func ElectionPeakFinding(p HiringPeak) Finding {
 			month, p.BaselineYears, strings.Replace(strconv.FormatFloat(p.BaselineMedian, 'f', -1, 64), ".", ",", 1), p.Election.Format("02/01/2006")),
 		Search: &ActFilter{Type: p.Type, Source: SourceDiarioPrefeitura, From: first, To: first.AddDate(0, 1, -1)},
 	}
+}
+
+var ordinalLabels = [...]string{"", "Primeiro", "Segundo", "Terceiro", "Quarto", "Quinto", "Sexto", "Sétimo", "Oitavo", "Nono", "Décimo"}
+
+func ExcessiveAddendumFinding(e ExcessiveAddendum) Finding {
+	f := Finding{Title: fmt.Sprintf("Contrato %s%s: aditivos somam %s de acréscimo, acima do limite de %s",
+		e.ContractKey, organSuffix(e.Organ), FormatPercentBP(e.TotalBP), FormatPercentBP(e.LimitBP))}
+	parts := make([]string, 0, len(e.Acts))
+	for _, a := range e.Acts {
+		label := "Aditivo"
+		if ord := AddendumOrdinal(a.Title, a.Body); ord > 0 && ord < len(ordinalLabels) {
+			label = ordinalLabels[ord] + " termo aditivo"
+		}
+		parts = append(parts, fmt.Sprintf("%s, %s: %s.", label, a.PublishedAt.Format("02/01/2006"), FormatPercentBP(a.IncreaseBP)))
+		f.ActIDs = append(f.ActIDs, a.ActID)
+	}
+	f.Detail = strings.Join(parts, " ")
+	return f
+}
+
+func RenewedEmergencyFinding(r RenewedEmergency) Finding {
+	first, last := r.Contracts[0].First, r.Contracts[len(r.Contracts)-1].First
+	f := Finding{Title: fmt.Sprintf("%s%s: %d contratações emergenciais seguidas, de %s a %s",
+		r.SupplierLabel, organInSuffix(r.Organ), len(r.Contracts), first.Format("02/01/2006"), last.Format("02/01/2006"))}
+	dates := make([]string, 0, len(r.Contracts))
+	for _, c := range r.Contracts {
+		dates = append(dates, c.First.Format("02/01/2006"))
+		f.ActIDs = append(f.ActIDs, c.ActIDs...)
+	}
+	f.Detail = "Contratações emergenciais em " + joinPortuguese(dates) + "."
+	return f
+}
+
+func FormatPercentBP(bp int) string {
+	if bp%basisPointsPerPoint == 0 {
+		return fmt.Sprintf("%d%%", bp/basisPointsPerPoint)
+	}
+	return fmt.Sprintf("%d,%02d%%", bp/basisPointsPerPoint, bp%basisPointsPerPoint)
+}
+
+func organSuffix(organ string) string {
+	if organ == "" {
+		return ""
+	}
+	return " (" + organ + ")"
+}
+
+func organInSuffix(organ string) string {
+	if organ == "" {
+		return ""
+	}
+	return " em " + organ
+}
+
+func joinPortuguese(items []string) string {
+	if len(items) <= 1 {
+		return strings.Join(items, "")
+	}
+	return strings.Join(items[:len(items)-1], ", ") + " e " + items[len(items)-1]
 }

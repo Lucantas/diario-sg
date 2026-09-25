@@ -50,6 +50,58 @@ func (r *PatternRepo) DispensaActs(ctx context.Context) ([]domain.DispensaAct, e
 	return out, rows.Err()
 }
 
+func (r *PatternRepo) AddendumActs(ctx context.Context) ([]domain.AddendumAct, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT a.id, a.organ, g.published_at, a.title, a.body, a.declared_increase_bp,
+		       coalesce((SELECT array_agg(e.key ORDER BY e.key)
+		                 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind = 'contrato'
+		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}')
+		FROM acts a JOIN gazettes g ON g.id = a.gazette_id
+		WHERE a.declared_increase_bp > 0 AND g.source = $2`, domain.RecordAct, domain.SourceDiarioPrefeitura)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []domain.AddendumAct
+	for rows.Next() {
+		var a domain.AddendumAct
+		if err := rows.Scan(&a.ActID, &a.Organ, &a.PublishedAt, &a.Title, &a.Body, &a.IncreaseBP, pq.Array(&a.ContractKeys)); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
+var emergencyBases = []string{string(domain.Art24IV), string(domain.Art75VIII)}
+
+func (r *PatternRepo) EmergencyActs(ctx context.Context) ([]domain.EmergencyAct, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT a.id, a.organ, g.published_at, a.body,
+		       coalesce((SELECT array_agg(e.key ORDER BY e.key)
+		                 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind = 'cnpj'
+		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}'),
+		       coalesce((SELECT array_agg(e.kind || ':' || e.key ORDER BY e.kind, e.key)
+		                 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind IN ('processo', 'contrato')
+		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}')
+		FROM acts a JOIN gazettes g ON g.id = a.gazette_id
+		WHERE a.legal_basis <> '{}' AND a.legal_basis && $3 AND g.source = $2`,
+		domain.RecordAct, domain.SourceDiarioPrefeitura, pq.Array(emergencyBases))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []domain.EmergencyAct
+	for rows.Next() {
+		var a domain.EmergencyAct
+		if err := rows.Scan(&a.ActID, &a.Organ, &a.PublishedAt, &a.Body, pq.Array(&a.CNPJs), pq.Array(&a.Refs)); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
 func (r *PatternRepo) MonthlyActCounts(ctx context.Context, types []domain.ActType, source string) ([]domain.MonthlyActCount, error) {
 	names := make([]string, len(types))
 	for i, t := range types {

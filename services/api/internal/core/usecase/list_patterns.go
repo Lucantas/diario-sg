@@ -17,6 +17,14 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 	if err != nil {
 		return nil, nil, err
 	}
+	addenda, err := uc.src.AddendumActs(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	emergencies, err := uc.src.EmergencyActs(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
 	counts, err := uc.src.MonthlyActCounts(ctx, []domain.ActType{domain.ActNomeacao, domain.ActExoneracao}, domain.SourceDiarioPrefeitura)
 	if err != nil {
 		return nil, nil, err
@@ -26,6 +34,18 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 	for _, s := range domain.FindSplitDispensas(dispensas) {
 		f := domain.SplitDispensaFinding(s)
 		split.Findings = append(split.Findings, f)
+		ids = append(ids, f.ActIDs...)
+	}
+	excessive := domain.PatternReport{Pattern: catalog[domain.PatternExcessiveAddenda], Findings: []domain.Finding{}}
+	for _, e := range domain.FindExcessiveAddenda(addenda) {
+		f := domain.ExcessiveAddendumFinding(e)
+		excessive.Findings = append(excessive.Findings, f)
+		ids = append(ids, f.ActIDs...)
+	}
+	renewed := domain.PatternReport{Pattern: catalog[domain.PatternRenewedEmergency], Findings: []domain.Finding{}}
+	for _, r := range domain.FindRenewedEmergencies(emergencies) {
+		f := domain.RenewedEmergencyFinding(r)
+		renewed.Findings = append(renewed.Findings, f)
 		ids = append(ids, f.ActIDs...)
 	}
 	peaks := domain.PatternReport{Pattern: catalog[domain.PatternElectionHiring], Findings: []domain.Finding{}}
@@ -42,5 +62,5 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 			acts[h.ID] = h
 		}
 	}
-	return []domain.PatternReport{split, peaks}, acts, nil
+	return []domain.PatternReport{split, excessive, renewed, peaks}, acts, nil
 }

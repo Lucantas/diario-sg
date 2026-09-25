@@ -31,6 +31,8 @@ type ActRepository interface {
 
 type PatternSource interface {
 	DispensaActs(ctx context.Context) ([]domain.DispensaAct, error)
+	AddendumActs(ctx context.Context) ([]domain.AddendumAct, error)
+	EmergencyActs(ctx context.Context) ([]domain.EmergencyAct, error)
 	MonthlyActCounts(ctx context.Context, types []domain.ActType, source string) ([]domain.MonthlyActCount, error)
 	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)
 }

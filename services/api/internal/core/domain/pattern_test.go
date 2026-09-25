@@ -38,3 +38,31 @@ func TestElectionPeakFinding(t *testing.T) {
 		t.Errorf("busca inesperada: %+v", f.Search)
 	}
 }
+
+func TestExcessiveAddendumFinding(t *testing.T) {
+	e := ExcessiveAddendum{ContractKey: "7/2015", Organ: "FMS", TotalBP: 4637, LimitBP: 2500, Acts: []AddendumAct{
+		{ActID: "a", Title: "EXTRATO DO PRIMEIRO TERMO ADITIVO", PublishedAt: civilDate(2015, 9, 8), IncreaseBP: 4637},
+	}}
+
+	f := ExcessiveAddendumFinding(e)
+
+	if f.Title != "Contrato 7/2015 (FMS): aditivos somam 46,37% de acréscimo, acima do limite de 25%" ||
+		f.Detail != "Primeiro termo aditivo, 08/09/2015: 46,37%." || len(f.ActIDs) != 1 {
+		t.Errorf("caso inesperado: %+v", f)
+	}
+}
+
+func TestRenewedEmergencyFinding(t *testing.T) {
+	r := RenewedEmergency{SupplierLabel: "Lógica Tecnologia Ltda", Organ: "PGM", Contracts: []EmergencyContract{
+		{First: civilDate(2021, 1, 22), ActIDs: []string{"a"}},
+		{First: civilDate(2022, 1, 21), ActIDs: []string{"b", "c"}},
+		{First: civilDate(2022, 7, 28), ActIDs: []string{"d"}},
+	}}
+
+	f := RenewedEmergencyFinding(r)
+
+	if f.Title != "Lógica Tecnologia Ltda em PGM: 3 contratações emergenciais seguidas, de 22/01/2021 a 28/07/2022" ||
+		f.Detail != "Contratações emergenciais em 22/01/2021, 21/01/2022 e 28/07/2022." || len(f.ActIDs) != 4 {
+		t.Errorf("caso inesperado: %+v", f)
+	}
+}
