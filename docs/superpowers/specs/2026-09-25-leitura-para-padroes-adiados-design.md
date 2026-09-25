@@ -96,8 +96,49 @@ Medidos na base local em 25/09/2026:
 6. Os dois padrões novos entram em `PatternCatalog`, em `/v1/patterns` e na
    página `/padroes`, que já mostra qualquer padrão do catálogo.
 
+## Ajustes da revisão
+
+A revisão independente achou, com casos reais da base:
+
+- nomes de fornecedor lidos de dentro do nome da secretaria ("Secretaria
+  Municipal de Turismo e Cultura de São Gonçalo/RJ" virava a empresa
+  "Cultura de São Gonçalo/RJ") e de texto solto ("menos favorecidos
+  economicamente"): o " e " que fica dentro do nome de um órgão é pulado,
+  "favorecido" só conta com dois-pontos e nome com palavra em minúscula
+  (fora de, da, do, e) é recusado;
+- acréscimo que pegava o percentual de decréscimo ou de desconto: o aditivo
+  do contrato 05/2016 da FMS lista "46,61% … de acréscimo" e "15,77% … de
+  acréscimo" entre dois decréscimos. Agora a forma "N% de acréscimo" soma
+  todos os itens, e a forma "acréscimo … N%" é recusada quando há
+  decréscimo, supressão, desconto ou redução no meio. Decimal com ponto
+  ("1.72 %") passa a ser lido;
+- inciso de outra lei ("art. 24, I" da LDB, do Código de Trânsito) e
+  citação de proibição ("vedada a recontratação … com base no inciso VIII
+  do art. 75", "na hipótese de contratação direta fundamentada no art. 75,
+  VIII"): a citação só conta com a Lei 8.666, a 14.133 ou "Lei de
+  Licitações" por perto e sem "vedad", "hipótese" ou "recontrata" logo
+  antes; a emergencial só olha dispensa, contrato, licitação e "outro";
+- número de processo ou contrato repetido em órgãos diferentes: a junção é
+  dentro do órgão; o ato sem órgão (ratificação do prefeito) entra pelo
+  processo quando o número só aparece num órgão; caso sem órgão fica de
+  fora nos dois padrões;
+- o mesmo aditivo publicado com e sem ordinal contava duas vezes;
+- "reforma" em outro ato colado no mesmo corpo subia o limite para 50%:
+  agora só no título e no começo do texto;
+- nome ligado a mais de um CNPJ (matriz e filial) não vira alias.
+- o mesmo aditivo republicado dias depois saía em outra seção do Diário,
+  com outro órgão (o 05/2016 da KF Engenharia sob a SEMCOMP e depois sob
+  a SEMDUR): aditivo com o mesmo número de contrato, o mesmo ordinal e o
+  mesmo percentual até 30 dias depois de outro conta como o mesmo.
+
+Resultado na base local depois do reindex: fracionamento, 1 caso (compras;
+nenhum de obras); aditivos acima do limite, 2 casos; emergencial renovada,
+9 casos. Tipos e órgãos dos atos não mudaram com o reindex.
+
 ## Fora do escopo
 
+- Incisos citados juntos ("art. 24, incisos II e IV", "art. 24, I e II"):
+  só o primeiro é lido.
 - Aditivo que só declara o valor em reais, sem percentual.
 - Guardar o nome do fornecedor no banco ou mostrá-lo nos painéis (a Entrega
   3 traz o nome da Receita).

@@ -214,6 +214,45 @@ podem ficar no fim do ato anterior.
 | Contrato | `CONTRATO N° 12/2026`, `CONTRATO Nº 12/2026.`, `Contrato SEMCOM Nº 07/2023`, `CONTRATO 015/SEMPAD/2026`, `CONTRATO DE LOCAÇÃO 006/2020`, `TERMO ADITIVO ... AO CONTRATO ...` | Média: sigla opcional no meio; número pode não ter `Nº`. |
 | Processo | `Processo SEI! nº 03.05511/2026-8` (97), `PROCESSO nº: 1613/2026` (16), `Processo nº 9841/2026` (15), `Processo Administrativo nº 8.189/2025` (13), `PROCESSO SEI: 03.01508/2026-9` (11), `Processo no 9841/2026`, `Processo: 1613/2026`, `PROCEDIMENTO ADMINISTRATIVO Nº 9720/2026`, `SEI53.01067/2026-4` (sem espaço, em tabela) | Alta para os dois formatos (`NN.NNNNN/AAAA-D` do SEI e `NNNN/AAAA` legado). |
 
+### Fundamento da dispensa, acréscimo de aditivo e nome do fornecedor
+
+Lidos na indexação (`acts.legal_basis` e `acts.declared_increase_bp`,
+migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
+2 minutos na base inteira.
+
+- **Fundamento da dispensa.** O inciso aparece nas duas ordens: `art. 24,
+  inciso IV`, `art. 24, inc. IV`, `Art. 75, caput, inciso II`, `art. 75,
+  VIII` e `inciso VIII do art. 75`. Só entram os incisos que os padrões usam
+  (24: I, II e IV; 75: I, II e VIII); `art. 24, XIII` e `art. 75, III`
+  ficam de fora.
+- **Acréscimo de aditivo.** O percentual vem depois da palavra
+  ("acréscimo … que equivale a 24,88% do valor contratado", "acréscimo
+  equivalente à 10%") ou antes de "acrescido". Três armadilhas:
+  - reajuste também vem em percentual, e acumulado desde o início do
+    contrato: o quinto aditivo do contrato 001/SEMCON/2022, "COM
+    REAJUSTE", diz "acréscimo de 26,92% do valor original", o mesmo número
+    do "reajuste de 26,92%" do quarto. Aditivo com reajuste no título ou no
+    começo não conta, salvo se também for quantitativo ou qualitativo;
+  - a retificação repete o aditivo ("Onde se lê: … acréscimo financeiro de
+    aproximadamente 20,99%");
+  - o limite da lei aparece como percentual ("respeitado o limite de até
+    25%").
+  O valor em reais do acréscimo muitas vezes é o novo total do contrato,
+  por isso não é usado.
+- **Nome do fornecedor.** Muitos extratos de contratação emergencial não
+  trazem CNPJ: "Partes: Procuradoria Geral do Município de São Gonçalo X
+  Lógica Tecnologia Ltda Objeto: …". O nome vem depois de "Partes: … X" ou
+  "… e a empresa", "em favor da empresa", "Contratado:" e "Favorecida:", e
+  termina na vírgula, no ponto seguido de palavra capitalizada ("Ltda.
+  Objeto"), em " - " ou em palavras como "objeto", "valor", "para" e
+  "inscrita". Ponto dentro do nome ("F.P. VIEIRA ENGENHARIA LTDA", "C.
+  TEIXEIRA") não corta. Para comparar publicações, a chave tira acentos,
+  pontuação e sufixos societários: "LOGICA TECNOLOGIA EIRELI" e "Lógica
+  Tecnologia Ltda" são a mesma empresa.
+- **Ratificação da emergência sem fornecedor e sem órgão.** "RECONHEÇO E
+  RATIFICO … a Dispensa Emergencial, Processo n.º 2047/21" sai como ato do
+  prefeito; ela se liga ao extrato do contrato pelo número do processo.
+
 ## Decisões tomadas no parser (ver `services/api/internal/adapters/parser`)
 
 1. Extrair sem `-layout`.

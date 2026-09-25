@@ -252,12 +252,23 @@ Ainda sem fonte externa.
   - ✅ Picos de nomeação e de exoneração nos seis meses antes da eleição
     municipal, a partir de 1,5 vez a mediana do mesmo mês nos anos sem
     eleição. Na base local, 6 meses (2012, 2016 e 2020).
-  - [ ] Aditivos que somam mais de 25% do valor original do contrato: o
-    valor lido do aditivo quase sempre é o de uma prorrogação, não o
-    acréscimo; precisa de extração própria.
-  - [ ] Contratação emergencial renovada seguidamente: "emergência" aparece
-    em contextos variados; precisa de regra de texto mais estreita.
-  - [ ] Dispensa por valor de obras (inciso I) no fracionamento.
+  - ✅ Aditivos do mesmo contrato cujos acréscimos declarados no texto
+    somam mais de 25% (50% em reforma). Reajuste, retificação e a mesma
+    publicação repetida não contam. Na base local, 2 casos: contrato FMS
+    007/2015 (46,37%, compra) e 05/2016 da KF Engenharia (62,38%, reforma e
+    construção; o Diário publicou o aditivo sob a SEMCOMP, mas as partes
+    são da FMS).
+  - ✅ Contratação emergencial da mesma empresa no mesmo órgão, uma
+    começando entre 30 dias e 24 meses depois da outra, com a empresa pelo
+    CNPJ ou pelo nome lido do texto. Na base local, 9 casos (2013 a 2023).
+  - ✅ Dispensa por valor de obras (inciso I) no fracionamento, com limite
+    próprio. Na base local, nenhum caso.
+  Os três leem na indexação o inciso de dispensa citado e o acréscimo
+  declarado (`acts.legal_basis` e `acts.declared_increase_bp`, migration
+  013); o nome do fornecedor é lido na consulta. Desenho em
+  `docs/superpowers/specs/2026-09-25-leitura-para-padroes-adiados-design.md`.
+  - [ ] Incisos citados juntos ("art. 24, incisos II e IV"): só o primeiro
+    é lido.
 
 Linguagem: sempre "padrão para verificar", nunca "irregularidade".
 
@@ -269,6 +280,9 @@ Pendências:
 - [ ] Na nuvem: aplicar a migration 012 (inscrição de entidade) antes de
   publicar a imagem nova da API e do worker; o worker antigo não lê
   inscrição sem `query`.
+- [ ] Na nuvem: aplicar a migration 013 e rodar `make reindex` de 2010 até
+  hoje depois de publicar a imagem nova; sem o reindex, os padrões de
+  aditivo e de emergencial ficam vazios para as edições antigas.
 
 ## Entrega 3 — Quem é o fornecedor
 
