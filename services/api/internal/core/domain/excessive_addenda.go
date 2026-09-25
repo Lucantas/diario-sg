@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	addendumRepublicationGap  = 30 * 24 * time.Hour
 	addendumLimitBP           = 2500
 	renovationAddendumLimitBP = 5000
 )
@@ -32,7 +33,7 @@ type addendumContract struct{ key, organ string }
 
 func FindExcessiveAddenda(acts []AddendumAct) []ExcessiveAddendum {
 	byContract := map[addendumContract][]AddendumAct{}
-	for _, a := range acts {
+	for _, a := range withoutRepublications(acts) {
 		if a.IncreaseBP <= 0 {
 			continue
 		}
@@ -88,4 +89,38 @@ func excessiveAddendumOf(k addendumContract, list []AddendumAct) (ExcessiveAdden
 		e.Acts = append(e.Acts, a)
 	}
 	return e, e.TotalBP > e.LimitBP
+}
+
+type addendumIdentity struct {
+	key      string
+	ordinal  int
+	increase int
+}
+
+func withoutRepublications(acts []AddendumAct) []AddendumAct {
+	sorted := append([]AddendumAct(nil), acts...)
+	sort.Slice(sorted, func(i, j int) bool {
+		if !sorted[i].PublishedAt.Equal(sorted[j].PublishedAt) {
+			return sorted[i].PublishedAt.Before(sorted[j].PublishedAt)
+		}
+		return sorted[i].ActID < sorted[j].ActID
+	})
+	firstSeen := map[addendumIdentity]time.Time{}
+	var out []AddendumAct
+	for _, a := range sorted {
+		ord := AddendumOrdinal(a.Title, a.Body)
+		republished := false
+		for _, key := range a.ContractKeys {
+			id := addendumIdentity{key, ord, a.IncreaseBP}
+			if first, ok := firstSeen[id]; ok && a.PublishedAt.Sub(first) <= addendumRepublicationGap {
+				republished = true
+			} else if !ok {
+				firstSeen[id] = a.PublishedAt
+			}
+		}
+		if !republished {
+			out = append(out, a)
+		}
+	}
+	return out
 }

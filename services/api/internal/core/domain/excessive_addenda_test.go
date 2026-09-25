@@ -76,3 +76,18 @@ func TestFindExcessiveAddendaSkipsContractsWithoutOrgan(t *testing.T) {
 		t.Fatalf("contrato sem órgão pode ser de órgãos diferentes: %+v", got)
 	}
 }
+
+func TestFindExcessiveAddendaTreatsARepublicationUnderAnotherOrganAsTheSame(t *testing.T) {
+	title := "EXTRATO DO PRIMEIRO TERMO ADITIVO DE VALOR AO CONTRATO Nº 05/2016."
+	body := "46,61 % (quarenta e seis, vírgula sessenta e um por cento) de acréscimo, para obra de reforma e ampliação do PAM COELHO"
+	acts := []AddendumAct{
+		addendumAct("semcomp", "5/2016", "SEMCOMP", civilDate(2017, 10, 3), title, body, 6238),
+		addendumAct("semdur", "5/2016", "SEMDUR", civilDate(2017, 10, 6), title, body, 6238),
+	}
+
+	got := FindExcessiveAddenda(acts)
+
+	if len(got) != 1 || got[0].Organ != "SEMCOMP" {
+		t.Fatalf("a republicação três dias depois é o mesmo aditivo: %+v", got)
+	}
+}
