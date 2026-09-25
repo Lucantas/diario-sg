@@ -238,8 +238,15 @@ Ainda sem fonte externa.
   - [ ] Nome da empresa (Entrega 3).
   - [ ] Valor de aditivos e prorrogações, com a mesma extração própria
     adiada nos padrões.
-  - [ ] Valor de ata que é preço unitário (há atas com "valor" de R$ 2,58):
-    o valor principal lido do texto pega o primeiro "valor … R$".
+  - ✅ Valor de ata que é preço unitário (25/09/2026): o "Valor Total" que
+    é cabeçalho de coluna ("Valor Unitário Valor Total", "MARCA VALOR
+    REGISTRADO") ou célula de tabela ("VALOR TOTAL R$ 2.994,00 R$
+    22.312,80") não conta; vale o total fora da tabela, e sem ele o ato
+    fica sem valor. No reindex, 137 atos mudaram de valor (108 ficaram sem
+    valor, 29 trocaram o preço unitário pelo total); nos painéis, as atas
+    passaram de R$ 1,22 bilhão para R$ 1,30 bilhão e as contratações com
+    valor de 1.373 para 1.336, com o contratado quase igual (R$ 904,9
+    milhões).
 - **Padrões para verificar** (regras fixas, cada uma com a regra em texto e
   os atos que a acionaram), em `/padroes` e `GET /v1/patterns`, calculados
   na leitura. Desenho em
@@ -267,8 +274,10 @@ Ainda sem fonte externa.
   declarado (`acts.legal_basis` e `acts.declared_increase_bp`, migration
   013); o nome do fornecedor é lido na consulta. Desenho em
   `docs/superpowers/specs/2026-09-25-leitura-para-padroes-adiados-design.md`.
-  - [ ] Incisos citados juntos ("art. 24, incisos II e IV"): só o primeiro
-    é lido.
+  - ✅ Incisos citados juntos ("art. 24, incisos I e II", "incisos I e II
+    do art. 75") contam todos (25/09/2026); na base local, 15 atos
+    ganharam incisos, um deles extrato de contrato, e os padrões não
+    mudaram.
 
 Linguagem: sempre "padrão para verificar", nunca "irregularidade".
 
@@ -282,7 +291,8 @@ Pendências:
   inscrição sem `query`.
 - [ ] Na nuvem: aplicar a migration 013 e rodar `make reindex` de 2010 até
   hoje depois de publicar a imagem nova; sem o reindex, os padrões de
-  aditivo e de emergencial ficam vazios para as edições antigas.
+  aditivo e de emergencial ficam vazios para as edições antigas, e os
+  incisos citados juntos e o valor das tabelas de preço ficam como antes.
 
 ## Entrega 3 — Quem é o fornecedor
 

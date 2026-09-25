@@ -135,10 +135,21 @@ Resultado na base local depois do reindex: fracionamento, 1 caso (compras;
 nenhum de obras); aditivos acima do limite, 2 casos; emergencial renovada,
 9 casos. Tipos e órgãos dos atos não mudaram com o reindex.
 
+## Depois da entrega
+
+Incisos citados juntos ("art. 24, incisos I e II", "incisos I e II do
+art. 75") ficaram de fora na primeira versão, e a leitura nem pegava o
+primeiro da lista, porque não aceitava "incisos" no plural. Na base local
+só um ato de contratação cita incisos juntos: um extrato de contrato de
+21/12/2020 com "ARTIGO 24, INCISOS I E II DA LEI FEDERAL N.º 8.666/93"; os
+outros cerca de 50 são do Código de Trânsito ("art.24, incisos II e III, da
+Lei nº 9.503") e continuam de fora. Agora cada inciso da lista conta, com
+as mesmas travas de lei e de proibição. Um ato que cita I e II fica em
+compras e serviços, o limite menor, porque o texto não diz qual dos dois
+vale para o objeto.
+
 ## Fora do escopo
 
-- Incisos citados juntos ("art. 24, incisos II e IV", "art. 24, I e II"):
-  só o primeiro é lido.
 - Aditivo que só declara o valor em reais, sem percentual.
 - Guardar o nome do fornecedor no banco ou mostrá-lo nos painéis (a Entrega
   3 traz o nome da Receita).

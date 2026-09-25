@@ -210,7 +210,7 @@ podem ficar no fim do ato anterior.
 | Campo | Formatos (com frequência nas 7 edições) | Regularidade |
 | --- | --- | --- |
 | CNPJ | `CNPJ: 12.345.678/0001-90` (20), `CNPJ n° ...` (7), `CNPJ nº ...` (3), `CNPJ/CPF: ...` (3), `CNPJ ...` (2), `inscrita sob o CNPJ n° ...`. Variações: `12.345.678/0001- 90` (espaço), `12.345678/0001-90` (ponto faltando), `-901` (dígito a mais por erro). 57 ocorrências no formato padrão. | Alta: regex funciona. Não há CNPJ sem pontuação. |
-| Valor | `R$ 59.571,78` (dominante), `R$59,00` (sem espaço), `R$ 1` (cabeçalho `VALOR (R$ 1)` de tabela: **não** é valor), valores por extenso entre parênteses. Em atas de registro de preços há dezenas de valores unitários por ato. | Alta para o número; a **semântica** (mensal, global, unitário, por exercício) só está no rótulo anterior (`VALOR MENSAL:`, `VALOR GLOBAL:`). |
+| Valor | `R$ 59.571,78` (dominante), `R$59,00` (sem espaço), `R$ 1` (cabeçalho `VALOR (R$ 1)` de tabela: **não** é valor), valores por extenso entre parênteses. Em atas de registro de preços há dezenas de valores unitários por ato, em tabelas com cabeçalho `Valor Unitário Valor Total`, `MARCA VALOR REGISTRADO` ou `VALOR VALOR TOTAL UNIT.`: o primeiro `R$` depois de "Valor Total" é o preço unitário do primeiro item, então o rótulo que é cabeçalho de coluna não conta, e vale o seguinte (`Valor Global:`, `VALOR TOTAL ITENS:`). O pdftotext também embaralha as colunas: "VALOR TOTAL R$ 2.994,00 R$ 22.312,80" é célula de tabela (outro valor emendado, sem dois-pontos); "VALOR TOTAL ITENS: R$ 12.288,37 R$ 240,85" (com dois-pontos) e "VALOR TOTAL R$ 259.000,00 R$ 259.000,00" (o mesmo valor repetido) são totais. Texto com tabela e sem total limpo fica sem valor: o "no valor de" que sobra costuma ser de outro ato colado no corpo. | Alta para o número; a **semântica** (mensal, global, unitário, por exercício) só está no rótulo anterior (`VALOR MENSAL:`, `VALOR GLOBAL:`). |
 | Contrato | `CONTRATO N° 12/2026`, `CONTRATO Nº 12/2026.`, `Contrato SEMCOM Nº 07/2023`, `CONTRATO 015/SEMPAD/2026`, `CONTRATO DE LOCAÇÃO 006/2020`, `TERMO ADITIVO ... AO CONTRATO ...` | Média: sigla opcional no meio; número pode não ter `Nº`. |
 | Processo | `Processo SEI! nº 03.05511/2026-8` (97), `PROCESSO nº: 1613/2026` (16), `Processo nº 9841/2026` (15), `Processo Administrativo nº 8.189/2025` (13), `PROCESSO SEI: 03.01508/2026-9` (11), `Processo no 9841/2026`, `Processo: 1613/2026`, `PROCEDIMENTO ADMINISTRATIVO Nº 9720/2026`, `SEI53.01067/2026-4` (sem espaço, em tabela) | Alta para os dois formatos (`NN.NNNNN/AAAA-D` do SEI e `NNNN/AAAA` legado). |
 
@@ -224,7 +224,11 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
   inciso IV`, `art. 24, inc. IV`, `Art. 75, caput, inciso II`, `art. 75,
   VIII` e `inciso VIII do art. 75`. Só entram os incisos que os padrões usam
   (24: I, II e IV; 75: I, II e VIII); `art. 24, XIII` e `art. 75, III`
-  ficam de fora.
+  ficam de fora. Incisos citados juntos contam todos: "ARTIGO 24, INCISOS
+  I E II DA LEI FEDERAL N.º 8.666/93" (um extrato de contrato de
+  21/12/2020) e "incisos I e II do art. 75". O "art.24, incisos II e III,
+  da Lei nº 9.503" das resoluções de trânsito é do Código de Trânsito e
+  fica de fora pela falta da lei de licitações por perto.
 - **Acréscimo de aditivo.** O percentual vem depois da palavra
   ("acréscimo … que equivale a 24,88% do valor contratado", "acréscimo
   equivalente à 10%") ou antes de "acrescido". Três armadilhas:
