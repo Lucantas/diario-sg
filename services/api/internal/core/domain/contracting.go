@@ -3,6 +3,7 @@ package domain
 import (
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type Modality string
@@ -78,6 +79,7 @@ var (
 	brandColumnBeforeLabelRe = regexp.MustCompile(`(?i)(?:^|\s)marca\s*$`)
 	registeredLabelRe        = regexp.MustCompile(`(?i)^valor\s+registrado`)
 	unitAfterLabelRe         = regexp.MustCompile(`(?i)\bunit`)
+	anotherValueNextRe       = regexp.MustCompile(`^\s*R\$\s?\d`)
 )
 
 func MainValueCents(t ActType, body string) int64 {
@@ -111,9 +113,13 @@ func firstMainValue(re *regexp.Regexp, body string) (int64, bool) {
 	return 0, false
 }
 
+func isTableCell(body string, m []int) bool {
+	return !strings.Contains(body[m[0]:m[2]], ":") && anotherValueNextRe.MatchString(body[m[1]:])
+}
+
 func isPriceTableHeader(body string, m []int) bool {
 	before := body[max(0, m[0]-tableHeaderBeforeWindow):m[0]]
 	label := body[m[0]:m[2]]
-	return unitColumnBeforeLabelRe.MatchString(before) || unitAfterLabelRe.MatchString(label) ||
+	return unitColumnBeforeLabelRe.MatchString(before) || unitAfterLabelRe.MatchString(label) || isTableCell(body, m) ||
 		(registeredLabelRe.MatchString(label) && brandColumnBeforeLabelRe.MatchString(before))
 }
