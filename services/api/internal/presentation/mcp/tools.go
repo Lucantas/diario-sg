@@ -205,6 +205,10 @@ func (s *server) register(srv *sdk.Server) {
 	sdk.AddTool(srv, &sdk.Tool{Name: "fontes", Annotations: readOnly, Description: "Fontes de dados do Diário SG, " +
 		"com o período coberto, a última coleta e as lacunas conhecidas. Consulte antes de concluir que algo não existe."},
 		recorded(s, "fontes", s.sources))
+	if s.politicalAgents != nil {
+		sdk.AddTool(srv, &sdk.Tool{Name: "agentes_politicos", Annotations: readOnly, Description: agentsDescription},
+			recorded(s, "agentes_politicos", s.agents))
+	}
 }
 
 func recorded[In, Out any](s *server, tool string, h sdk.ToolHandlerFor[In, Out]) sdk.ToolHandlerFor[In, Out] {

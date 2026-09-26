@@ -267,3 +267,19 @@ type RegistryReader interface {
 	RegistryMonth(ctx context.Context) (*time.Time, error)
 	NamesByCNPJ(ctx context.Context, cnpjs []string) (map[string]string, error)
 }
+
+type PoliticalAgentSource interface {
+	PrefeituraPay(ctx context.Context, year, month int) ([]byte, error)
+	CamaraPay(ctx context.Context, year int) ([]byte, error)
+	Councillors(ctx context.Context, year int) ([]byte, error)
+}
+
+type PoliticalAgentRepository interface {
+	Ready(ctx context.Context) error
+	SavePoliticalAgents(ctx context.Context, load domain.PoliticalAgentLoad) error
+}
+
+type PoliticalAgentReader interface {
+	AgentPay(ctx context.Context) ([]domain.AgentPay, error)
+	Councillors(ctx context.Context) ([]domain.Councillor, error)
+}

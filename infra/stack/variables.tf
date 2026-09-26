@@ -104,3 +104,9 @@ variable "federal_schedule" {
   type        = string
   default     = "0 8 * * 0"
 }
+
+variable "agentes_schedule" {
+  description = "Cron da carga mensal da remuneração dos agentes políticos (prefeito, vice, secretários, Procurador-Geral e vereadores) dos três últimos meses (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 9 10 * *"
+}

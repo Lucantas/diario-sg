@@ -152,6 +152,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/panels/suppliers` | Maiores fornecedores pelo valor declarado nos extratos, calculados na leitura. `year`, `organ` e `source` (padrão `diario_prefeitura`) filtram. Cada contratação (atos do mesmo CNPJ ligados pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato; ata de registro de preços sem contrato vai para `registered_cents`; aditivos, homologações, multas, sanções, notificações, cancelamentos e atos com mais de um fornecedor ficam de fora. Traz `items` (50 primeiros, com `largest`, o ato de maior valor no formato da busca), `years` (respeita `organ`) e `organs` (respeita `year`) |
 | GET | `/v1/panels/staff?unit=` | Vínculos e remuneração por mês e grupo de situação funcional, informados pelo município ao TCE-RJ (de 2024 em diante), com as nomeações e exonerações do Diário no mês (`diario_source` diz qual). Traz `units`, `groups` (na ordem das colunas) e `months` (do mais recente ao mais antigo); unidade desconhecida é 400 |
 | GET | `/v1/tce` | Controle do TCE-RJ sobre São Gonçalo: `accounts` (parecer prévio por exercício), `penalties` (débitos e multas agrupados por processo do TCE, com `search`, a busca do número no Diário) e `works` (obras paralisadas); `/v1/entities/cnpj/{cnpj}` traz as obras da empresa em `stalled_works` |
+| GET | `/v1/agentes?role=&q=` | Agentes políticos: `agents` (órgão, cargo, nome, lotações, partido e nome parlamentar do vereador, primeiro e último mês e `months` com bruto, descontos e líquido), `norms` (subsídio fixado, com a busca da norma no Diário) e `coverage` (meses carregados de cada folha); `role` (`prefeito`, `vice_prefeito`, `secretario`, `procurador_geral`, `vereador`) e `q` (parte do nome, do nome parlamentar ou da lotação) filtram |
 | GET | `/v1/federal` | Dinheiro federal: `transfers` (soma por ano, tipo e função, com `transfers_coverage`, os meses carregados), `amendments` (emendas com aplicação em São Gonçalo) e `favored` (pessoas jurídicas de São Gonçalo que receberam pagamento de emenda, somadas por CNPJ); `/v1/entities/cnpj/{cnpj}` traz os pagamentos à empresa em `amendment_payments` |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
@@ -187,8 +188,10 @@ lista contratos e CNPJs, contrato lista processos e CNPJs)), `agrupar`
 (conta os atos por CNPJ, processo, órgão ou tipo com os filtros da busca,
 e por padrão deixa os CNPJs de órgãos públicos de fora), `pagina_original`
 (texto cru de uma página do PDF arquivado, com o SHA-256, para conferir o
-que o parser leu) e `fontes`
-(período coberto, última coleta e lacunas de cada diário). `buscar_atos` e
+que o parser leu), `fontes`
+(período coberto, última coleta e lacunas de cada diário) e
+`agentes_politicos` (prefeito, vice, secretários, Procurador-Geral e
+vereadores com a remuneração mês a mês e o subsídio fixado em lei). `buscar_atos` e
 `agrupar` aceitam `modalidade`, `valor_principal_min`/`valor_principal_max`
 e `nome` (pessoa ou empresa com as palavras juntas, sem as listas longas de
 nomes, a menos que venha `incluir_listas`);
@@ -291,6 +294,32 @@ seguidos, então o job espera 20 segundos entre um e outro. A página
 ```bash
 make federal                         # emendas e três últimos meses
 make federal FROM=202101 TO=202312   # transferências de outra faixa
+```
+
+## Agentes políticos
+
+Todo dia 10 às 09:00, o job `agentes` lê a folha dos três últimos meses:
+a da Prefeitura pela API do portal de transparência (um mês por pedido,
+de 10/2010 em diante, só o bruto) e a da Câmara pela exportação em JSON do
+portal da Câmara (um ano por pedido, de 2017 em diante, com vencimentos,
+descontos e líquido). Guarda só os agentes políticos em
+`political_agent_pay`: da Prefeitura, a função `PREFEITO`,
+`VICE-PREFEITO`, `SECRETARIO MUNICIPAL` ou `PROCURADOR GERAL DO
+MUNICIPIO`; da Câmara, o regime `Agente Político` com cargo `VEREADOR`.
+Toda outra linha é descartada na leitura (ADR 0006). Os vereadores da
+legislatura (nome parlamentar, partido, situação) vêm da API de integração
+do SICAM que o site da Câmara usa e ficam em `councillors`. O arquivo
+bruto guarda só as linhas dos agentes, com o SHA-256 de cada resposta
+inteira. Cada folha substitui só os próprios meses: se a da Câmara falha,
+a da Prefeitura é gravada assim mesmo, e o erro fica na coleta. A página
+`/agentes` mostra o subsídio fixado (Lei nº 1.554/2024 e Resolução
+nº 2.156/2024) e cada agente mês a mês. Como o nome é a única chave, a
+mesma pessoa com grafias diferentes entre meses (NATAM e NATAN, por
+exemplo) aparece como dois agentes.
+
+```bash
+make agentes                            # três últimos meses
+make agentes FROM=2010-10 TO=2026-09    # histórico
 ```
 
 ## Contratos do PNCP

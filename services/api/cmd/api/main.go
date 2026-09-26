@@ -56,7 +56,7 @@ func run(l *slog.Logger) error {
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
 		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
-		Coverage: usecase.NewSourceCoverage(gazettes), Keys: keys, PublicWebURL: cfg.PublicWebURL, Log: l})
+		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Keys: keys, PublicWebURL: cfg.PublicWebURL, Log: l})
 
 	api := &httpapi.API{
 		Search:        search,
@@ -69,6 +69,7 @@ func run(l *slog.Logger) error {
 		Staff:         usecase.NewGetStaffPanel(postgres.NewStaffRepo(db), postgres.NewPatternRepo(db)),
 		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db)),
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db)),
+		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
 		Organs:        usecase.NewListOrgans(acts),
 		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Export:        usecase.NewExportActs(acts),

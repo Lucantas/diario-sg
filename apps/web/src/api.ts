@@ -215,6 +215,30 @@ export function getFederal() {
   return request<FederalReport>("/v1/federal");
 }
 
+export type AgentRole = "prefeito" | "vice_prefeito" | "secretario" | "procurador_geral" | "vereador";
+
+export interface PoliticalAgent {
+  body: "prefeitura" | "camara";
+  role: AgentRole;
+  name: string;
+  offices: string[];
+  party?: string;
+  parliamentary_name?: string;
+  first: string;
+  last: string;
+  months: { month: string; office: string; gross_cents: number; discount_cents: number | null; net_cents: number | null }[];
+}
+
+export interface PoliticalAgentsReport {
+  agents: PoliticalAgent[];
+  norms: { role: AgentRole; from_year: number; to_year: number; value_cents: number; norm: string; diario: string; search: string }[];
+  coverage: { body: "prefeitura" | "camara"; from: string; to: string }[];
+}
+
+export function getPoliticalAgents() {
+  return request<PoliticalAgentsReport>("/v1/agentes");
+}
+
 export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;

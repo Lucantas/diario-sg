@@ -22,6 +22,7 @@ const (
 	RolePayments  Role = "tce"
 	RolePNCP      Role = "pncp"
 	RoleFederal   Role = "federal"
+	RoleAgents    Role = "agentes"
 )
 
 type Config struct {
@@ -42,6 +43,9 @@ type Config struct {
 	CGUBaseURL         string
 	TCEBaseURL         string
 	PNCPBaseURL        string
+	PrefeituraPayURL   string
+	CamaraPayURL       string
+	SICAMURL           string
 }
 
 func Load(role Role) (Config, error) {
@@ -63,6 +67,10 @@ func Load(role Role) (Config, error) {
 		CGUBaseURL:         getenv("CGU_BASE_URL", "https://portaldatransparencia.gov.br/download-de-dados/"),
 		TCEBaseURL:         getenv("TCE_BASE_URL", "https://dados.tcerj.tc.br/api/v1/"),
 		PNCPBaseURL:        getenv("PNCP_BASE_URL", "https://pncp.gov.br/api/consulta/v1/"),
+		PrefeituraPayURL: getenv("PREFEITURA_PAY_URL",
+			"https://sistema.pmsg.rj.gov.br/pmsaogoncalo/websis/portal_transparencia/financeiro/contas_publicas/lai_remuneracoes_api.php"),
+		CamaraPayURL: getenv("CAMARA_PAY_URL", "https://cmsaogoncalo-rj.portaltp.com.br/api/pessoal/api-servidores.aspx"),
+		SICAMURL:     getenv("SICAM_URL", "https://sg.processolegislativo.com.br/integracao/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
@@ -71,7 +79,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal {
+	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {

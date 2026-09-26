@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex receita sancoes tce pncp federal dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex receita sancoes tce pncp federal agentes dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -36,6 +36,9 @@ tce: ## Carrega os empenhos do TCE-RJ: make tce [FROM=AAAA TO=AAAA] (padrão: an
 
 federal: ## Carrega emendas e transferências federais: make federal [FROM=AAAAMM TO=AAAAMM] (padrão: três últimos meses)
 	cd services/api && go run ./cmd/federal -from "$(FROM)" -to "$(TO)"
+
+agentes: ## Carrega a remuneração dos agentes políticos: make agentes [FROM=AAAA-MM TO=AAAA-MM] (padrão: três últimos meses)
+	cd services/api && go run ./cmd/agentes -from "$(FROM)" -to "$(TO)"
 
 pncp: ## Carrega os contratos do município no PNCP: make pncp [FROM=AAAA TO=AAAA] (padrão: 2021 ao ano corrente)
 	cd services/api && go run ./cmd/pncp -from "$(or $(FROM),0)" -to "$(or $(TO),0)"

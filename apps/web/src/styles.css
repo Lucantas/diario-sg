@@ -121,6 +121,8 @@ button:disabled { opacity: 0.6; cursor: progress; }
 .largest summary { cursor: pointer; color: var(--action); font-size: 0.9rem; margin-top: 0.5rem; }
 .largest ol { list-style: none; margin: 0.5rem 0 0; padding: 0; }
 .totals { overflow-x: auto; }
+.table-scroll { overflow-x: auto; }
+.table-scroll :is(th, td) { padding: 0.2rem 0.75rem 0.2rem 0; text-align: left; }
 .totals table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .totals th, .totals td { padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
 @media (max-width: 36rem) {

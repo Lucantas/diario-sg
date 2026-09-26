@@ -40,6 +40,7 @@ type Deps struct {
 	Group        *usecase.GroupActs
 	Page         *usecase.ReadPage
 	Coverage     *usecase.SourceCoverage
+	Agents       *usecase.GetPoliticalAgents
 	Keys         *usecase.APIKeys
 	PublicWebURL string
 	Log          *slog.Logger
@@ -47,16 +48,17 @@ type Deps struct {
 }
 
 type server struct {
-	searchActs     *usecase.SearchActs
-	readAct        *usecase.ReadAct
-	getEntity      *usecase.GetEntity
-	groupActs      *usecase.GroupActs
-	readPage       *usecase.ReadPage
-	sourceCoverage *usecase.SourceCoverage
-	keys           *usecase.APIKeys
-	webURL         string
-	log            *slog.Logger
-	now            func() time.Time
+	searchActs      *usecase.SearchActs
+	readAct         *usecase.ReadAct
+	getEntity       *usecase.GetEntity
+	groupActs       *usecase.GroupActs
+	readPage        *usecase.ReadPage
+	sourceCoverage  *usecase.SourceCoverage
+	politicalAgents *usecase.GetPoliticalAgents
+	keys            *usecase.APIKeys
+	webURL          string
+	log             *slog.Logger
+	now             func() time.Time
 
 	mu         sync.Mutex
 	covered    []domain.Coverage
@@ -68,7 +70,7 @@ func NewHandler(d Deps) http.Handler {
 	if d.Now == nil {
 		d.Now = time.Now
 	}
-	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, keys: d.Keys,
+	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, politicalAgents: d.Agents, keys: d.Keys,
 		webURL: strings.TrimRight(d.PublicWebURL, "/"), log: d.Log, now: d.Now}
 	srv := sdk.NewServer(&sdk.Implementation{Name: "diario-sg", Title: "Diário SG", Version: "0.1.0", WebsiteURL: s.webURL},
 		&sdk.ServerOptions{Instructions: instructions, Logger: d.Log})

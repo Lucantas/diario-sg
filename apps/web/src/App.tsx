@@ -3,6 +3,7 @@ import { confirmSubscription, unsubscribe } from "./api";
 import { CompanyPage } from "./CompanyPage";
 import { DataPage } from "./DataPage";
 import { EntityPage } from "./EntityPage";
+import { AgentsPage } from "./AgentsPage";
 import { FederalPage } from "./FederalPage";
 import { parseEntityPath } from "./entity";
 import { McpPage } from "./McpPage";
@@ -24,6 +25,7 @@ export function App() {
   if (path === "/pessoal") return <StaffPage />;
   if (path === "/tce") return <TCEPage />;
   if (path === "/federal") return <FederalPage />;
+  if (path === "/agentes") return <AgentsPage />;
   const entity = parseEntityPath(path);
   if (entity) return <EntityPage kind={entity.kind} slug={entity.slug} />;
   const company = path.match(/^\/empresa\/([\d./-]+)$/);
