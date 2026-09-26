@@ -158,6 +158,19 @@ type RegistryRepository interface {
 	Replace(ctx context.Context, month time.Time, load domain.RegistryLoad) error
 }
 
+type PNCPSource interface {
+	Contracts(ctx context.Context, org string, year int, each func(c domain.PNCPContract, company bool) error) (string, error)
+}
+
+type PNCPRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceYears(ctx context.Context, from, to int, contracts []domain.PNCPContract) error
+}
+
+type PNCPReader interface {
+	PNCPContractsBySupplier(ctx context.Context, cnpj string) ([]domain.PNCPContract, error)
+}
+
 type PaymentSource interface {
 	Commitments(ctx context.Context, year int, each func(header, row []string) error) (string, error)
 }

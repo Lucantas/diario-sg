@@ -20,6 +20,7 @@ const (
 	RoleReceita   Role = "receita"
 	RoleSanctions Role = "sancoes"
 	RolePayments  Role = "tce"
+	RolePNCP      Role = "pncp"
 )
 
 type Config struct {
@@ -39,6 +40,7 @@ type Config struct {
 	ReceitaShareToken  string
 	CGUBaseURL         string
 	TCEBaseURL         string
+	PNCPBaseURL        string
 }
 
 func Load(role Role) (Config, error) {
@@ -59,6 +61,7 @@ func Load(role Role) (Config, error) {
 		ReceitaShareToken:  getenv("RECEITA_SHARE_TOKEN", "YggdBLfdninEJX9"),
 		CGUBaseURL:         getenv("CGU_BASE_URL", "https://portaldatransparencia.gov.br/download-de-dados/"),
 		TCEBaseURL:         getenv("TCE_BASE_URL", "https://dados.tcerj.tc.br/api/v1/"),
+		PNCPBaseURL:        getenv("PNCP_BASE_URL", "https://pncp.gov.br/api/consulta/v1/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
@@ -67,7 +70,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments {
+	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {
