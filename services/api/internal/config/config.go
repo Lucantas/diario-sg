@@ -21,6 +21,7 @@ const (
 	RoleSanctions Role = "sancoes"
 	RolePayments  Role = "tce"
 	RolePNCP      Role = "pncp"
+	RoleFederal   Role = "federal"
 )
 
 type Config struct {
@@ -70,7 +71,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP {
+	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {

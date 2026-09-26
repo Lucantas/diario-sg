@@ -188,6 +188,27 @@ type StaffReader interface {
 	StaffUnits(ctx context.Context) ([]string, error)
 }
 
+type FederalSource interface {
+	LatestMonth(ctx context.Context, dataset string) (time.Time, error)
+	ZipCSVs(ctx context.Context, file string, each func(name string, header, row []string) error) (string, error)
+}
+
+type FederalRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceAmendments(ctx context.Context, amendments []domain.Amendment, payments []domain.AmendmentPayment) error
+	ReplaceTransferMonth(ctx context.Context, month time.Time, transfers []domain.FederalTransfer) error
+}
+
+type FederalReader interface {
+	Amendments(ctx context.Context) ([]domain.Amendment, error)
+	AmendmentPayments(ctx context.Context) ([]domain.AmendmentPayment, error)
+	TransferTotals(ctx context.Context) ([]domain.TransferTotal, error)
+}
+
+type AmendmentPaymentReader interface {
+	AmendmentPaymentsByCNPJ(ctx context.Context, cnpj string) ([]domain.AmendmentPayment, error)
+}
+
 type OversightSource interface {
 	Dataset(ctx context.Context, name string) ([]byte, error)
 }

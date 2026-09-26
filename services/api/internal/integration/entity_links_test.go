@@ -15,7 +15,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
 
-const resetTables = `TRUNCATE gazettes, subscriptions, api_keys, entities, fetch_runs, rf_companies, rf_establishments, rf_partners, cgu_sanctions, payments, pncp_contracts, tce_staff, tce_accounts, tce_penalties, tce_stalled_works CASCADE`
+const resetTables = `TRUNCATE gazettes, subscriptions, api_keys, entities, fetch_runs, rf_companies, rf_establishments, rf_partners, cgu_sanctions, payments, pncp_contracts, tce_staff, tce_accounts, tce_penalties, tce_stalled_works, federal_amendments, federal_amendment_payments, federal_transfers CASCADE`
 
 type link struct {
 	kind, key, certainty, evidence string
