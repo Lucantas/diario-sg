@@ -397,6 +397,14 @@ Pendências:
 
 - **PNCP** (contratações do município, pela Lei 14.133) e **Portal da
   Transparência de SG** (empenho, liquidação, pagamento).
+  ✅ Pagamentos (26/09/2026), pelos empenhos do TCE-RJ, que trazem o CNPJ do
+  credor e o empenhado, liquidado e pago por mês (o portal novo da
+  Prefeitura não expõe os empenhos, e o antigo parou em 2022). Job `tce`
+  semanal; na base local, 57.440 empenhos de 2020 a agosto de 2026, com
+  pago a partir de 2021. A página da empresa mostra o pago por ano, os
+  painéis mostram o pago ao lado do contratado, e a ferramenta `entidade`
+  do MCP traz `pagamentos_tce`. Desenho em
+  `docs/superpowers/specs/2026-09-26-pagamentos-do-tce-design.md`.
 - Ligação por CNPJ + nº de contrato/processo, com o grau de certeza de cada
   ligação visível.
 - **Novos padrões:** pagamento a fornecedor sem contrato publicado no Diário;

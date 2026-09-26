@@ -74,5 +74,23 @@ painéis e o MCP. A parte 2 são os padrões que cruzam os dois lados.
 - Carga real 2020–2026 e conferência do total de um ano contra a soma do
   CSV.
 
+## Depois da entrega
+
+- Carga local de 2020 a 2026 em 95 segundos: 57.440 empenhos de pessoa
+  jurídica (11.143 linhas de pessoa física ou sem tipo descartadas). O
+  total pago de 2025 no banco (R$ 2.206.647.140,82) é o mesmo da soma do
+  CSV.
+- 2020 só tem empenhado: liquidado e pago vêm zerados na fonte. A
+  cobertura mostrada é a do pago (janeiro de 2021 a agosto de 2026).
+- Nos painéis, o pago a empresas (fora órgãos públicos e a Câmara) de 2021
+  a 2026 soma R$ 8,3 bilhões, contra R$ 834 milhões contratados em extratos
+  do Diário desde 2010: boa parte do que a Prefeitura paga não tem extrato
+  com valor e CNPJ no Diário (a parte 2 mede isso por fornecedor).
+- No painel da Câmara, o pago é só o da unidade "Câmara"; no da
+  Prefeitura, o das outras unidades.
+- As fontes da página da empresa (Receita, CGU, TCE) passaram a um
+  `CompanySources` no caso de uso, e os campos a um `CompanyFacts`
+  embutido nos dois relatórios.
+
 **Pronto quando:** a página de um fornecedor citado mostra o pago por ano
 e os painéis mostram o pago ao lado do contratado.

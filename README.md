@@ -238,6 +238,20 @@ a ferramenta `entidade` do MCP mostram as sanções e o estado de cada uma
 make sancoes
 ```
 
+## Pagamentos do TCE-RJ
+
+Todo domingo, o job `tce` baixa da API de dados abertos do TCE-RJ os
+empenhos de São Gonçalo do ano anterior e do corrente (empenhado,
+liquidado e pago por credor e mês) e troca cada ano em `payments`. Só
+entram credores pessoa jurídica. A cobertura começa em 2020, e 2020 só
+traz o empenhado. A página da empresa mostra o pago por ano, e os painéis
+mostram o pago ao lado do contratado.
+
+```bash
+make tce                     # ano anterior e corrente
+make tce FROM=2020 TO=2026   # carga completa
+```
+
 ## Entidades e coletas
 
 Cada CNPJ, processo e contrato citado num ato vira uma entidade

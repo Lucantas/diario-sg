@@ -20,15 +20,15 @@
 ---
 
 ### Task 1: Modelo, leitura e carga
-- [ ] Migration, `domain/payment.go` (+ teste), `adapters/tce` (+ teste), `usecase/load_payments.go` (+ teste), `postgres/payments.go`, `cmd/tce`, config, Makefile, integração.
-- [ ] Commit `feat(api): carga dos empenhos do TCE-RJ`.
+- [x] Migration, `domain/payment.go` (+ teste), `adapters/tce` (+ teste), `usecase/load_payments.go` (+ teste), `postgres/payments.go`, `cmd/tce`, config, Makefile, integração.
+- [x] Commit `feat(api): carga dos empenhos do TCE-RJ`.
 
 ### Task 2: Leitura na empresa, painéis e MCP
-- [ ] `PaymentReader { PaymentsByCNPJ; PaymentsCoverage; PaidByCNPJYear; PaidByYear }`; `CompanyReport.Payments`; painel com `PaidCents`; MCP `pagamentos_tce`.
-- [ ] Web: seção na empresa, coluna nos painéis.
-- [ ] Terraform, Dockerfile, deploy.
-- [ ] Commit `feat: pagamentos do TCE-RJ na empresa, nos painéis e no MCP`.
+- [x] `PaymentReader { PaymentsByCNPJ; PaymentsCoverage; PaidByCNPJYear; PaidByYear }`; `CompanyReport.Payments`; painel com `PaidCents`; MCP `pagamentos_tce`.
+- [x] Web: seção na empresa, coluna nos painéis.
+- [x] Terraform, Dockerfile, deploy.
+- [x] Commit `feat: pagamentos do TCE-RJ na empresa, nos painéis e no MCP`.
 
 ### Task 3: Carga real e docs
-- [ ] `make tce FROM=2020 TO=2026`; conferir o total de 2025 contra o CSV; Playwright.
-- [ ] Roadmap, README, spec; commit `docs(roadmap): pagamentos do TCE-RJ`.
+- [x] `make tce FROM=2020 TO=2026`; conferir o total de 2025 contra o CSV; Playwright.
+- [x] Roadmap, README, spec; commit `docs(roadmap): pagamentos do TCE-RJ`.
