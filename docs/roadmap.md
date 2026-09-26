@@ -26,7 +26,7 @@ no centro do produto.
 | 2 | Seguir o dinheiro dentro do Diário ✅ | — | 1 |
 | 3 | Quem é o fornecedor ✅ | Receita (CNPJ), CGU (CEIS/CNEP/CEPIM) | 2 |
 | 4 | Anunciado × pago ✅ | PNCP, empenhos e pessoal do TCE-RJ | 3 |
-| 5 | Recorte político (parcial) | Transferências federais e TCE-RJ ✅; TSE e SICAM bloqueados | 3 |
+| 5 | Recorte político (parcial) | Transferências federais, TCE-RJ e agentes políticos ✅; TSE e proposições do SICAM bloqueados | 3 |
 
 O ✅ quer dizer entregue na base local; o que falta para a nuvem está nas
 pendências de cada entrega. Disponibilidade, formato e licença das fontes
@@ -212,8 +212,9 @@ Pendências:
   desde 2020-10-04 fora do agendamento (leva mais de uma hora; o job tem
   30 minutos).
 - [ ] OCR das edições escaneadas (8% das edições da Câmara).
-- [ ] SICAM (proposições) e agentes políticos e subsídios: próximos
-  subprojetos da etapa C.
+- [x] Agentes políticos e subsídios: ver Entrega 5.
+- [ ] SICAM (proposições): a API de busca recusa pedidos fora do site; ver
+  Entrega 5.
 - [ ] Reindexar a produção: `TERMO DE HOMOLOGAÇÃO` e `TERMO DE
   ADJUDICAÇÃO` viraram licitação. Na base local (4.302 edições, 9 min), 166
   atos da Prefeitura passaram de `outro` para `licitacao`; nenhum outro
@@ -468,12 +469,25 @@ Pendências:
   paralisada (ferramenta `entidade`: `obras_paralisadas_tce`). Os dados
   abertos não trazem o nome dos condenados. Desenho em
   `docs/superpowers/specs/2026-09-26-controle-do-tce-design.md`.
+- **Agentes políticos e subsídios.** ✅ Agentes políticos (26/09/2026): job
+  `agentes` mensal com a folha da Prefeitura (prefeito, vice, secretários e
+  Procurador-Geral, só o bruto) e a da Câmara (vereadores, com descontos e
+  líquido), mais partido e nome parlamentar do SICAM; página `/agentes`,
+  `GET /v1/agentes` e ferramenta `agentes_politicos`. Carga local de
+  10/2010 a 09/2026: 7.258 linhas, 3.626 de 178 secretários, 171 de 4
+  prefeitos, 163 de 5 vices, 162 de 5 procuradores e 3.136 de 66
+  vereadores (01/2017 a 08/2026), e 80 vereadores das legislaturas 2 a 4.
+  A folha da Prefeitura só traz prefeito e vice de 06/2012 e secretários de
+  07/2011 em diante. Os totais de 08/2026 batem com os portais (Prefeitura:
+  23 agentes, R$ 411.118,09; Câmara: 27 vereadores, R$ 589.691,61). Desenho
+  em `docs/superpowers/specs/2026-09-26-agentes-politicos-design.md`.
 
 Pendências:
 
 - [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
 - [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
-- [ ] Na nuvem: migrations 019 e 020 e o Terraform do job `federal`.
+- [ ] Na nuvem: migrations 019 a 023 e o Terraform dos jobs `federal` e
+  `agentes`.
 
 ---
 

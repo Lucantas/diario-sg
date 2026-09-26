@@ -71,3 +71,16 @@ servidores só entram em agregado, e isso a página `/pessoal` já faz.
   da folha de 08/2026; a folha é a fonte do período, e o Diário fica na
   busca pelo nome.
 - Normas anteriores a 2024 (Resolução 016/2020 não está na base).
+
+## Depois da entrega
+
+- A troca é por órgão, e cada órgão é gravado à parte: se a Câmara falha, a
+  Prefeitura é gravada assim mesmo (e o contrário), e o erro fica na coleta.
+- Da Câmara, só a mensagem "não houve informações disponibilizadas" conta
+  como ano vazio; outra mensagem, ou um valor que não seja número, é erro.
+- `agentes_politicos` devolve até 20 agentes por chamada e aceita `pular`,
+  para chegar aos 27 vereadores.
+- A folha da Prefeitura não traz prefeito nem vice antes de 06/2012, nem
+  secretários antes de 07/2011 (conferido em 12/2010).
+- Grafias diferentes do mesmo nome entre meses (NATAM e NATAN) viram dois
+  agentes; sem CPF nem matrícula, não há como juntar com segurança.
