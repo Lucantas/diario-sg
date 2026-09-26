@@ -31,6 +31,7 @@ type PanelFilter struct {
 
 type SupplierRow struct {
 	CNPJ            string
+	Name            string
 	Contracts       int
 	ContractedCents int64
 	RegisteredCents int64

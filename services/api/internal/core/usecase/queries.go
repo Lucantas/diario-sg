@@ -48,16 +48,26 @@ func (uc *GetGazette) Execute(ctx context.Context, id string) (domain.Gazette, [
 	return g, acts, err
 }
 
-type GetCompany struct{ acts ports.ActRepository }
+type GetCompany struct {
+	acts     ports.ActRepository
+	registry ports.RegistryReader
+}
 
-func NewGetCompany(a ports.ActRepository) *GetCompany { return &GetCompany{acts: a} }
+func NewGetCompany(a ports.ActRepository, registry ports.RegistryReader) *GetCompany {
+	return &GetCompany{acts: a, registry: registry}
+}
 
 func (uc *GetCompany) Execute(ctx context.Context, cnpj string) (domain.CompanyReport, error) {
 	normalized, ok := domain.NormalizeCNPJ(cnpj)
 	if !ok {
 		return domain.CompanyReport{}, domain.ErrInvalidCNPJ
 	}
-	return uc.acts.ReportByEntity(ctx, domain.EntityCNPJ, normalized)
+	report, err := uc.acts.ReportByEntity(ctx, domain.EntityCNPJ, normalized)
+	if err != nil {
+		return report, err
+	}
+	report.Registry, report.RegistryMonth, err = registryOf(ctx, uc.registry, normalized)
+	return report, err
 }
 
 type ActStats struct{ acts ports.ActRepository }

@@ -37,7 +37,7 @@ func TestGetSupplierPanelLoadsOnlyTheLargestActOfEachSupplier(t *testing.T) {
 		{ActID: "maior", CNPJ: "11222333000181", PublishedAt: day, ValueCents: 900, Type: domain.ActContrato, Title: head, Head: head, Refs: []string{"processo:2"}},
 	}}
 
-	panel, largest, err := NewGetSupplierPanel(src).Execute(context.Background(), "", domain.PanelFilter{Year: 2025})
+	panel, largest, err := NewGetSupplierPanel(src, &fakeRegistry{}).Execute(context.Background(), "", domain.PanelFilter{Year: 2025})
 
 	if err != nil || src.source != domain.SourceDiarioPrefeitura || len(panel.Rows) != 1 || panel.Rows[0].ContractedCents != 1000 {
 		t.Fatalf("painel inesperado: %+v %v (fonte %q)", panel, err, src.source)
@@ -48,7 +48,7 @@ func TestGetSupplierPanelLoadsOnlyTheLargestActOfEachSupplier(t *testing.T) {
 }
 
 func TestGetSupplierPanelRejectsUnknownSourceAndYear(t *testing.T) {
-	uc := NewGetSupplierPanel(&fakePanelSource{})
+	uc := NewGetSupplierPanel(&fakePanelSource{}, &fakeRegistry{})
 	for _, c := range []struct {
 		source string
 		f      domain.PanelFilter
@@ -56,5 +56,21 @@ func TestGetSupplierPanelRejectsUnknownSourceAndYear(t *testing.T) {
 		if _, _, err := uc.Execute(context.Background(), c.source, c.f); !errors.Is(err, domain.ErrInvalidFilter) {
 			t.Errorf("%+v: esperava filtro inválido, veio %v", c, err)
 		}
+	}
+}
+
+func TestGetSupplierPanelNamesTheSuppliersFromTheRegistry(t *testing.T) {
+	day := time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)
+	head := "EXTRATO DO CONTRATO Nº 1/2025 PARTES: MUNICÍPIO DE SÃO GONÇALO"
+	src := &fakePanelSource{acts: []domain.PanelAct{
+		{ActID: "a", CNPJ: "11222333000181", PublishedAt: day, ValueCents: 100, Type: domain.ActContrato, Title: head, Head: head, Refs: []string{"processo:1"}},
+		{ActID: "b", CNPJ: "44555666000199", PublishedAt: day, ValueCents: 50, Type: domain.ActContrato, Title: head, Head: head, Refs: []string{"processo:2"}},
+	}}
+	registry := &fakeRegistry{byCNPJ: map[string]*domain.CompanyRegistry{"11222333000181": {Company: domain.RegistryCompany{Name: "EMPRESA A LTDA"}}}}
+
+	panel, _, err := NewGetSupplierPanel(src, registry).Execute(context.Background(), "", domain.PanelFilter{})
+
+	if err != nil || len(panel.Rows) != 2 || panel.Rows[0].Name != "EMPRESA A LTDA" || panel.Rows[1].Name != "" {
+		t.Fatalf("nomes: %+v %v", panel.Rows, err)
 	}
 }

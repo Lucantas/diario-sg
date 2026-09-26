@@ -114,6 +114,8 @@ type companyResponse struct {
 	TotalValueCents int64          `json:"total_value_cents"`
 	CountByType     map[string]int `json:"count_by_type"`
 	Acts            []actHitDTO    `json:"acts"`
+	Registry        *registryDTO   `json:"registry"`
+	RegistryMonth   *string        `json:"registry_month"`
 }
 
 type monthCountDTO struct {

@@ -48,10 +48,12 @@ func run(l *slog.Logger) error {
 	acts := postgres.NewActRepo(db)
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
 
+	registry := postgres.NewRegistryRepo(db)
+	entity := usecase.NewGetEntity(postgres.NewLinkRepo(db), registry)
 	search := usecase.NewSearchActs(acts)
-	company := usecase.NewGetCompany(acts)
+	company := usecase.NewGetCompany(acts, registry)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
-	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db)),
+	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
 		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
 		Coverage: usecase.NewSourceCoverage(gazettes), Keys: keys, PublicWebURL: cfg.PublicWebURL, Log: l})
 
@@ -59,10 +61,10 @@ func run(l *slog.Logger) error {
 		Search:        search,
 		Gazette:       usecase.NewGetGazette(gazettes, acts),
 		Company:       company,
-		Entity:        usecase.NewGetEntity(postgres.NewLinkRepo(db)),
+		Entity:        entity,
 		Stats:         usecase.NewActStats(acts),
 		Patterns:      usecase.NewListPatterns(postgres.NewPatternRepo(db)),
-		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db)),
+		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), registry),
 		Organs:        usecase.NewListOrgans(acts),
 		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Export:        usecase.NewExportActs(acts),

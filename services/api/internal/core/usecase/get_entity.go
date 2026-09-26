@@ -3,14 +3,20 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
-type GetEntity struct{ reader ports.EntityReader }
+type GetEntity struct {
+	reader   ports.EntityReader
+	registry ports.RegistryReader
+}
 
-func NewGetEntity(r ports.EntityReader) *GetEntity { return &GetEntity{reader: r} }
+func NewGetEntity(r ports.EntityReader, registry ports.RegistryReader) *GetEntity {
+	return &GetEntity{reader: r, registry: registry}
+}
 
 func (uc *GetEntity) Execute(ctx context.Context, kind domain.EntityKind, input, source string) (domain.EntityReport, error) {
 	if source != "" && !domain.ValidSource(source) {
@@ -24,7 +30,21 @@ func (uc *GetEntity) Execute(ctx context.Context, kind domain.EntityKind, input,
 	if err != nil {
 		return report, err
 	}
+	if kind == domain.EntityCNPJ {
+		if report.Registry, report.RegistryMonth, err = registryOf(ctx, uc.registry, key); err != nil {
+			return report, err
+		}
+	}
 	return withPhases(report), nil
+}
+
+func registryOf(ctx context.Context, r ports.RegistryReader, cnpj string) (*domain.CompanyRegistry, *time.Time, error) {
+	reg, err := r.RegistryByCNPJ(ctx, cnpj)
+	if err != nil {
+		return nil, nil, err
+	}
+	month, err := r.RegistryMonth(ctx)
+	return reg, month, err
 }
 
 func withPhases(r domain.EntityReport) domain.EntityReport {

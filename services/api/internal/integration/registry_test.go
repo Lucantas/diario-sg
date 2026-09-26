@@ -97,3 +97,67 @@ func TestRegistryLoadReplacesTheMonthAndLinksTheCNPJ(t *testing.T) {
 		t.Errorf("CNPJ sem cadastro: %+v %v", missing, err)
 	}
 }
+
+func TestRegistryShowsInTheCompanyPagePanelAndMCP(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	loadRegistry(t, postgres.NewRegistryRepo(db), postgres.NewFetchRunRepo(db), registryShare{month: "2026-09", name: "F.P. VIEIRA ENGENHARIA LTDA"})
+
+	var company struct {
+		Registry *struct {
+			Month    string `json:"month"`
+			Name     string `json:"name"`
+			Status   string `json:"status"`
+			Partners []struct {
+				Kind     string `json:"kind"`
+				Document string `json:"document"`
+			} `json:"partners"`
+		} `json:"registry"`
+		RegistryMonth *string `json:"registry_month"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/14180324000163", &company)
+	if company.Registry == nil || company.Registry.Name != "F.P. VIEIRA ENGENHARIA LTDA" || company.Registry.Month != "2026-09" ||
+		len(company.Registry.Partners) != 1 || company.Registry.Partners[0].Kind != "pessoa_fisica" || company.Registry.Partners[0].Document != "***123456**" {
+		t.Fatalf("cadastro na página da empresa: %+v", company.Registry)
+	}
+
+	var unknown struct {
+		Registry      *struct{} `json:"registry"`
+		RegistryMonth *string   `json:"registry_month"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/11222333000181", &unknown)
+	if unknown.Registry != nil || unknown.RegistryMonth == nil || *unknown.RegistryMonth != "2026-09" {
+		t.Errorf("CNPJ sem cadastro: %+v", unknown)
+	}
+
+	var panel struct {
+		Items []struct {
+			CNPJ string `json:"cnpj"`
+			Name string `json:"name"`
+		} `json:"items"`
+	}
+	getJSON(t, srv.URL+"/v1/panels/suppliers", &panel)
+	if len(panel.Items) == 0 || panel.Items[0].Name != "F.P. VIEIRA ENGENHARIA LTDA" {
+		t.Errorf("nome no painel: %+v", panel.Items)
+	}
+
+	code, key := issueKey(t, srv.URL, "")
+	if code != 201 {
+		t.Fatalf("emissão da chave: %d", code)
+	}
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+	out, _ := call[struct {
+		Registry *struct {
+			RazaoSocial string `json:"razao_social"`
+			Socios      []struct {
+				Documento string `json:"documento"`
+			} `json:"socios"`
+		} `json:"cadastro_receita"`
+	}](t, session, "entidade", map[string]any{"numero": "14.180.324/0001-63"})
+	if out.Registry == nil || out.Registry.RazaoSocial != "F.P. VIEIRA ENGENHARIA LTDA" || len(out.Registry.Socios) != 1 {
+		t.Errorf("cadastro no MCP: %+v", out.Registry)
+	}
+}

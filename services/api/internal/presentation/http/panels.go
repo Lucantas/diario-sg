@@ -18,6 +18,7 @@ type panelAmountsDTO struct {
 
 type supplierRowDTO struct {
 	CNPJ string `json:"cnpj"`
+	Name string `json:"name"`
 	panelAmountsDTO
 	First   string     `json:"first"`
 	Last    string     `json:"last"`
@@ -77,7 +78,7 @@ func toSupplierPanelResponse(source string, p domain.SupplierPanel, largest map[
 		out.Year = &p.Filter.Year
 	}
 	for _, row := range p.Rows {
-		dto := supplierRowDTO{CNPJ: row.CNPJ, First: row.First.Format(time.DateOnly), Last: row.Last.Format(time.DateOnly), Organs: row.Organs,
+		dto := supplierRowDTO{CNPJ: row.CNPJ, Name: row.Name, First: row.First.Format(time.DateOnly), Last: row.Last.Format(time.DateOnly), Organs: row.Organs,
 			panelAmountsDTO: panelAmountsDTO{Contracts: row.Contracts, ContractedCents: row.ContractedCents, RegisteredCents: row.RegisteredCents, AmendedCents: row.AmendedCents}}
 		if dto.Organs == nil {
 			dto.Organs = []string{}

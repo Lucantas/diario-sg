@@ -18,10 +18,12 @@ type Entity struct {
 }
 
 type CompanyReport struct {
-	CNPJ        string
-	Acts        []ActHit
-	TotalCents  int64
-	CountByType map[ActType]int
+	CNPJ          string
+	Acts          []ActHit
+	TotalCents    int64
+	CountByType   map[ActType]int
+	Registry      *CompanyRegistry
+	RegistryMonth *time.Time
 }
 
 type MonthCount struct {
@@ -30,6 +32,9 @@ type MonthCount struct {
 }
 
 type EntityReport struct {
+	Registry      *CompanyRegistry
+	RegistryMonth *time.Time
+
 	Kind        EntityKind
 	Key         string
 	Label       string

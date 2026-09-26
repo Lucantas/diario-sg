@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -22,7 +23,7 @@ func (r *recEntityReader) ReportByKey(_ context.Context, kind domain.EntityKind,
 
 func TestGetEntityNormalizesTheInput(t *testing.T) {
 	reader := &recEntityReader{}
-	uc := NewGetEntity(reader)
+	uc := NewGetEntity(reader, &fakeRegistry{})
 
 	got, err := uc.Execute(context.Background(), domain.EntityContrato, "001 / 2017", "")
 
@@ -33,7 +34,7 @@ func TestGetEntityNormalizesTheInput(t *testing.T) {
 
 func TestGetEntityRejectsInvalidInput(t *testing.T) {
 	reader := &recEntityReader{}
-	uc := NewGetEntity(reader)
+	uc := NewGetEntity(reader, &fakeRegistry{})
 
 	for _, c := range []struct {
 		kind domain.EntityKind
@@ -51,7 +52,7 @@ func TestGetEntityRejectsInvalidInput(t *testing.T) {
 
 func TestGetEntityPassesTheSourceAndRejectsUnknownOnes(t *testing.T) {
 	reader := &recEntityReader{}
-	uc := NewGetEntity(reader)
+	uc := NewGetEntity(reader, &fakeRegistry{})
 
 	if _, err := uc.Execute(context.Background(), domain.EntityProcesso, "310/2025", domain.SourceDiarioCamara); err != nil || reader.source != domain.SourceDiarioCamara {
 		t.Fatalf("fonte não repassada: %q %v", reader.source, err)
@@ -78,7 +79,7 @@ func TestGetEntityFillsPhases(t *testing.T) {
 		},
 	}}
 
-	got, err := NewGetEntity(reader).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
+	got, err := NewGetEntity(reader, &fakeRegistry{}).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
 
 	if err != nil {
 		t.Fatal(err)
@@ -89,5 +90,27 @@ func TestGetEntityFillsPhases(t *testing.T) {
 	want := map[domain.Phase]int{domain.PhaseHomologacao: 2, domain.PhaseRescisao: 1, domain.PhaseOutro: 4}
 	if !reflect.DeepEqual(got.CountByPhase, want) {
 		t.Fatalf("contagem por fase: %v", got.CountByPhase)
+	}
+}
+
+func TestGetEntityAddsTheRegistryOfACNPJ(t *testing.T) {
+	month := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
+	reg := &domain.CompanyRegistry{Month: month, Company: domain.RegistryCompany{Name: "F.P. VIEIRA ENGENHARIA LTDA"}}
+	registry := &fakeRegistry{byCNPJ: map[string]*domain.CompanyRegistry{"14180324000163": reg}, month: &month}
+
+	got, err := NewGetEntity(&recEntityReader{}, registry).Execute(context.Background(), domain.EntityCNPJ, "14.180.324/0001-63", "")
+
+	if err != nil || got.Registry != reg || got.RegistryMonth == nil || !got.RegistryMonth.Equal(month) {
+		t.Fatalf("cadastro: %+v %v", got, err)
+	}
+}
+
+func TestGetEntityDoesNotLookUpTheRegistryOfAProcess(t *testing.T) {
+	registry := &fakeRegistry{}
+
+	got, err := NewGetEntity(&recEntityReader{}, registry).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
+
+	if err != nil || got.Registry != nil || len(registry.asked) != 0 {
+		t.Fatalf("processo não tem cadastro: %+v %v %v", got, err, registry.asked)
 	}
 }

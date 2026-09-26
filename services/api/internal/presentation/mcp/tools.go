@@ -92,6 +92,8 @@ type entityOutput struct {
 	TotalCents   int64              `json:"soma_valores_centavos"`
 	CountByType  map[string]int     `json:"atos_por_tipo"`
 	CountByPhase map[string]int     `json:"atos_por_fase,omitempty"`
+	Registry     *registryDTO       `json:"cadastro_receita,omitempty"`
+	NoRegistry   string             `json:"cadastro_receita_ausente,omitempty"`
 	Organs       []organDTO         `json:"orgaos,omitempty"`
 	Related      []relatedEntityDTO `json:"citados_junto,omitempty"`
 	ByProcess    []processDTO       `json:"por_processo,omitempty"`
@@ -175,7 +177,9 @@ func (s *server) register(srv *sdk.Server) {
 		"orgao_publico diz quando o CNPJ é do Município, de uma fundação ou fundo municipal, do SG-PREVI ou da Câmara: não é fornecedor. " +
 		"rotulo é o número como o Diário escreve. fase de cada ato e atos_por_fase são deduzidas do título e do tipo do ato: confira no texto. " +
 		"orgaos lista os órgãos dos atos; um número em mais de um órgão pode ser de processos ou contratos diferentes. " +
-		"citados_junto (só processo e contrato) traz os contratos, ou processos, e os CNPJs citados nos mesmos atos, até 20 de cada tipo."},
+		"citados_junto (só processo e contrato) traz os contratos, ou processos, e os CNPJs citados nos mesmos atos, até 20 de cada tipo. " +
+		"cadastro_receita (só CNPJ) traz o cadastro da Receita Federal do mês de referência: razão social, situação, abertura, capital social, atividade, endereço e sócios, " +
+		"com o CPF mascarado como a Receita publica; os sócios são dados da empresa e não servem para buscar pessoas."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
 		recorded(s, "agrupar", s.group))
@@ -331,6 +335,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 		Coverage: coveragesOf(cs), Alerts: collectionAlerts(cs),
 		ByProcess: processesOf(report.ByProcess), ProcessSum: report.ProcessSumCents, ProcessTotal: report.ProcessCount, NoProcess: report.ActsWithoutProcess}
 	out.CountByPhase = countByPhaseOf(report.CountByPhase)
+	out.Registry, out.NoRegistry = registryOf(report.Registry), registryAbsence(kind, report.Registry, report.RegistryMonth)
 	if kind == domain.EntityProcesso || kind == domain.EntityContrato {
 		out.Related = relatedOf(report.Related)
 	}

@@ -12,9 +12,14 @@ const (
 	lastPanelYear  = 2100
 )
 
-type GetSupplierPanel struct{ src ports.PanelSource }
+type GetSupplierPanel struct {
+	src      ports.PanelSource
+	registry ports.RegistryReader
+}
 
-func NewGetSupplierPanel(src ports.PanelSource) *GetSupplierPanel { return &GetSupplierPanel{src: src} }
+func NewGetSupplierPanel(src ports.PanelSource, registry ports.RegistryReader) *GetSupplierPanel {
+	return &GetSupplierPanel{src: src, registry: registry}
+}
 
 func (uc *GetSupplierPanel) Execute(ctx context.Context, source string, f domain.PanelFilter) (domain.SupplierPanel, map[string]domain.ActHit, error) {
 	source = domain.SourceOrDefault(source)
@@ -25,7 +30,10 @@ func (uc *GetSupplierPanel) Execute(ctx context.Context, source string, f domain
 	if err != nil {
 		return domain.SupplierPanel{}, nil, err
 	}
-	panel := domain.BuildSupplierPanel(acts, f)
+	panel, err := uc.named(ctx, domain.BuildSupplierPanel(acts, f))
+	if err != nil {
+		return domain.SupplierPanel{}, nil, err
+	}
 	ids := make([]string, 0, len(panel.Rows))
 	for _, row := range panel.Rows {
 		if row.LargestActID != "" {
@@ -44,4 +52,22 @@ func (uc *GetSupplierPanel) Execute(ctx context.Context, source string, f domain
 		largest[h.ID] = h
 	}
 	return panel, largest, nil
+}
+
+func (uc *GetSupplierPanel) named(ctx context.Context, panel domain.SupplierPanel) (domain.SupplierPanel, error) {
+	cnpjs := make([]string, len(panel.Rows))
+	for i, row := range panel.Rows {
+		cnpjs[i] = row.CNPJ
+	}
+	names, err := uc.registry.NamesByCNPJ(ctx, cnpjs)
+	if err != nil {
+		return panel, err
+	}
+	rows := make([]domain.SupplierRow, len(panel.Rows))
+	for i, row := range panel.Rows {
+		row.Name = names[row.CNPJ]
+		rows[i] = row
+	}
+	panel.Rows = rows
+	return panel, nil
 }

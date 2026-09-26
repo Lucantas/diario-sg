@@ -109,7 +109,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Gazette: usecase.NewGetGazette(gaz, acts),
-		Company: usecase.NewGetCompany(acts), Stats: usecase.NewActStats(acts),
+		Company: usecase.NewGetCompany(acts, postgres.NewRegistryRepo(db)), Stats: usecase.NewActStats(acts),
 		Subscriptions: usecase.NewSubscriptions(subs, notifier), Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	srv := httptest.NewServer(api.Routes())
 	defer srv.Close()
