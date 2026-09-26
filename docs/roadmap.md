@@ -437,9 +437,21 @@ Pendências:
 - **TSE:** candidatos, bens e prestação de contas (doações). Cruzamento sócio
   de fornecedor × doador. A Receita mascara parte do CPF dos sócios, então o
   casamento é nome + dígitos visíveis: determinístico, mas a página mostra a
-  evidência do casamento e nunca afirma identidade.
+  evidência do casamento e nunca afirma identidade. Bloqueado
+  (26/09/2026): o CDN e a API de dados abertos do TSE respondem "Access
+  Denied" (Akamai) a esta máquina; precisa de outra rede ou de pedido ao
+  TSE.
 - **Câmara Municipal:** leis, projetos e votações; perfil de vereador.
-- **Transferências federais e emendas** destinadas ao município.
+  Bloqueado (26/09/2026): a API do SICAM (`POST https://api.sicam.app/pesquisar`)
+  responde 403 fora da página pública da Câmara; ler exigiria imitar o
+  navegador do site. Depende de pedir acesso à Câmara ou à DB Nova.
+- **Transferências federais e emendas** destinadas ao município. ✅
+  Dinheiro federal (26/09/2026): job `federal` semanal com as emendas
+  parlamentares com aplicação em São Gonçalo, os pagamentos de emenda a
+  pessoas jurídicas da cidade e as transferências da União por mês; página
+  `/federal` e seção "Emendas parlamentares" na página da empresa
+  (ferramenta `entidade`: `emendas_pagas_cgu`). Desenho em
+  `docs/superpowers/specs/2026-09-26-dinheiro-federal-design.md`.
 - **TCE-RJ:** apontamentos sobre contratos já presentes no Diário. ✅
   Controle do TCE-RJ (26/09/2026): o job `tce` também carrega o parecer
   prévio das contas de governo, os débitos e multas das unidades de São
@@ -448,6 +460,15 @@ Pendências:
   paralisada (ferramenta `entidade`: `obras_paralisadas_tce`). Os dados
   abertos não trazem o nome dos condenados. Desenho em
   `docs/superpowers/specs/2026-09-26-controle-do-tce-design.md`.
+
+Pendências:
+
+- [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
+- [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
+- [ ] Transferências federais de julho de 2023 em diante: o Portal pediu
+  verificação humana; o job semanal, com pausa entre downloads, completa
+  aos poucos (ou rodar `make federal FROM=202307` quando liberar).
+- [ ] Na nuvem: migrations 019 e 020 e o Terraform do job `federal`.
 
 ---
 

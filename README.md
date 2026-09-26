@@ -147,6 +147,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/panels/suppliers` | Maiores fornecedores pelo valor declarado nos extratos, calculados na leitura. `year`, `organ` e `source` (padrão `diario_prefeitura`) filtram. Cada contratação (atos do mesmo CNPJ ligados pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato; ata de registro de preços sem contrato vai para `registered_cents`; aditivos, homologações, multas, sanções, notificações, cancelamentos e atos com mais de um fornecedor ficam de fora. Traz `items` (50 primeiros, com `largest`, o ato de maior valor no formato da busca), `years` (respeita `organ`) e `organs` (respeita `year`) |
 | GET | `/v1/panels/staff?unit=` | Vínculos e remuneração por mês e grupo de situação funcional, informados pelo município ao TCE-RJ (de 2024 em diante), com as nomeações e exonerações do Diário no mês (`diario_source` diz qual). Traz `units`, `groups` (na ordem das colunas) e `months` (do mais recente ao mais antigo); unidade desconhecida é 400 |
 | GET | `/v1/tce` | Controle do TCE-RJ sobre São Gonçalo: `accounts` (parecer prévio por exercício), `penalties` (débitos e multas agrupados por processo do TCE, com `search`, a busca do número no Diário) e `works` (obras paralisadas); `/v1/entities/cnpj/{cnpj}` traz as obras da empresa em `stalled_works` |
+| GET | `/v1/federal` | Dinheiro federal: `transfers` (soma por ano, tipo e função, com `transfers_coverage`, os meses carregados), `amendments` (emendas com aplicação em São Gonçalo) e `favored` (pessoas jurídicas de São Gonçalo que receberam pagamento de emenda, somadas por CNPJ); `/v1/entities/cnpj/{cnpj}` traz os pagamentos à empresa em `amendment_payments` |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
 | POST | `/v1/mcp/keys` | Gera uma chave do servidor MCP (`{"key","prefix","mcp_url"}`); a chave só aparece nesta resposta; 3 por hora por cliente |
@@ -263,6 +264,23 @@ Por fim, o job carrega o que o TCE-RJ publica sobre o controle do
 município (parecer prévio das contas de governo, débitos e multas e obras
 paralisadas) em `tce_accounts`, `tce_penalties` e `tce_stalled_works`,
 mostrados em `/tce`.
+
+## Dinheiro federal
+
+Todo domingo às 08:00, o job `federal` baixa do Portal da Transparência o
+arquivo de emendas parlamentares e as transferências da União dos três
+últimos meses publicados, e guarda o que é de São Gonçalo: as emendas com
+aplicação no município (`federal_amendments`), os pagamentos de emenda a
+pessoas jurídicas da cidade (`federal_amendment_payments`, ligados às
+empresas pelo CNPJ) e as transferências (`federal_transfers`). CPF não
+entra. O Portal pede verificação humana quando recebe muitos downloads
+seguidos, então o job espera 20 segundos entre um e outro. A página
+`/federal` mostra os três conjuntos.
+
+```bash
+make federal                         # emendas e três últimos meses
+make federal FROM=202101 TO=202312   # transferências de outra faixa
+```
 
 ## Contratos do PNCP
 

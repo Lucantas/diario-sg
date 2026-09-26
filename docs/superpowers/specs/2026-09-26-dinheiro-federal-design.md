@@ -53,9 +53,9 @@ CSV `;`, latin-1 e cabeçalho:
    valores; favorecidos de emendas em São Gonçalo, somados por CNPJ, com
    link para a página da empresa. Link na página inicial.
 7. **Página da empresa:** "Emendas parlamentares (CGU)" com os pagamentos
-   de emenda à empresa (mês, autor, valor). `stalled_works` ganha a
-   companhia de `amendment_payments` em `/v1/entities/cnpj/{cnpj}`; a
-   ferramenta `entidade` traz `emendas_pagas_cgu`.
+   de emenda à empresa (mês, autor, valor), em `amendment_payments` de
+   `/v1/entities/cnpj/{cnpj}`; a ferramenta `entidade` traz
+   `emendas_pagas_cgu`.
 8. **API:** `GET /v1/federal` devolve os três blocos.
 
 ## Fora do escopo
@@ -73,6 +73,23 @@ CSV `;`, latin-1 e cabeçalho:
 - Caso de uso com fakes: troca, bruto e manifesto, falha não grava.
 - Integração: carga, `GET /v1/federal`, empresa com pagamento de emenda.
 - Carga real local e conferência dos totais contra os CSVs.
+
+## Depois da entrega
+
+- Carga local das emendas em 11 segundos: 73 emendas com aplicação em São
+  Gonçalo (R$ 68,1 milhões pagos) e 761 pagamentos a 167 pessoas
+  jurídicas de São Gonçalo (R$ 274,9 milhões), os mesmos totais dos CSVs;
+  342 pagamentos ligados a empresas citadas no Diário.
+- A carga de transferências de janeiro de 2021 em diante parou em julho
+  de 2023: depois de cerca de 30 downloads seguidos, o Portal passou a
+  responder com verificação humana (AWS WAF, status 405). O adapter
+  passou a esperar 20 segundos entre downloads e a dizer que é
+  verificação humana; o job semanal baixa só três meses. Na base local,
+  1.714 transferências de janeiro de 2021 a junho de 2023 (R$ 1,84
+  bilhão); a página mostra os meses carregados.
+- A página mostra os 30 favorecidos que mais receberam; o Município e os
+  fundos municipais estão entre eles, porque são pessoas jurídicas de São
+  Gonçalo.
 
 **Pronto quando:** `/federal` mostra as transferências e as emendas de São
 Gonçalo, e a página de uma empresa favorecida mostra os pagamentos.
