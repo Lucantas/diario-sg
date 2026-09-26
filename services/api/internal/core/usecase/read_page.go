@@ -9,10 +9,11 @@ import (
 )
 
 type PageText struct {
-	Gazette domain.Gazette
-	Page    int
-	Pages   int
-	Text    string
+	Gazette   domain.Gazette
+	Page      int
+	Pages     int
+	Text      string
+	ReadByOCR bool
 }
 
 type ReadPage struct {
@@ -38,9 +39,9 @@ func (uc *ReadPage) Execute(ctx context.Context, gazetteID string, page int) (Pa
 		return PageText{}, fmt.Errorf("pdf da edição %s: %w", g.ID, err)
 	}
 	defer body.Close()
-	text, pages, err := uc.pages.ExtractPage(ctx, body, domain.SourceOrDefault(g.Source), page)
+	extracted, pages, err := uc.pages.ExtractPage(ctx, body, domain.SourceOrDefault(g.Source), page)
 	if err != nil {
 		return PageText{}, err
 	}
-	return PageText{Gazette: g, Page: page, Pages: pages, Text: text}, nil
+	return PageText{Gazette: g, Page: page, Pages: pages, Text: extracted.Text, ReadByOCR: len(extracted.OCRPages) > 0}, nil
 }

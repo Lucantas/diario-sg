@@ -14,12 +14,12 @@ import (
 
 type singlePage struct{}
 
-func (singlePage) ExtractPage(_ context.Context, r io.Reader, _ string, page int) (string, int, error) {
+func (singlePage) ExtractPage(_ context.Context, r io.Reader, _ string, page int) (domain.ExtractedText, int, error) {
 	if page != 1 {
-		return "", 1, fmt.Errorf("página %d de 1: %w", page, domain.ErrInvalidInput)
+		return domain.ExtractedText{}, 1, fmt.Errorf("página %d de 1: %w", page, domain.ErrInvalidInput)
 	}
 	b, err := io.ReadAll(r)
-	return string(b), 1, err
+	return domain.ExtractedText{Text: string(b)}, 1, err
 }
 
 func TestMCPShowsTheRawPageOfTheArchivedPDF(t *testing.T) {

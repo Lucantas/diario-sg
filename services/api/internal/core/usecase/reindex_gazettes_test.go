@@ -23,9 +23,9 @@ func (s pathStorage) Get(_ context.Context, path string) (io.ReadCloser, error) 
 
 type echoExtractor struct{}
 
-func (echoExtractor) Extract(_ context.Context, r io.Reader, _ string) (string, error) {
+func (echoExtractor) Extract(_ context.Context, r io.Reader, _ string) (domain.ExtractedText, error) {
 	b, err := io.ReadAll(r)
-	return string(b), err
+	return domain.ExtractedText{Text: string(b), OCRPages: []int{2}}, err
 }
 
 func day(d int) time.Time { return time.Date(2026, 9, d, 0, 0, 0, 0, time.UTC) }
@@ -51,7 +51,7 @@ func TestReindexGazettes_ReplacesActsInThePeriodWithoutPublishing(t *testing.T) 
 	if res != (ReindexResult{Found: 2, Reindexed: 2}) {
 		t.Fatalf("resultado inesperado: %+v", res)
 	}
-	if got := repo.acts["a"]; len(got) != 2 || got[0].Title != "PORTARIA 1" || len(got[1].Entities) != 1 {
+	if got := repo.acts["a"]; len(got) != 2 || got[0].Title != "PORTARIA 1" || len(got[1].Entities) != 1 || got[0].ReadByOCR || !got[1].ReadByOCR {
 		t.Fatalf("atos de a não foram trocados com entidades: %+v", got)
 	}
 	if repo.saved["a"].EditionNumber != "1" || repo.saved["b"].EditionNumber != "1771" {

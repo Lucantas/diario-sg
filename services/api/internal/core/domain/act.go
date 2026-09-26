@@ -49,6 +49,7 @@ type Act struct {
 	NameLines          int
 	LegalBasis         []LegalBasis
 	DeclaredIncreaseBP int
+	ReadByOCR          bool
 }
 
 type ActHit struct {

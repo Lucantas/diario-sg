@@ -18,6 +18,8 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
 
+const reindexTimeout = 30 * time.Minute
+
 func main() {
 	log := obs.NewLogger("reindex")
 	fromFlag := flag.String("from", "", "primeira data (AAAA-MM-DD)")
@@ -45,7 +47,7 @@ func main() {
 	defer db.Close()
 
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
-	uc := usecase.NewReindexGazettes(postgres.NewGazetteRepo(db), storage, pdf.New(), parser.Set{}, entities.New())
+	uc := usecase.NewReindexGazettes(postgres.NewGazetteRepo(db), storage, pdf.PDFToText{Timeout: reindexTimeout}, parser.Set{}, entities.New())
 	start := time.Now()
 	res, err := uc.Execute(ctx, from, to)
 	log.Info("reindexação finalizada", "result", res, "duration_ms", time.Since(start).Milliseconds())

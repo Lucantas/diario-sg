@@ -25,6 +25,12 @@ describe("warningText", () => {
     );
   });
 
+  it("avisa quando o texto veio do OCR", () => {
+    expect(warningText("lido_por_ocr", pages)).toBe(
+      "Esta página do Diário é uma imagem, e o texto foi lido por OCR. Letras e números podem vir trocados, sobretudo em tabelas; confira no PDF.",
+    );
+  });
+
   it("ignora avisos que o site ainda não conhece", () => {
     expect(warningText("novo_aviso", pages)).toBe("");
     expect(warningText("toString", pages)).toBe("");

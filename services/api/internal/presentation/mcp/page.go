@@ -26,10 +26,12 @@ type pageOutput struct {
 	Pages         int       `json:"paginas_total"`
 	Text          string    `json:"texto"`
 	Truncated     bool      `json:"truncado,omitempty"`
+	ReadByOCR     bool      `json:"lida_por_ocr,omitempty"`
 	Source        sourceDTO `json:"fonte"`
 }
 
-const pageDescription = "Texto cru de uma página do PDF arquivado de uma edição, como o pdftotext o extrai, " +
+const pageDescription = "Texto cru de uma página do PDF arquivado de uma edição, como o pdftotext o extrai " +
+	"(página só com imagem sai do OCR, com lida_por_ocr: o texto pode ter letras e números trocados), " +
 	"com o SHA-256 do PDF e o link da página na edição oficial. Serve para conferir o que o parser leu " +
 	"(separação de atos, valores, CNPJs) sem sair do MCP. As páginas vêm em paginas de cada ato."
 
@@ -43,7 +45,7 @@ func (s *server) page(ctx context.Context, _ *sdk.CallToolRequest, in pageInput)
 		SourceURL: g.SourceURL, PageStart: p.Page, PageEnd: p.Page, Checksum: g.Checksum, Source: domain.SourceOrDefault(g.Source)}
 	text, truncated := truncateRunes(p.Text, maxPageRunes)
 	return nil, pageOutput{GazetteID: g.ID, Diario: c.Source, EditionNumber: g.EditionNumber, PublishedAt: g.PublishedAt.Format(time.DateOnly),
-		Page: p.Page, Pages: p.Pages, Text: text, Truncated: truncated, Source: sourceOf(c, s.webURL)}, nil
+		Page: p.Page, Pages: p.Pages, Text: text, Truncated: truncated, ReadByOCR: p.ReadByOCR, Source: sourceOf(c, s.webURL)}, nil
 }
 
 func truncateRunes(s string, n int) (string, bool) {

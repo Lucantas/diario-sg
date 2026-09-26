@@ -53,16 +53,16 @@ func (uc *IndexGazette) Execute(ctx context.Context, in IndexGazetteInput) error
 	}
 	defer rc.Close()
 
-	text, err := uc.extractor.Extract(ctx, rc, source)
+	extracted, err := uc.extractor.Extract(ctx, rc, source)
 	if err != nil {
 		return fmt.Errorf("extrair texto: %w", err)
 	}
 
 	parser := uc.parsers.For(source)
-	acts := parseActs(parser, uc.entities, text)
+	acts := domain.MarkReadByOCR(parseActs(parser, uc.entities, extracted.Text), extracted.OCRPages)
 	number := in.EditionNumber
 	if number == "" {
-		number = parser.EditionNumber(text)
+		number = parser.EditionNumber(extracted.Text)
 	}
 	g := &domain.Gazette{
 		Source:        source,

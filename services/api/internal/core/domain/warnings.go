@@ -10,6 +10,7 @@ const (
 	WarningTitleOnly = "so_titulo"
 	WarningManyPages = "muitas_paginas"
 	WarningManyActs  = "varios_atos_possiveis"
+	WarningReadByOCR = "lido_por_ocr"
 
 	ManyPagesThreshold = 10
 )
@@ -26,15 +27,17 @@ type WarningFacts struct {
 	Signatures int
 	PageStart  int
 	PageEnd    int
+	ReadByOCR  bool
 }
 
 func WarningFactsOf(a Act) WarningFacts {
 	return WarningFacts{Title: a.Title, TitleOnly: IsTitleOnly(a.Title, a.Body), Signatures: CountSignatures(a.Body),
-		PageStart: a.PageStart, PageEnd: a.PageEnd}
+		PageStart: a.PageStart, PageEnd: a.PageEnd, ReadByOCR: a.ReadByOCR}
 }
 
 func (h ActHit) WarningFacts() WarningFacts {
-	return WarningFacts{Title: h.Title, TitleOnly: h.TitleOnly, Signatures: h.Signatures, PageStart: h.PageStart, PageEnd: h.PageEnd}
+	return WarningFacts{Title: h.Title, TitleOnly: h.TitleOnly, Signatures: h.Signatures, PageStart: h.PageStart, PageEnd: h.PageEnd,
+		ReadByOCR: h.ReadByOCR}
 }
 
 func ActWarnings(f WarningFacts) []string {
@@ -50,6 +53,9 @@ func ActWarnings(f WarningFacts) []string {
 	}
 	if f.Signatures > 1 {
 		warnings = append(warnings, WarningManyActs)
+	}
+	if f.ReadByOCR {
+		warnings = append(warnings, WarningReadByOCR)
 	}
 	return warnings
 }

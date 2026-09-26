@@ -10,7 +10,7 @@ RUN for b in api worker migrate reindex dump receita sancoes tce pncp federal; d
     done
 
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates poppler-utils && adduser -D -u 10001 app
+RUN apk add --no-cache ca-certificates poppler-utils tesseract-ocr tesseract-ocr-data-por tesseract-ocr-data-osd && adduser -D -u 10001 app
 COPY --from=build /out/ /app/
 USER app
 ENTRYPOINT ["/app/api"]

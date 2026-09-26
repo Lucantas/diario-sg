@@ -59,14 +59,14 @@ func (uc *ReindexGazettes) reindexOne(ctx context.Context, g domain.Gazette) err
 	}
 	defer rc.Close()
 	source := domain.SourceOrDefault(g.Source)
-	text, err := uc.extractor.Extract(ctx, rc, source)
+	extracted, err := uc.extractor.Extract(ctx, rc, source)
 	if err != nil {
 		return fmt.Errorf("extrair texto: %w", err)
 	}
 	parser := uc.parsers.For(source)
-	number := parser.EditionNumber(text)
+	number := parser.EditionNumber(extracted.Text)
 	if number == "" {
 		number = g.EditionNumber
 	}
-	return uc.gazettes.ReplaceActs(ctx, g.ID, number, parseActs(parser, uc.entities, text))
+	return uc.gazettes.ReplaceActs(ctx, g.ID, number, domain.MarkReadByOCR(parseActs(parser, uc.entities, extracted.Text), extracted.OCRPages))
 }

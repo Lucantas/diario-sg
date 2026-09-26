@@ -53,8 +53,15 @@ decisões de arquitetura, em `adr/`.
 - Valor em reais só é extraído com centavos: `VALOR (R$ 1)` em cabeçalho de
   tabela não é valor.
 - `pdftotext` roda sem `-layout`: o Diário tem duas colunas e o `-layout`
-  mistura as duas na mesma linha. Texto vazio indica PDF escaneado, o lugar
-  para plugar OCR.
+  mistura as duas na mesma linha.
+- Página com menos de 200 letras no `pdftotext` e com imagens cobrindo
+  pelo menos 25% da área é escaneada: vai para o Tesseract (`por`, 300
+  dpi, `--psm 1`, que detecta página deitada). As duas condições juntas
+  deixam de fora o anexo de foto da Prefeitura, que tem texto nativo e
+  foto pequena. O worker para de ler por OCR depois de 90 s por edição,
+  para caber nos 300 s do Cloud Run; o `reindex` não tem limite. O
+  Tesseract roda com `OMP_THREAD_LIMIT=1`, porque com threads num vCPU
+  só ele fica bem mais lento.
 
 - O catálogo de órgãos (sigla → nome) fica no domínio (`domain/organ.go`)
   e é a allowlist do parser: API e parser usam a mesma lista. O nome por
@@ -136,7 +143,9 @@ decisões de arquitetura, em `adr/`.
 - Os avisos de extração (`sem_numero`, `so_titulo`, `muitas_paginas`,
   `varios_atos_possiveis`) são calculados na leitura, em `domain.ActWarnings`, e não gravados:
   regra nova vale na hora, sem migration nem reindexação. A API devolve
-  códigos e o front escreve o texto.
+  códigos e o front escreve o texto. A exceção é `lido_por_ocr`: só a
+  extração sabe que a página era imagem, então o indexador grava
+  `acts.read_by_ocr` e o aviso sai dele.
 - `muitas_paginas` começa em 10 páginas: 339 atos na base de 22/09/2026,
   quase todos anexos ou atos que o parser não separou.
 - `varios_atos_possiveis` aparece quando o texto tem mais de uma

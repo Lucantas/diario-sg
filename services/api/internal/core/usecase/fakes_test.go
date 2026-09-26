@@ -62,10 +62,13 @@ func (memStorage) Get(context.Context, string) (io.ReadCloser, error) {
 	return io.NopCloser(strings.NewReader("PDF")), nil
 }
 
-type fixedExtractor struct{ text string }
+type fixedExtractor struct {
+	text     string
+	ocrPages []int
+}
 
-func (f fixedExtractor) Extract(context.Context, io.Reader, string) (string, error) {
-	return f.text, nil
+func (f fixedExtractor) Extract(context.Context, io.Reader, string) (domain.ExtractedText, error) {
+	return domain.ExtractedText{Text: f.text, OCRPages: f.ocrPages}, nil
 }
 
 type lineParser struct{ tag string }
@@ -73,7 +76,7 @@ type lineParser struct{ tag string }
 func (p lineParser) Parse(text string) []domain.Act {
 	var out []domain.Act
 	for i, l := range strings.Split(strings.TrimSpace(text), "\n") {
-		out = append(out, domain.Act{Type: domain.ActOutro, Title: p.tag + l, Body: l, Position: i})
+		out = append(out, domain.Act{Type: domain.ActOutro, Title: p.tag + l, Body: l, Position: i, PageStart: i + 1, PageEnd: i + 1})
 	}
 	return out
 }

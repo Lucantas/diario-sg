@@ -15,21 +15,26 @@ trocados.
 
 ## Desenho
 
-- **Quando.** Página com menos de 400 letras no `pdftotext` **e** com uma
-  imagem de pelo menos 400 × 400 pixels (`pdfimages -list`) vai para OCR.
-  Página de texto curto sem imagem grande (fim de edição, página em
-  branco) não vai.
+- **Quando.** Página com menos de 200 letras no `pdftotext` **e** com
+  imagens cobrindo pelo menos 25% da área (tamanho e resolução do
+  `pdfimages -list` contra o tamanho da página no `pdfinfo`) vai para
+  OCR. Nas 246 páginas escaneadas da Câmara, o texto nativo tem no máximo
+  123 letras (o cabeçalho sobreposto) e a imagem cobre de 27% a 100%. Os
+  anexos de foto da Prefeitura (termo de apreensão de animal) têm cerca de
+  320 letras e a foto cobre 10% a 13%: ficam de fora pelas duas regras.
 - **Como.** `pdftoppm -r 300 -gray` da página, `tesseract -l por --psm 1`
   (com detecção de orientação, porque há tabela deitada). O texto do OCR
   substitui o da página, inclusive no modo com colunas da Câmara.
-- **Limite.** O worker (Cloud Run, 300 s) lê no máximo 25 páginas por OCR
-  por edição, em ordem; o resto fica sem texto, como hoje. O `reindex`
-  não tem limite.
-- **Proveniência.** `gazettes.ocr_pages integer[]` (migration 022) guarda
-  as páginas lidas por OCR. O ato cujas páginas caem nelas sai com
-  `ocr: true` na API (`/v1/acts/{id}`) e `lido_por_ocr` no MCP
-  (`ler_ato`, `pagina_original`); a página do ato avisa que o texto veio
-  de imagem e pode ter erro, com o link da página original.
+- **Limite.** O worker (Cloud Run, 300 s, 1 vCPU) para de ler por OCR
+  depois de 90 s na edição; as páginas que sobram ficam sem texto, como
+  hoje, até o próximo `reindex`, que não tem limite. O Tesseract roda com
+  `OMP_THREAD_LIMIT=1`: com várias threads num núcleo só ele fica 4 vezes
+  mais lento.
+- **Proveniência.** O indexador marca `acts.read_by_ocr` (migration 022)
+  no ato cujas páginas foram lidas por OCR, e o ato ganha o aviso
+  `lido_por_ocr`, como os outros avisos de extração (busca, página do ato,
+  exportação e MCP). A ferramenta `pagina_original` do MCP diz
+  `lida_por_ocr` na página.
 - **Erro.** Sem o `tesseract` ou sem o português instalado, a extração
   falha com a mensagem do Tesseract (não segue calada sem o texto).
 - **Imagem.** O Dockerfile instala `tesseract-ocr`,

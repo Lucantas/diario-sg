@@ -15,10 +15,10 @@ type onePage struct {
 	gotPage   int
 }
 
-func (o *onePage) ExtractPage(_ context.Context, r io.Reader, source string, page int) (string, int, error) {
+func (o *onePage) ExtractPage(_ context.Context, r io.Reader, source string, page int) (domain.ExtractedText, int, error) {
 	b, _ := io.ReadAll(r)
 	o.gotSource, o.gotPage = source, page
-	return string(b) + " página", 4, nil
+	return domain.ExtractedText{Text: string(b) + " página", OCRPages: []int{page}}, 4, nil
 }
 
 func TestReadPageExtractsFromTheArchivedPDF(t *testing.T) {
@@ -29,7 +29,7 @@ func TestReadPageExtractsFromTheArchivedPDF(t *testing.T) {
 
 	got, err := NewReadPage(gaz, memStorage{}, pages).Execute(context.Background(), g.ID, 3)
 
-	if err != nil || got.Text != "PDF página" || got.Pages != 4 || got.Page != 3 || got.Gazette.Checksum != "abc" {
+	if err != nil || got.Text != "PDF página" || got.Pages != 4 || got.Page != 3 || got.Gazette.Checksum != "abc" || !got.ReadByOCR {
 		t.Fatalf("veio %+v %v", got, err)
 	}
 	if pages.gotSource != domain.SourceDiarioCamara || pages.gotPage != 3 {

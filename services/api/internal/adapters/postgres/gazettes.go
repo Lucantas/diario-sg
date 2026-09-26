@@ -61,8 +61,8 @@ func (r *GazetteRepo) SaveWithActs(ctx context.Context, g *domain.Gazette, acts 
 func insertActs(ctx context.Context, tx *sql.Tx, gazetteID string, acts []domain.Act) error {
 	insertAct, err := tx.PrepareContext(ctx, `
 		INSERT INTO acts (gazette_id, type, title, body, position, page_start, page_end, organ, modality, main_value_cents, name_lines,
-		                  legal_basis, declared_increase_bp)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, nullif($9, ''), nullif($10::bigint, 0), $11, $12, $13) RETURNING id`)
+		                  legal_basis, declared_increase_bp, read_by_ocr)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, nullif($9, ''), nullif($10::bigint, 0), $11, $12, $13, $14) RETURNING id`)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func insertActs(ctx context.Context, tx *sql.Tx, gazetteID string, acts []domain
 		var actID string
 		if err := insertAct.QueryRowContext(ctx, gazetteID, string(a.Type), a.Title, a.Body, a.Position,
 			a.PageStart, a.PageEnd, a.Organ, string(a.Modality), a.MainValueCents, a.NameLines,
-			pq.Array(legalBasisStrings(a.LegalBasis)), a.DeclaredIncreaseBP).Scan(&actID); err != nil {
+			pq.Array(legalBasisStrings(a.LegalBasis)), a.DeclaredIncreaseBP, a.ReadByOCR).Scan(&actID); err != nil {
 			return fmt.Errorf("ato %d: %w", a.Position, err)
 		}
 		for _, e := range a.Entities {

@@ -101,7 +101,12 @@ camada (`Domain`, `Application`, `Infrastructure`, `Api`).
 
 ## Rodando localmente
 
-Requisitos: Go 1.25+, Node 22.12+, Docker e `pdftotext` (pacote `poppler-utils`).
+Requisitos: Go 1.25+, Node 22.12+, Docker, `pdftotext` (pacote
+`poppler-utils`) e o Tesseract com o português (`tesseract` e
+`tesseract-data-por`, ou `tesseract-ocr-por` no Debian), que lê as páginas
+escaneadas. Sem o pacote do português no sistema, baixe o `por.traineddata`
+e o `osd.traineddata` numa pasta e aponte `TESSDATA_PREFIX` para ela no
+`.env`; os testes de OCR pulam quando o português não está instalado.
 
 ```bash
 cp .env.example .env
@@ -135,7 +140,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&source=&type=&organ=&modality=&from=&to=&min_value=&max_value=&main_value_min=&main_value_max=&entity=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa; `modality` (`dispensa`, `inexigibilidade`, `pregao`…) e `main_value_min`/`main_value_max` filtram pela modalidade e pelo valor principal lidos do texto (`modality` e `main_value_cents` em cada ato); `entity=<tipo>:<número>` (`cnpj`, `processo` ou `contrato`, com `-` no lugar de `/` se preferir) traz só os atos ligados ao número, como nas páginas de entidade, e número inválido é 400. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents`, `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`) e `mentions` (processos e contratos citados no ato, cada um com `kind`, `key`, `label` e `slug` para a URL das páginas de processo/contrato); `phase` só aparece no relatório de `/v1/entities/processo` e `/v1/entities/contrato` |
+| GET | `/v1/acts?q=&source=&type=&organ=&modality=&from=&to=&min_value=&max_value=&main_value_min=&main_value_max=&entity=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa; `modality` (`dispensa`, `inexigibilidade`, `pregao`…) e `main_value_min`/`main_value_max` filtram pela modalidade e pelo valor principal lidos do texto (`modality` e `main_value_cents` em cada ato); `entity=<tipo>:<número>` (`cnpj`, `processo` ou `contrato`, com `-` no lugar de `/` se preferir) traz só os atos ligados ao número, como nas páginas de entidade, e número inválido é 400. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents`, `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`, `lido_por_ocr`) e `mentions` (processos e contratos citados no ato, cada um com `kind`, `key`, `label` e `slug` para a URL das páginas de processo/contrato); `phase` só aparece no relatório de `/v1/entities/processo` e `/v1/entities/contrato` |
 | GET | `/v1/acts/export?format=csv\|json&<filtros da busca>` | Até 10.000 atos da busca com texto completo e a coluna `fonte`. CSV para Excel pt-BR (`;`, BOM, decimal com vírgula); `X-Total-Count` e `X-Export-Truncated` nos cabeçalhos |
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca; com `entity`, o link do canal é a página da entidade |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
@@ -369,7 +374,7 @@ páginas de preço antes de subir e mantenha o alerta de orçamento ligado.
 | Banco passa do plano gratuito ou precisa de rede privada | Cloud SQL ou AlloyDB (ADR 0002) |
 | Milhares de inscrições | Busca reversa / percolator em vez de 1 busca por inscrição (ADR 0003) |
 | Busca mais sofisticada (sinônimos, facetas) | Meilisearch/OpenSearch como adapter extra de `ActRepository` |
-| PDFs escaneados | Adapter de OCR (Document AI ou Tesseract) atrás de `TextExtractor` |
+| OCR com muito erro nas tabelas escaneadas | Document AI atrás de `TextExtractor`, no lugar do Tesseract |
 | Mais municípios/fontes | Novo adapter de `EditionSource` ou um serviço scraper por fonte |
 | Muitos serviços | GKE Autopilot; os containers e contratos de eventos já estão prontos |
 

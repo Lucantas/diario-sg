@@ -116,7 +116,7 @@ func markBodyFacts(ctx context.Context, db *sql.DB, hits []domain.ActHit) error 
 	for i, h := range hits {
 		ids[i] = h.ID
 	}
-	rows, err := db.QueryContext(ctx, `SELECT id, title, body FROM acts WHERE id = ANY($1::uuid[])`, pq.Array(ids))
+	rows, err := db.QueryContext(ctx, `SELECT id, title, body, read_by_ocr FROM acts WHERE id = ANY($1::uuid[])`, pq.Array(ids))
 	if err != nil {
 		return err
 	}
@@ -124,14 +124,14 @@ func markBodyFacts(ctx context.Context, db *sql.DB, hits []domain.ActHit) error 
 	facts := map[string]domain.WarningFacts{}
 	for rows.Next() {
 		var a domain.Act
-		if err := rows.Scan(&a.ID, &a.Title, &a.Body); err != nil {
+		if err := rows.Scan(&a.ID, &a.Title, &a.Body, &a.ReadByOCR); err != nil {
 			return err
 		}
 		facts[a.ID] = domain.WarningFactsOf(a)
 	}
 	for i := range hits {
 		f := facts[hits[i].ID]
-		hits[i].TitleOnly, hits[i].Signatures = f.TitleOnly, f.Signatures
+		hits[i].TitleOnly, hits[i].Signatures, hits[i].ReadByOCR = f.TitleOnly, f.Signatures, f.ReadByOCR
 	}
 	return rows.Err()
 }

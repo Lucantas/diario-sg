@@ -56,7 +56,7 @@ func TestExtractPageReadsOnlyThatPage(t *testing.T) {
 
 	text, pages, err := New().ExtractPage(context.Background(), bytes.NewReader(twoPagePDF()), domain.SourceDiarioPrefeitura, 2)
 
-	if err != nil || pages != 2 || !strings.Contains(text, "PAGINA DOIS") || strings.Contains(text, "PAGINA UM") {
+	if err != nil || pages != 2 || !strings.Contains(text.Text, "PAGINA DOIS") || strings.Contains(text.Text, "PAGINA UM") || len(text.OCRPages) != 0 {
 		t.Fatalf("página 2 de 2: %q %d %v", text, pages, err)
 	}
 }

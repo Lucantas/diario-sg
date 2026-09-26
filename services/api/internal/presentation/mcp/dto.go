@@ -17,7 +17,7 @@ var sourceSites = map[string]string{
 }
 
 var commonGaps = []string{
-	"Edição em PDF só com imagem (escaneada) não tem o texto lido.",
+	"Página só com imagem (escaneada) é lida por OCR e o ato sai com o aviso lido_por_ocr: letras e números podem vir trocados, sobretudo em tabelas.",
 	"A separação em atos é automática e pode errar; os avisos de cada ato dizem onde desconfiar.",
 	"Ausência de resultado não prova que o ato não existe: confira a edição original.",
 }

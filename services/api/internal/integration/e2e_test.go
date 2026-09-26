@@ -24,6 +24,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/entities"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/parser"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 	httpapi "github.com/seu-usuario/diario-sg/services/api/internal/presentation/http"
 	"github.com/seu-usuario/diario-sg/services/api/migrations"
@@ -49,9 +50,9 @@ func (textStore) Get(context.Context, string) (io.ReadCloser, error) {
 
 type passthroughExtractor struct{}
 
-func (passthroughExtractor) Extract(_ context.Context, r io.Reader, _ string) (string, error) {
+func (passthroughExtractor) Extract(_ context.Context, r io.Reader, _ string) (domain.ExtractedText, error) {
 	b, err := io.ReadAll(r)
-	return string(b), err
+	return domain.ExtractedText{Text: string(b)}, err
 }
 
 type recPub struct{ ids []string }

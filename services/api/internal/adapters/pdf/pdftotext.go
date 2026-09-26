@@ -15,22 +15,38 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-type PDFToText struct{ Timeout time.Duration }
+type PDFToText struct {
+	Timeout   time.Duration
+	OCRBudget time.Duration
+	clock     func() time.Time
+}
 
-func New() PDFToText { return PDFToText{Timeout: 2 * time.Minute} }
+const (
+	defaultTimeout   = 4 * time.Minute
+	defaultOCRBudget = 90 * time.Second
+)
 
-func (p PDFToText) Extract(ctx context.Context, r io.Reader, source string) (string, error) {
-	var text string
+func New() PDFToText { return PDFToText{Timeout: defaultTimeout, OCRBudget: defaultOCRBudget} }
+
+func (p PDFToText) now() time.Time {
+	if p.clock == nil {
+		return time.Now()
+	}
+	return p.clock()
+}
+
+func (p PDFToText) Extract(ctx context.Context, r io.Reader, source string) (domain.ExtractedText, error) {
+	var text domain.ExtractedText
 	err := p.withFile(ctx, r, func(ctx context.Context, path string) error {
 		var err error
-		text, err = extract(ctx, path, source)
+		text, err = p.extract(ctx, path, source, 1)
 		return err
 	})
 	return text, err
 }
 
-func (p PDFToText) ExtractPage(ctx context.Context, r io.Reader, source string, page int) (string, int, error) {
-	var text string
+func (p PDFToText) ExtractPage(ctx context.Context, r io.Reader, source string, page int) (domain.ExtractedText, int, error) {
+	var text domain.ExtractedText
 	var pages int
 	err := p.withFile(ctx, r, func(ctx context.Context, path string) error {
 		var err error
@@ -41,7 +57,7 @@ func (p PDFToText) ExtractPage(ctx context.Context, r io.Reader, source string, 
 			return fmt.Errorf("página %d de %d: %w", page, pages, domain.ErrInvalidInput)
 		}
 		n := strconv.Itoa(page)
-		text, err = extract(ctx, path, source, "-f", n, "-l", n)
+		text, err = p.extract(ctx, path, source, page, "-f", n, "-l", n)
 		return err
 	})
 	return text, pages, err
@@ -65,16 +81,24 @@ func (p PDFToText) withFile(ctx context.Context, r io.Reader, use func(context.C
 	return use(ctx, tmp.Name())
 }
 
-func extract(ctx context.Context, path, source string, pageFlags ...string) (string, error) {
+func (p PDFToText) extract(ctx context.Context, path, source string, firstPage int, pageFlags ...string) (domain.ExtractedText, error) {
 	raw, err := pdftotext(ctx, slices.Concat(pageFlags, []string{path, "-"})...)
-	if err != nil || source != domain.SourceDiarioCamara {
-		return raw, err
-	}
-	layout, err := pdftotext(ctx, slices.Concat(pageFlags, []string{"-layout", path, "-"})...)
 	if err != nil {
-		return "", err
+		return domain.ExtractedText{}, err
 	}
-	return mergePages(raw, layout), nil
+	scanned, err := p.readScannedPages(ctx, path, raw, firstPage)
+	if err != nil {
+		return domain.ExtractedText{}, err
+	}
+	raw = replacePages(raw, scanned, firstPage)
+	if source == domain.SourceDiarioCamara {
+		layout, err := pdftotext(ctx, slices.Concat(pageFlags, []string{"-layout", path, "-"})...)
+		if err != nil {
+			return domain.ExtractedText{}, err
+		}
+		raw = mergePages(raw, replacePages(layout, scanned, firstPage))
+	}
+	return domain.ExtractedText{Text: raw, OCRPages: sortedPages(scanned)}, nil
 }
 
 var pagesRe = regexp.MustCompile(`(?m)^Pages:\s+(\d+)`)

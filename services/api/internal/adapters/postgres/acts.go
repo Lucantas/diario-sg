@@ -146,7 +146,7 @@ func (r *ActRepo) EntityHitsInGazette(ctx context.Context, gazetteID string, ref
 func (r *ActRepo) ListByGazette(ctx context.Context, gazetteID string) ([]domain.Act, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT id, gazette_id, type, title, body, position, coalesce(page_start, 0), coalesce(page_end, 0), organ,
-		       coalesce(modality, ''), coalesce(main_value_cents, 0)
+		       coalesce(modality, ''), coalesce(main_value_cents, 0), read_by_ocr
 		FROM acts WHERE gazette_id = $1 ORDER BY position`, gazetteID)
 	if err != nil {
 		return nil, notFound(err)
@@ -158,7 +158,7 @@ func (r *ActRepo) ListByGazette(ctx context.Context, gazetteID string) ([]domain
 		var a domain.Act
 		var typ string
 		if err := rows.Scan(&a.ID, &a.GazetteID, &typ, &a.Title, &a.Body, &a.Position, &a.PageStart, &a.PageEnd, &a.Organ,
-			&a.Modality, &a.MainValueCents); err != nil {
+			&a.Modality, &a.MainValueCents, &a.ReadByOCR); err != nil {
 			return nil, err
 		}
 		a.Type = domain.ActType(typ)
@@ -172,7 +172,7 @@ func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(dom
 	args := append([]any{f.TextQuery(), f.Limit, likePattern(f.TextQuery())}, extra...)
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT a.id, a.gazette_id, a.type, a.title, a.body, a.position, a.organ, coalesce(a.page_start, 0), coalesce(a.page_end, 0),
-		       coalesce(a.modality, ''), coalesce(a.main_value_cents, 0),
+		       coalesce(a.modality, ''), coalesce(a.main_value_cents, 0), a.read_by_ocr,
 		       g.edition_number, g.published_at, g.is_extra, g.source_url, g.checksum, g.source,
 		       `+cnpjsSubquery+`,
 		       `+valuesSubquery+`,
@@ -193,7 +193,7 @@ func (r *ActRepo) Export(ctx context.Context, f domain.ActFilter, yield func(dom
 		var typ string
 		var total int
 		if err := rows.Scan(&h.ID, &h.GazetteID, &typ, &h.Title, &h.Body, &h.Position, &h.Organ, &h.PageStart, &h.PageEnd,
-			&h.Modality, &h.MainValueCents, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source,
+			&h.Modality, &h.MainValueCents, &h.ReadByOCR, &h.EditionNumber, &h.PublishedAt, &h.IsExtra, &h.SourceURL, &h.Checksum, &h.Source,
 			pq.Array(&h.CNPJs), pq.Array(&h.ValuesCents), &total); err != nil {
 			return err
 		}

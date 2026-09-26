@@ -12,7 +12,7 @@ import (
 func TestIndexGazette_SavesActsAndIsIdempotent(t *testing.T) {
 	repo := newMemGazettes()
 	pub := &recPublisher{}
-	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{"PORTARIA 1\nDECRETO 2 CNPJ"}, lineParsers{}, cnpjExtractor{}, pub)
+	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{text: "PORTARIA 1\nDECRETO 2 CNPJ"}, lineParsers{}, cnpjExtractor{}, pub)
 
 	in := IndexGazetteInput{PublishedAt: time.Now(), StoragePath: "gazettes/x.pdf", Checksum: "abc"}
 	if err := uc.Execute(context.Background(), in); err != nil {
@@ -43,7 +43,7 @@ func TestIndexGazette_InvalidInputIsPermanent(t *testing.T) {
 
 func TestIndexGazette_EditionNumberComesFromTextWhenEventHasNone(t *testing.T) {
 	repo := newMemGazettes()
-	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{"EDIÇÃO 1771\nDECRETO 1"}, lineParsers{}, cnpjExtractor{}, &recPublisher{})
+	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{text: "EDIÇÃO 1771\nDECRETO 1"}, lineParsers{}, cnpjExtractor{}, &recPublisher{})
 	base := IndexGazetteInput{PublishedAt: time.Now(), StoragePath: "x.pdf"}
 
 	in := base
@@ -67,7 +67,7 @@ func TestIndexGazette_EditionNumberComesFromTextWhenEventHasNone(t *testing.T) {
 
 func TestIndexGazette_UsesTheParserOfTheSource(t *testing.T) {
 	repo := newMemGazettes()
-	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{"PORTARIA 1"}, lineParsers{}, cnpjExtractor{}, &recPublisher{})
+	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{text: "PORTARIA 1"}, lineParsers{}, cnpjExtractor{}, &recPublisher{})
 	base := IndexGazetteInput{PublishedAt: time.Now(), StoragePath: "x.pdf"}
 
 	camara := base
@@ -95,5 +95,18 @@ func TestIndexGazette_UnknownSourceIsPermanent(t *testing.T) {
 
 	if !errors.Is(err, domain.ErrInvalidInput) {
 		t.Fatalf("esperava ErrInvalidInput, veio %v", err)
+	}
+}
+
+func TestIndexGazetteMarksTheActsOnPagesReadByOCR(t *testing.T) {
+	repo := newMemGazettes()
+	uc := NewIndexGazette(repo, memStorage{}, fixedExtractor{text: "DECRETO 1\nDECRETO 2", ocrPages: []int{2}}, lineParsers{}, cnpjExtractor{}, &recPublisher{})
+
+	if err := uc.Execute(context.Background(), IndexGazetteInput{PublishedAt: time.Now(), StoragePath: "x.pdf", Checksum: "ocr"}); err != nil {
+		t.Fatal(err)
+	}
+
+	if acts := repo.acts["g-ocr"]; len(acts) != 2 || acts[0].ReadByOCR || !acts[1].ReadByOCR {
+		t.Errorf("atos: %+v", acts)
 	}
 }

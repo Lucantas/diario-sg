@@ -77,11 +77,11 @@ type FileStorage interface {
 }
 
 type TextExtractor interface {
-	Extract(ctx context.Context, r io.Reader, source string) (string, error)
+	Extract(ctx context.Context, r io.Reader, source string) (domain.ExtractedText, error)
 }
 
 type PageExtractor interface {
-	ExtractPage(ctx context.Context, r io.Reader, source string, page int) (text string, pages int, err error)
+	ExtractPage(ctx context.Context, r io.Reader, source string, page int) (text domain.ExtractedText, pages int, err error)
 }
 
 type ActParser interface {
