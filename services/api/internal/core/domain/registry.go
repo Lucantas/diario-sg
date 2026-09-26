@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -113,7 +114,7 @@ func ParseCompanyRow(f []string, c RegistryCodes) (RegistryCompany, error) {
 		return RegistryCompany{}, fmt.Errorf("capital social de %s: %w", f[0], err)
 	}
 	return RegistryCompany{
-		Base: f[0], Name: squeezed(f[1]), LegalNature: described(c.Natures, f[2]),
+		Base: f[0], Name: withMaskedCPF(squeezed(f[1])), LegalNature: described(c.Natures, f[2]),
 		CapitalCents: capital, Size: described(companySizes, f[5]),
 	}, nil
 }
@@ -193,6 +194,12 @@ func parseRegistryCents(s string) (int64, error) {
 	whole, frac, _ := strings.Cut(strings.TrimSpace(s), ",")
 	frac = (frac + strings.Repeat("0", centsDigits))[:centsDigits]
 	return strconv.ParseInt(whole+frac, 10, 64)
+}
+
+var trailingCPFRe = regexp.MustCompile(`(^|\s)(\d{3})(\d{6})(\d{2})$`)
+
+func withMaskedCPF(name string) string {
+	return trailingCPFRe.ReplaceAllString(name, "$1***$3**")
 }
 
 func squeezed(s string) string {

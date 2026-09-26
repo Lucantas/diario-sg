@@ -36,12 +36,14 @@ func (f *fakeRegistrySource) Codes(context.Context, string) (domain.RegistryCode
 }
 
 type fakeRegistryRepo struct {
+	notReady error
 	cited    []string
 	month    time.Time
 	load     *domain.RegistryLoad
 	replaced int
 }
 
+func (r *fakeRegistryRepo) Ready(context.Context) error                  { return r.notReady }
 func (r *fakeRegistryRepo) CitedCNPJs(context.Context) ([]string, error) { return r.cited, nil }
 func (r *fakeRegistryRepo) Replace(_ context.Context, month time.Time, load domain.RegistryLoad) error {
 	r.month, r.load = month, &load
@@ -157,6 +159,22 @@ func TestLoadRegistryFailureReplacesNothingAndRecordsTheError(t *testing.T) {
 	}
 	if len(runs.runs) != 1 || !strings.Contains(runs.runs[0].Error, "Socios0.zip") {
 		t.Errorf("erro não registrado: %+v", runs.runs)
+	}
+}
+
+func TestLoadRegistryStopsBeforeReadingWhenTheTablesAreMissing(t *testing.T) {
+	src := registryFixture()
+	src.failOn = "Empresas0.zip"
+	repo, runs := &fakeRegistryRepo{notReady: errors.New(`relation "rf_partners" does not exist`)}, &memRuns{}
+	uc := NewLoadRegistry(src, repo, runs, &memObjects{}, time.Now)
+
+	_, err := uc.Execute(context.Background(), "2026-09")
+
+	if err == nil || !strings.Contains(err.Error(), "rf_partners") || strings.Contains(err.Error(), "timeout") {
+		t.Fatalf("deveria parar antes de ler os arquivos: %v", err)
+	}
+	if len(runs.runs) != 1 || runs.runs[0].Error == "" {
+		t.Errorf("a falha deveria ser registrada: %+v", runs.runs)
 	}
 }
 

@@ -126,3 +126,6 @@ e plano próprios:
 - O SHA-256 guardado é o do CSV descompactado, num `manifest.json` ao lado
   das extrações: o índice do zip fica no fim e a leitura por `Range` não
   passa pelos bytes em ordem.
+- 101 empresários individuais traziam o CPF inteiro no fim da razão
+  social; a carga passou a mascará-lo como o documento do sócio, e o job
+  confere as tabelas antes de ler (ADR 0008).

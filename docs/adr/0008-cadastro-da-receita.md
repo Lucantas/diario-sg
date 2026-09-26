@@ -28,6 +28,15 @@ Nextcloud, lido por WebDAV. Só interessam os CNPJs citados nos Diários
 - **Sócios** seguem o ADR 0006: só dentro da página da empresa, com o
   documento como a Receita publica (CPF mascarado). Telefone e e-mail
   não são carregados. O dump público não inclui as tabelas `rf_*`.
+- **CPF na razão social do MEI:** o empresário individual antigo tem o
+  CPF inteiro no fim da razão social ("MARIA DA SILVA 12345678901"). A
+  carga mascara como a Receita mascara o sócio ("MARIA DA SILVA
+  ***456789**"); o arquivo bruto, que é privado, guarda a linha como veio.
+  O MEI recente começa pelo CNPJ básico ("41.319.980 MARIA DA SILVA"),
+  que não é CPF e fica como está.
+- **Tabelas antes da leitura:** o job confere que as tabelas `rf_*`
+  existem antes de ler os arquivos, para não perder a hora de leitura
+  por falta de migration.
 
 ## Consequências
 - Um CNPJ citado pela primeira vez só ganha cadastro na carga do mês

@@ -369,9 +369,8 @@ outras fontes são registros estruturados. Registrar em ADR.
 Pendências:
 
 - [ ] Na nuvem: aplicar a migration 014 antes de rodar o job `receita`
-  (ele lê tudo por uma hora e só então grava; sem as tabelas, falha no
-  fim), aplicar o Terraform (job, agendamento e conta de serviço) e rodar
-  o job uma vez.
+  (sem as tabelas, o job para logo no início), aplicar o Terraform (job,
+  agendamento e conta de serviço) e rodar o job uma vez.
 - [ ] Sanções da CGU (CEIS e CNEP; o CEPIM respondeu 403 em 26/09/2026) e
   os padrões novos, em specs próprias.
 

@@ -106,6 +106,9 @@ func (uc *LoadRegistry) month(ctx context.Context, month string) (time.Time, str
 }
 
 func (uc *LoadRegistry) prepare(ctx context.Context, month string) (*registryLoading, error) {
+	if err := uc.repo.Ready(ctx); err != nil {
+		return nil, fmt.Errorf("tabelas do cadastro: %w", err)
+	}
 	cited, err := uc.repo.CitedCNPJs(ctx)
 	if err != nil {
 		return nil, err

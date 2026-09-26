@@ -19,6 +19,11 @@ type RegistryRepo struct{ db *sql.DB }
 
 func NewRegistryRepo(db *sql.DB) *RegistryRepo { return &RegistryRepo{db: db} }
 
+func (r *RegistryRepo) Ready(ctx context.Context) error {
+	_, err := r.db.ExecContext(ctx, `SELECT 1 FROM rf_companies, rf_establishments, rf_partners LIMIT 0`)
+	return err
+}
+
 func (r *RegistryRepo) CitedCNPJs(ctx context.Context) ([]string, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT key FROM entities WHERE kind = 'cnpj' AND length(key) = 14 ORDER BY key`)
 	if err != nil {

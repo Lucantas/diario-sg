@@ -143,6 +143,7 @@ type RegistrySource interface {
 }
 
 type RegistryRepository interface {
+	Ready(ctx context.Context) error
 	CitedCNPJs(ctx context.Context) ([]string, error)
 	Replace(ctx context.Context, month time.Time, load domain.RegistryLoad) error
 }

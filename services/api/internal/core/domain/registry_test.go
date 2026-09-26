@@ -29,6 +29,21 @@ func TestParseCompanyRow(t *testing.T) {
 	}
 }
 
+func TestIndividualEntrepreneurCPFIsMaskedLikeThePartners(t *testing.T) {
+	cases := map[string]string{
+		"MARIA DA SILVA 12345678901":   "MARIA DA SILVA ***456789**",
+		"41.319.980 MARIA DA SILVA":    "41.319.980 MARIA DA SILVA",
+		"CONSTRUTORA 2010 LTDA":        "CONSTRUTORA 2010 LTDA",
+		"MARIA DA SILVA  12345678901 ": "MARIA DA SILVA ***456789**",
+	}
+	for raw, want := range cases {
+		c, err := ParseCompanyRow([]string{"42092859", raw, "2135", "50", "1000,00", "01", ""}, RegistryCodes{})
+		if err != nil || c.Name != want {
+			t.Errorf("%q: veio %q (%v)", raw, c.Name, err)
+		}
+	}
+}
+
 func TestCompanySizes(t *testing.T) {
 	for code, want := range map[string]string{"00": "Não informado", "01": "Microempresa", "03": "Empresa de pequeno porte", "05": "Demais"} {
 		c, err := ParseCompanyRow(fields(`"1";"X";"2062";"49";"0,00";"`+code+`";""`), testCodes)
