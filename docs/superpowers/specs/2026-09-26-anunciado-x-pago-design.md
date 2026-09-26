@@ -61,5 +61,23 @@ Medidos na base local em 26/09/2026:
   no ano seguinte, anunciado por nome, nome ambíguo).
 - Integração: `/v1/patterns` com um caso de cada.
 
+## Depois da entrega
+
+- Com a Receita recarregada incluindo os credores (26/09/2026, 1h52:
+  4.919 CNPJs, 4.720 no cadastro), "pago sem publicação" caiu de 95 para
+  75 casos: 20 credores de direito público saíram pela natureza jurídica,
+  e todos os que ficaram têm nome. "Contratação sem pagamento" tem 9
+  casos e "pago acima do anunciado", 68.
+- Conferência de um caso de cada: Hashimoto, Perfil X Construtora e
+  Consórcio Ônix/F.P. Vieira (pago sem publicação) aparecem no Diário só
+  pelo nome, sem CNPJ, em extratos, portarias de fiscal e decretos, às
+  vezes com outra razão social ("HASHIMOTO MANUTENÇÃO ELÉTRICA"); a
+  ressalva do padrão diz isso, e cada caso ganhou o link "Procurar o nome
+  no Diário" (a razão social atual, sem o sufixo). CEJOM (contratação sem
+  pagamento, termo de adesão de R$ 5 milhões em 28/12/2022) não tem
+  nenhum empenho no TCE em nenhum ano. Ampla (pago acima do anunciado) é
+  concessionária de energia, caso previsto na ressalva.
+- `/padroes` em 1280 e 390 px sem rolagem horizontal nem erro no console.
+
 **Pronto quando:** `/padroes` mostra os três padrões com os casos da base
 local, e a página explica que o TCE não liga pagamento a contrato.

@@ -416,7 +416,12 @@ Pendências:
   Diário pelo CNPJ, pelo processo ou pelo nome no padrão abaixo.
 - **Novos padrões:** pagamento a fornecedor sem contrato publicado no Diário;
   contrato publicado sem nenhum pagamento; pago acima do contratado mais
-  aditivos.
+  aditivos. ✅ (26/09/2026) Na base local: 75 empresas pagas sem nenhuma
+  citação do CNPJ no Diário, 9 contratações sem pagamento e 68 empresas
+  pagas pelo menos o dobro do anunciado. Muitos dos "pagos sem
+  publicação" aparecem no Diário só pelo nome; cada caso leva a busca do
+  nome. Desenho em
+  `docs/superpowers/specs/2026-09-26-anunciado-x-pago-design.md`.
 - **Padrão do PNCP:** contrato no PNCP sem nenhuma citação no Diário. ✅
   (26/09/2026) Nenhum caso na primeira carga: todo contrato de pelo menos
   R$ 100 mil tem extrato no Diário.
