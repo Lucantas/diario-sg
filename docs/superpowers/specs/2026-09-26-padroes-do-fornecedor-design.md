@@ -80,5 +80,18 @@ painéis (atos da mesma empresa ligados por processo ou contrato):
   e o de sócio em comum não traz o nome da pessoa física.
 - Base local: contagens acima, conferência manual de um caso de cada.
 
+## Depois da entrega
+
+- Os números da base local ficaram os medidos acima (4, 9, 19, 5 e 0).
+  `/v1/patterns` responde em cerca de 1 segundo com os nove padrões.
+- O título dos achados de grupo traz os nomes das empresas: com só "2
+  fornecedores com 1 sócio em comum", vários achados tinham o mesmo título.
+- Conferência manual: WP Comércio Atacadista aberta em 03/05/2019 e
+  contratada em 05/09/2019 (SEMDUR); Luza Serviços com capital de R$ 10
+  mil e contratação de R$ 1,44 milhão (SEMCOM, 2026); Bradok, Dady Ilha e
+  MAC ID no mesmo endereço em Niterói e com um sócio pessoa jurídica em
+  comum. Os dois lados (data do ato e cadastro) foram conferidos na base,
+  não na edição original.
+
 **Pronto quando:** `/padroes` mostra os cinco padrões com os casos da base
 local, cada um com teste de caso que aciona e de caso parecido que não.

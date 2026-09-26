@@ -24,7 +24,7 @@ no centro do produto.
 | 0 | Base completa | — | — |
 | 1 | Citável e exportável | — | 0 |
 | 2 | Seguir o dinheiro dentro do Diário | — | 1 |
-| 3 | Quem é o fornecedor | Receita (CNPJ), CGU (CEIS/CNEP/CEPIM) | 2 |
+| 3 | Quem é o fornecedor ✅ | Receita (CNPJ), CGU (CEIS/CNEP/CEPIM) | 2 |
 | 4 | Anunciado × pago | PNCP, Portal da Transparência de SG | 3 |
 | 5 | Recorte político | TSE, Câmara Municipal, transferências federais, TCE-RJ | 3 |
 
@@ -366,13 +366,23 @@ outras fontes são registros estruturados. Registrar em ADR.
   Justiça Federal). A página da empresa e a ferramenta `entidade` do MCP
   mostram cada sanção com o estado. O CEPIM responde 403 desde 26/09/2026.
   Desenho em `docs/superpowers/specs/2026-09-26-sancoes-da-cgu-design.md`.
-- **Página da empresa** enriquecida com tudo acima.
+- **Página da empresa** enriquecida com tudo acima. ✅ Razão social,
+  cadastro, sócios e sanções.
 - **Novos padrões:** empresa aberta pouco antes do primeiro contrato; capital
   social muito menor que o valor contratado; fornecedores com sócio ou
   endereço em comum; fornecedor sancionado contratado.
+  ✅ (26/09/2026) Em `/padroes`, calculados na leitura sobre as contratações
+  dos painéis. Na base local: 4 empresas com a primeira contratação menos
+  de 180 dias depois da abertura da matriz; 9 com contratação de pelo menos
+  R$ 100 mil acima de dez vezes o capital social (o máximo de capital
+  mínimo que a lei deixa exigir); 19 grupos de fornecedores com sócio em
+  comum, sem nomear a pessoa física; 5 endereços com mais de um
+  fornecedor; nenhuma contratação durante sanção que alcança São Gonçalo
+  (a base só tem as sanções desde a primeira carga). Desenho em
+  `docs/superpowers/specs/2026-09-26-padroes-do-fornecedor-design.md`.
 - **ADR de LGPD** antes de publicar sócios: agentes políticos e secretários
   podem ter página própria; servidores são encontráveis na busca, sem perfil;
-  sócios aparecem só dentro da página da empresa.
+  sócios aparecem só dentro da página da empresa. ✅ ADR 0006.
 
 Pendências:
 
@@ -382,7 +392,6 @@ Pendências:
 - [ ] Na nuvem: aplicar a migration 015 e o Terraform do job `sancoes`.
 - [ ] CEPIM: o Portal responde 403 à página e ao arquivo (26/09/2026);
   tentar de novo quando voltar.
-- [ ] Padrões novos, em spec própria.
 
 ## Entrega 4 — Anunciado × pago
 
