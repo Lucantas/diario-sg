@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -78,9 +79,30 @@ func isOrganSection(lines []line, i int) bool {
 	if !organRe.MatchString(lines[i].text) || isHeader(lines[i].text) {
 		return false
 	}
-	for _, next := range lines[i+1:] {
-		if next.text != "" {
-			return startsAct(next.text) || (domain.IsKnownOrgan(lines[i].text) && isSectionTitle(next.text))
+	for j := i + 1; j < len(lines); j++ {
+		if lines[j].text != "" {
+			return startsAct(lines[j].text) || (domain.IsKnownOrgan(lines[i].text) && isSectionTitle(lines[j].text) && proseFollows(lines, j))
+		}
+	}
+	return false
+}
+
+const (
+	proseLookahead = 3
+	proseMinRunes  = 40
+)
+
+func proseFollows(lines []line, title int) bool {
+	seen := 0
+	for _, l := range lines[title+1:] {
+		if l.text == "" {
+			continue
+		}
+		if strings.ToUpper(l.text) != l.text || utf8.RuneCountInString(l.text) >= proseMinRunes {
+			return true
+		}
+		if seen++; seen == proseLookahead {
+			return false
 		}
 	}
 	return false

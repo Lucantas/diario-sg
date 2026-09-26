@@ -141,3 +141,32 @@ Seleção de propostas culturais para o carnaval de 2027.`)
 		t.Fatalf("nome do órgão por extenso não vira ato: %+v", acts)
 	}
 }
+
+func TestAcronymCellInsideATableDoesNotOpenAnAct(t *testing.T) {
+	acts := New().Parse(`Exonera:
+a contar de 27 de dezembro de 2010, os servidores abaixo relacionados, da Secretaria Municipal de Governo.
+SUBSECRETARIO
+DAS-1
+SSM
+DIRETOR DE DIVISAO
+DAS-5
+SUPERVISOR
+DAS-1
+Port. nº 3165/2010`)
+
+	if len(acts) != 1 || acts[0].Type != domain.ActExoneracao {
+		t.Fatalf("célula de tabela com sigla não abre ato: %+v", acts)
+	}
+}
+
+func TestLoneSignatureAfterAnOrganIsNotAnAct(t *testing.T) {
+	acts := New().Parse(`PORTARIA N.º 010/SEMAD/2024
+Designa servidores para a comissão de avaliação das unidades escolares.
+SEMAD
+LEONARDO NEVES DOS SANTOS DE OLIVEIRA
+Secretário Municipal De Administração`)
+
+	if len(acts) != 1 {
+		t.Fatalf("assinatura solta não vira ato: %+v", acts)
+	}
+}

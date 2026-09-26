@@ -133,7 +133,7 @@ const (
 
 func (s *segment) act(position int) (domain.Act, bool) {
 	body := strings.TrimSpace(strings.Join(s.lines, "\n"))
-	if body == "" || (s.orphan && (utf8.RuneCountInString(body) < minOrphanRunes || isLoneHeading(body))) {
+	if body == "" || (s.orphan && (utf8.RuneCountInString(body) < minOrphanRunes || isLoneHeading(body) || isLoneSignature(body))) {
 		return domain.Act{}, false
 	}
 	title := strings.Join(strings.Fields(s.title), " ")
@@ -163,6 +163,13 @@ func sectionOrgan(acronym, current string) string {
 
 const maxHeadingLines = 3
 
+var signatureRoleRe = regexp.MustCompile(`(?i)^(?:sub)?secret[áa]ri[oa]|^presidente|^prefeit[oa]|^diretor|^coordenador|^chefe|^procurador`)
+
 func isLoneHeading(body string) bool {
 	return strings.Count(body, "\n") < maxHeadingLines && strings.ToUpper(body) == body
+}
+
+func isLoneSignature(body string) bool {
+	lines := strings.Split(strings.TrimSpace(body), "\n")
+	return len(lines) == 2 && signatureRoleRe.MatchString(strings.TrimSpace(lines[1]))
 }
