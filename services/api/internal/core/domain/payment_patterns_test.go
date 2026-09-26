@@ -89,3 +89,15 @@ func TestAttributeByNameUsesTheReadNameOfAUniqueCreditor(t *testing.T) {
 		t.Fatalf("atribuídos: %+v", got)
 	}
 }
+
+func TestPaidWithoutPublicationFindingSearchesTheName(t *testing.T) {
+	f := PaidWithoutPublicationFinding(PaidWithoutPublication{Profile: SupplierProfile{CNPJ: "08733497000169", Name: "PERFIL X CONSTRUTORA S.A."},
+		Paid: CreditorPaid{CNPJ: "08733497000169", Years: []int{2022}, PaidCents: 1}})
+
+	if f.Link == nil || f.Link.URL != "/?q=%22perfil+x+construtora%22" {
+		t.Fatalf("link: %+v", f.Link)
+	}
+	if PaidWithoutPublicationFinding(PaidWithoutPublication{Profile: SupplierProfile{CNPJ: "1"}}).Link != nil {
+		t.Fatal("sem nome, sem link")
+	}
+}

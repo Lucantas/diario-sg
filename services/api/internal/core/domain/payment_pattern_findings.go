@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -46,7 +47,16 @@ func PaidWithoutPublicationFinding(p PaidWithoutPublication) Finding {
 		Title: fmt.Sprintf("%s: %s pagos de %s sem nenhuma citação no Diário", supplierLabel(p.Profile), FormatBRL(p.Paid.PaidCents),
 			paymentYearsLabel(p.Paid.Years)),
 		Detail: "Unidades que pagaram: " + strings.Join(p.Paid.Units, "; ") + ".",
+		Link:   nameSearchLink(p.Profile.Name),
 	}
+}
+
+func nameSearchLink(name string) *FindingLink {
+	key := SupplierNameKey(name)
+	if key == "" {
+		return nil
+	}
+	return &FindingLink{Label: "Procurar o nome no Diário", URL: "/?q=" + url.QueryEscape(`"`+key+`"`)}
 }
 
 func UnpaidContractFinding(u UnpaidContract) Finding {
