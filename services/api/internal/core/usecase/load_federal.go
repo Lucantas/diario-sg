@@ -44,6 +44,7 @@ func (uc *LoadFederal) loadAmendments(ctx context.Context, run *domain.FetchRun)
 	var payments []domain.AmendmentPayment
 	archives := map[string]*csvArchive{amendmentsCSV: newCSVArchive(), amendmentPaymentsCSV: newCSVArchive()}
 	cols := map[string]domain.CSVColumns{}
+	var firstErr error
 	sha, err := uc.src.ZipCSVs(ctx, amendmentsFile, func(name string, header, row []string) error {
 		required, ok := map[string][]string{amendmentsCSV: domain.AmendmentColumns, amendmentPaymentsCSV: domain.AmendmentPaymentColumns}[name]
 		if !ok {
@@ -58,28 +59,30 @@ func (uc *LoadFederal) loadAmendments(ctx context.Context, run *domain.FetchRun)
 			if !domain.IsSaoGoncaloAmendment(c, row) {
 				return nil
 			}
+			run.Found++
 			a, err := domain.ParseAmendment(c, row)
 			if err != nil {
-				run.Failed++
-				return nil
+				return failedRow(run, &firstErr, err)
 			}
 			amendments = append(amendments, a)
 		case amendmentPaymentsCSV:
 			if !domain.IsSaoGoncaloCompanyPayment(c, row) {
 				return nil
 			}
+			run.Found++
 			p, err := domain.ParseAmendmentPayment(c, row)
 			if err != nil {
-				run.Failed++
-				return nil
+				return failedRow(run, &firstErr, err)
 			}
 			payments = append(payments, p)
 		}
-		run.Found++
 		return archives[name].write(header, row)
 	})
 	if err != nil {
 		return err
+	}
+	if firstErr != nil {
+		return rejectedLoad(run, firstErr)
 	}
 	for name, a := range archives {
 		if err := a.put(ctx, uc.raw, uc.rawPrefix(domain.SourceAmendments, strings.TrimSuffix(name, ".csv")), sha); err != nil {
@@ -129,6 +132,7 @@ func (uc *LoadFederal) loadTransferMonth(ctx context.Context, month time.Time, r
 	var transfers []domain.FederalTransfer
 	archive := newCSVArchive()
 	var cols domain.CSVColumns
+	var firstErr error
 	sha, err := uc.src.ZipCSVs(ctx, transfersDataset+"/"+month.Format("200601"), func(_ string, header, row []string) error {
 		if cols == nil {
 			c, err := domain.NewCSVColumns(header, domain.TransferColumns...)
@@ -147,14 +151,16 @@ func (uc *LoadFederal) loadTransferMonth(ctx context.Context, month time.Time, r
 			return nil
 		}
 		if err != nil {
-			run.Failed++
-			return nil
+			return failedRow(run, &firstErr, err)
 		}
 		transfers = append(transfers, t)
 		return archive.write(header, row)
 	})
 	if err != nil {
 		return err
+	}
+	if firstErr != nil {
+		return rejectedLoad(run, firstErr)
 	}
 	if err := archive.put(ctx, uc.raw, uc.rawPrefix(domain.SourceTransfers, month.Format("200601")), sha); err != nil {
 		return err
@@ -164,6 +170,18 @@ func (uc *LoadFederal) loadTransferMonth(ctx context.Context, month time.Time, r
 	}
 	run.Stored += len(transfers)
 	return nil
+}
+
+func failedRow(run *domain.FetchRun, first *error, err error) error {
+	run.Failed++
+	if *first == nil {
+		*first = err
+	}
+	return nil
+}
+
+func rejectedLoad(run *domain.FetchRun, first error) error {
+	return fmt.Errorf("%d linhas não foram lidas, nada foi trocado; a primeira: %w", run.Failed, first)
 }
 
 func columnsFor(cache map[string]domain.CSVColumns, name string, header, required []string) (domain.CSVColumns, error) {

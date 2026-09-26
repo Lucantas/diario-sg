@@ -85,7 +85,7 @@ func (s *Source) Contracts(ctx context.Context, org string, year int, each func(
 			return "", fmt.Errorf("contratos de %s em %d, página %d: %w", org, year, n, err)
 		}
 		for _, c := range p.Data {
-			if err := each(c.domain(), c.TipoPessoa == companySupplier); err != nil {
+			if err := each(c.domain(), c.isCompany()); err != nil {
 				return "", err
 			}
 		}
@@ -155,10 +155,15 @@ func wait(ctx context.Context, d time.Duration) error {
 	}
 }
 
+func (c contract) isCompany() bool {
+	cnpj, ok := domain.NormalizeCNPJ(c.NiFornecedor)
+	return c.TipoPessoa == companySupplier && ok && domain.HasValidCheckDigits(cnpj)
+}
+
 func (c contract) domain() domain.PNCPContract {
 	return domain.PNCPContract{ControlNumber: c.NumeroControlePNCP, OrgCNPJ: c.OrgaoEntidade.CNPJ, UnitName: c.UnidadeOrgao.Nome,
 		Year: c.AnoContrato, Sequence: c.SequencialContrato, Kind: c.TipoContrato.Nome, Process: c.Processo, Number: c.NumeroContrato,
-		SupplierCNPJ: c.NiFornecedor, SupplierName: c.NomeFornecedor, Object: c.Objeto,
+		SupplierCNPJ: supplierCNPJ(c.NiFornecedor), SupplierName: c.NomeFornecedor, Object: c.Objeto,
 		ValueCents: int64(math.Round(c.ValorGlobal * 100)), SignedAt: date(c.DataAssinatura), PublishedAt: date(c.DataPublicacao),
 		StartsAt: date(c.VigenciaInicio), EndsAt: date(c.VigenciaFim)}
 }
@@ -172,4 +177,11 @@ func date(s string) *time.Time {
 		return nil
 	}
 	return &t
+}
+
+func supplierCNPJ(ni string) string {
+	if cnpj, ok := domain.NormalizeCNPJ(ni); ok {
+		return cnpj
+	}
+	return ""
 }

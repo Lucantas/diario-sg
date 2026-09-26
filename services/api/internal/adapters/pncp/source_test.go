@@ -85,3 +85,15 @@ func TestContractsWaitsWhenTheRateLimitPageComesBack(t *testing.T) {
 		t.Fatalf("depois do limite: %d %v", n, err)
 	}
 }
+
+func TestOnlyAValidCNPJCountsAsCompany(t *testing.T) {
+	for ni, want := range map[string]bool{"15106169000106": true, "12345678901": false, "15106169000107": false} {
+		c := contract{TipoPessoa: "PJ", NiFornecedor: ni}
+		if got := c.isCompany(); got != want {
+			t.Errorf("%s: esperava %v", ni, want)
+		}
+	}
+	if (contract{TipoPessoa: "PF", NiFornecedor: "15106169000106"}).isCompany() {
+		t.Error("pessoa física não é empresa")
+	}
+}

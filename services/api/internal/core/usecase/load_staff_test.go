@@ -69,6 +69,16 @@ func TestLoadStaffKeepsAYearThatCameEmpty(t *testing.T) {
 	}
 }
 
+func TestLoadStaffDoesNothingBefore2024(t *testing.T) {
+	runs := &memRuns{}
+
+	run, err := NewLoadStaff(fakeStaffSource{}, &fakeStaffRepo{}, runs, &memObjects{}, staffNow).Execute(context.Background(), 2020, 2023)
+
+	if err != nil || run.ID != "" || len(runs.runs) != 0 {
+		t.Fatalf("veio %+v %v %+v", run, err, runs.runs)
+	}
+}
+
 func TestLoadStaffStopsOnASourceError(t *testing.T) {
 	runs := &memRuns{}
 

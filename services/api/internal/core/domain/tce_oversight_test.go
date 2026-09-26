@@ -45,6 +45,17 @@ func TestParseStalledWorksNormalizesTheCNPJ(t *testing.T) {
 	}
 }
 
+func TestWithoutRepeatsKeepsOneRowPerKey(t *testing.T) {
+	o := TCEOversight{Accounts: []TCEAccount{{Year: 2024, Opinion: "EM ANALISE"}, {Year: 2024, Opinion: "FAVORÁVEL"}},
+		Penalties: []TCEPenalty{{Condemnation: "1"}, {Condemnation: "1"}, {Condemnation: "2"}}}
+
+	got := o.WithoutRepeats()
+
+	if len(got.Accounts) != 1 || got.Accounts[0].Opinion != "FAVORÁVEL" || len(got.Penalties) != 2 {
+		t.Fatalf("veio %+v", got)
+	}
+}
+
 func TestTCEProcessSearchUsesTheDiarioSpelling(t *testing.T) {
 	if got := TCEProcessSearch("214824-1/2014"); got != `"214.824" TCE` {
 		t.Fatalf("busca: %s", got)

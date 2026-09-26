@@ -36,6 +36,9 @@ func (uc *LoadStaff) Execute(ctx context.Context, from, to int) (domain.FetchRun
 		return domain.FetchRun{}, fmt.Errorf("%w: anos %d a %d", domain.ErrInvalidInput, from, to)
 	}
 	from = max(from, domain.FirstStaffYear)
+	if from > to {
+		return domain.FetchRun{}, nil
+	}
 	run := domain.FetchRun{ID: domain.NewRunID(), Source: domain.SourceStaff, StartedAt: started,
 		RequestedFrom: time.Date(from, 1, 1, 0, 0, 0, 0, time.UTC), RequestedTo: time.Date(to, 12, 31, 0, 0, 0, 0, time.UTC)}
 	err := uc.repo.Ready(ctx)

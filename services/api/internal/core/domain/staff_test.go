@@ -26,6 +26,18 @@ func TestParseStaffJSONReadsTheTCEAggregates(t *testing.T) {
 	}
 }
 
+func TestParseStaffJSONMergesRepeatedSituations(t *testing.T) {
+	body := []byte(`{"SituacoesFuncionais":[` +
+		`{"Anomes":"2025/01","UnidadeGestora":"PREFEITURA","Quantidade":2,"Remuneracao":1,"SituacaoFuncional":"Efetivo","Grupo":"Efetivo"},` +
+		`{"Anomes":"2025/01","UnidadeGestora":"PREFEITURA ","Quantidade":3,"Remuneracao":2,"SituacaoFuncional":"Efetivo","Grupo":"Outros"}]}`)
+
+	rows, err := ParseStaffJSON(body)
+
+	if err != nil || len(rows) != 1 || rows[0].Headcount != 5 || rows[0].RemunerationCents != 300 {
+		t.Fatalf("veio %+v %v", rows, err)
+	}
+}
+
 func TestParseStaffJSONRejectsABadMonth(t *testing.T) {
 	if _, err := ParseStaffJSON([]byte(`{"SituacoesFuncionais":[{"Anomes":"janeiro"}]}`)); err == nil {
 		t.Fatal("esperava erro")

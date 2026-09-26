@@ -37,6 +37,7 @@ func (uc *LoadOversight) Execute(ctx context.Context) (domain.FetchRun, error) {
 	today := time.Date(started.Year(), started.Month(), started.Day(), 0, 0, 0, 0, time.UTC)
 	run := domain.FetchRun{ID: domain.NewRunID(), Source: domain.SourceOversight, StartedAt: started, RequestedFrom: today, RequestedTo: today}
 	o, err := uc.collect(ctx)
+	o = o.WithoutRepeats()
 	if err == nil {
 		err = uc.repo.ReplaceOversight(ctx, o)
 	}

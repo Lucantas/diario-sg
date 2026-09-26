@@ -121,3 +121,15 @@ func TestLoadFederalTransfersStopOnAMissingMonth(t *testing.T) {
 		t.Fatalf("veio %v %+v", err, runs.runs)
 	}
 }
+
+func TestLoadFederalAmendmentsRejectTheLoadWhenARowFails(t *testing.T) {
+	broken := strings.Replace(paymentsCSVFixture, ";202601;11222333000181;", ";janeiro;11222333000181;", 1)
+	src := &fakeFederalSource{files: map[string]map[string]string{amendmentsFile: {amendmentsCSV: amendmentsCSVFixture, amendmentPaymentsCSV: broken}}}
+	repo, runs := &fakeFederalRepo{}, &memRuns{}
+
+	_, err := NewLoadFederal(src, repo, runs, &memObjects{}, staffNow).Amendments(context.Background())
+
+	if err == nil || repo.amendments != nil || runs.runs[0].Failed != 1 || !strings.Contains(runs.runs[0].Error, "janeiro") {
+		t.Fatalf("veio %v %+v %+v", err, repo.amendments, runs.runs)
+	}
+}

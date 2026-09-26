@@ -59,6 +59,7 @@ func (uc *LoadPNCP) collect(ctx context.Context, from, to int, run *domain.Fetch
 		return nil, nil, fmt.Errorf("tabela do PNCP: %w", err)
 	}
 	var out []domain.PNCPContract
+	seen := map[string]bool{}
 	manifest := map[string]string{}
 	for _, org := range domain.MunicipalOrgCNPJs() {
 		for year := from; year <= to; year++ {
@@ -68,6 +69,10 @@ func (uc *LoadPNCP) collect(ctx context.Context, from, to int, run *domain.Fetch
 					run.Skipped++
 					return nil
 				}
+				if seen[c.ControlNumber] {
+					return nil
+				}
+				seen[c.ControlNumber] = true
 				out = append(out, c)
 				return nil
 			})

@@ -57,6 +57,27 @@ type TCEOversight struct {
 	Works     []StalledWork
 }
 
+func (o TCEOversight) WithoutRepeats() TCEOversight {
+	out := TCEOversight{Works: o.Works}
+	years := map[int]int{}
+	for _, a := range o.Accounts {
+		if i, ok := years[a.Year]; ok {
+			out.Accounts[i] = a
+			continue
+		}
+		years[a.Year] = len(out.Accounts)
+		out.Accounts = append(out.Accounts, a)
+	}
+	seen := map[string]bool{}
+	for _, p := range o.Penalties {
+		if !seen[p.Condemnation] {
+			seen[p.Condemnation] = true
+			out.Penalties = append(out.Penalties, p)
+		}
+	}
+	return out
+}
+
 func isSaoGoncalo(ente string) bool {
 	return foldText(ente) == saoGoncaloTCEFolded
 }

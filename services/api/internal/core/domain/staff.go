@@ -48,5 +48,25 @@ func ParseStaffJSON(body []byte) ([]StaffRow, error) {
 		out = append(out, StaffRow{Month: month, Unit: squeezed(r.UnidadeGestora), Situation: squeezed(r.SituacaoFuncional),
 			Group: squeezed(r.Grupo), Headcount: r.Quantidade, RemunerationCents: int64(math.Round(r.Remuneracao * 100))})
 	}
-	return out, nil
+	return mergeStaffRows(out), nil
+}
+
+func mergeStaffRows(rows []StaffRow) []StaffRow {
+	type key struct {
+		month           time.Time
+		unit, situation string
+	}
+	index := map[key]int{}
+	var out []StaffRow
+	for _, r := range rows {
+		k := key{r.Month, r.Unit, r.Situation}
+		if i, ok := index[k]; ok {
+			out[i].Headcount += r.Headcount
+			out[i].RemunerationCents += r.RemunerationCents
+			continue
+		}
+		index[k] = len(out)
+		out = append(out, r)
+	}
+	return out
 }
