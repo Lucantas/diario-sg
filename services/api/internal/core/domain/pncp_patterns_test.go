@@ -24,7 +24,7 @@ func TestPNCPWithoutExtractSkipsWhatTheDiarioCites(t *testing.T) {
 	cited := map[string]bool{"11111111000111": true}
 	processes := map[string]bool{contracts[1].ProcessKey(): true}
 
-	got := FindPNCPWithoutExtract(contracts, cited, processes, lastDiario, nil)
+	got := FindPNCPWithoutExtract(contracts, PNCPCitations{CNPJs: cited, Processes: processes}, lastDiario, nil)
 
 	if len(got) != 2 || got[0].Contract.SupplierCNPJ != "66666666000166" || got[1].Contract.SupplierCNPJ != "33333333000133" {
 		t.Fatalf("contratos sem extrato: %+v", got)
@@ -38,7 +38,7 @@ func TestPNCPWithoutExtractNeedsADate(t *testing.T) {
 	c := pncpAt("33333333000133", "300/2026", 50_000_000, time.Now())
 	c.SignedAt = nil
 
-	if got := FindPNCPWithoutExtract([]PNCPContract{c}, nil, nil, time.Date(2026, 9, 25, 0, 0, 0, 0, time.UTC), nil); len(got) != 0 {
+	if got := FindPNCPWithoutExtract([]PNCPContract{c}, PNCPCitations{}, time.Date(2026, 9, 25, 0, 0, 0, 0, time.UTC), nil); len(got) != 0 {
 		t.Fatalf("sem data de assinatura nem de publicação: %+v", got)
 	}
 }
@@ -50,5 +50,17 @@ func TestPNCPWithoutExtractFindingLinksToThePNCP(t *testing.T) {
 
 	if f.Link == nil || f.Link.URL != c.URL() {
 		t.Fatalf("link: %+v", f.Link)
+	}
+}
+
+func TestPNCPWithoutExtractSkipsASupplierNamedInAnExtractWithoutCNPJ(t *testing.T) {
+	c := pncpAt("33049503000100", "29.973", 870_296_948, time.Date(2026, 5, 15, 0, 0, 0, 0, time.UTC))
+	c.SupplierName = "CONSTRUTORA METROPOLITANA S A"
+	names := PNCPCitedNames([]PanelAct{{Head: "EXTRATO DE CONTRATO CONTRATO PMSG/SEMDUR/Nº 04/2026 Partes: MUNICÍPIO DE SÃO GONÇALO E CONSTRUTORA METROPOLITANA S/A. Objeto: projetos"}})
+
+	got := FindPNCPWithoutExtract([]PNCPContract{c}, PNCPCitations{Names: names}, time.Date(2026, 9, 25, 0, 0, 0, 0, time.UTC), nil)
+
+	if len(got) != 0 {
+		t.Fatalf("citado pelo nome no extrato: %+v (nomes %v)", got, names)
 	}
 }

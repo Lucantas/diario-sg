@@ -17,16 +17,26 @@ type PNCPWithoutExtract struct {
 	Contract PNCPContract
 }
 
-func FindPNCPWithoutExtract(contracts []PNCPContract, cited, citedProcesses map[string]bool, lastDiario time.Time,
-	profiles map[string]SupplierProfile) []PNCPWithoutExtract {
+type PNCPCitations struct {
+	CNPJs, Processes, Names map[string]bool
+}
+
+func PNCPCitedNames(acts []PanelAct) map[string]bool {
+	out := map[string]bool{}
+	for _, a := range acts {
+		if key := SupplierNameKey(SupplierNameOf(a.Head)); key != "" {
+			out[key] = true
+		}
+	}
+	return out
+}
+
+func FindPNCPWithoutExtract(contracts []PNCPContract, cited PNCPCitations, lastDiario time.Time, profiles map[string]SupplierProfile) []PNCPWithoutExtract {
 	deadline := lastDiario.AddDate(0, 0, -PNCPExtractGraceDays)
 	var out []PNCPWithoutExtract
 	for _, c := range contracts {
 		day := c.day()
-		if day == nil || day.After(deadline) || c.ValueCents < MinPNCPWithoutExtractCents || cited[c.SupplierCNPJ] {
-			continue
-		}
-		if key := c.ProcessKey(); key != "" && citedProcesses[key] {
+		if day == nil || day.After(deadline) || c.ValueCents < MinPNCPWithoutExtractCents || cited.includes(c, profiles) {
 			continue
 		}
 		p := profileOrCNPJ(profiles, c.SupplierCNPJ)
@@ -37,6 +47,21 @@ func FindPNCPWithoutExtract(contracts []PNCPContract, cited, citedProcesses map[
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Contract.ValueCents > out[j].Contract.ValueCents })
 	return out
+}
+
+func (cited PNCPCitations) includes(c PNCPContract, profiles map[string]SupplierProfile) bool {
+	if cited.CNPJs[c.SupplierCNPJ] {
+		return true
+	}
+	if key := c.ProcessKey(); key != "" && cited.Processes[key] {
+		return true
+	}
+	for _, name := range []string{c.SupplierName, profiles[c.SupplierCNPJ].Name} {
+		if key := SupplierNameKey(name); key != "" && cited.Names[key] {
+			return true
+		}
+	}
+	return false
 }
 
 func (c PNCPContract) day() *time.Time {
@@ -53,9 +78,10 @@ func pncpPatterns() map[PatternID]Pattern {
 			Title: "Contrato no PNCP sem nenhuma citação no Diário",
 			Rule: fmt.Sprintf("Contrato de pelo menos %s que a Prefeitura, um fundo, uma fundação ou a Câmara registrou no Portal "+
 				"Nacional de Contratações Públicas, assinado pelo menos %d dias antes da última edição do Diário da Prefeitura, sem "+
-				"que nenhum ato do Diário da Prefeitura ou da Câmara cite o CNPJ da empresa ou o número do processo.",
+				"que nenhum ato do Diário da Prefeitura ou da Câmara cite o CNPJ da empresa ou o número do processo, e sem extrato "+
+				"com valor e sem CNPJ cujo fornecedor lido do texto tenha o nome da empresa.",
 				FormatBRL(MinPNCPWithoutExtractCents), PNCPExtractGraceDays),
-			Caveat: "O extrato pode ter sido publicado sem o CNPJ, só com o nome da empresa, ou com o processo escrito de outro jeito: " +
+			Caveat: "O extrato pode ter sido publicado com o nome da empresa escrito de outro jeito ou com o processo em outro formato: " +
 				"procure o nome e o número do contrato na busca. O município registra no PNCP só parte dos contratos, quase todos de " +
 				"2024 em diante.",
 		},

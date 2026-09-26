@@ -154,7 +154,16 @@ func (uc *ListPatterns) pncpReport(ctx context.Context, catalog map[domain.Patte
 	if err != nil {
 		return domain.PatternReport{}, err
 	}
-	return reportOf(catalog[domain.PatternPNCPWithoutExtract], domain.FindPNCPWithoutExtract(contracts, cited, processes, last, profiles),
+	var unnamed []domain.PanelAct
+	for _, source := range []string{domain.SourceDiarioPrefeitura, domain.SourceDiarioCamara} {
+		acts, err := uc.suppliers.PanelActsWithoutCNPJ(ctx, source)
+		if err != nil {
+			return domain.PatternReport{}, err
+		}
+		unnamed = append(unnamed, acts...)
+	}
+	citations := domain.PNCPCitations{CNPJs: cited, Processes: processes, Names: domain.PNCPCitedNames(unnamed)}
+	return reportOf(catalog[domain.PatternPNCPWithoutExtract], domain.FindPNCPWithoutExtract(contracts, citations, last, profiles),
 		domain.PNCPWithoutExtractFinding), nil
 }
 
