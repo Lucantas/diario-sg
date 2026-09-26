@@ -88,3 +88,44 @@ func TestSanctionsAccumulateAndLinkTheCitedCNPJ(t *testing.T) {
 		t.Errorf("ligações: %+v", certainty)
 	}
 }
+
+func TestSanctionsShowInTheCompanyPageAndMCP(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	day := time.Date(2026, 9, 25, 0, 0, 0, 0, time.UTC)
+	loadSanctions(t, postgres.NewSanctionRepo(db), postgres.NewFetchRunRepo(db), portal{day: day, ceis: [][]string{ceisSanction("1", "14180324000244")}})
+
+	var company struct {
+		Sanctions []struct {
+			Register string  `json:"register"`
+			CNPJ     string  `json:"cnpj"`
+			EndsAt   *string `json:"ends_at"`
+			State    string  `json:"state"`
+		} `json:"sanctions"`
+		ListedOn map[string]string `json:"sanctions_listed_on"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/14180324000163", &company)
+	if len(company.Sanctions) != 1 || company.Sanctions[0].CNPJ != "14180324000244" || company.Sanctions[0].State != "no_cadastro" ||
+		company.Sanctions[0].EndsAt == nil || *company.Sanctions[0].EndsAt != "2027-01-01" || company.ListedOn["CEIS"] != "2026-09-25" {
+		t.Fatalf("sanções na página da empresa: %+v", company)
+	}
+
+	code, key := issueKey(t, srv.URL, "")
+	if code != 201 {
+		t.Fatalf("emissão da chave: %d", code)
+	}
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+	out, _ := call[struct {
+		Sanctions []struct {
+			Cadastro string `json:"cadastro"`
+			Estado   string `json:"estado"`
+		} `json:"sancoes_cgu"`
+		On map[string]string `json:"sancoes_cgu_consultadas_em"`
+	}](t, session, "entidade", map[string]any{"numero": "14.180.324/0001-63"})
+	if len(out.Sanctions) != 1 || out.Sanctions[0].Cadastro != "CEIS" || out.Sanctions[0].Estado != "no_cadastro" || out.On["CEIS"] != "2026-09-25" {
+		t.Errorf("sanções no MCP: %+v", out)
+	}
+}

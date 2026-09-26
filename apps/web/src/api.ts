@@ -102,6 +102,29 @@ export interface Registry {
   partners: RegistryPartner[];
 }
 
+export type SanctionState = "no_cadastro" | "prazo_encerrado" | "fora_do_cadastro";
+
+export interface Sanction {
+  register: "CEIS" | "CNEP";
+  code: string;
+  cnpj: string;
+  name: string;
+  category: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  published_at: string | null;
+  process: string;
+  organ: string;
+  organ_uf: string;
+  sphere: string;
+  scope: string;
+  legal_basis: string;
+  fine_cents: number | null;
+  first_seen: string;
+  last_seen: string;
+  state: SanctionState;
+}
+
 export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;
@@ -109,6 +132,8 @@ export interface CompanyResponse {
   acts: ActHit[];
   registry: Registry | null;
   registry_month: string | null;
+  sanctions: Sanction[];
+  sanctions_listed_on: Partial<Record<"CEIS" | "CNEP", string>>;
 }
 
 export interface OrganCount {

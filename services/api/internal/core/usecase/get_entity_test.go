@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
 type recEntityReader struct {
@@ -23,7 +24,7 @@ func (r *recEntityReader) ReportByKey(_ context.Context, kind domain.EntityKind,
 
 func TestGetEntityNormalizesTheInput(t *testing.T) {
 	reader := &recEntityReader{}
-	uc := NewGetEntity(reader, &fakeRegistry{})
+	uc := NewGetEntity(reader, &fakeRegistry{}, &fakeRegistry{})
 
 	got, err := uc.Execute(context.Background(), domain.EntityContrato, "001 / 2017", "")
 
@@ -34,7 +35,7 @@ func TestGetEntityNormalizesTheInput(t *testing.T) {
 
 func TestGetEntityRejectsInvalidInput(t *testing.T) {
 	reader := &recEntityReader{}
-	uc := NewGetEntity(reader, &fakeRegistry{})
+	uc := NewGetEntity(reader, &fakeRegistry{}, &fakeRegistry{})
 
 	for _, c := range []struct {
 		kind domain.EntityKind
@@ -52,7 +53,7 @@ func TestGetEntityRejectsInvalidInput(t *testing.T) {
 
 func TestGetEntityPassesTheSourceAndRejectsUnknownOnes(t *testing.T) {
 	reader := &recEntityReader{}
-	uc := NewGetEntity(reader, &fakeRegistry{})
+	uc := NewGetEntity(reader, &fakeRegistry{}, &fakeRegistry{})
 
 	if _, err := uc.Execute(context.Background(), domain.EntityProcesso, "310/2025", domain.SourceDiarioCamara); err != nil || reader.source != domain.SourceDiarioCamara {
 		t.Fatalf("fonte não repassada: %q %v", reader.source, err)
@@ -79,7 +80,7 @@ func TestGetEntityFillsPhases(t *testing.T) {
 		},
 	}}
 
-	got, err := NewGetEntity(reader, &fakeRegistry{}).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
+	got, err := NewGetEntity(reader, &fakeRegistry{}, &fakeRegistry{}).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
 
 	if err != nil {
 		t.Fatal(err)
@@ -98,17 +99,43 @@ func TestGetEntityAddsTheRegistryOfACNPJ(t *testing.T) {
 	reg := &domain.CompanyRegistry{Month: month, Company: domain.RegistryCompany{Name: "F.P. VIEIRA ENGENHARIA LTDA"}}
 	registry := &fakeRegistry{byCNPJ: map[string]*domain.CompanyRegistry{"14180324000163": reg}, month: &month}
 
-	got, err := NewGetEntity(&recEntityReader{}, registry).Execute(context.Background(), domain.EntityCNPJ, "14.180.324/0001-63", "")
+	got, err := NewGetEntity(&recEntityReader{}, registry, registry).Execute(context.Background(), domain.EntityCNPJ, "14.180.324/0001-63", "")
 
 	if err != nil || got.Registry != reg || got.RegistryMonth == nil || !got.RegistryMonth.Equal(month) {
 		t.Fatalf("cadastro: %+v %v", got, err)
 	}
 }
 
+func TestGetEntityAddsTheSanctionsOfACNPJ(t *testing.T) {
+	registry := &fakeRegistry{sanctions: map[string][]domain.Sanction{"14180324000163": {{Register: domain.RegisterCEIS, Code: "1"}}}}
+
+	got, err := NewGetEntity(&recEntityReader{}, registry, registry).Execute(context.Background(), domain.EntityCNPJ, "14.180.324/0001-63", "")
+
+	if err != nil || len(got.Sanctions) != 1 || got.SanctionsListedOn[domain.RegisterCEIS].IsZero() {
+		t.Fatalf("sanções: %+v %v", got, err)
+	}
+}
+
+type companyActs struct{ ports.ActRepository }
+
+func (companyActs) ReportByEntity(context.Context, domain.EntityKind, string) (domain.CompanyReport, error) {
+	return domain.CompanyReport{}, nil
+}
+
+func TestGetCompanyAddsTheSanctions(t *testing.T) {
+	registry := &fakeRegistry{sanctions: map[string][]domain.Sanction{"14180324000163": {{Register: domain.RegisterCNEP, Code: "9"}}}}
+
+	got, err := NewGetCompany(companyActs{}, registry, registry).Execute(context.Background(), "14.180.324/0001-63")
+
+	if err != nil || len(got.Sanctions) != 1 || got.Sanctions[0].Code != "9" {
+		t.Fatalf("sanções: %+v %v", got, err)
+	}
+}
+
 func TestGetEntityDoesNotLookUpTheRegistryOfAProcess(t *testing.T) {
 	registry := &fakeRegistry{}
 
-	got, err := NewGetEntity(&recEntityReader{}, registry).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
+	got, err := NewGetEntity(&recEntityReader{}, registry, registry).Execute(context.Background(), domain.EntityProcesso, "2808/2022", "")
 
 	if err != nil || got.Registry != nil || len(registry.asked) != 0 {
 		t.Fatalf("processo não tem cadastro: %+v %v %v", got, err, registry.asked)

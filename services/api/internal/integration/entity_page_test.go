@@ -69,7 +69,7 @@ func TestSearchHitsDoNotExposePhase(t *testing.T) {
 func TestProcessReportGroupsOrgansPhasesAndRelated(t *testing.T) {
 	_, db := newEntityServer(t)
 
-	report, err := usecase.NewGetEntity(postgres.NewLinkRepo(db), postgres.NewRegistryRepo(db)).
+	report, err := usecase.NewGetEntity(postgres.NewLinkRepo(db), postgres.NewRegistryRepo(db), postgres.NewSanctionRepo(db)).
 		Execute(context.Background(), domain.EntityProcesso, "2808-2022", "")
 
 	if err != nil {
@@ -126,7 +126,7 @@ func TestEntityReportMergesOrganVariantsIntoPrincipal(t *testing.T) {
 	_, db := newServerFor(t, "ATOS DO PREFEITO\nDECRETO Nº 1/2024\nSem processo.\nFMS\nAVISO DE LICITAÇÃO\nPregão nº 8/2024. Processo nº 3333/2024.\n"+
 		"FMSSG\nEXTRATO DO CONTRATO Nº 12/FMS/2024\nProcesso nº 3333/2024. Valor global: R$ 1.000,00.\n")
 
-	report, err := usecase.NewGetEntity(postgres.NewLinkRepo(db), postgres.NewRegistryRepo(db)).
+	report, err := usecase.NewGetEntity(postgres.NewLinkRepo(db), postgres.NewRegistryRepo(db), postgres.NewSanctionRepo(db)).
 		Execute(context.Background(), domain.EntityProcesso, "3333-2024", "")
 
 	if err != nil {

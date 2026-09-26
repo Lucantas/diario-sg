@@ -112,6 +112,8 @@ jobs:
         run: gcloud run jobs update $PREFIX-dump --image $REGISTRY/api:$TAG --region $REGION --quiet
       - name: receita (job)
         run: gcloud run jobs update $PREFIX-receita --image $REGISTRY/api:$TAG --region $REGION --quiet
+      - name: sancoes (job)
+        run: gcloud run jobs update $PREFIX-sancoes --image $REGISTRY/api:$TAG --region $REGION --quiet
       - name: scraper da Câmara (job)
         run: gcloud run jobs update $PREFIX-scraper-camara --image $REGISTRY/scraper:$TAG --region $REGION --quiet
 

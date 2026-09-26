@@ -80,3 +80,9 @@ variable "receita_schedule" {
   type        = string
   default     = "0 6 20 * *"
 }
+
+variable "sancoes_schedule" {
+  description = "Cron da carga diária das sanções do CEIS e do CNEP (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 7 * * *"
+}

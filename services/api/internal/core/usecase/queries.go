@@ -49,12 +49,13 @@ func (uc *GetGazette) Execute(ctx context.Context, id string) (domain.Gazette, [
 }
 
 type GetCompany struct {
-	acts     ports.ActRepository
-	registry ports.RegistryReader
+	acts      ports.ActRepository
+	registry  ports.RegistryReader
+	sanctions ports.SanctionReader
 }
 
-func NewGetCompany(a ports.ActRepository, registry ports.RegistryReader) *GetCompany {
-	return &GetCompany{acts: a, registry: registry}
+func NewGetCompany(a ports.ActRepository, registry ports.RegistryReader, sanctions ports.SanctionReader) *GetCompany {
+	return &GetCompany{acts: a, registry: registry, sanctions: sanctions}
 }
 
 func (uc *GetCompany) Execute(ctx context.Context, cnpj string) (domain.CompanyReport, error) {
@@ -66,7 +67,10 @@ func (uc *GetCompany) Execute(ctx context.Context, cnpj string) (domain.CompanyR
 	if err != nil {
 		return report, err
 	}
-	report.Registry, report.RegistryMonth, err = registryOf(ctx, uc.registry, normalized)
+	if report.Registry, report.RegistryMonth, err = registryOf(ctx, uc.registry, normalized); err != nil {
+		return report, err
+	}
+	report.Sanctions, report.SanctionsListedOn, err = sanctionsOf(ctx, uc.sanctions, normalized)
 	return report, err
 }
 

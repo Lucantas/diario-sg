@@ -10,12 +10,13 @@ import (
 )
 
 type GetEntity struct {
-	reader   ports.EntityReader
-	registry ports.RegistryReader
+	reader    ports.EntityReader
+	registry  ports.RegistryReader
+	sanctions ports.SanctionReader
 }
 
-func NewGetEntity(r ports.EntityReader, registry ports.RegistryReader) *GetEntity {
-	return &GetEntity{reader: r, registry: registry}
+func NewGetEntity(r ports.EntityReader, registry ports.RegistryReader, sanctions ports.SanctionReader) *GetEntity {
+	return &GetEntity{reader: r, registry: registry, sanctions: sanctions}
 }
 
 func (uc *GetEntity) Execute(ctx context.Context, kind domain.EntityKind, input, source string) (domain.EntityReport, error) {
@@ -34,6 +35,9 @@ func (uc *GetEntity) Execute(ctx context.Context, kind domain.EntityKind, input,
 		if report.Registry, report.RegistryMonth, err = registryOf(ctx, uc.registry, key); err != nil {
 			return report, err
 		}
+		if report.Sanctions, report.SanctionsListedOn, err = sanctionsOf(ctx, uc.sanctions, key); err != nil {
+			return report, err
+		}
 	}
 	return withPhases(report), nil
 }
@@ -45,6 +49,15 @@ func registryOf(ctx context.Context, r ports.RegistryReader, cnpj string) (*doma
 	}
 	month, err := r.RegistryMonth(ctx)
 	return reg, month, err
+}
+
+func sanctionsOf(ctx context.Context, r ports.SanctionReader, cnpj string) ([]domain.Sanction, map[string]time.Time, error) {
+	sanctions, err := r.SanctionsByCNPJ(ctx, cnpj)
+	if err != nil {
+		return nil, nil, err
+	}
+	listed, err := r.SanctionsListedOn(ctx)
+	return sanctions, listed, err
 }
 
 func withPhases(r domain.EntityReport) domain.EntityReport {

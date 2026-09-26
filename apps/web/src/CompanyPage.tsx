@@ -3,6 +3,7 @@ import { ActType, CompanyResponse, getCompany } from "./api";
 import { Result } from "./components";
 import { EntityAlert } from "./EntityAlert";
 import { RegistrySection } from "./RegistrySection";
+import { SanctionsSection } from "./SanctionsSection";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
 export function CompanyPage({ cnpj }: { cnpj: string }) {
@@ -31,6 +32,7 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
       {data && (
         <>
           <RegistrySection registry={data.registry} month={data.registry_month} />
+          <SanctionsSection cnpj={data.cnpj} sanctions={data.sanctions} listedOn={data.sanctions_listed_on} />
           <dl className="summary">
             <div>
               <dt>Atos</dt>

@@ -48,10 +48,10 @@ func run(l *slog.Logger) error {
 	acts := postgres.NewActRepo(db)
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
 
-	registry := postgres.NewRegistryRepo(db)
-	entity := usecase.NewGetEntity(postgres.NewLinkRepo(db), registry)
+	registry, sanctions := postgres.NewRegistryRepo(db), postgres.NewSanctionRepo(db)
+	entity := usecase.NewGetEntity(postgres.NewLinkRepo(db), registry, sanctions)
 	search := usecase.NewSearchActs(acts)
-	company := usecase.NewGetCompany(acts, registry)
+	company := usecase.NewGetCompany(acts, registry, sanctions)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
 		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
