@@ -64,3 +64,19 @@ painéis (`docs/superpowers/specs/2026-09-24-paineis-design.md`).
   não conta em "contratações".
 - Integração: `/v1/panels/suppliers` traz `amended_cents`.
 - Web: coluna e totais, e o texto que explica a coluna.
+
+## Depois da entrega
+
+- A conferência dos maiores valores mostrou prorrogações de obra que
+  repetem o valor global do contrato ("VALOR GLOBAL DO CONTRATO: R$
+  53.514.722,03 … prorrogado por mais 02 (dois) meses"; R$ 5.987.504,40
+  publicado em três prorrogações de 3 a 9 meses). Prorrogação de menos de
+  12 meses (ou de menos de 365 dias) e valor global que "permanece" não
+  somam; a de 12 meses ou mais continua valendo o valor do novo período.
+- "Acréscimo financeiro de R$ …" e "acréscimo financeiro equivalente a R$
+  …" passaram a valer como acréscimo em reais (antes caíam no novo total).
+- Com isso, os aditivos nos painéis foram de R$ 613,3 milhões para R$
+  585,1 milhões.
+- Ato com trecho de outra coluna emendado pelo pdftotext cita duas
+  empresas e fica fora, como qualquer ato com mais de uma empresa (1º
+  aditivo ao contrato 006/SEMED/2025).

@@ -24,7 +24,7 @@
 
 **Interfaces:** `PanelValueAmended`; `AmendmentValueCents(head string, mainValueCents int64, declaredBP int, contractedCents int64) int64`.
 
-- [ ] Testes com os trechos da spec, implementar, commit `feat(api): valor de aditivo e prorrogação`.
+- [x] Testes com os trechos da spec, implementar, commit `feat(api): valor de aditivo e prorrogação`.
 
 ### Task 2: Aditivos no painel
 
@@ -32,14 +32,14 @@
 
 **Interfaces:** `PanelAct.DeclaredIncreaseBP`; `SupplierRow.AmendedCents`, `PanelTotal.AmendedCents`, `SupplierPanel.AmendedCents`.
 
-- [ ] Testes (ano de publicação, republicação, contratação só com aditivos), implementar, commit `feat(api): aditivos e prorrogações no painel de fornecedores`.
+- [x] Testes (ano de publicação, republicação, contratação só com aditivos), implementar, commit `feat(api): aditivos e prorrogações no painel de fornecedores`.
 
 ### Task 3: API e página
 
 **Files:** Modify `presentation/http/panels.go` (DTO), integração, `apps/web/src/...PanelsPage.tsx`, `panels.ts`, testes.
 
-- [ ] `amended_cents` na resposta, coluna e totais na página, texto da coluna; commit `feat(web): aditivos e prorrogações nos painéis`.
+- [x] `amended_cents` na resposta, coluna e totais na página, texto da coluna; commit `feat(web): aditivos e prorrogações nos painéis`.
 
 ### Task 4: Conferência e docs
 
-- [ ] Conferir na base local os maiores valores de aditivo contra o texto; Playwright da página; roadmap; commit `docs(roadmap): aditivos nos painéis`.
+- [x] Conferir na base local os maiores valores de aditivo contra o texto; Playwright da página; roadmap; commit `docs(roadmap): aditivos nos painéis`.

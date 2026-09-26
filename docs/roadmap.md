@@ -104,6 +104,18 @@ Só com os dados atuais. É o que dá credibilidade para quem vai publicar.
   119 delas; a fonte de cada nome, as siglas que talvez não sejam órgãos
   e as variantes estão em `docs/orgaos.md`. Sigla nova que a prefeitura
   criar precisa entrar no catálogo (e `make reindex`).
+  ✅ Atos colados (25/09/2026): sigla de órgão seguida de título em
+  caixa alta sem palavra de cabeçalho ("SEMMA / DECISÃO DO SECRETÁRIO",
+  "SMS / INFORMATIVO CORONAVÍRUS") abre ato quando vem texto corrido
+  depois; "HOMOLOGAÇÂO" (com Â) e "AUTORIZAÇÃO DA DESPESA" também abrem;
+  título órfão e assinatura solta não viram ato. Na base local, os atos
+  passaram de 161.176 para 162.690 e os atos com órgão de 83.339 para
+  85.561; "outro" subiu de 6.172 para 7.555, com atos que antes ficavam
+  dentro de contratos e portarias. Ficam colados os trechos que o
+  pdftotext intercala de outra coluna (o 1º aditivo ao contrato
+  006/SEMED/2025 traz, depois da assinatura, o fim de outro ato com o CNPJ
+  de outra empresa), e em 2010 a 2013 oito nomeações e exonerações se
+  fundiram pelo mesmo motivo.
 - **Busca de investigador.** ✅ Faixa de valor (a partir de
   `act_entities`), operador `OU`, filtros de período e URL permanente
   para cada consulta, com paginação.
@@ -251,10 +263,21 @@ Ainda sem fonte externa.
     em "EXTRATO DE TOMATE" dentro da lista de itens de uma ata. Na base
     local, as contratações com valor passaram de 1.336 para 1.299 e o
     contratado de R$ 904,9 milhões para R$ 833,6 milhões; as atas ficaram
-    em R$ 1,30 bilhão.
+    em R$ 1,30 bilhão. Depois de separar os atos colados, 1.298
+    contratações de 900 empresas, R$ 834,1 milhões contratados e R$ 1,30
+    bilhão em atas.
   - [ ] Nome da empresa (Entrega 3).
-  - [ ] Valor de aditivos e prorrogações, com a mesma extração própria
-    adiada nos padrões.
+  - ✅ Aditivos e prorrogações (25/09/2026), em coluna própria por
+    fornecedor, ano e secretaria, no ano em que foram publicados: a
+    prorrogação de 12 meses ou mais conta o valor do novo período; o
+    aditivo de acréscimo, o acréscimo em reais ou o percentual declarado
+    sobre o contratado; prorrogação mais curta (que repete o valor global
+    da obra), "sem ônus", supressão e reajuste sem acréscimo não somam, e a
+    mesma publicação repetida em 90 dias conta uma vez. Na base local, R$
+    585,1 milhões, a maior parte de serviços contínuos renovados (coleta de
+    lixo da Força Ambiental, R$ 79 a 90 milhões por ano; contratos de
+    gestão da FMS). Desenho em
+    `docs/superpowers/specs/2026-09-25-aditivos-nos-paineis-design.md`.
   - ✅ Valor de ata que é preço unitário (25/09/2026): o "Valor Total" que
     é cabeçalho de coluna ("Valor Unitário Valor Total", "MARCA VALOR
     REGISTRADO") ou célula de tabela ("VALOR TOTAL R$ 2.994,00 R$
@@ -309,7 +332,8 @@ Pendências:
 - [ ] Na nuvem: aplicar a migration 013 e rodar `make reindex` de 2010 até
   hoje depois de publicar a imagem nova; sem o reindex, os padrões de
   aditivo e de emergencial ficam vazios para as edições antigas, e os
-  incisos citados juntos e o valor das tabelas de preço ficam como antes.
+  incisos citados juntos, o valor das tabelas de preço e a separação dos
+  atos colados ficam como antes.
 
 ## Entrega 3 — Quem é o fornecedor
 
