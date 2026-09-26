@@ -85,11 +85,11 @@ func (uc *LoadSanctions) loadRegister(ctx context.Context, register string, l *s
 	gz := gzip.NewWriter(&buf)
 	w := csv.NewWriter(gz)
 	w.Comma = ';'
-	var cols domain.SanctionColumns
+	var cols domain.SanctionRows
 	rows := 0
 	sum, err := uc.src.Rows(ctx, register, day, func(header, row []string) error {
 		if cols == nil {
-			parsed, err := domain.NewSanctionColumns(header)
+			parsed, err := domain.NewSanctionRows(register, header)
 			if err != nil {
 				return err
 			}
@@ -129,8 +129,8 @@ func (uc *LoadSanctions) loadRegister(ctx context.Context, register string, l *s
 	return uc.raw.Put(ctx, rawSanctionsPath(day, register+".manifest.json"), "application/json", bytes.NewReader(manifest))
 }
 
-func (l *sanctionsLoading) add(cols domain.SanctionColumns, row []string, day time.Time) {
-	s, err := domain.ParseSanctionRow(cols, row)
+func (l *sanctionsLoading) add(cols domain.SanctionRows, row []string, day time.Time) {
+	s, err := cols.Parse(row)
 	if err != nil {
 		l.run.Failed++
 		return

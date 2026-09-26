@@ -228,9 +228,13 @@ make receita MONTH=2026-09   # um mês específico
 ## Sanções da CGU
 
 Todo dia às 07:00, o job `sancoes` baixa do Portal da Transparência o
-arquivo mais recente do CEIS e do CNEP e guarda as sanções de pessoa
-jurídica aplicadas às empresas dos CNPJs citados (pelo CNPJ básico) em
-`cgu_sanctions`. Linhas de pessoa física são descartadas na leitura. A
+arquivo mais recente do CEIS, do CNEP e do CEPIM e guarda as sanções de
+pessoa jurídica aplicadas às empresas dos CNPJs citados (pelo CNPJ básico)
+em `cgu_sanctions`. Linhas de pessoa física são descartadas na leitura. O
+CEPIM (entidades sem fins lucrativos impedidas de receber transferência da
+União por convênio) tem outras colunas e nenhuma data: cada par CNPJ e
+convênio vira um impedimento, que fica fora do padrão "sancionado
+contratado", porque não impede contratar com o Município. A
 carga faz *upsert*: a sanção que sai do cadastro fica, com o último dia em
 que foi vista. As linhas filtradas ficam em
 `raw/cgu_sancoes/AAAA/MM/DD/`, com o SHA-256 do zip. A página da empresa e

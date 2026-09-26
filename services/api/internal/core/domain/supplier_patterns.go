@@ -296,6 +296,9 @@ func FindSanctionedContracts(contracts []SupplierContract, profiles map[string]S
 }
 
 func (s Sanction) ReachesSaoGoncalo() bool {
+	if s.Register == RegisterCEPIM {
+		return false
+	}
 	if strings.Contains(strings.ToUpper(foldAccents(s.Category)), "INIDONEIDADE") {
 		return true
 	}

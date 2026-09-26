@@ -364,7 +364,11 @@ outras fontes são registros estruturados. Registrar em ADR.
   carga (a CGU só publica o arquivo do dia). Na base local, 406 sanções de
   182 empresas citadas; duas aplicadas em São Gonçalo (Câmara Municipal e
   Justiça Federal). A página da empresa e a ferramenta `entidade` do MCP
-  mostram cada sanção com o estado. O CEPIM responde 403 desde 26/09/2026.
+  mostram cada sanção com o estado. O CEPIM entrou no mesmo job quando o
+  Portal voltou a responder (26/09/2026): 16 impedimentos de 6 entidades
+  citadas, entre elas a Liga Gonçalense de Desportos; o CEPIM não conta no
+  padrão de fornecedor sancionado. Desenho em
+  `docs/superpowers/specs/2026-09-26-cepim-design.md`.
   Desenho em `docs/superpowers/specs/2026-09-26-sancoes-da-cgu-design.md`.
 - **Página da empresa** enriquecida com tudo acima. ✅ Razão social,
   cadastro, sócios e sanções.
@@ -390,8 +394,8 @@ Pendências:
   (sem as tabelas, o job para logo no início), aplicar o Terraform (job,
   agendamento e conta de serviço) e rodar o job uma vez.
 - [ ] Na nuvem: aplicar a migration 015 e o Terraform do job `sancoes`.
-- [ ] CEPIM: o Portal responde 403 à página e ao arquivo (26/09/2026);
-  tentar de novo quando voltar.
+- [ ] Na nuvem: aplicar a migration 021 (CEPIM) antes da próxima rodada do
+  job `sancoes`; sem ela a carga para no primeiro impedimento.
 
 ## Entrega 4 — Anunciado × pago
 

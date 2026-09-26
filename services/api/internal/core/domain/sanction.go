@@ -10,14 +10,15 @@ const (
 	SourceSanctions = "cgu_sancoes"
 	RecordSanction  = "sancao"
 
-	RegisterCEIS = "CEIS"
-	RegisterCNEP = "CNEP"
+	RegisterCEIS  = "CEIS"
+	RegisterCNEP  = "CNEP"
+	RegisterCEPIM = "CEPIM"
 
 	sanctionDateLayout = "02/01/2006"
 	legalEntityKind    = "J"
 )
 
-var SanctionRegisters = []string{RegisterCEIS, RegisterCNEP}
+var SanctionRegisters = []string{RegisterCEIS, RegisterCNEP, RegisterCEPIM}
 
 type SanctionState string
 
@@ -155,6 +156,23 @@ func ParseSanctionRow(c SanctionColumns, row []string) (Sanction, error) {
 		}
 	}
 	return s, nil
+}
+
+type SanctionRows interface {
+	IsCompany(row []string) bool
+	CNPJ(row []string) string
+	Parse(row []string) (Sanction, error)
+}
+
+func NewSanctionRows(register string, header []string) (SanctionRows, error) {
+	if register == RegisterCEPIM {
+		return NewCEPIMColumns(header)
+	}
+	return NewSanctionColumns(header)
+}
+
+func (c SanctionColumns) Parse(row []string) (Sanction, error) {
+	return ParseSanctionRow(c, row)
 }
 
 func parseSanctionDate(s string) *time.Time {

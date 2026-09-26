@@ -41,3 +41,11 @@ Não há datas, tipo de pessoa nem código de sanção. O par (CNPJ, convênio)
 - Acordos de leniência.
 - Histórico do CEPIM anterior à primeira carga (o arquivo só tem o
   estoque do dia).
+
+## Depois da entrega
+
+Carga de 26/09/2026 sobre o arquivo de 24/09/2026: 3.529 linhas no CEPIM,
+16 impedimentos guardados, de 6 entidades citadas, a mesma contagem feita
+à mão sobre o CSV. A Liga Gonçalense de Desportos aparece com um convênio
+do Ministério do Turismo. O padrão "sancionado contratado" continua sem
+caso, e os de anunciado × pago ficaram em 75, 9 e 68, como antes.

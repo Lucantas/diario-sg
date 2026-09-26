@@ -17,17 +17,22 @@ var portalHeader = []string{"CADASTRO", "CÓDIGO DA SANÇÃO", "TIPO DE PESSOA",
 	"DATA PUBLICAÇÃO", "ABRAGÊNCIA DA SANÇÃO", "ÓRGÃO SANCIONADOR", "UF ÓRGÃO SANCIONADOR", "ESFERA ÓRGÃO SANCIONADOR", "FUNDAMENTAÇÃO LEGAL"}
 
 type portal struct {
-	day  time.Time
-	ceis [][]string
+	day   time.Time
+	ceis  [][]string
+	cepim [][]string
 }
 
 func (p portal) LatestDay(context.Context, string) (time.Time, error) { return p.day, nil }
 func (p portal) Rows(_ context.Context, register string, _ time.Time, each func(header, row []string) error) (string, error) {
-	if register != domain.RegisterCEIS {
-		return "sha", nil
+	header, rows := portalHeader, p.ceis
+	switch register {
+	case domain.RegisterCEPIM:
+		header, rows = []string{"CNPJ ENTIDADE", "NOME ENTIDADE", "NÚMERO CONVÊNIO", "ÓRGÃO CONCEDENTE", "MOTIVO DO IMPEDIMENTO"}, p.cepim
+	case domain.RegisterCNEP:
+		rows = nil
 	}
-	for _, r := range p.ceis {
-		if err := each(portalHeader, r); err != nil {
+	for _, r := range rows {
+		if err := each(header, r); err != nil {
 			return "", err
 		}
 	}
@@ -86,6 +91,25 @@ func TestSanctionsAccumulateAndLinkTheCitedCNPJ(t *testing.T) {
 	}
 	if certainty["CEIS:1"] != "exata" || certainty["CEIS:2"] != "forte" {
 		t.Errorf("ligações: %+v", certainty)
+	}
+}
+
+func TestCEPIMImpedimentIsStoredAndLinked(t *testing.T) {
+	_, db := newServerFor(t, semedHomologacao2025)
+	ctx := context.Background()
+	repo := postgres.NewSanctionRepo(db)
+	day := time.Date(2026, 9, 24, 0, 0, 0, 0, time.UTC)
+
+	loadSanctions(t, repo, postgres.NewFetchRunRepo(db), portal{day: day,
+		cepim: [][]string{{fpVieira, "F P VIEIRA", "633984", "Ministério do Turismo", "INSTAURACAO DE TOMADA DE CONTAS ESPECIAL"}}})
+
+	sanctions, err := repo.SanctionsByCNPJ(ctx, fpVieira)
+	if err != nil || len(sanctions) != 1 || sanctions[0].Register != domain.RegisterCEPIM || sanctions[0].Code != fpVieira+"/633984" {
+		t.Fatalf("impedimentos: %+v %v", sanctions, err)
+	}
+	var links int
+	if err := db.QueryRow(`SELECT count(*) FROM entity_links WHERE source = 'cgu_sancoes' AND record_id = $1`, "CEPIM:"+fpVieira+"/633984").Scan(&links); err != nil || links != 1 {
+		t.Errorf("ligações: %d %v", links, err)
 	}
 }
 

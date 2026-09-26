@@ -187,9 +187,10 @@ func (s *server) register(srv *sdk.Server) {
 		"citados_junto (só processo e contrato) traz os contratos, ou processos, e os CNPJs citados nos mesmos atos, até 20 de cada tipo. " +
 		"cadastro_receita (só CNPJ) traz o cadastro da Receita Federal do mês de referência: razão social, situação, abertura, capital social, atividade, endereço e sócios, " +
 		"com o CPF mascarado como a Receita publica; os sócios são dados da empresa e não servem para buscar pessoas. " +
-		"sancoes_cgu (só CNPJ) traz as sanções do CEIS e do CNEP (CGU) registradas para a empresa, inclusive de outro estabelecimento dela (compare cnpj); " +
+		"sancoes_cgu (só CNPJ) traz as sanções do CEIS e do CNEP e os impedimentos do CEPIM (CGU) registrados para a empresa, inclusive de outro estabelecimento dela (compare cnpj); " +
+		"o CEPIM impede entidade sem fins lucrativos de receber transferência da União por convênio, não de contratar com o Município; " +
 		"estado é no_cadastro, prazo_encerrado ou fora_do_cadastro (saiu do arquivo da CGU depois de vista_pela_ultima_vez); " +
-		"sancoes_cgu_consultadas_em diz a data do último arquivo de cada cadastro. Sem sancoes_cgu e com a data preenchida, a empresa não tem sanção nos dois cadastros. " +
+		"sancoes_cgu_consultadas_em diz a data do último arquivo de cada cadastro. Sem sancoes_cgu e com a data preenchida, a empresa não tem sanção nos cadastros consultados. " +
 		"pagamentos_tce (só CNPJ) traz, por ano, o empenhado, o liquidado e o pago à empresa segundo o TCE-RJ, com as unidades que pagaram; " +
 		"pagamentos_tce_cobertura diz o período carregado. O TCE não diz a que contrato cada pagamento se refere. " +
 		"contratos_pncp (só CNPJ) traz os contratos da empresa com o município registrados no PNCP (Lei 14.133), com o link de cada um; " +

@@ -114,3 +114,64 @@ func TestSanctionCoversDay(t *testing.T) {
 		t.Error("sem data final cobre qualquer dia depois do início")
 	}
 }
+
+const cepimHeader = `CNPJ ENTIDADE;NOME ENTIDADE;NÚMERO CONVÊNIO;ÓRGÃO CONCEDENTE;MOTIVO DO IMPEDIMENTO`
+
+func TestParseCEPIMRow(t *testing.T) {
+	rows, err := NewSanctionRows(RegisterCEPIM, strings.Split(cepimHeader, ";"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	row := strings.Split("29540994000110;LIGA  GONCALENSE DE DESPORTOS;123456;Ministério do Esporte - Unidades com vínculo direto;NAO APRESENTACAO DA PRESTACAO DE CONTAS", ";")
+
+	s, err := rows.Parse(row)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !rows.IsCompany(row) || rows.CNPJ(row) != "29540994000110" {
+		t.Errorf("linha do CEPIM não reconhecida: %v", row)
+	}
+	if s.Register != RegisterCEPIM || s.Code != "29540994000110/123456" || s.CNPJ != "29540994000110" || s.Name != "LIGA GONCALENSE DE DESPORTOS" ||
+		s.Category != cepimCategory || s.Organ != "Ministério do Esporte - Unidades com vínculo direto" || s.Sphere != "FEDERAL" ||
+		s.Scope != cepimScope || s.Process != "Convênio 123456" || s.LegalBasis != "NAO APRESENTACAO DA PRESTACAO DE CONTAS" ||
+		s.StartsAt != nil || s.EndsAt != nil || s.PublishedAt != nil || s.FineCents != nil {
+		t.Errorf("impedimento: %+v", s)
+	}
+}
+
+func TestCEPIMRowWithoutValidCNPJIsNotACompany(t *testing.T) {
+	rows, err := NewSanctionRows(RegisterCEPIM, strings.Split(cepimHeader, ";"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	row := strings.Split("2954099400;LIGA;1;Ministério;MOTIVO", ";")
+
+	if rows.IsCompany(row) {
+		t.Error("CNPJ curto aceito")
+	}
+	if _, err := rows.Parse(row); err == nil {
+		t.Error("linha sem CNPJ válido virou impedimento")
+	}
+}
+
+func TestSanctionRowsPicksTheReaderByRegister(t *testing.T) {
+	if _, err := NewSanctionRows(RegisterCEPIM, strings.Split(ceisHeader, ";")); err == nil {
+		t.Error("cabeçalho do CEIS aceito como CEPIM")
+	}
+	rows, err := NewSanctionRows(RegisterCEIS, strings.Split(ceisHeader, ";"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s, err := rows.Parse(ceisRow()); err != nil || s.Code != "379001" {
+		t.Errorf("CEIS pelo leitor: %+v %v", s, err)
+	}
+}
+
+func TestCEPIMDoesNotReachSaoGoncaloContracts(t *testing.T) {
+	s := Sanction{Register: RegisterCEPIM, Category: cepimCategory, Organ: "Prefeitura Municipal de São Gonçalo", Scope: cepimScope}
+
+	if s.ReachesSaoGoncalo() {
+		t.Error("impedimento do CEPIM tratado como sanção para contratar")
+	}
+}

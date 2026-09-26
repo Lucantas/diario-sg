@@ -104,8 +104,10 @@ export interface Registry {
 
 export type SanctionState = "no_cadastro" | "prazo_encerrado" | "fora_do_cadastro";
 
+export type SanctionRegister = "CEIS" | "CNEP" | "CEPIM";
+
 export interface Sanction {
-  register: "CEIS" | "CNEP";
+  register: SanctionRegister;
   code: string;
   cnpj: string;
   name: string;
@@ -221,7 +223,7 @@ export interface CompanyResponse {
   registry: Registry | null;
   registry_month: string | null;
   sanctions: Sanction[];
-  sanctions_listed_on: Partial<Record<"CEIS" | "CNEP", string>>;
+  sanctions_listed_on: Partial<Record<SanctionRegister, string>>;
   payments: PaymentYear[];
   payments_coverage: { from: string; to: string } | null;
   pncp_contracts: PNCPContract[];

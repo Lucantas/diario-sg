@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Sanction } from "./api";
-import { listedOnLabel, sanctionOrgan, sanctionPeriod, sanctionStateLabel, sanctionsSummary } from "./sanctions";
+import { listedOnLabel, sanctionOrgan, sanctionPeriod, sanctionStateLabel, sanctionsSummary, sanctionTerms } from "./sanctions";
 
 const base: Sanction = {
   register: "CEIS", code: "1", cnpj: "28926250000176", name: "EMPRESA X", category: "Suspensão",
@@ -37,5 +37,12 @@ describe("sanções", () => {
   it("junta as datas dos arquivos sem repetir", () => {
     expect(listedOnLabel({ CEIS: "2026-09-25", CNEP: "2026-09-25" })).toBe("25/09/2026");
     expect(listedOnLabel({ CEIS: "2026-09-25", CNEP: "2026-09-24" })).toBe("24/09/2026 e 25/09/2026");
+  });
+});
+
+describe("sanctionTerms", () => {
+  it("names the granting organ and the reason for CEPIM impediments", () => {
+    expect(sanctionTerms("CEPIM")).toEqual({ organ: "Órgão concedente", basis: "Motivo" });
+    expect(sanctionTerms("CEIS")).toEqual({ organ: "Órgão sancionador", basis: "Fundamentação" });
   });
 });

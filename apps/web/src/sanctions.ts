@@ -1,4 +1,4 @@
-import { Sanction } from "./api";
+import { Sanction, SanctionRegister } from "./api";
 import { formatIsoDate } from "./registry";
 
 export function sanctionStateLabel(s: Sanction): string {
@@ -26,7 +26,7 @@ export function sanctionOrgan(s: Sanction): string {
   return where ? `${s.organ} (${where})` : s.organ;
 }
 
-export function listedOnLabel(listedOn: Partial<Record<"CEIS" | "CNEP", string>>): string {
+export function listedOnLabel(listedOn: Partial<Record<SanctionRegister, string>>): string {
   const days = [...new Set(Object.values(listedOn).filter((d): d is string => Boolean(d)))].sort();
   return days.map(formatIsoDate).join(" e ");
 }
@@ -36,4 +36,8 @@ export function sanctionsSummary(sanctions: Sanction[]): string {
   const total = sanctions.length === 1 ? "1 sanção" : `${sanctions.length} sanções`;
   if (listed === sanctions.length) return `${total} no cadastro. Clique em cada uma para ver o processo e a fundamentação.`;
   return `${total}, ${listed} no cadastro. Clique em cada uma para ver o processo e a fundamentação.`;
+}
+
+export function sanctionTerms(register: SanctionRegister): { organ: string; basis: string } {
+  return register === "CEPIM" ? { organ: "Órgão concedente", basis: "Motivo" } : { organ: "Órgão sancionador", basis: "Fundamentação" };
 }

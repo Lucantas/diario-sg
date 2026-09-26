@@ -20,6 +20,8 @@ func sanctionRow(register, code, kind, doc string) []string {
 		"02/01/2025", "No órgão sancionador", "PREFEITURA X", "RJ", "MUNICIPAL", "LEI 14133"}
 }
 
+var cepimHeader = []string{"CNPJ ENTIDADE", "NOME ENTIDADE", "NÚMERO CONVÊNIO", "ÓRGÃO CONCEDENTE", "MOTIVO DO IMPEDIMENTO"}
+
 type fakeSanctionSource struct {
 	rows   map[string][][]string
 	failOn string
@@ -36,8 +38,12 @@ func (f *fakeSanctionSource) Rows(_ context.Context, register string, _ time.Tim
 	if register == f.failOn {
 		return "", errors.New("status 403")
 	}
+	header := sanctionsHeader
+	if register == domain.RegisterCEPIM {
+		header = cepimHeader
+	}
 	for _, r := range f.rows[register] {
-		if err := each(sanctionsHeader, r); err != nil {
+		if err := each(header, r); err != nil {
 			return "", err
 		}
 	}
@@ -67,6 +73,10 @@ func sanctionsFixture() *fakeSanctionSource {
 			append(sanctionRow("CEIS", "5", "J", "28926250000176")[:10], "quebrada"),
 		},
 		domain.RegisterCNEP: {sanctionRow("CNEP", "9", "J", "28926250000176")},
+		domain.RegisterCEPIM: {
+			{"28926250000176", "ASSOCIACAO X", "777", "Ministério Y", "INSTAURACAO DE TOMADA DE CONTAS ESPECIAL"},
+			{"11111111000111", "OUTRA", "778", "Ministério Y", "MOTIVO"},
+		},
 	}}
 }
 
@@ -83,14 +93,14 @@ func TestLoadSanctionsKeepsTheCompaniesOfTheCitedBases(t *testing.T) {
 	for _, s := range repo.saved.Sanctions {
 		codes = append(codes, s.Register+":"+s.Code)
 	}
-	if strings.Join(codes, ",") != "CEIS:1,CEIS:2,CNEP:9" {
+	if strings.Join(codes, ",") != "CEIS:1,CEIS:2,CNEP:9,CEPIM:28926250000176/777" {
 		t.Errorf("sanções: %v", codes)
 	}
 	cnep := repo.saved.Sanctions[2]
 	if !cnep.FirstSeen.Equal(time.Date(2026, 9, 24, 0, 0, 0, 0, time.UTC)) || !cnep.LastSeen.Equal(cnep.FirstSeen) {
 		t.Errorf("dia do arquivo: %+v", cnep)
 	}
-	if run.Source != domain.SourceSanctions || run.Found != 5 || run.Stored != 3 || run.Failed != 1 || run.Skipped != 1 || !run.Valid() {
+	if run.Source != domain.SourceSanctions || run.Found != 7 || run.Stored != 4 || run.Failed != 1 || run.Skipped != 2 || !run.Valid() {
 		t.Errorf("coleta: %+v", run)
 	}
 	if len(runs.runs) != 1 {
