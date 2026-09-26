@@ -429,7 +429,7 @@ Pendências:
 
 Pendências:
 
-- [ ] Na nuvem: aplicar as migrations 016 a 018 e o Terraform dos jobs
+- [ ] Na nuvem: aplicar as migrations 016 a 019 e o Terraform dos jobs
   `tce` e `pncp`, e rodar `tce` com `-from 2020` e `pncp` uma vez.
 
 ## Entrega 5 — Recorte político
@@ -440,7 +440,14 @@ Pendências:
   evidência do casamento e nunca afirma identidade.
 - **Câmara Municipal:** leis, projetos e votações; perfil de vereador.
 - **Transferências federais e emendas** destinadas ao município.
-- **TCE-RJ:** apontamentos sobre contratos já presentes no Diário.
+- **TCE-RJ:** apontamentos sobre contratos já presentes no Diário. ✅
+  Controle do TCE-RJ (26/09/2026): o job `tce` também carrega o parecer
+  prévio das contas de governo, os débitos e multas das unidades de São
+  Gonçalo e as obras paralisadas; a página `/tce` mostra os três, cada
+  processo com a busca no Diário, e a página da empresa mostra a obra
+  paralisada (ferramenta `entidade`: `obras_paralisadas_tce`). Os dados
+  abertos não trazem o nome dos condenados. Desenho em
+  `docs/superpowers/specs/2026-09-26-controle-do-tce-design.md`.
 
 ---
 

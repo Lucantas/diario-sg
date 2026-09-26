@@ -67,6 +67,20 @@ Consultados em 26/09/2026 na API `https://dados.tcerj.tc.br/api/v1/`
 - Web: agrupamento das condenações por processo.
 - Carga real local e conferência contra o JSON.
 
+## Depois da entrega
+
+- Carga local de 26/09/2026 em 3,4 segundos, dentro do job `tce`: 7
+  pareceres, 132 condenações em 50 processos (R$ 10.370.821,01) e 5 obras
+  paralisadas, os mesmos números do JSON.
+- 3 das 5 obras são de empresas citadas no Diário (R.C Vieira Engenharia,
+  com duas, e Fox Engenharia) e ganharam ligação `exata`.
+- A busca do processo no Diário pelo número com ponto trazia números
+  iguais de outras coisas (autos de infração, editais); o link passou a
+  buscar o número junto com o termo "TCE" (`"214.824" TCE`).
+- A carga roda com os dados inteiros (não depende dos anos do job), e a
+  lista de débitos da página é longa no celular: 50 processos, um por
+  item.
+
 **Pronto quando:** `/tce` mostra os pareceres, as obras paralisadas e os
 débitos e multas de São Gonçalo, e a página da empresa com obra
 paralisada mostra a obra.
