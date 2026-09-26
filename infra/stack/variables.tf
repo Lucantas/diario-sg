@@ -74,3 +74,9 @@ variable "dump_schedule" {
   type        = string
   default     = "0 4 * * 0"
 }
+
+variable "receita_schedule" {
+  description = "Cron da carga mensal do cadastro da Receita (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 6 20 * *"
+}
