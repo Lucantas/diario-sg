@@ -19,6 +19,7 @@ const (
 	RoleKeys      Role = "keys"
 	RoleReceita   Role = "receita"
 	RoleSanctions Role = "sancoes"
+	RolePayments  Role = "tce"
 )
 
 type Config struct {
@@ -37,6 +38,7 @@ type Config struct {
 	ReceitaBaseURL     string
 	ReceitaShareToken  string
 	CGUBaseURL         string
+	TCEBaseURL         string
 }
 
 func Load(role Role) (Config, error) {
@@ -56,6 +58,7 @@ func Load(role Role) (Config, error) {
 		ReceitaBaseURL:     getenv("RECEITA_BASE_URL", "https://arquivos.receitafederal.gov.br/public.php/webdav/"),
 		ReceitaShareToken:  getenv("RECEITA_SHARE_TOKEN", "YggdBLfdninEJX9"),
 		CGUBaseURL:         getenv("CGU_BASE_URL", "https://portaldatransparencia.gov.br/download-de-dados/"),
+		TCEBaseURL:         getenv("TCE_BASE_URL", "https://dados.tcerj.tc.br/api/v1/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
@@ -64,7 +67,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions {
+	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {

@@ -12,6 +12,8 @@ type fakeRegistry struct {
 	month     *time.Time
 	asked     []string
 	sanctions map[string][]domain.Sanction
+	payments  map[string][]domain.PaymentYear
+	paid      []domain.PaidTotal
 }
 
 func (f *fakeRegistry) SanctionsByCNPJ(_ context.Context, cnpj string) ([]domain.Sanction, error) {
@@ -37,4 +39,20 @@ func (f *fakeRegistry) NamesByCNPJ(_ context.Context, cnpjs []string) (map[strin
 		}
 	}
 	return out, nil
+}
+
+func (f *fakeRegistry) PaymentsByCNPJ(_ context.Context, cnpj string) ([]domain.PaymentYear, error) {
+	return f.payments[cnpj], nil
+}
+
+func (f *fakeRegistry) PaymentsCoverage(context.Context) (*domain.PaymentCoverage, error) {
+	return nil, nil
+}
+
+func (f *fakeRegistry) PaidByCNPJYear(context.Context) ([]domain.PaidTotal, error) {
+	return f.paid, nil
+}
+
+func fakeSources(f *fakeRegistry) CompanySources {
+	return CompanySources{Registry: f, Sanctions: f, Payments: f}
 }

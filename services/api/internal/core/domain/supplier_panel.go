@@ -36,6 +36,7 @@ type SupplierRow struct {
 	ContractedCents int64
 	RegisteredCents int64
 	AmendedCents    int64
+	PaidCents       int64
 	First           time.Time
 	Last            time.Time
 	Organs          []string
@@ -49,6 +50,7 @@ type PanelTotal struct {
 	ContractedCents int64
 	RegisteredCents int64
 	AmendedCents    int64
+	PaidCents       int64
 }
 
 type SupplierPanel struct {
@@ -58,6 +60,7 @@ type SupplierPanel struct {
 	ContractedCents int64
 	RegisteredCents int64
 	AmendedCents    int64
+	PaidCents       int64
 	Rows            []SupplierRow
 	Years           []PanelTotal
 	Organs          []PanelTotal

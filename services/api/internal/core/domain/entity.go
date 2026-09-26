@@ -17,15 +17,21 @@ type Entity struct {
 	Normalized string
 }
 
-type CompanyReport struct {
-	CNPJ              string
-	Acts              []ActHit
-	TotalCents        int64
-	CountByType       map[ActType]int
+type CompanyFacts struct {
 	Registry          *CompanyRegistry
 	RegistryMonth     *time.Time
 	Sanctions         []Sanction
 	SanctionsListedOn map[string]time.Time
+	Payments          []PaymentYear
+	PaymentsCoverage  *PaymentCoverage
+}
+
+type CompanyReport struct {
+	CNPJ        string
+	Acts        []ActHit
+	TotalCents  int64
+	CountByType map[ActType]int
+	CompanyFacts
 }
 
 type MonthCount struct {
@@ -34,10 +40,7 @@ type MonthCount struct {
 }
 
 type EntityReport struct {
-	Registry          *CompanyRegistry
-	RegistryMonth     *time.Time
-	Sanctions         []Sanction
-	SanctionsListedOn map[string]time.Time
+	CompanyFacts
 
 	Kind        EntityKind
 	Key         string

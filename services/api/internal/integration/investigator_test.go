@@ -67,17 +67,17 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: usecase.NewSearchActs(acts), Read: usecase.NewReadAct(gaz, acts),
-		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db), postgres.NewRegistryRepo(db), postgres.NewSanctionRepo(db)), Group: usecase.NewGroupActs(acts),
+		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)), Group: usecase.NewGroupActs(acts),
 		Page: usecase.NewReadPage(gaz, stringStore(text), singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
 		PublicWebURL: "https://web.exemplo", Log: log})
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
 		Gazette: usecase.NewGetGazette(gaz, acts), Reports: usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
-		Entity:  usecase.NewGetEntity(postgres.NewLinkRepo(db), postgres.NewRegistryRepo(db), postgres.NewSanctionRepo(db)),
-		Company: usecase.NewGetCompany(acts, postgres.NewRegistryRepo(db), postgres.NewSanctionRepo(db)),
+		Entity:  usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)),
+		Company: usecase.NewGetCompany(acts, companySources(db)),
 		Export:  usecase.NewExportActs(acts), Feed: usecase.NewActFeed(acts), Organs: usecase.NewListOrgans(acts), PublicWebURL: "https://web.exemplo",
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), email.NewNotifier(&inbox{}, "https://web.exemplo")),
 		Patterns:      usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)),
-		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), postgres.NewRegistryRepo(db)),
+		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)),
 		Keys:          keys, MCP: mcpHandler, Log: log}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
@@ -160,4 +160,8 @@ func TestSearchOperators(t *testing.T) {
 			t.Errorf("%q: esperava %v, veio %v", q, want, got)
 		}
 	}
+}
+
+func companySources(db *sql.DB) usecase.CompanySources {
+	return usecase.CompanySources{Registry: postgres.NewRegistryRepo(db), Sanctions: postgres.NewSanctionRepo(db), Payments: postgres.NewPaymentRepo(db)}
 }

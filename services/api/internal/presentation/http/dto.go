@@ -110,14 +110,16 @@ type entityResponse struct {
 }
 
 type companyResponse struct {
-	CNPJ              string            `json:"cnpj"`
-	TotalValueCents   int64             `json:"total_value_cents"`
-	CountByType       map[string]int    `json:"count_by_type"`
-	Acts              []actHitDTO       `json:"acts"`
-	Registry          *registryDTO      `json:"registry"`
-	RegistryMonth     *string           `json:"registry_month"`
-	Sanctions         []sanctionDTO     `json:"sanctions"`
-	SanctionsListedOn map[string]string `json:"sanctions_listed_on"`
+	CNPJ              string              `json:"cnpj"`
+	TotalValueCents   int64               `json:"total_value_cents"`
+	CountByType       map[string]int      `json:"count_by_type"`
+	Acts              []actHitDTO         `json:"acts"`
+	Registry          *registryDTO        `json:"registry"`
+	RegistryMonth     *string             `json:"registry_month"`
+	Sanctions         []sanctionDTO       `json:"sanctions"`
+	SanctionsListedOn map[string]string   `json:"sanctions_listed_on"`
+	Payments          []paymentYearDTO    `json:"payments"`
+	PaymentsCoverage  *paymentCoverageDTO `json:"payments_coverage"`
 }
 
 type monthCountDTO struct {

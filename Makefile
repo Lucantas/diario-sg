@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex receita sancoes dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex receita sancoes tce dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -30,6 +30,9 @@ receita: ## Carrega o cadastro da Receita dos CNPJs citados: make receita [MONTH
 
 sancoes: ## Carrega as sanções do CEIS e do CNEP aplicadas aos CNPJs citados
 	cd services/api && go run ./cmd/sancoes
+
+tce: ## Carrega os empenhos do TCE-RJ: make tce [FROM=AAAA TO=AAAA] (padrão: ano anterior e corrente)
+	cd services/api && go run ./cmd/tce -from "$(or $(FROM),0)" -to "$(or $(TO),0)"
 
 dump: ## Publica o dump da base (CSV compactado) no bucket DUMPS_BUCKET
 	cd services/api && go run ./cmd/dump

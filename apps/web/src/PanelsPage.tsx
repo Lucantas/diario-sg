@@ -52,7 +52,9 @@ export function PanelsPage() {
         o percentual declarado sobre o contratado; prorrogação mais curta (que repete o valor global da obra),
         prorrogação "sem ônus", supressão e aditivo sem valor de acréscimo não somam.
         Ficam de fora homologações (que trazem o valor do certame inteiro), editais, multas, cancelamentos e atos que
-        citam mais de uma empresa. Confira sempre a edição original.
+        citam mais de uma empresa. Confira sempre a edição original. O pago vem dos empenhos do TCE-RJ (de 2021 em
+        diante), é o pago à empresa no ano por qualquer unidade da Prefeitura, sem ligação com um contrato específico, e
+        não muda com o filtro de secretaria.
       </p>
 
       <Filters panel={panel} params={current} onChange={go} />
@@ -68,6 +70,7 @@ export function PanelsPage() {
             <div><dt>Contratado</dt><dd>{formatCompactCents(panel.contracted_cents)}</dd></div>
             <div><dt>Em atas</dt><dd>{formatCompactCents(panel.registered_cents)}</dd></div>
             <div><dt>Aditivos e prorrogações</dt><dd>{formatCompactCents(panel.amended_cents)}</dd></div>
+            <div><dt>Pago (TCE-RJ)</dt><dd>{formatCompactCents(panel.paid_cents)}</dd></div>
           </dl>
 
           <section aria-labelledby="ranking">
@@ -81,6 +84,7 @@ export function PanelsPage() {
           </section>
 
           <Totals
+            showPaid={!current.organ}
             title={current.organ ? `Por ano, em ${current.organ}` : "Por ano"}
             rows={panel.years.map((y) => ({ key: String(y.year), label: String(y.year), amounts: y, active: current.year === y.year,
               onClick: () => go({ ...current, year: current.year === y.year ? null : y.year }) }))}
@@ -134,6 +138,7 @@ function SupplierCard({ row }: { row: SupplierRow }) {
         {row.contracted_cents > 0 && <span><strong>{formatCents(row.contracted_cents)}</strong> contratados</span>}
         {row.registered_cents > 0 && <span><strong>{formatCents(row.registered_cents)}</strong> em atas de registro de preços</span>}
         {row.amended_cents > 0 && <span><strong>{formatCents(row.amended_cents)}</strong> em aditivos e prorrogações</span>}
+        {row.paid_cents > 0 && <span><strong>{formatCents(row.paid_cents)}</strong> pagos (TCE-RJ)</span>}
       </p>
       <p className="fineprint">
         {contractsLabel(row.contracts)}, {period}
@@ -153,19 +158,22 @@ interface TotalRow {
   key: string;
   label: string;
   hint?: string;
-  amounts: { contracts: number; contracted_cents: number; registered_cents: number; amended_cents: number };
+  amounts: { contracts: number; contracted_cents: number; registered_cents: number; amended_cents: number; paid_cents?: number };
   active: boolean;
   onClick: () => void;
 }
 
-function Totals({ title, rows }: { title: string; rows: TotalRow[] }) {
+function Totals({ title, rows, showPaid = false }: { title: string; rows: TotalRow[]; showPaid?: boolean }) {
   if (rows.length === 0) return null;
   return (
     <section className="totals" aria-label={title}>
       <h2 className="panel-heading">{title}</h2>
       <table>
         <thead>
-          <tr><th scope="col"></th><th scope="col">Contratado</th><th scope="col">Em atas</th><th scope="col">Aditivos</th></tr>
+          <tr>
+            <th scope="col"></th><th scope="col">Contratado</th><th scope="col">Em atas</th><th scope="col">Aditivos</th>
+            {showPaid && <th scope="col">Pago</th>}
+          </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
@@ -178,6 +186,7 @@ function Totals({ title, rows }: { title: string; rows: TotalRow[] }) {
               <td>{formatCompactCents(r.amounts.contracted_cents)}</td>
               <td>{formatCompactCents(r.amounts.registered_cents)}</td>
               <td>{formatCompactCents(r.amounts.amended_cents)}</td>
+              {showPaid && <td>{r.amounts.paid_cents ? formatCompactCents(r.amounts.paid_cents) : "—"}</td>}
             </tr>
           ))}
         </tbody>

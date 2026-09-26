@@ -154,6 +154,21 @@ type RegistryRepository interface {
 	Replace(ctx context.Context, month time.Time, load domain.RegistryLoad) error
 }
 
+type PaymentSource interface {
+	Commitments(ctx context.Context, year int, each func(header, row []string) error) (string, error)
+}
+
+type PaymentRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceYear(ctx context.Context, source string, year int, payments []domain.Payment) error
+}
+
+type PaymentReader interface {
+	PaymentsByCNPJ(ctx context.Context, cnpj string) ([]domain.PaymentYear, error)
+	PaymentsCoverage(ctx context.Context) (*domain.PaymentCoverage, error)
+	PaidByCNPJYear(ctx context.Context) ([]domain.PaidTotal, error)
+}
+
 type SanctionSource interface {
 	LatestDay(ctx context.Context, register string) (time.Time, error)
 	Rows(ctx context.Context, register string, day time.Time, each func(header, row []string) error) (string, error)

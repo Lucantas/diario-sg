@@ -3,20 +3,18 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
 type GetEntity struct {
-	reader    ports.EntityReader
-	registry  ports.RegistryReader
-	sanctions ports.SanctionReader
+	reader  ports.EntityReader
+	sources CompanySources
 }
 
-func NewGetEntity(r ports.EntityReader, registry ports.RegistryReader, sanctions ports.SanctionReader) *GetEntity {
-	return &GetEntity{reader: r, registry: registry, sanctions: sanctions}
+func NewGetEntity(r ports.EntityReader, sources CompanySources) *GetEntity {
+	return &GetEntity{reader: r, sources: sources}
 }
 
 func (uc *GetEntity) Execute(ctx context.Context, kind domain.EntityKind, input, source string) (domain.EntityReport, error) {
@@ -32,32 +30,11 @@ func (uc *GetEntity) Execute(ctx context.Context, kind domain.EntityKind, input,
 		return report, err
 	}
 	if kind == domain.EntityCNPJ {
-		if report.Registry, report.RegistryMonth, err = registryOf(ctx, uc.registry, key); err != nil {
-			return report, err
-		}
-		if report.Sanctions, report.SanctionsListedOn, err = sanctionsOf(ctx, uc.sanctions, key); err != nil {
+		if report.CompanyFacts, err = uc.sources.factsOf(ctx, key); err != nil {
 			return report, err
 		}
 	}
 	return withPhases(report), nil
-}
-
-func registryOf(ctx context.Context, r ports.RegistryReader, cnpj string) (*domain.CompanyRegistry, *time.Time, error) {
-	reg, err := r.RegistryByCNPJ(ctx, cnpj)
-	if err != nil {
-		return nil, nil, err
-	}
-	month, err := r.RegistryMonth(ctx)
-	return reg, month, err
-}
-
-func sanctionsOf(ctx context.Context, r ports.SanctionReader, cnpj string) ([]domain.Sanction, map[string]time.Time, error) {
-	sanctions, err := r.SanctionsByCNPJ(ctx, cnpj)
-	if err != nil {
-		return nil, nil, err
-	}
-	listed, err := r.SanctionsListedOn(ctx)
-	return sanctions, listed, err
 }
 
 func withPhases(r domain.EntityReport) domain.EntityReport {

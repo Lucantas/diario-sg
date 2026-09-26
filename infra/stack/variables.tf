@@ -86,3 +86,9 @@ variable "sancoes_schedule" {
   type        = string
   default     = "0 7 * * *"
 }
+
+variable "tce_schedule" {
+  description = "Cron da carga semanal dos empenhos do TCE-RJ, ano anterior e corrente (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 5 * * 0"
+}

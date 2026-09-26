@@ -125,6 +125,14 @@ export interface Sanction {
   state: SanctionState;
 }
 
+export interface PaymentYear {
+  year: number;
+  units: string[];
+  committed_cents: number;
+  liquidated_cents: number;
+  paid_cents: number;
+}
+
 export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;
@@ -134,6 +142,8 @@ export interface CompanyResponse {
   registry_month: string | null;
   sanctions: Sanction[];
   sanctions_listed_on: Partial<Record<"CEIS" | "CNEP", string>>;
+  payments: PaymentYear[];
+  payments_coverage: { from: string; to: string } | null;
 }
 
 export interface OrganCount {
@@ -191,6 +201,7 @@ export interface PanelAmounts {
   contracted_cents: number;
   registered_cents: number;
   amended_cents: number;
+  paid_cents: number;
 }
 
 export interface SupplierRow extends PanelAmounts {

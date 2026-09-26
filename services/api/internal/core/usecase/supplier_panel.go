@@ -15,10 +15,11 @@ const (
 type GetSupplierPanel struct {
 	src      ports.PanelSource
 	registry ports.RegistryReader
+	payments ports.PaymentReader
 }
 
-func NewGetSupplierPanel(src ports.PanelSource, registry ports.RegistryReader) *GetSupplierPanel {
-	return &GetSupplierPanel{src: src, registry: registry}
+func NewGetSupplierPanel(src ports.PanelSource, registry ports.RegistryReader, payments ports.PaymentReader) *GetSupplierPanel {
+	return &GetSupplierPanel{src: src, registry: registry, payments: payments}
 }
 
 func (uc *GetSupplierPanel) Execute(ctx context.Context, source string, f domain.PanelFilter) (domain.SupplierPanel, map[string]domain.ActHit, error) {
@@ -30,7 +31,11 @@ func (uc *GetSupplierPanel) Execute(ctx context.Context, source string, f domain
 	if err != nil {
 		return domain.SupplierPanel{}, nil, err
 	}
-	panel, err := uc.named(ctx, domain.BuildSupplierPanel(acts, f))
+	paid, err := uc.payments.PaidByCNPJYear(ctx)
+	if err != nil {
+		return domain.SupplierPanel{}, nil, err
+	}
+	panel, err := uc.named(ctx, domain.WithPaid(domain.BuildSupplierPanel(acts, f), source, paid))
 	if err != nil {
 		return domain.SupplierPanel{}, nil, err
 	}
