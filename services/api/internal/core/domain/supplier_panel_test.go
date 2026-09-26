@@ -178,7 +178,7 @@ func TestSupplierPanelKeepsContractingWithOnlyAmendmentsOutOfTheCount(t *testing
 
 	p := BuildSupplierPanel(acts, PanelFilter{})
 
-	if p.Contracts != 0 || p.Suppliers != 1 || p.AmendedCents != 1043928000 {
+	if p.Contracts != 0 || p.Suppliers != 1 || p.AmendedCents != 1043928000 || p.Rows[0].LargestActID != "p" {
 		t.Fatalf("contratação só com aditivo soma o aditivo e não conta: %+v", p)
 	}
 }

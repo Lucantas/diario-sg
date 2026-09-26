@@ -62,6 +62,20 @@ VALOR GLOBAL: R$28.497.999,98
 São Gonçalo, 11 de março de 2026.`
 )
 
+const semedProrrogacao2026 = `ATOS DO PREFEITO
+SEMED
+EXTRATO DO PRIMEIRO TERMO ADITIVO AO CONTRATO 010/SEMED/2025 DO
+PREGÃO ELETRÔNICO PMSG- 90013/2025.
+Processo: 7717/2025.
+Partes: MUNICÍPIO DE SÃO GONÇALO e F.P. VIEIRA ENGENHARIA
+LTDA, CNPJ 14.180.324/0001-63.
+Objeto: prorrogação do prazo de vigência do contrato por mais 12
+(doze) meses.
+Valor Total: R$ 106.292.521,47 (cento e seis milhões e duzentos e
+noventa e dois mil e quinhentos e vinte e um reais e quarenta e sete
+centavos).
+Prazo: 29/05/2026 a 28/05/2027.`
+
 type supplierPanelBody struct {
 	Year            *int   `json:"year"`
 	Organ           string `json:"organ"`
@@ -69,11 +83,13 @@ type supplierPanelBody struct {
 	Suppliers       int    `json:"suppliers"`
 	ContractedCents int64  `json:"contracted_cents"`
 	RegisteredCents int64  `json:"registered_cents"`
+	AmendedCents    int64  `json:"amended_cents"`
 	Items           []struct {
 		CNPJ            string   `json:"cnpj"`
 		Contracts       int      `json:"contracts"`
 		ContractedCents int64    `json:"contracted_cents"`
 		RegisteredCents int64    `json:"registered_cents"`
+		AmendedCents    int64    `json:"amended_cents"`
 		Organs          []string `json:"organs"`
 		Largest         *struct {
 			Title string `json:"title"`
@@ -122,5 +138,23 @@ func TestSupplierPanelCountsTheContractOnceAndTheAtaApart(t *testing.T) {
 		if r, _ := fetch(t, srv.URL+"/v1/panels/suppliers?"+q); r.StatusCode != http.StatusBadRequest {
 			t.Fatalf("%s deveria dar 400, veio %d", q, r.StatusCode)
 		}
+	}
+}
+
+func TestSupplierPanelCountsTheProrrogationInItsOwnYear(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	setOnlyGazetteDate(t, db, "2025-05-30")
+	indexAt(t, db, time.Date(2026, 5, 20, 0, 0, 0, 0, time.UTC), semedProrrogacao2026)
+
+	var y2025, y2026 supplierPanelBody
+	getJSON(t, srv.URL+"/v1/panels/suppliers?year=2025", &y2025)
+	getJSON(t, srv.URL+"/v1/panels/suppliers?year=2026", &y2026)
+
+	if y2025.Contracts != 1 || y2025.ContractedCents != 10629252147 || y2025.AmendedCents != 0 {
+		t.Fatalf("2025 tem só o contrato: %+v", y2025)
+	}
+	if y2026.Contracts != 0 || y2026.ContractedCents != 0 || y2026.AmendedCents != 10629252147 || len(y2026.Items) != 1 ||
+		y2026.Items[0].AmendedCents != 10629252147 || y2026.Items[0].Largest == nil {
+		t.Fatalf("2026 tem a prorrogação, à parte do contratado: %+v", y2026)
 	}
 }

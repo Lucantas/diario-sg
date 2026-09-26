@@ -28,7 +28,9 @@ func (uc *GetSupplierPanel) Execute(ctx context.Context, source string, f domain
 	panel := domain.BuildSupplierPanel(acts, f)
 	ids := make([]string, 0, len(panel.Rows))
 	for _, row := range panel.Rows {
-		ids = append(ids, row.LargestActID)
+		if row.LargestActID != "" {
+			ids = append(ids, row.LargestActID)
+		}
 	}
 	largest := map[string]domain.ActHit{}
 	if len(ids) == 0 {

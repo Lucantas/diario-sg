@@ -74,6 +74,7 @@ type panelContract struct {
 }
 
 type panelAmendment struct {
+	ActID string
 	Cents int64
 	At    time.Time
 }
@@ -90,6 +91,17 @@ func (c panelContract) amendedIn(year int) int64 {
 		}
 	}
 	return total
+}
+
+func (c panelContract) largestAmendmentIn(year int) string {
+	var id string
+	var cents int64
+	for _, a := range c.Amendments {
+		if (year == 0 || a.At.Year() == year) && a.Cents > cents {
+			id, cents = a.ActID, a.Cents
+		}
+	}
+	return id
 }
 
 func (c panelContract) outweighs(o panelContract) bool {
@@ -124,6 +136,9 @@ func BuildSupplierPanel(acts []PanelAct, f PanelFilter) SupplierPanel {
 		}
 		p.AmendedCents += amended
 		row.AmendedCents += amended
+		if row.LargestActID == "" && !counted {
+			row.LargestActID = c.largestAmendmentIn(f.Year)
+		}
 		if counted {
 			p.Contracts++
 			p.ContractedCents += c.ContractedCents
@@ -340,7 +355,7 @@ func amendmentsOf(acts []PanelAct, contractedCents int64) []panelAmendment {
 	for _, a := range acts {
 		cents := AmendmentValueCents(a.Head, a.ValueCents, a.DeclaredIncreaseBP, contractedCents)
 		if cents > 0 && !republishes(out, cents, a.PublishedAt) {
-			out = append(out, panelAmendment{Cents: cents, At: a.PublishedAt})
+			out = append(out, panelAmendment{ActID: a.ActID, Cents: cents, At: a.PublishedAt})
 		}
 	}
 	return out

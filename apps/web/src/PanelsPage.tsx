@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { SupplierPanel, SupplierRow, getSupplierPanel } from "./api";
 import { Result } from "./components";
-import { PanelParams, formatCompactCents, panelApiPath, panelHref, parsePanelParams } from "./panels";
+import { PanelParams, contractsLabel, formatCompactCents, panelApiPath, panelHref, parsePanelParams } from "./panels";
 import { formatCents, formatCnpj } from "./types";
 
 const TOP_ORGANS = 15;
@@ -47,8 +47,11 @@ export function PanelsPage() {
       <p className="notice">
         Valor declarado nos extratos do Diário, não o que foi pago. Cada contratação (atos da mesma empresa ligados
         pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato. Ata de registro de preços é um
-        teto e aparece à parte. Ficam de fora aditivos, homologações (que trazem o valor do certame inteiro), multas,
-        cancelamentos e atos que citam mais de uma empresa. Confira sempre a edição original.
+        teto e aparece à parte. Aditivos e prorrogações também aparecem à parte, no ano em que foram publicados: a
+        prorrogação conta o valor do novo período; o aditivo de acréscimo, o acréscimo em reais ou o percentual
+        declarado sobre o contratado; prorrogação "sem ônus", supressão e aditivo sem valor de acréscimo não somam.
+        Ficam de fora homologações (que trazem o valor do certame inteiro), editais, multas, cancelamentos e atos que
+        citam mais de uma empresa. Confira sempre a edição original.
       </p>
 
       <Filters panel={panel} params={current} onChange={go} />
@@ -63,6 +66,7 @@ export function PanelsPage() {
             <div><dt>Contratações</dt><dd>{panel.contracts.toLocaleString("pt-BR")}</dd></div>
             <div><dt>Contratado</dt><dd>{formatCompactCents(panel.contracted_cents)}</dd></div>
             <div><dt>Em atas</dt><dd>{formatCompactCents(panel.registered_cents)}</dd></div>
+            <div><dt>Aditivos e prorrogações</dt><dd>{formatCompactCents(panel.amended_cents)}</dd></div>
           </dl>
 
           <section aria-labelledby="ranking">
@@ -127,9 +131,10 @@ function SupplierCard({ row }: { row: SupplierRow }) {
       <p className="supplier-values">
         {row.contracted_cents > 0 && <span><strong>{formatCents(row.contracted_cents)}</strong> contratados</span>}
         {row.registered_cents > 0 && <span><strong>{formatCents(row.registered_cents)}</strong> em atas de registro de preços</span>}
+        {row.amended_cents > 0 && <span><strong>{formatCents(row.amended_cents)}</strong> em aditivos e prorrogações</span>}
       </p>
       <p className="fineprint">
-        {row.contracts === 1 ? "1 contratação" : `${row.contracts} contratações`}, {period}
+        {contractsLabel(row.contracts)}, {period}
         {row.organs.length > 0 && ` · ${row.organs.join(", ")}`}
       </p>
       {row.largest && (
@@ -146,7 +151,7 @@ interface TotalRow {
   key: string;
   label: string;
   hint?: string;
-  amounts: { contracts: number; contracted_cents: number; registered_cents: number };
+  amounts: { contracts: number; contracted_cents: number; registered_cents: number; amended_cents: number };
   active: boolean;
   onClick: () => void;
 }
@@ -158,7 +163,7 @@ function Totals({ title, rows }: { title: string; rows: TotalRow[] }) {
       <h2 className="panel-heading">{title}</h2>
       <table>
         <thead>
-          <tr><th scope="col"></th><th scope="col">Contratado</th><th scope="col">Em atas</th></tr>
+          <tr><th scope="col"></th><th scope="col">Contratado</th><th scope="col">Em atas</th><th scope="col">Aditivos</th></tr>
         </thead>
         <tbody>
           {rows.map((r) => (
@@ -170,6 +175,7 @@ function Totals({ title, rows }: { title: string; rows: TotalRow[] }) {
               </th>
               <td>{formatCompactCents(r.amounts.contracted_cents)}</td>
               <td>{formatCompactCents(r.amounts.registered_cents)}</td>
+              <td>{formatCompactCents(r.amounts.amended_cents)}</td>
             </tr>
           ))}
         </tbody>

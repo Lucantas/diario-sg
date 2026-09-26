@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCompactCents, panelApiPath, panelHref, parsePanelParams } from "./panels";
+import { contractsLabel, formatCompactCents, panelApiPath, panelHref, parsePanelParams } from "./panels";
 
 describe("parsePanelParams", () => {
   it("lê ano e órgão do endereço", () => {
@@ -27,5 +27,13 @@ describe("formatCompactCents", () => {
     expect(formatCompactCents(10556000000)).toMatch(/^R\$\s105,6\smi$/);
     expect(formatCompactCents(258)).toMatch(/^R\$\s2,58$/);
     expect(formatCompactCents(0)).toMatch(/^R\$\s0,00$/);
+  });
+});
+
+describe("contractsLabel", () => {
+  it("diz quantas contratações ou que só há aditivos", () => {
+    expect(contractsLabel(0)).toBe("Só aditivos e prorrogações");
+    expect(contractsLabel(1)).toBe("1 contratação");
+    expect(contractsLabel(3)).toBe("3 contratações");
   });
 });

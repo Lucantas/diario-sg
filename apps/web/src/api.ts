@@ -126,6 +126,7 @@ export interface PanelAmounts {
   contracts: number;
   contracted_cents: number;
   registered_cents: number;
+  amended_cents: number;
 }
 
 export interface SupplierRow extends PanelAmounts {

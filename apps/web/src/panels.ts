@@ -42,3 +42,8 @@ const COMPACT_FROM_CENTS = 100_000;
 export function formatCompactCents(cents: number) {
   return (cents < COMPACT_FROM_CENTS ? exactBRL : compactBRL).format(cents / 100);
 }
+
+export function contractsLabel(contracts: number) {
+  if (contracts === 0) return "Só aditivos e prorrogações";
+  return contracts === 1 ? "1 contratação" : `${contracts} contratações`;
+}

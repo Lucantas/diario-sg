@@ -13,6 +13,7 @@ type panelAmountsDTO struct {
 	Contracts       int   `json:"contracts"`
 	ContractedCents int64 `json:"contracted_cents"`
 	RegisteredCents int64 `json:"registered_cents"`
+	AmendedCents    int64 `json:"amended_cents"`
 }
 
 type supplierRowDTO struct {
@@ -70,14 +71,14 @@ func (a *API) supplierPanel(w http.ResponseWriter, r *http.Request) {
 
 func toSupplierPanelResponse(source string, p domain.SupplierPanel, largest map[string]domain.ActHit) supplierPanelResponse {
 	out := supplierPanelResponse{Source: source, Organ: p.Filter.Organ, OrganName: domain.OrganName(p.Filter.Organ), Suppliers: p.Suppliers,
-		panelAmountsDTO: panelAmountsDTO{Contracts: p.Contracts, ContractedCents: p.ContractedCents, RegisteredCents: p.RegisteredCents},
+		panelAmountsDTO: panelAmountsDTO{Contracts: p.Contracts, ContractedCents: p.ContractedCents, RegisteredCents: p.RegisteredCents, AmendedCents: p.AmendedCents},
 		Items:           make([]supplierRowDTO, 0, len(p.Rows)), Years: make([]yearTotalDTO, 0, len(p.Years)), Organs: make([]organTotalDTO, 0, len(p.Organs))}
 	if p.Filter.Year != 0 {
 		out.Year = &p.Filter.Year
 	}
 	for _, row := range p.Rows {
 		dto := supplierRowDTO{CNPJ: row.CNPJ, First: row.First.Format(time.DateOnly), Last: row.Last.Format(time.DateOnly), Organs: row.Organs,
-			panelAmountsDTO: panelAmountsDTO{Contracts: row.Contracts, ContractedCents: row.ContractedCents, RegisteredCents: row.RegisteredCents}}
+			panelAmountsDTO: panelAmountsDTO{Contracts: row.Contracts, ContractedCents: row.ContractedCents, RegisteredCents: row.RegisteredCents, AmendedCents: row.AmendedCents}}
 		if dto.Organs == nil {
 			dto.Organs = []string{}
 		}
@@ -98,5 +99,5 @@ func toSupplierPanelResponse(source string, p domain.SupplierPanel, largest map[
 }
 
 func amountsOf(t domain.PanelTotal) panelAmountsDTO {
-	return panelAmountsDTO{Contracts: t.Contracts, ContractedCents: t.ContractedCents, RegisteredCents: t.RegisteredCents}
+	return panelAmountsDTO{Contracts: t.Contracts, ContractedCents: t.ContractedCents, RegisteredCents: t.RegisteredCents, AmendedCents: t.AmendedCents}
 }
