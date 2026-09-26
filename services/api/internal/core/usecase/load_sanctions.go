@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -34,8 +35,10 @@ type sanctionsLoading struct {
 func (uc *LoadSanctions) Execute(ctx context.Context) (domain.FetchRun, error) {
 	run := domain.FetchRun{ID: domain.NewRunID(), Source: domain.SourceSanctions, StartedAt: uc.now()}
 	load, err := uc.load(ctx, &run)
-	if err == nil {
-		err = uc.repo.Save(ctx, load)
+	if len(load.Days) > 0 {
+		if saveErr := uc.repo.Save(ctx, load); saveErr != nil {
+			err = errors.Join(err, saveErr)
+		}
 	}
 	run.FinishedAt = uc.now()
 	if err != nil {
@@ -59,14 +62,19 @@ func (uc *LoadSanctions) load(ctx context.Context, run *domain.FetchRun) (domain
 	for _, cnpj := range cited {
 		l.bases[domain.CNPJBase(cnpj)] = true
 	}
+	var failures []error
 	for _, register := range domain.SanctionRegisters {
+		stored, found, failed := len(l.load.Sanctions), run.Found, run.Failed
 		if err := uc.loadRegister(ctx, register, l); err != nil {
-			return domain.SanctionLoad{}, err
+			failures = append(failures, err)
+			l.load.Sanctions = l.load.Sanctions[:stored]
+			run.Found, run.Failed = found, failed
+			delete(l.load.Days, register)
 		}
 	}
 	run.Stored = len(l.load.Sanctions)
 	run.Skipped = run.Found - run.Stored - run.Failed
-	return l.load, nil
+	return l.load, errors.Join(failures...)
 }
 
 func (uc *LoadSanctions) loadRegister(ctx context.Context, register string, l *sanctionsLoading) error {

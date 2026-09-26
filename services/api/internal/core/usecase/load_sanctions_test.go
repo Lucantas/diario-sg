@@ -24,7 +24,7 @@ var cepimHeader = []string{"CNPJ ENTIDADE", "NOME ENTIDADE", "NÚMERO CONVÊNIO"
 
 type fakeSanctionSource struct {
 	rows   map[string][][]string
-	failOn string
+	failOn map[string]bool
 }
 
 func (f *fakeSanctionSource) LatestDay(_ context.Context, register string) (time.Time, error) {
@@ -35,7 +35,7 @@ func (f *fakeSanctionSource) LatestDay(_ context.Context, register string) (time
 }
 
 func (f *fakeSanctionSource) Rows(_ context.Context, register string, _ time.Time, each func(header, row []string) error) (string, error) {
-	if register == f.failOn {
+	if f.failOn[register] {
 		return "", errors.New("status 403")
 	}
 	header := sanctionsHeader
@@ -129,17 +129,37 @@ func TestLoadSanctionsArchivesOnlyTheCompanyRowsOfTheCitedBases(t *testing.T) {
 	}
 }
 
-func TestLoadSanctionsFailureSavesNothing(t *testing.T) {
+func TestLoadSanctionsKeepsTheOtherRegistersWhenOneFails(t *testing.T) {
 	src := sanctionsFixture()
-	src.failOn = domain.RegisterCNEP
+	src.failOn = map[string]bool{domain.RegisterCEPIM: true}
 	repo, runs := &fakeSanctionRepo{}, &memRuns{}
 
 	_, err := NewLoadSanctions(src, repo, runs, &memObjects{}, time.Now).Execute(context.Background())
 
-	if err == nil || repo.saved != nil {
-		t.Fatalf("falha no CNEP não grava nada: err=%v", err)
+	if err == nil || repo.saved == nil {
+		t.Fatalf("falha no CEPIM: err=%v salvo=%v", err, repo.saved)
 	}
-	if len(runs.runs) != 1 || !strings.Contains(runs.runs[0].Error, "CNEP") {
+	for _, s := range repo.saved.Sanctions {
+		if s.Register == domain.RegisterCEPIM {
+			t.Errorf("CEPIM gravado apesar da falha: %+v", s)
+		}
+	}
+	if _, ok := repo.saved.Days[domain.RegisterCEPIM]; ok || len(repo.saved.Sanctions) != 3 {
+		t.Errorf("carga: %+v", repo.saved)
+	}
+	if len(runs.runs) != 1 || !strings.Contains(runs.runs[0].Error, "CEPIM") {
 		t.Errorf("erro não registrado: %+v", runs.runs)
+	}
+}
+
+func TestLoadSanctionsSavesNothingWhenEveryRegisterFails(t *testing.T) {
+	src := sanctionsFixture()
+	src.failOn = map[string]bool{domain.RegisterCEIS: true, domain.RegisterCNEP: true, domain.RegisterCEPIM: true}
+	repo := &fakeSanctionRepo{}
+
+	_, err := NewLoadSanctions(src, repo, &memRuns{}, &memObjects{}, time.Now).Execute(context.Background())
+
+	if err == nil || repo.saved != nil {
+		t.Fatalf("nada deveria ser gravado: err=%v salvo=%v", err, repo.saved)
 	}
 }

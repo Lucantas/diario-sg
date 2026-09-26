@@ -234,7 +234,9 @@ em `cgu_sanctions`. Linhas de pessoa física são descartadas na leitura. O
 CEPIM (entidades sem fins lucrativos impedidas de receber transferência da
 União por convênio) tem outras colunas e nenhuma data: cada par CNPJ e
 convênio vira um impedimento, que fica fora do padrão "sancionado
-contratado", porque não impede contratar com o Município. A
+contratado", porque não impede contratar com o Município. Se um cadastro
+falha (o CEPIM já respondeu 403 por dias), os outros são gravados e a
+coleta registra o erro do que faltou. A
 carga faz *upsert*: a sanção que sai do cadastro fica, com o último dia em
 que foi vista. As linhas filtradas ficam em
 `raw/cgu_sancoes/AAAA/MM/DD/`, com o SHA-256 do zip. A página da empresa e
