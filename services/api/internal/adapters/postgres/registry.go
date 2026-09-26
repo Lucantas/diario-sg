@@ -25,7 +25,11 @@ func (r *RegistryRepo) Ready(ctx context.Context) error {
 }
 
 func (r *RegistryRepo) CitedCNPJs(ctx context.Context) ([]string, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT key FROM entities WHERE kind = 'cnpj' AND length(key) = 14 ORDER BY key`)
+	return citedCNPJs(ctx, r.db)
+}
+
+func citedCNPJs(ctx context.Context, db *sql.DB) ([]string, error) {
+	rows, err := db.QueryContext(ctx, `SELECT key FROM entities WHERE kind = 'cnpj' AND length(key) = 14 ORDER BY key`)
 	if err != nil {
 		return nil, err
 	}

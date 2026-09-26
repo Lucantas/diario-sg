@@ -10,14 +10,15 @@ import (
 type Role string
 
 const (
-	RoleAPI     Role = "api"
-	RoleWorker  Role = "worker"
-	RoleMigrate Role = "migrate"
-	RoleReindex Role = "reindex"
-	RoleDump    Role = "dump"
-	RoleReports Role = "reports"
-	RoleKeys    Role = "keys"
-	RoleReceita Role = "receita"
+	RoleAPI       Role = "api"
+	RoleWorker    Role = "worker"
+	RoleMigrate   Role = "migrate"
+	RoleReindex   Role = "reindex"
+	RoleDump      Role = "dump"
+	RoleReports   Role = "reports"
+	RoleKeys      Role = "keys"
+	RoleReceita   Role = "receita"
+	RoleSanctions Role = "sancoes"
 )
 
 type Config struct {
@@ -35,6 +36,7 @@ type Config struct {
 	PublicWebURL       string
 	ReceitaBaseURL     string
 	ReceitaShareToken  string
+	CGUBaseURL         string
 }
 
 func Load(role Role) (Config, error) {
@@ -53,6 +55,7 @@ func Load(role Role) (Config, error) {
 		PublicWebURL:       getenv("PUBLIC_WEB_URL", "http://localhost:5173"),
 		ReceitaBaseURL:     getenv("RECEITA_BASE_URL", "https://arquivos.receitafederal.gov.br/public.php/webdav/"),
 		ReceitaShareToken:  getenv("RECEITA_SHARE_TOKEN", "YggdBLfdninEJX9"),
+		CGUBaseURL:         getenv("CGU_BASE_URL", "https://portaldatransparencia.gov.br/download-de-dados/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
@@ -61,7 +64,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita {
+	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {

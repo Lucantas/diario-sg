@@ -148,6 +148,22 @@ type RegistryRepository interface {
 	Replace(ctx context.Context, month time.Time, load domain.RegistryLoad) error
 }
 
+type SanctionSource interface {
+	LatestDay(ctx context.Context, register string) (time.Time, error)
+	Rows(ctx context.Context, register string, day time.Time, each func(header, row []string) error) (string, error)
+}
+
+type SanctionRepository interface {
+	Ready(ctx context.Context) error
+	CitedCNPJs(ctx context.Context) ([]string, error)
+	Save(ctx context.Context, load domain.SanctionLoad) error
+}
+
+type SanctionReader interface {
+	SanctionsByCNPJ(ctx context.Context, cnpj string) ([]domain.Sanction, error)
+	SanctionsListedOn(ctx context.Context) (map[string]time.Time, error)
+}
+
 type RegistryReader interface {
 	RegistryByCNPJ(ctx context.Context, cnpj string) (*domain.CompanyRegistry, error)
 	RegistryMonth(ctx context.Context) (*time.Time, error)
