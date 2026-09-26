@@ -55,6 +55,16 @@ func TestParseCNEPRowWithFineAndNoEndDate(t *testing.T) {
 	}
 }
 
+func TestZeroFineIsNoFine(t *testing.T) {
+	row := strings.Split("CNEP;134861;J;08738035000134;MAXIMUS;;;;1;Publicação extraordinária da decisão condenatória;0,00;29/03/2021;;29/03/2021;DOU;;;No órgão sancionador;Prefeitura;ES;MUNICIPAL;LEI 12846;01/04/2021;CGU;", ";")
+
+	s, err := ParseSanctionRow(columns(t, cnepHeader), row)
+
+	if err != nil || s.FineCents != nil {
+		t.Fatalf("multa zero: %+v %v", s.FineCents, err)
+	}
+}
+
 func TestPersonRowsAreNotCompanies(t *testing.T) {
 	c := columns(t, ceisHeader)
 	row := ceisRow()

@@ -358,6 +358,14 @@ outras fontes são registros estruturados. Registrar em ADR.
   `entidade` do MCP e os painéis mostram o cadastro e a razão social.
   Desenho em `docs/superpowers/specs/2026-09-26-cadastro-da-receita-design.md`.
 - **CGU — CEIS, CNEP, CEPIM.** Sanções vigentes e históricas.
+  ✅ (26/09/2026) Job `sancoes` (`make sancoes`), diário às 07:00: baixa o
+  arquivo mais recente do CEIS e do CNEP, guarda só as sanções de pessoa
+  jurídica das empresas citadas e acumula o histórico a partir da primeira
+  carga (a CGU só publica o arquivo do dia). Na base local, 406 sanções de
+  182 empresas citadas; duas aplicadas em São Gonçalo (Câmara Municipal e
+  Justiça Federal). A página da empresa e a ferramenta `entidade` do MCP
+  mostram cada sanção com o estado. O CEPIM responde 403 desde 26/09/2026.
+  Desenho em `docs/superpowers/specs/2026-09-26-sancoes-da-cgu-design.md`.
 - **Página da empresa** enriquecida com tudo acima.
 - **Novos padrões:** empresa aberta pouco antes do primeiro contrato; capital
   social muito menor que o valor contratado; fornecedores com sócio ou
@@ -371,8 +379,10 @@ Pendências:
 - [ ] Na nuvem: aplicar a migration 014 antes de rodar o job `receita`
   (sem as tabelas, o job para logo no início), aplicar o Terraform (job,
   agendamento e conta de serviço) e rodar o job uma vez.
-- [ ] Sanções da CGU (CEIS e CNEP; o CEPIM respondeu 403 em 26/09/2026) e
-  os padrões novos, em specs próprias.
+- [ ] Na nuvem: aplicar a migration 015 e o Terraform do job `sancoes`.
+- [ ] CEPIM: o Portal responde 403 à página e ao arquivo (26/09/2026);
+  tentar de novo quando voltar.
+- [ ] Padrões novos, em spec própria.
 
 ## Entrega 4 — Anunciado × pago
 

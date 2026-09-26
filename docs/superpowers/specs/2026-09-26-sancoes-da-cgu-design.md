@@ -87,6 +87,27 @@ A parte 3 (padrões novos) usa estas tabelas.
 - Carga real local e conferência de 10 sanções contra a consulta do
   Portal da Transparência.
 
+## Depois da entrega
+
+- Carga local de 25/09/2026 em 3,5 segundos: 406 sanções de 182 empresas
+  citadas (387 do CEIS, 2 delas de outro estabelecimento, e 19 do CNEP),
+  de 16.324 sanções de pessoa jurídica nos dois arquivos. Duas foram
+  aplicadas em São Gonçalo: uma pela Câmara Municipal e uma pela Justiça
+  Federal.
+- Os estados ficaram "no cadastro", "prazo encerrado" e "fora do
+  cadastro", em vez de "em vigor": multa e publicação extraordinária do
+  CNEP não têm data final, e dizer se a sanção impede contratar com São
+  Gonçalo depende da abrangência, que a página mostra.
+- Multa `0,00` (publicação extraordinária) conta como sem multa.
+- O manifesto é um por cadastro (`CEIS.manifest.json`, `CNEP.manifest.json`),
+  porque os dois arquivos podem ser de dias diferentes.
+- As sanções vão em `/v1/entities/cnpj/{cnpj}` (a rota da página da
+  empresa); a página de detalhe do Portal tem verificação humana (AWS WAF),
+  então as 10 sanções da amostra foram conferidas contra o CSV original,
+  lido por outro programa: as 10 conferem.
+- Na página, cada sanção fica fechada numa linha (categoria, cadastro,
+  estado e órgão); a fundamentação legal, longa, só aparece ao abrir.
+
 **Pronto quando:** a página de uma empresa citada e sancionada mostra as
 sanções do CEIS e do CNEP com o estado de cada uma, e a carga diária grava
 sem falha.

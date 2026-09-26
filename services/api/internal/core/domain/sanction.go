@@ -150,7 +150,9 @@ func ParseSanctionRow(c SanctionColumns, row []string) (Sanction, error) {
 		if err != nil {
 			return Sanction{}, fmt.Errorf("multa da sanção %s: %w", s.Code, err)
 		}
-		s.FineCents = &cents
+		if cents > 0 {
+			s.FineCents = &cents
+		}
 	}
 	return s, nil
 }
