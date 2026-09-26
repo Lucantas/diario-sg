@@ -263,6 +263,30 @@ export function getSupplierPanel(path: string) {
   return request<SupplierPanel>(path);
 }
 
+export interface StaffTotal {
+  headcount: number;
+  remuneration_cents: number;
+}
+
+export interface StaffMonth extends StaffTotal {
+  month: string;
+  groups: StaffTotal[];
+  appointments: number;
+  dismissals: number;
+}
+
+export interface StaffPanel {
+  units: string[];
+  unit: string;
+  diario_source: Source;
+  groups: { group: string; label: string }[];
+  months: StaffMonth[];
+}
+
+export function getStaffPanel(path: string) {
+  return request<StaffPanel>(path);
+}
+
 export function listOrgans() {
   return request<{ items: Organ[] }>("/v1/organs");
 }

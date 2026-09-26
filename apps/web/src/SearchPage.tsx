@@ -238,6 +238,7 @@ export function SearchPage() {
         <a href="/mcp">Pergunte pela sua IA (MCP)</a>
         <a href="/padroes">Padrões para verificar</a>
         <a href="/paineis">Maiores fornecedores</a>
+        <a href="/pessoal">Pessoal</a>
       </footer>
     </main>
   );

@@ -188,6 +188,10 @@ type StaffReader interface {
 	StaffUnits(ctx context.Context) ([]string, error)
 }
 
+type ActMonthCounter interface {
+	MonthlyActCounts(ctx context.Context, types []domain.ActType, source string) ([]domain.MonthlyActCount, error)
+}
+
 type PaymentSource interface {
 	Commitments(ctx context.Context, year int, each func(header, row []string) error) (string, error)
 }

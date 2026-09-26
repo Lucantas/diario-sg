@@ -66,6 +66,7 @@ func run(l *slog.Logger) error {
 		Stats:         usecase.NewActStats(acts),
 		Patterns:      usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)),
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), registry, payments),
+		Staff:         usecase.NewGetStaffPanel(postgres.NewStaffRepo(db), postgres.NewPatternRepo(db)),
 		Organs:        usecase.NewListOrgans(acts),
 		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Export:        usecase.NewExportActs(acts),

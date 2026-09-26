@@ -30,6 +30,7 @@ type API struct {
 	Subscriptions *usecase.Subscriptions
 	Patterns      *usecase.ListPatterns
 	Panels        *usecase.GetSupplierPanel
+	Staff         *usecase.GetStaffPanel
 	Log           *slog.Logger
 }
 
@@ -60,6 +61,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/organs", a.listOrgans)
 	mux.HandleFunc("GET /v1/patterns", a.listPatterns)
 	mux.HandleFunc("GET /v1/panels/suppliers", a.supplierPanel)
+	mux.HandleFunc("GET /v1/panels/staff", a.staffPanel)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 
 	mux.HandleFunc("POST /v1/reports", a.reportError(ratelimit.New(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))

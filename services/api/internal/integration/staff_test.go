@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
@@ -69,5 +70,49 @@ func TestStaffReplacesTheYearsRead(t *testing.T) {
 	camara, err := repo.StaffRows(context.Background(), "CÂMARA SÃO GONÇALO")
 	if err != nil || len(camara) != 1 || camara[0].Headcount != 181 {
 		t.Fatalf("Câmara: %+v %v", camara, err)
+	}
+}
+
+func TestStaffPanelRouteGroupsTheMonths(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	loadStaff(t, db, staffAPI{2025: staffJSON(
+		staffRecord("2025/01", "PREFEITURA SÃO GONÇALO", "Efetivo - Estatutário", "Efetivo", 100, 5000),
+		staffRecord("2025/01", "CÂMARA SÃO GONÇALO", "Comissionado Extraquadro", "Comissionado", 180, 1000.5),
+		staffRecord("2025/02", "CÂMARA SÃO GONÇALO", "Comissionado Extraquadro", "Comissionado", 181, 1000))}, 2025, 2025)
+
+	var panel struct {
+		Units  []string `json:"units"`
+		Source string   `json:"diario_source"`
+		Groups []struct {
+			Label string `json:"label"`
+		} `json:"groups"`
+		Months []struct {
+			Month             string `json:"month"`
+			Headcount         int    `json:"headcount"`
+			RemunerationCents int64  `json:"remuneration_cents"`
+			Groups            []struct {
+				Headcount int `json:"headcount"`
+			} `json:"groups"`
+		} `json:"months"`
+	}
+	getJSON(t, srv.URL+"/v1/panels/staff", &panel)
+	if len(panel.Units) != 2 || panel.Source != "diario_prefeitura" || len(panel.Groups) != 2 || panel.Groups[0].Label != "Efetivos" ||
+		len(panel.Months) != 2 || panel.Months[1].Month != "2025-01" || panel.Months[1].Headcount != 280 ||
+		panel.Months[1].RemunerationCents != 600050 || panel.Months[1].Groups[1].Headcount != 180 {
+		t.Fatalf("painel: %+v", panel)
+	}
+
+	getJSON(t, srv.URL+"/v1/panels/staff?unit=C%C3%82MARA+S%C3%83O+GON%C3%87ALO", &panel)
+	if panel.Source != "diario_camara" || len(panel.Groups) != 1 || panel.Months[0].Headcount != 181 {
+		t.Fatalf("Câmara: %+v", panel)
+	}
+
+	resp, err := http.Get(srv.URL + "/v1/panels/staff?unit=OUTRA")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("unidade desconhecida: %d", resp.StatusCode)
 	}
 }
