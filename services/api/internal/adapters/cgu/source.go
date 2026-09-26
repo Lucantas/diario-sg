@@ -18,22 +18,43 @@ import (
 )
 
 const (
-	dayLayout   = "20060102"
-	maxZipBytes = 256 << 20
+	dayLayout          = "20060102"
+	maxZipBytes        = 256 << 20
+	defaultMinInterval = 20 * time.Second
 )
+
+var ErrHumanVerification = errors.New("o Portal da Transparência pediu verificação humana (AWS WAF); tente mais tarde")
 
 var publishedDayRe = regexp.MustCompile(`"ano"\s*:\s*"(\d{4})",\s*"mes"\s*:\s*"(\d{2})",\s*"dia"\s*:\s*"(\d{2})"`)
 
 type Source struct {
-	baseURL string
-	client  *http.Client
+	baseURL     string
+	client      *http.Client
+	minInterval time.Duration
+	last        time.Time
 }
 
 func New(baseURL string, client *http.Client) *Source {
-	return &Source{baseURL: strings.TrimSuffix(baseURL, "/") + "/", client: client}
+	return &Source{baseURL: strings.TrimSuffix(baseURL, "/") + "/", client: client, minInterval: defaultMinInterval}
+}
+
+func (s *Source) throttle(ctx context.Context) error {
+	wait := time.Until(s.last.Add(s.minInterval))
+	if wait > 0 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(wait):
+		}
+	}
+	s.last = time.Now()
+	return nil
 }
 
 func (s *Source) get(ctx context.Context, url string) ([]byte, error) {
+	if err := s.throttle(ctx); err != nil {
+		return nil, err
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -43,6 +64,9 @@ func (s *Source) get(ctx context.Context, url string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusMethodNotAllowed || resp.StatusCode == http.StatusAccepted {
+		return nil, ErrHumanVerification
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("status %d", resp.StatusCode)
 	}

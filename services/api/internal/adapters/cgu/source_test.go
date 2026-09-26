@@ -55,7 +55,7 @@ func newPortal(t *testing.T, zipBody []byte) *Source {
 	mux.HandleFunc("/download-de-dados/ceis/20260924", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusForbidden) })
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
-	return New(srv.URL+"/download-de-dados/", srv.Client())
+	return unthrottled(New(srv.URL+"/download-de-dados/", srv.Client()))
 }
 
 func TestLatestDayIsTheNewestPublishedFile(t *testing.T) {

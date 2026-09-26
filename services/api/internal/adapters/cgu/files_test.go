@@ -4,9 +4,11 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func zipOf(t *testing.T, files map[string]string) []byte {
@@ -43,7 +45,7 @@ func TestZipCSVsReadsEveryFileInLatin1(t *testing.T) {
 	defer srv.Close()
 	rows := map[string][][]string{}
 
-	sum, err := New(srv.URL, srv.Client()).ZipCSVs(context.Background(), "emendas-parlamentares/UNICO", func(name string, header, row []string) error {
+	sum, err := unthrottled(New(srv.URL, srv.Client())).ZipCSVs(context.Background(), "emendas-parlamentares/UNICO", func(name string, header, row []string) error {
 		rows[name] = append(rows[name], row)
 		return nil
 	})
@@ -60,9 +62,48 @@ arquivos.push({"ano" : "2026", "mes" : "09", "dia" : "", "origem" : "Transferenc
 	}))
 	defer srv.Close()
 
-	month, err := New(srv.URL, srv.Client()).LatestMonth(context.Background(), "transferencias")
+	month, err := unthrottled(New(srv.URL, srv.Client())).LatestMonth(context.Background(), "transferencias")
 
 	if err != nil || month.Format("2006-01") != "2026-09" {
 		t.Fatalf("veio %v %v", month, err)
+	}
+}
+
+func unthrottled(s *Source) *Source {
+	s.minInterval = 0
+	return s
+}
+
+func TestHumanVerificationIsReportedAsSuch(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_, _ = w.Write([]byte("<title>Human Verification</title>"))
+	}))
+	defer srv.Close()
+
+	_, err := unthrottled(New(srv.URL, srv.Client())).ZipCSVs(context.Background(), "transferencias/202601", func(string, []string, []string) error { return nil })
+
+	if !errors.Is(err, ErrHumanVerification) {
+		t.Fatalf("esperava verificação humana, veio %v", err)
+	}
+}
+
+func TestDownloadsAreSpacedOut(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`arquivos.push({"ano" : "2026", "mes" : "09"})`))
+	}))
+	defer srv.Close()
+	s := New(srv.URL, srv.Client())
+	s.minInterval = 50 * time.Millisecond
+	start := time.Now()
+
+	for range 3 {
+		if _, err := s.LatestMonth(context.Background(), "transferencias"); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if elapsed := time.Since(start); elapsed < 100*time.Millisecond {
+		t.Fatalf("três pedidos em %v", elapsed)
 	}
 }
