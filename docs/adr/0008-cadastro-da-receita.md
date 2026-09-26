@@ -23,7 +23,8 @@ Nextcloud, lido por WebDAV. Só interessam os CNPJs citados nos Diários
   arquivo não troca nada. Sem histórico mensal.
 - **Arquivo bruto:** as linhas que passaram no filtro, por arquivo de
   origem, em `raw/receita_cnpj/AAAA/MM/01/<arquivo>.csv.gz`, com o
-  SHA-256 do zip de origem. O dump inteiro da Receita não é guardado.
+  SHA-256 do CSV de origem (descompactado; o índice do zip fica no fim
+  e a leitura por `Range` não passa pelos bytes em ordem). O dump inteiro da Receita não é guardado.
 - **Sócios** seguem o ADR 0006: só dentro da página da empresa, com o
   documento como a Receita publica (CPF mascarado). Telefone e e-mail
   não são carregados. O dump público não inclui as tabelas `rf_*`.

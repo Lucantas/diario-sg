@@ -67,7 +67,7 @@ e plano próprios:
    pulados = procurados sem registro, com a mensagem de erro se falhar.
 8. **Arquivo bruto**: as linhas que passaram no filtro, por arquivo de
    origem, em `raw/receita_cnpj/AAAA/MM/01/<arquivo>.csv.gz`, com o
-   SHA-256 do zip de origem e o da extração gravados. O dump inteiro não
+   SHA-256 do CSV de origem (descompactado) e o da extração gravados. O dump inteiro não
    é guardado.
 9. **Página da empresa** ganha "Cadastro na Receita":
    - razão social no título, nome fantasia, situação com data (em

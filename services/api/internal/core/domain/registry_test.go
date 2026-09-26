@@ -8,7 +8,7 @@ import (
 
 var testCodes = RegistryCodes{
 	Activities: map[string]string{"4120400": "Construção de edifícios", "4399103": "Obras de alvenaria", "7112000": "Serviços de engenharia"},
-	Cities:     map[string]string{"5869": "SAO GONCALO"},
+	Cities:     map[string]string{"5869": "NOVA IGUACU"},
 	Natures:    map[string]string{"2062": "Sociedade Empresária Limitada"},
 	Roles:      map[string]string{"49": "Sócio-Administrador", "22": "Sócio"},
 	Reasons:    map[string]string{"00": "Sem motivo", "01": "Extinção por encerramento liquidação voluntária"},
@@ -53,7 +53,7 @@ func TestParseEstablishmentRow(t *testing.T) {
 		t.Errorf("atividades: %+v %+v", e.MainActivity, e.OtherActivities)
 	}
 	if e.Street != "RUA DOUTOR NILO PECANHA" || e.Number != "120" || e.Complement != "SALA 2" || e.District != "CENTRO" ||
-		e.ZIP != "24445300" || e.City != "SAO GONCALO" || e.UF != "RJ" {
+		e.ZIP != "24445300" || e.City != "NOVA IGUACU" || e.UF != "RJ" {
 		t.Errorf("endereço: %+v", e)
 	}
 }
