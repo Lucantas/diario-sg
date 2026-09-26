@@ -57,6 +57,13 @@ func main() {
 		log.Error("carga do pessoal falhou", "error", err)
 		failed = true
 	}
+	start = time.Now()
+	run, err = usecase.NewLoadOversight(src, postgres.NewOversightRepo(db), runs, storage, time.Now).Execute(ctx)
+	log.Info("controle do TCE-RJ", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	if err != nil {
+		log.Error("carga do controle falhou", "error", err)
+		failed = true
+	}
 	if failed {
 		os.Exit(1)
 	}

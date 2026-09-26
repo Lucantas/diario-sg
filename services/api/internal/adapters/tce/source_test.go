@@ -98,3 +98,17 @@ func TestStaffAsksForTheYearJSON(t *testing.T) {
 		t.Errorf("consulta: %s", query)
 	}
 }
+
+func TestDatasetAsksForTheWholeSet(t *testing.T) {
+	var path string
+	src := newTCE(t, func(w http.ResponseWriter, r *http.Request) {
+		path = r.URL.Path + "?" + r.URL.RawQuery
+		_, _ = w.Write([]byte(`[]`))
+	})
+
+	body, err := src.Dataset(context.Background(), "prestacao_contas_municipio")
+
+	if err != nil || string(body) != "[]" || path != "/api/v1/prestacao_contas_municipio?" {
+		t.Fatalf("veio %q %v em %s", body, err, path)
+	}
+}

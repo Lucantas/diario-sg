@@ -188,6 +188,20 @@ type StaffReader interface {
 	StaffUnits(ctx context.Context) ([]string, error)
 }
 
+type OversightSource interface {
+	Dataset(ctx context.Context, name string) ([]byte, error)
+}
+
+type OversightRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceOversight(ctx context.Context, o domain.TCEOversight) error
+}
+
+type OversightReader interface {
+	Oversight(ctx context.Context) (domain.TCEOversight, error)
+	StalledWorksByCNPJ(ctx context.Context, cnpj string) ([]domain.StalledWork, error)
+}
+
 type ActMonthCounter interface {
 	MonthlyActCounts(ctx context.Context, types []domain.ActType, source string) ([]domain.MonthlyActCount, error)
 }

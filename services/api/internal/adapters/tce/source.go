@@ -70,6 +70,14 @@ func (s *Source) Staff(ctx context.Context, year int) ([]byte, error) {
 	return body, nil
 }
 
+func (s *Source) Dataset(ctx context.Context, name string) ([]byte, error) {
+	body, err := s.download(ctx, s.baseURL+url.PathEscape(name))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
+	}
+	return body, nil
+}
+
 func (s *Source) download(ctx context.Context, u string) ([]byte, error) {
 	var lastErr error
 	for attempt := 1; attempt <= attempts; attempt++ {
