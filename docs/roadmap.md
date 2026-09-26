@@ -466,8 +466,9 @@ Pendências:
 - [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
 - [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
 - [ ] Transferências federais de julho de 2023 em diante: o Portal pediu
-  verificação humana; o job semanal, com pausa entre downloads, completa
-  aos poucos (ou rodar `make federal FROM=202307` quando liberar).
+  verificação humana. O job semanal baixa só os três últimos meses, então
+  o intervalo precisa de `make federal FROM=202307` quando o Portal
+  liberar (os downloads já vão espaçados).
 - [ ] Na nuvem: migrations 019 e 020 e o Terraform do job `federal`.
 
 ---
