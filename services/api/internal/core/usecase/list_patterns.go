@@ -97,13 +97,17 @@ func (uc *ListPatterns) supplierReports(ctx context.Context, catalog map[domain.
 	if err != nil {
 		return nil, err
 	}
+	pncp, err := uc.pncpReport(ctx, catalog, profiles)
+	if err != nil {
+		return nil, err
+	}
 	return append([]domain.PatternReport{
 		reportOf(catalog[domain.PatternNewCompany], domain.FindNewCompanyContracts(contracts, profiles), domain.NewCompanyFinding),
 		reportOf(catalog[domain.PatternUndercapitalized], domain.FindUndercapitalizedContracts(contracts, profiles), domain.UndercapitalizedFinding),
 		reportOf(catalog[domain.PatternSharedPartner], domain.FindSharedPartners(contracts, profiles), domain.SharedPartnerFinding),
 		reportOf(catalog[domain.PatternSharedAddress], domain.FindSharedAddresses(contracts, profiles), domain.SharedAddressFinding),
 		reportOf(catalog[domain.PatternSanctioned], domain.FindSanctionedContracts(contracts, profiles, sanctions), domain.SanctionedFinding),
-	}, payment...), nil
+	}, append(payment, pncp)...), nil
 }
 
 func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, acts []domain.PanelAct,
@@ -131,6 +135,27 @@ func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.P
 		reportOf(catalog[domain.PatternPaidAbove], domain.FindPaidAboveAnnounced(domain.SupplierContracts(announced),
 			domain.AmendedBySupplier(announced), paid, profiles), domain.PaidAboveAnnouncedFinding),
 	}, nil
+}
+
+func (uc *ListPatterns) pncpReport(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, profiles map[string]domain.SupplierProfile) (domain.PatternReport, error) {
+	contracts, err := uc.suppliers.AllPNCPContracts(ctx)
+	if err != nil {
+		return domain.PatternReport{}, err
+	}
+	cited, err := uc.suppliers.CitedInDiario(ctx)
+	if err != nil {
+		return domain.PatternReport{}, err
+	}
+	processes, err := uc.suppliers.CitedProcesses(ctx)
+	if err != nil {
+		return domain.PatternReport{}, err
+	}
+	last, err := uc.suppliers.LatestGazetteDay(ctx, domain.SourceDiarioPrefeitura)
+	if err != nil {
+		return domain.PatternReport{}, err
+	}
+	return reportOf(catalog[domain.PatternPNCPWithoutExtract], domain.FindPNCPWithoutExtract(contracts, cited, processes, last, profiles),
+		domain.PNCPWithoutExtractFinding), nil
 }
 
 func reportOf[T any](p domain.Pattern, items []T, finding func(T) domain.Finding) domain.PatternReport {

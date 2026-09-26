@@ -4,6 +4,7 @@ import { Result } from "./components";
 import { EntityAlert } from "./EntityAlert";
 import { RegistrySection } from "./RegistrySection";
 import { PaymentsSection } from "./PaymentsSection";
+import { PNCPSection } from "./PNCPSection";
 import { SanctionsSection } from "./SanctionsSection";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
@@ -35,6 +36,7 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
           <RegistrySection registry={data.registry} month={data.registry_month} />
           <SanctionsSection cnpj={data.cnpj} sanctions={data.sanctions} listedOn={data.sanctions_listed_on} />
           <PaymentsSection payments={data.payments} coverage={data.payments_coverage} />
+          <PNCPSection contracts={data.pncp_contracts} />
           <dl className="summary">
             <div>
               <dt>Atos</dt>

@@ -33,6 +33,11 @@ type Finding struct {
 	Detail string
 	ActIDs []string
 	Search *ActFilter
+	Link   *FindingLink
+}
+
+type FindingLink struct {
+	Label, URL string
 }
 
 type PatternReport struct {
@@ -52,6 +57,9 @@ func PatternCatalog() map[PatternID]Pattern {
 		catalog[id] = p
 	}
 	for id, p := range paymentPatterns() {
+		catalog[id] = p
+	}
+	for id, p := range pncpPatterns() {
 		catalog[id] = p
 	}
 	return catalog

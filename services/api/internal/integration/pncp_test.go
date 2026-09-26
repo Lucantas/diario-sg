@@ -66,3 +66,41 @@ func TestPNCPReplacesTheYearsReadAndLinksTheSupplier(t *testing.T) {
 		t.Fatalf("ligações: %d", links)
 	}
 }
+
+func TestPNCPContractsShowInTheCompanyPageAndInThePattern(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	uncited := pncpContract(2026, 3, "99888777000166")
+	uncited.Process = "987654/2026"
+	loadPNCP(t, db, pncpAPI{2026: {pncpContract(2026, 1, fpVieira), uncited}}, 2026, 2026)
+
+	var company struct {
+		PNCP []struct {
+			URL        string `json:"url"`
+			ValueCents int64  `json:"value_cents"`
+			SignedAt   string `json:"signed_at"`
+		} `json:"pncp_contracts"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/"+fpVieira, &company)
+	if len(company.PNCP) != 1 || company.PNCP[0].URL != "https://pncp.gov.br/app/contratos/28636579000100/2026/1" ||
+		company.PNCP[0].ValueCents != 50000000 || company.PNCP[0].SignedAt != "2026-03-10" {
+		t.Fatalf("contratos do PNCP: %+v", company.PNCP)
+	}
+
+	var patterns struct {
+		Items []struct {
+			ID       string `json:"id"`
+			Findings []struct {
+				Title string `json:"title"`
+				Link  *struct {
+					URL string `json:"url"`
+				} `json:"link"`
+			} `json:"findings"`
+		} `json:"items"`
+	}
+	getJSON(t, srv.URL+"/v1/patterns", &patterns)
+	last := patterns.Items[len(patterns.Items)-1]
+	if last.ID != "pncp_sem_extrato" || len(last.Findings) != 1 || last.Findings[0].Link == nil ||
+		last.Findings[0].Link.URL != uncited.URL() {
+		t.Fatalf("padrão do PNCP: %+v", last)
+	}
+}

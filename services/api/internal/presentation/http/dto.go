@@ -120,6 +120,7 @@ type companyResponse struct {
 	SanctionsListedOn map[string]string   `json:"sanctions_listed_on"`
 	Payments          []paymentYearDTO    `json:"payments"`
 	PaymentsCoverage  *paymentCoverageDTO `json:"payments_coverage"`
+	PNCPContracts     []pncpContractDTO   `json:"pncp_contracts"`
 }
 
 type monthCountDTO struct {

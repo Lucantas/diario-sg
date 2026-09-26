@@ -51,6 +51,7 @@ function FindingCard({ finding }: { finding: Finding }) {
       <h3>{finding.title}</h3>
       <p>{finding.detail}</p>
       {finding.search && <p><a href={patternSearchHref(finding.search)}>Ver os atos na busca</a></p>}
+      {finding.link && <p><a href={finding.link.url} target="_blank" rel="noreferrer">{finding.link.label}</a></p>}
       {finding.acts.length > 0 && (
         <ol className="timeline">
           {finding.acts.map((h) => <Result key={h.id} hit={h} />)}

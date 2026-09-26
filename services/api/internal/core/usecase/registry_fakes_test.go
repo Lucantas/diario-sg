@@ -13,6 +13,7 @@ type fakeRegistry struct {
 	asked     []string
 	sanctions map[string][]domain.Sanction
 	payments  map[string][]domain.PaymentYear
+	pncp      map[string][]domain.PNCPContract
 	paid      []domain.PaidTotal
 }
 
@@ -53,6 +54,10 @@ func (f *fakeRegistry) PaidByCNPJYear(context.Context) ([]domain.PaidTotal, erro
 	return f.paid, nil
 }
 
+func (f *fakeRegistry) PNCPContractsBySupplier(_ context.Context, cnpj string) ([]domain.PNCPContract, error) {
+	return f.pncp[cnpj], nil
+}
+
 func fakeSources(f *fakeRegistry) CompanySources {
-	return CompanySources{Registry: f, Sanctions: f, Payments: f}
+	return CompanySources{Registry: f, Sanctions: f, Payments: f, PNCP: f}
 }

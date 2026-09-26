@@ -133,6 +133,21 @@ export interface PaymentYear {
   paid_cents: number;
 }
 
+export interface PNCPContract {
+  control_number: string;
+  url: string;
+  org_cnpj: string;
+  unit: string;
+  kind: string;
+  number: string;
+  process: string;
+  object: string;
+  value_cents: number;
+  signed_at: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+}
+
 export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;
@@ -144,6 +159,7 @@ export interface CompanyResponse {
   sanctions_listed_on: Partial<Record<"CEIS" | "CNEP", string>>;
   payments: PaymentYear[];
   payments_coverage: { from: string; to: string } | null;
+  pncp_contracts: PNCPContract[];
 }
 
 export interface OrganCount {
@@ -186,6 +202,7 @@ export interface Finding {
   detail: string;
   acts: ActHit[];
   search: PatternSearch | null;
+  link: { label: string; url: string } | null;
 }
 
 export interface Pattern {

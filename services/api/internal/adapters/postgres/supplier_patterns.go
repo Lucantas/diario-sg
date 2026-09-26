@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 
@@ -133,6 +134,33 @@ func (r *SupplierPatternRepo) CitedInDiario(ctx context.Context) (map[string]boo
 		out[k] = true
 	}
 	return out, rows.Err()
+}
+
+func (r *SupplierPatternRepo) AllPNCPContracts(ctx context.Context) ([]domain.PNCPContract, error) {
+	return NewPNCPRepo(r.db).AllPNCPContracts(ctx)
+}
+
+func (r *SupplierPatternRepo) CitedProcesses(ctx context.Context) (map[string]bool, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT key FROM entities WHERE kind = 'processo'`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]bool{}
+	for rows.Next() {
+		var k string
+		if err := rows.Scan(&k); err != nil {
+			return nil, err
+		}
+		out[k] = true
+	}
+	return out, rows.Err()
+}
+
+func (r *SupplierPatternRepo) LatestGazetteDay(ctx context.Context, source string) (time.Time, error) {
+	var day sql.NullTime
+	err := r.db.QueryRowContext(ctx, `SELECT max(published_at) FROM gazettes WHERE source = $1`, source).Scan(&day)
+	return day.Time, err
 }
 
 func (r *SupplierPatternRepo) PaymentsCoverage(ctx context.Context) (*domain.PaymentCoverage, error) {

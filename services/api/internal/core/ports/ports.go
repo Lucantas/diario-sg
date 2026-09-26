@@ -45,6 +45,9 @@ type SupplierPatternSource interface {
 	CitedInDiario(ctx context.Context) (map[string]bool, error)
 	PaymentsCoverage(ctx context.Context) (*domain.PaymentCoverage, error)
 	PanelActsWithoutCNPJ(ctx context.Context, source string) ([]domain.PanelAct, error)
+	AllPNCPContracts(ctx context.Context) ([]domain.PNCPContract, error)
+	CitedProcesses(ctx context.Context) (map[string]bool, error)
+	LatestGazetteDay(ctx context.Context, source string) (time.Time, error)
 }
 
 type PanelSource interface {

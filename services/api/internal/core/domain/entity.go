@@ -24,6 +24,7 @@ type CompanyFacts struct {
 	SanctionsListedOn map[string]time.Time
 	Payments          []PaymentYear
 	PaymentsCoverage  *PaymentCoverage
+	PNCPContracts     []PNCPContract
 }
 
 type CompanyReport struct {

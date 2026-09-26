@@ -19,6 +19,12 @@ type findingDTO struct {
 	Detail string            `json:"detail"`
 	Acts   []actHitDTO       `json:"acts"`
 	Search *patternSearchDTO `json:"search"`
+	Link   *findingLinkDTO   `json:"link"`
+}
+
+type findingLinkDTO struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
 }
 
 type patternDTO struct {
@@ -56,6 +62,9 @@ func toPatternDTO(rep domain.PatternReport, acts map[string]domain.ActHit) patte
 		if f.Search != nil {
 			fd.Search = &patternSearchDTO{Type: string(f.Search.Type), Source: f.Search.Source,
 				From: f.Search.From.Format(time.DateOnly), To: f.Search.To.Format(time.DateOnly)}
+		}
+		if f.Link != nil {
+			fd.Link = &findingLinkDTO{Label: f.Link.Label, URL: f.Link.URL}
 		}
 		dto.Findings = append(dto.Findings, fd)
 	}

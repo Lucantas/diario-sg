@@ -67,7 +67,7 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 
 	reports, acts, err := NewListPatterns(src, suppliers).Execute(context.Background())
 
-	if err != nil || len(reports) != 12 {
+	if err != nil || len(reports) != 13 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	want := []domain.PatternID{domain.PatternNewCompany, domain.PatternUndercapitalized, domain.PatternSharedPartner, domain.PatternSharedAddress, domain.PatternSanctioned}
@@ -78,6 +78,9 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 	}
 	if reports[9].Pattern.ID != domain.PatternPaidUnpublished || reports[10].Pattern.ID != domain.PatternUnpaidContract || reports[11].Pattern.ID != domain.PatternPaidAbove {
 		t.Fatalf("padrões de pagamento: %v %v %v", reports[9].Pattern.ID, reports[10].Pattern.ID, reports[11].Pattern.ID)
+	}
+	if reports[12].Pattern.ID != domain.PatternPNCPWithoutExtract || len(reports[12].Findings) != 1 || reports[12].Findings[0].Link == nil {
+		t.Fatalf("PNCP sem extrato: %+v", reports[12])
 	}
 	if len(reports[10].Findings) != 1 {
 		t.Errorf("contratação sem pagamento: %+v", reports[10].Findings)
@@ -99,7 +102,7 @@ func TestListPatternsReturnsEveryPatternWithItsFindingsAndActs(t *testing.T) {
 
 	reports, acts, err := NewListPatterns(src, &fakeSupplierSource{}).Execute(context.Background())
 
-	if err != nil || len(reports) != 12 {
+	if err != nil || len(reports) != 13 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	if reports[0].Pattern.ID != domain.PatternSplitDispensa || len(reports[0].Findings) != 1 || reports[1].Pattern.ID != domain.PatternExcessiveAddenda || len(reports[1].Findings) != 1 ||
@@ -122,4 +125,17 @@ func (f *fakeSupplierSource) PaymentsCoverage(context.Context) (*domain.PaymentC
 }
 func (f *fakeSupplierSource) PanelActsWithoutCNPJ(context.Context, string) ([]domain.PanelAct, error) {
 	return nil, nil
+}
+func (f *fakeSupplierSource) AllPNCPContracts(context.Context) ([]domain.PNCPContract, error) {
+	signed := time.Date(2025, 5, 1, 0, 0, 0, 0, time.UTC)
+	return []domain.PNCPContract{
+		{ControlNumber: "a", SupplierCNPJ: "11222333000181", ValueCents: 50_000_000, SignedAt: &signed},
+		{ControlNumber: "b", SupplierCNPJ: "99888777000166", SupplierName: "OUTRA LTDA", ValueCents: 50_000_000, SignedAt: &signed},
+	}, nil
+}
+func (f *fakeSupplierSource) CitedProcesses(context.Context) (map[string]bool, error) {
+	return map[string]bool{}, nil
+}
+func (f *fakeSupplierSource) LatestGazetteDay(context.Context, string) (time.Time, error) {
+	return time.Date(2026, 9, 25, 0, 0, 0, 0, time.UTC), nil
 }

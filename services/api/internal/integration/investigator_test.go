@@ -163,5 +163,5 @@ func TestSearchOperators(t *testing.T) {
 }
 
 func companySources(db *sql.DB) usecase.CompanySources {
-	return usecase.CompanySources{Registry: postgres.NewRegistryRepo(db), Sanctions: postgres.NewSanctionRepo(db), Payments: postgres.NewPaymentRepo(db)}
+	return usecase.CompanySources{Registry: postgres.NewRegistryRepo(db), Sanctions: postgres.NewSanctionRepo(db), Payments: postgres.NewPaymentRepo(db), PNCP: postgres.NewPNCPRepo(db)}
 }

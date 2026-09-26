@@ -114,7 +114,8 @@ func (a *API) getCompany(w http.ResponseWriter, r *http.Request) {
 		Registry: toRegistryDTO(report.Registry), RegistryMonth: registryMonthOf(report.RegistryMonth),
 		Sanctions: toSanctionDTOs(report.Sanctions, report.SanctionsListedOn, time.Now()), SanctionsListedOn: listedOnDTO(report.SanctionsListedOn),
 		Payments: toPaymentDTOs(report.Payments), PaymentsCoverage: toPaymentCoverageDTO(report.PaymentsCoverage),
-		CountByType: make(map[string]int, len(report.CountByType)), Acts: make([]actHitDTO, 0, len(report.Acts))}
+		PNCPContracts: toPNCPDTOs(report.PNCPContracts),
+		CountByType:   make(map[string]int, len(report.CountByType)), Acts: make([]actHitDTO, 0, len(report.Acts))}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
 	}
