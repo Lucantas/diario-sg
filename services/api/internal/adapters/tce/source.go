@@ -61,6 +61,15 @@ func (s *Source) Commitments(ctx context.Context, year int, each func(header, ro
 	}
 }
 
+func (s *Source) Staff(ctx context.Context, year int) ([]byte, error) {
+	q := url.Values{"ano": {strconv.Itoa(year)}, "municipio": {municipality}, "inicio": {"0"}, "limite": {allRows}}
+	body, err := s.download(ctx, s.baseURL+"situacao_funcional?"+q.Encode())
+	if err != nil {
+		return nil, fmt.Errorf("situação funcional de %d: %w", year, err)
+	}
+	return body, nil
+}
+
 func (s *Source) download(ctx context.Context, u string) ([]byte, error) {
 	var lastErr error
 	for attempt := 1; attempt <= attempts; attempt++ {

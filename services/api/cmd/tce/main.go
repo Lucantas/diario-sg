@@ -41,12 +41,23 @@ func main() {
 
 	src := tce.New(cfg.TCEBaseURL, &http.Client{Timeout: requestTimeout})
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
-	uc := usecase.NewLoadPayments(src, postgres.NewPaymentRepo(db), postgres.NewFetchRunRepo(db), storage, time.Now)
+	runs := postgres.NewFetchRunRepo(db)
+	failed := false
 	start := time.Now()
-	run, err := uc.Execute(ctx, *from, *to)
+	run, err := usecase.NewLoadPayments(src, postgres.NewPaymentRepo(db), runs, storage, time.Now).Execute(ctx, *from, *to)
 	log.Info("empenhos do TCE-RJ", "run", run, "duration_ms", time.Since(start).Milliseconds())
 	if err != nil {
-		log.Error("carga falhou", "error", err)
+		log.Error("carga dos empenhos falhou", "error", err)
+		failed = true
+	}
+	start = time.Now()
+	run, err = usecase.NewLoadStaff(src, postgres.NewStaffRepo(db), runs, storage, time.Now).Execute(ctx, *from, *to)
+	log.Info("pessoal do TCE-RJ", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	if err != nil {
+		log.Error("carga do pessoal falhou", "error", err)
+		failed = true
+	}
+	if failed {
 		os.Exit(1)
 	}
 }

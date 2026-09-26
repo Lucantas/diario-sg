@@ -81,3 +81,20 @@ func TestCommitmentsDoesNotRetryClientErrors(t *testing.T) {
 		t.Fatalf("erro %v, chamadas %d", err, calls.Load())
 	}
 }
+
+func TestStaffAsksForTheYearJSON(t *testing.T) {
+	var query string
+	src := newTCE(t, func(w http.ResponseWriter, r *http.Request) {
+		query = r.URL.Path + "?" + r.URL.RawQuery
+		_, _ = w.Write([]byte(`{"SituacoesFuncionais":[],"Count":0}`))
+	})
+
+	body, err := src.Staff(context.Background(), 2025)
+
+	if err != nil || string(body) != `{"SituacoesFuncionais":[],"Count":0}` {
+		t.Fatalf("veio %q %v", body, err)
+	}
+	if !strings.HasPrefix(query, "/api/v1/situacao_funcional?") || !strings.Contains(query, "ano=2025") || strings.Contains(query, "csv=") {
+		t.Errorf("consulta: %s", query)
+	}
+}

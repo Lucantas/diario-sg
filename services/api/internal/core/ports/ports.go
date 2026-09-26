@@ -174,6 +174,20 @@ type PNCPReader interface {
 	PNCPContractsBySupplier(ctx context.Context, cnpj string) ([]domain.PNCPContract, error)
 }
 
+type StaffSource interface {
+	Staff(ctx context.Context, year int) ([]byte, error)
+}
+
+type StaffRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceStaffYear(ctx context.Context, year int, rows []domain.StaffRow) error
+}
+
+type StaffReader interface {
+	StaffRows(ctx context.Context, unit string) ([]domain.StaffRow, error)
+	StaffUnits(ctx context.Context) ([]string, error)
+}
+
 type PaymentSource interface {
 	Commitments(ctx context.Context, year int, each func(header, row []string) error) (string, error)
 }
