@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -44,11 +45,13 @@ func (c PNCPContract) ProcessKey() string {
 }
 
 func MunicipalOrgCNPJs() []string {
-	out := []string{"28636579000100"}
+	const municipalityCNPJ = "28636579000100"
+	var others []string
 	for _, cnpj := range PublicBodyCNPJs() {
-		if cnpj != out[0] {
-			out = append(out, cnpj)
+		if cnpj != municipalityCNPJ && HasValidCheckDigits(cnpj) {
+			others = append(others, cnpj)
 		}
 	}
-	return out
+	sort.Strings(others)
+	return append([]string{municipalityCNPJ}, others...)
 }

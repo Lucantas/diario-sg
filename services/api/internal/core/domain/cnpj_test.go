@@ -30,3 +30,24 @@ func TestNormalizeCNPJKeepsWrongCheckDigitsBecauseTheGazettePublishesTypos(t *te
 		t.Errorf("NormalizeCNPJ = %q,%v; esperava 12345678000100,true", got, ok)
 	}
 }
+
+func TestHasValidCheckDigits(t *testing.T) {
+	for cnpj, want := range map[string]bool{"28636579000100": true, "14180324000163": true, "28579636000100": false, "1234": false} {
+		if got := HasValidCheckDigits(cnpj); got != want {
+			t.Errorf("%s: esperava %v", cnpj, want)
+		}
+	}
+}
+
+func TestMunicipalOrgCNPJsAreValidAndStartWithTheMunicipality(t *testing.T) {
+	orgs := MunicipalOrgCNPJs()
+
+	if orgs[0] != "28636579000100" {
+		t.Fatalf("primeiro órgão: %s", orgs[0])
+	}
+	for _, o := range orgs {
+		if !HasValidCheckDigits(o) {
+			t.Errorf("CNPJ inválido na lista: %s", o)
+		}
+	}
+}
