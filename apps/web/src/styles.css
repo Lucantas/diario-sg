@@ -132,6 +132,7 @@ button:disabled { opacity: 0.6; cursor: progress; }
 .totals thead th { color: var(--slate); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .totals button[aria-pressed="true"] { font-weight: 700; text-decoration: none; background: var(--marker); }
 .staff thead th { white-space: normal; vertical-align: bottom; text-transform: none; letter-spacing: 0; }
+.totals td.wrap { white-space: normal; text-align: left; min-width: 10rem; }
 .meta { flex-wrap: wrap; }
 .organ { border-left: 1px solid var(--rule); padding-left: 0.6rem; }
 

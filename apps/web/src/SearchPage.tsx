@@ -240,6 +240,7 @@ export function SearchPage() {
         <a href="/paineis">Maiores fornecedores</a>
         <a href="/pessoal">Pessoal</a>
         <a href="/tce">TCE-RJ</a>
+        <a href="/federal">Dinheiro federal</a>
       </footer>
     </main>
   );

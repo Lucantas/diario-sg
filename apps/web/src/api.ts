@@ -182,6 +182,36 @@ export function getOversight() {
   return request<TCEOversight>("/v1/tce");
 }
 
+export interface AmendmentPayment {
+  code: string;
+  author: string;
+  kind: string;
+  month: string;
+  cnpj: string;
+  name: string;
+  value_cents: number;
+}
+
+export interface FederalReport {
+  transfers: { year: number; kind: string; function: string; value_cents: number }[];
+  amendments: {
+    code: string;
+    year: number;
+    kind: string;
+    author: string;
+    function: string;
+    action: string;
+    committed_cents: number;
+    liquidated_cents: number;
+    paid_cents: number;
+  }[];
+  favored: { cnpj: string; name: string; payments: number; value_cents: number; authors: string[]; first: string; last: string }[];
+}
+
+export function getFederal() {
+  return request<FederalReport>("/v1/federal");
+}
+
 export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;
@@ -195,6 +225,7 @@ export interface CompanyResponse {
   payments_coverage: { from: string; to: string } | null;
   pncp_contracts: PNCPContract[];
   stalled_works: StalledWork[];
+  amendment_payments: AmendmentPayment[];
 }
 
 export interface OrganCount {

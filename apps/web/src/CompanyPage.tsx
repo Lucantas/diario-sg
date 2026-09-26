@@ -6,6 +6,7 @@ import { RegistrySection } from "./RegistrySection";
 import { PaymentsSection } from "./PaymentsSection";
 import { PNCPSection } from "./PNCPSection";
 import { StalledWorksSection } from "./StalledWorksSection";
+import { AmendmentsSection } from "./AmendmentsSection";
 import { SanctionsSection } from "./SanctionsSection";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
@@ -39,6 +40,7 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
           <PaymentsSection payments={data.payments} coverage={data.payments_coverage} />
           <PNCPSection contracts={data.pncp_contracts} />
           <StalledWorksSection works={data.stalled_works} />
+          <AmendmentsSection payments={data.amendment_payments} />
           <dl className="summary">
             <div>
               <dt>Atos</dt>

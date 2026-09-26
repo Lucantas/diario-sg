@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func csvLines(t *testing.T, text string) ([]string, []string) {
@@ -71,4 +72,26 @@ func TestParseTransferSkipsANonCNPJFavored(t *testing.T) {
 	if _, ok, _ := ParseTransfer(cols, masked); ok {
 		t.Fatal("favorecido sem CNPJ não entra")
 	}
+}
+
+func TestAggregateFavoredSumsByCNPJ(t *testing.T) {
+	jan, feb := mustMonth("202601"), mustMonth("202602")
+	got := AggregateFavored([]AmendmentPayment{
+		{CNPJ: "1", Name: "A", Author: "Y", Month: feb, ValueCents: 10},
+		{CNPJ: "2", Name: "B", Author: "X", Month: jan, ValueCents: 50},
+		{CNPJ: "1", Name: "A", Author: "X", Month: jan, ValueCents: 60},
+	})
+
+	if len(got) != 2 || got[0].CNPJ != "1" || got[0].ValueCents != 70 || got[0].Payments != 2 || len(got[0].Authors) != 2 ||
+		got[0].Authors[0] != "X" || !got[0].First.Equal(jan) || !got[0].Last.Equal(feb) {
+		t.Fatalf("favorecidos: %+v", got)
+	}
+}
+
+func mustMonth(s string) time.Time {
+	m, err := time.Parse(federalMonthLayout, s)
+	if err != nil {
+		panic(err)
+	}
+	return m
 }

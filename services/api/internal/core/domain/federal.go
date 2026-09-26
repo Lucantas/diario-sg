@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -170,4 +171,42 @@ func orEmptyInfo(s string) string {
 		return noAmendmentInfo
 	}
 	return s
+}
+
+type FavoredTotal struct {
+	CNPJ       string
+	Name       string
+	Payments   int
+	ValueCents int64
+	Authors    []string
+	First      time.Time
+	Last       time.Time
+}
+
+func AggregateFavored(payments []AmendmentPayment) []FavoredTotal {
+	index := map[string]int{}
+	var out []FavoredTotal
+	for _, p := range payments {
+		i, ok := index[p.CNPJ]
+		if !ok {
+			i = len(out)
+			index[p.CNPJ] = i
+			out = append(out, FavoredTotal{CNPJ: p.CNPJ, Name: p.Name, First: p.Month, Last: p.Month})
+		}
+		f := &out[i]
+		f.Payments++
+		f.ValueCents += p.ValueCents
+		f.Authors = appendUnique(f.Authors, p.Author)
+		if p.Month.Before(f.First) {
+			f.First = p.Month
+		}
+		if p.Month.After(f.Last) {
+			f.Last = p.Month
+		}
+	}
+	for i := range out {
+		sort.Strings(out[i].Authors)
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].ValueCents > out[j].ValueCents })
+	return out
 }

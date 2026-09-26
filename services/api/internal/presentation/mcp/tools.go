@@ -82,33 +82,34 @@ type entityInput struct {
 }
 
 type entityOutput struct {
-	Kind         string             `json:"tipo"`
-	Key          string             `json:"chave"`
-	Label        string             `json:"rotulo,omitempty"`
-	PublicBody   string             `json:"orgao_publico,omitempty"`
-	Certainty    string             `json:"certeza,omitempty"`
-	Warning      string             `json:"aviso,omitempty"`
-	TotalActs    int                `json:"total_atos"`
-	TotalCents   int64              `json:"soma_valores_centavos"`
-	CountByType  map[string]int     `json:"atos_por_tipo"`
-	CountByPhase map[string]int     `json:"atos_por_fase,omitempty"`
-	Registry     *registryDTO       `json:"cadastro_receita,omitempty"`
-	NoRegistry   string             `json:"cadastro_receita_ausente,omitempty"`
-	Sanctions    []sanctionDTO      `json:"sancoes_cgu,omitempty"`
-	SanctionsOn  map[string]string  `json:"sancoes_cgu_consultadas_em,omitempty"`
-	Payments     []paymentYearDTO   `json:"pagamentos_tce,omitempty"`
-	PaymentsSpan string             `json:"pagamentos_tce_cobertura,omitempty"`
-	PNCP         []pncpContractDTO  `json:"contratos_pncp,omitempty"`
-	StalledWorks []stalledWorkDTO   `json:"obras_paralisadas_tce,omitempty"`
-	Organs       []organDTO         `json:"orgaos,omitempty"`
-	Related      []relatedEntityDTO `json:"citados_junto,omitempty"`
-	ByProcess    []processDTO       `json:"por_processo,omitempty"`
-	ProcessSum   int64              `json:"soma_maior_valor_por_processo_centavos,omitempty"`
-	ProcessTotal int                `json:"processos_total,omitempty"`
-	NoProcess    int                `json:"atos_sem_processo,omitempty"`
-	Acts         []actSummaryDTO    `json:"atos_recentes"`
-	Coverage     []coverageDTO      `json:"cobertura"`
-	Alerts       []string           `json:"alertas_coleta,omitempty"`
+	Kind         string                `json:"tipo"`
+	Key          string                `json:"chave"`
+	Label        string                `json:"rotulo,omitempty"`
+	PublicBody   string                `json:"orgao_publico,omitempty"`
+	Certainty    string                `json:"certeza,omitempty"`
+	Warning      string                `json:"aviso,omitempty"`
+	TotalActs    int                   `json:"total_atos"`
+	TotalCents   int64                 `json:"soma_valores_centavos"`
+	CountByType  map[string]int        `json:"atos_por_tipo"`
+	CountByPhase map[string]int        `json:"atos_por_fase,omitempty"`
+	Registry     *registryDTO          `json:"cadastro_receita,omitempty"`
+	NoRegistry   string                `json:"cadastro_receita_ausente,omitempty"`
+	Sanctions    []sanctionDTO         `json:"sancoes_cgu,omitempty"`
+	SanctionsOn  map[string]string     `json:"sancoes_cgu_consultadas_em,omitempty"`
+	Payments     []paymentYearDTO      `json:"pagamentos_tce,omitempty"`
+	PaymentsSpan string                `json:"pagamentos_tce_cobertura,omitempty"`
+	PNCP         []pncpContractDTO     `json:"contratos_pncp,omitempty"`
+	StalledWorks []stalledWorkDTO      `json:"obras_paralisadas_tce,omitempty"`
+	Amendments   []amendmentPaymentDTO `json:"emendas_pagas_cgu,omitempty"`
+	Organs       []organDTO            `json:"orgaos,omitempty"`
+	Related      []relatedEntityDTO    `json:"citados_junto,omitempty"`
+	ByProcess    []processDTO          `json:"por_processo,omitempty"`
+	ProcessSum   int64                 `json:"soma_maior_valor_por_processo_centavos,omitempty"`
+	ProcessTotal int                   `json:"processos_total,omitempty"`
+	NoProcess    int                   `json:"atos_sem_processo,omitempty"`
+	Acts         []actSummaryDTO       `json:"atos_recentes"`
+	Coverage     []coverageDTO         `json:"cobertura"`
+	Alerts       []string              `json:"alertas_coleta,omitempty"`
 }
 
 type organDTO struct {
@@ -193,7 +194,8 @@ func (s *server) register(srv *sdk.Server) {
 		"pagamentos_tce_cobertura diz o período carregado. O TCE não diz a que contrato cada pagamento se refere. " +
 		"contratos_pncp (só CNPJ) traz os contratos da empresa com o município registrados no PNCP (Lei 14.133), com o link de cada um; " +
 		"o município registra no PNCP só parte dos contratos, quase todos de 2024 em diante. " +
-		"obras_paralisadas_tce (só CNPJ) traz as obras da empresa que o TCE-RJ lista como paralisadas em São Gonçalo, com valor do contrato, valor pago e motivo."},
+		"obras_paralisadas_tce (só CNPJ) traz as obras da empresa que o TCE-RJ lista como paralisadas em São Gonçalo, com valor do contrato, valor pago e motivo. " +
+		"emendas_pagas_cgu (só CNPJ) traz os pagamentos de emenda parlamentar federal à empresa (Portal da Transparência), com mês, autor e valor."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
 		recorded(s, "agrupar", s.group))
@@ -353,6 +355,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	out.Payments, out.PaymentsSpan = paymentsOf(kind, report.Payments), paymentsCoverageOf(kind, report.PaymentsCoverage)
 	out.PNCP = pncpContractsOf(report.PNCPContracts)
 	out.StalledWorks = stalledWorksOf(report.StalledWorks)
+	out.Amendments = amendmentPaymentsOf(report.AmendmentPayments)
 	out.Sanctions, out.SanctionsOn = sanctionsOf(kind, report.Sanctions, report.SanctionsListedOn, time.Now()), sanctionsConsulted(kind, report.SanctionsListedOn)
 	if kind == domain.EntityProcesso || kind == domain.EntityContrato {
 		out.Related = relatedOf(report.Related)

@@ -88,3 +88,38 @@ func TestFederalLoadStoresAndLinksTheFavored(t *testing.T) {
 		t.Fatalf("ligações: %d %v", links, err)
 	}
 }
+
+func TestFederalRouteAndCompanyPage(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	loadFederal(t, db)
+
+	var f struct {
+		Transfers []struct {
+			Year       int   `json:"year"`
+			ValueCents int64 `json:"value_cents"`
+		} `json:"transfers"`
+		Amendments []struct {
+			Author string `json:"author"`
+		} `json:"amendments"`
+		Favored []struct {
+			CNPJ    string   `json:"cnpj"`
+			Authors []string `json:"authors"`
+			First   string   `json:"first"`
+		} `json:"favored"`
+	}
+	getJSON(t, srv.URL+"/v1/federal", &f)
+	if len(f.Transfers) != 2 || len(f.Amendments) != 1 || len(f.Favored) != 1 || f.Favored[0].CNPJ != fpVieira || f.Favored[0].First != "2026-01" {
+		t.Fatalf("federal: %+v", f)
+	}
+
+	var company struct {
+		Payments []struct {
+			Author     string `json:"author"`
+			ValueCents int64  `json:"value_cents"`
+		} `json:"amendment_payments"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/"+fpVieira, &company)
+	if len(company.Payments) != 1 || company.Payments[0].Author != "PARLAMENTAR A" {
+		t.Fatalf("empresa: %+v", company.Payments)
+	}
+}
