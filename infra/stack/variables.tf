@@ -98,3 +98,9 @@ variable "pncp_schedule" {
   type        = string
   default     = "0 6 * * 0"
 }
+
+variable "federal_schedule" {
+  description = "Cron da carga semanal das emendas parlamentares e das transferências federais dos três últimos meses (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 8 * * 0"
+}

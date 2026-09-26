@@ -118,6 +118,8 @@ jobs:
         run: gcloud run jobs update $PREFIX-tce --image $REGISTRY/api:$TAG --region $REGION --quiet
       - name: pncp (job)
         run: gcloud run jobs update $PREFIX-pncp --image $REGISTRY/api:$TAG --region $REGION --quiet
+      - name: federal (job)
+        run: gcloud run jobs update $PREFIX-federal --image $REGISTRY/api:$TAG --region $REGION --quiet
       - name: scraper da Câmara (job)
         run: gcloud run jobs update $PREFIX-scraper-camara --image $REGISTRY/scraper:$TAG --region $REGION --quiet
 
