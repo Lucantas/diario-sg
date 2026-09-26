@@ -129,3 +129,56 @@ func TestSupplierPanelOrdersByContractedThenRegisteredAndLimitsRows(t *testing.T
 		}
 	}
 }
+
+const prorrogationHead = "PREGÃO ELETRÔNICO N° 016/2022 PARTES: FUNDAÇÃO MUNICIPAL DE SAÚDE E A4PM ANALYTICS LTDA. OBJETO: TERMO ADITIVO PARA PRORROGAR O PRAZO CONTRATUAL PELO PERÍODO DE 12 (DOZE) MESES. VALOR TOTAL DO CONTRATO: R$ 10.439.280,00"
+
+func TestSupplierPanelCountsAmendmentsInTheYearTheyWerePublished(t *testing.T) {
+	acts := []PanelAct{
+		panelAct("c", panelSupplier, "FMS", panelDay(2022, 7, 25), 1043928000, contractHead, "contrato:16/2022"),
+		panelAct("p23", panelSupplier, "FMS", panelDay(2023, 7, 20), 1043928000, prorrogationHead, "contrato:16/2022"),
+		panelAct("p23r", panelSupplier, "FMS", panelDay(2023, 8, 1), 1043928000, prorrogationHead, "contrato:16/2022"),
+		panelAct("p24", panelSupplier, "FMS", panelDay(2024, 7, 22), 1043928000, prorrogationHead, "contrato:16/2022"),
+	}
+
+	all := BuildSupplierPanel(acts, PanelFilter{})
+	y2022 := BuildSupplierPanel(acts, PanelFilter{Year: 2022})
+	y2023 := BuildSupplierPanel(acts, PanelFilter{Year: 2023})
+
+	if all.Contracts != 1 || all.ContractedCents != 1043928000 || all.AmendedCents != 2087856000 || all.Rows[0].AmendedCents != 2087856000 {
+		t.Fatalf("duas prorrogações, a republicada contando uma vez: %+v", all)
+	}
+	if y2022.AmendedCents != 0 || y2022.ContractedCents != 1043928000 {
+		t.Fatalf("2022 só tem o contrato: %+v", y2022)
+	}
+	if y2023.Contracts != 0 || y2023.ContractedCents != 0 || y2023.AmendedCents != 1043928000 || y2023.Suppliers != 1 || y2023.Rows[0].Contracts != 0 {
+		t.Fatalf("2023 só tem a prorrogação: %+v", y2023)
+	}
+	want := map[string]int64{"2022": 0, "2023": 1043928000, "2024": 1043928000}
+	for _, y := range all.Years {
+		if y.AmendedCents != want[y.Key] {
+			t.Fatalf("aditivo por ano de publicação: %+v", all.Years)
+		}
+	}
+}
+
+func TestSupplierPanelAppliesDeclaredPercentToTheContractedValue(t *testing.T) {
+	increase := panelAct("ad", panelSupplier, "FMS", panelDay(2016, 2, 10), 0, "EXTRATO DO PRIMEIRO TERMO ADITIVO AO CONTRATO FMS Nº 007/2015. OBJETO: acréscimo quantitativo equivalente a 20% do valor contratado.", "contrato:7/2015")
+	increase.DeclaredIncreaseBP = 2000
+	acts := []PanelAct{panelAct("c", panelSupplier, "FMS", panelDay(2015, 6, 1), 100000000, contractHead, "contrato:7/2015"), increase}
+
+	p := BuildSupplierPanel(acts, PanelFilter{})
+
+	if p.AmendedCents != 20000000 {
+		t.Fatalf("20%% de R$ 1 milhão: %+v", p)
+	}
+}
+
+func TestSupplierPanelKeepsContractingWithOnlyAmendmentsOutOfTheCount(t *testing.T) {
+	acts := []PanelAct{panelAct("p", panelSupplier, "FMS", panelDay(2024, 7, 22), 1043928000, prorrogationHead, "contrato:16/2022")}
+
+	p := BuildSupplierPanel(acts, PanelFilter{})
+
+	if p.Contracts != 0 || p.Suppliers != 1 || p.AmendedCents != 1043928000 {
+		t.Fatalf("contratação só com aditivo soma o aditivo e não conta: %+v", p)
+	}
+}

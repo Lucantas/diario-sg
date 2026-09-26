@@ -20,6 +20,8 @@ type PanelAct struct {
 	Type        ActType
 	Title       string
 	Head        string
+
+	DeclaredIncreaseBP int
 }
 
 type PanelFilter struct {
@@ -32,6 +34,7 @@ type SupplierRow struct {
 	Contracts       int
 	ContractedCents int64
 	RegisteredCents int64
+	AmendedCents    int64
 	First           time.Time
 	Last            time.Time
 	Organs          []string
@@ -44,6 +47,7 @@ type PanelTotal struct {
 	Contracts       int
 	ContractedCents int64
 	RegisteredCents int64
+	AmendedCents    int64
 }
 
 type SupplierPanel struct {
@@ -52,6 +56,7 @@ type SupplierPanel struct {
 	Suppliers       int
 	ContractedCents int64
 	RegisteredCents int64
+	AmendedCents    int64
 	Rows            []SupplierRow
 	Years           []PanelTotal
 	Organs          []PanelTotal
@@ -63,8 +68,28 @@ type panelContract struct {
 	Last            time.Time
 	ContractedCents int64
 	RegisteredCents int64
+	Amendments      []panelAmendment
 	Organs          []string
 	LargestActID    string
+}
+
+type panelAmendment struct {
+	Cents int64
+	At    time.Time
+}
+
+const amendmentRepublicationDays = 90
+
+func (c panelContract) hasContractValue() bool { return c.ContractedCents > 0 || c.RegisteredCents > 0 }
+
+func (c panelContract) amendedIn(year int) int64 {
+	var total int64
+	for _, a := range c.Amendments {
+		if year == 0 || a.At.Year() == year {
+			total += a.Cents
+		}
+	}
+	return total
 }
 
 func (c panelContract) outweighs(o panelContract) bool {
@@ -87,18 +112,24 @@ func BuildSupplierPanel(acts []PanelAct, f PanelFilter) SupplierPanel {
 	p := SupplierPanel{Filter: f, Rows: []SupplierRow{}, Years: yearTotals(contracts, f), Organs: organTotals(contracts, f)}
 	rows := map[string]*SupplierRow{}
 	for _, c := range contracts {
-		if !f.matchesYear(c) || !f.matchesOrgan(c) {
+		counted := f.matchesYear(c) && c.hasContractValue()
+		amended := c.amendedIn(f.Year)
+		if !f.matchesOrgan(c) || (!counted && amended == 0) {
 			continue
 		}
-		p.Contracts++
-		p.ContractedCents += c.ContractedCents
-		p.RegisteredCents += c.RegisteredCents
 		row, ok := rows[c.CNPJ]
 		if !ok {
 			row = &SupplierRow{CNPJ: c.CNPJ, First: c.First, Last: c.Last}
 			rows[c.CNPJ] = row
 		}
-		addToRow(row, c)
+		p.AmendedCents += amended
+		row.AmendedCents += amended
+		if counted {
+			p.Contracts++
+			p.ContractedCents += c.ContractedCents
+			p.RegisteredCents += c.RegisteredCents
+			addToRow(row, c)
+		}
 	}
 	for _, row := range rows {
 		sort.Strings(row.Organs)
@@ -111,6 +142,9 @@ func BuildSupplierPanel(acts []PanelAct, f PanelFilter) SupplierPanel {
 		}
 		if a.RegisteredCents != b.RegisteredCents {
 			return a.RegisteredCents > b.RegisteredCents
+		}
+		if a.AmendedCents != b.AmendedCents {
+			return a.AmendedCents > b.AmendedCents
 		}
 		return a.CNPJ < b.CNPJ
 	})
@@ -142,8 +176,14 @@ func addToRow(row *SupplierRow, c panelContract) {
 func yearTotals(contracts []panelContract, f PanelFilter) []PanelTotal {
 	byYear := map[string]*PanelTotal{}
 	for _, c := range contracts {
-		if f.matchesOrgan(c) {
+		if !f.matchesOrgan(c) {
+			continue
+		}
+		if c.hasContractValue() {
 			addToTotal(byYear, strconv.Itoa(c.First.Year()), c)
+		}
+		for _, a := range c.Amendments {
+			totalFor(byYear, strconv.Itoa(a.At.Year())).AmendedCents += a.Cents
 		}
 	}
 	out := totalsOf(byYear)
@@ -154,11 +194,15 @@ func yearTotals(contracts []panelContract, f PanelFilter) []PanelTotal {
 func organTotals(contracts []panelContract, f PanelFilter) []PanelTotal {
 	byOrgan := map[string]*PanelTotal{}
 	for _, c := range contracts {
-		if !f.matchesYear(c) {
-			continue
-		}
+		counted := f.matchesYear(c) && c.hasContractValue()
+		amended := c.amendedIn(f.Year)
 		for _, o := range c.Organs {
-			addToTotal(byOrgan, o, c)
+			if counted {
+				addToTotal(byOrgan, o, c)
+			}
+			if amended > 0 {
+				totalFor(byOrgan, o).AmendedCents += amended
+			}
 		}
 	}
 	out := totalsOf(byOrgan)
@@ -174,12 +218,17 @@ func organTotals(contracts []panelContract, f PanelFilter) []PanelTotal {
 	return out
 }
 
-func addToTotal(totals map[string]*PanelTotal, key string, c panelContract) {
+func totalFor(totals map[string]*PanelTotal, key string) *PanelTotal {
 	t, ok := totals[key]
 	if !ok {
 		t = &PanelTotal{Key: key}
 		totals[key] = t
 	}
+	return t
+}
+
+func addToTotal(totals map[string]*PanelTotal, key string, c panelContract) {
+	t := totalFor(totals, key)
 	t.Contracts++
 	t.ContractedCents += c.ContractedCents
 	t.RegisteredCents += c.RegisteredCents
@@ -196,7 +245,7 @@ func totalsOf(totals map[string]*PanelTotal) []PanelTotal {
 func panelContracts(acts []PanelAct) []panelContract {
 	bySupplier := map[string][]PanelAct{}
 	for _, a := range acts {
-		if _, public := PublicBody(a.CNPJ); public || a.ValueCents <= 0 || citesAnotherSupplier(a.OtherCNPJs) {
+		if _, public := PublicBody(a.CNPJ); public || (a.ValueCents <= 0 && a.DeclaredIncreaseBP <= 0) || citesAnotherSupplier(a.OtherCNPJs) {
 			continue
 		}
 		bySupplier[a.CNPJ] = append(bySupplier[a.CNPJ], a)
@@ -252,6 +301,7 @@ func panelContractOf(acts []PanelAct, members []int) (panelContract, bool) {
 	c := panelContract{CNPJ: acts[members[0]].CNPJ, First: acts[members[0]].PublishedAt}
 	var registeredID string
 	var registeredCents int64
+	var amendments []PanelAct
 	for _, i := range members {
 		a := acts[i]
 		if a.PublishedAt.Before(c.First) {
@@ -272,13 +322,37 @@ func panelContractOf(acts []PanelAct, members []int) (panelContract, bool) {
 			if a.ValueCents > registeredCents {
 				registeredCents, registeredID = a.ValueCents, a.ActID
 			}
+		case PanelValueAmended:
+			amendments = append(amendments, a)
 		}
 	}
 	if c.ContractedCents == 0 {
 		c.RegisteredCents, c.LargestActID = registeredCents, registeredID
 	}
+	c.Amendments = amendmentsOf(amendments, c.ContractedCents)
 	sort.Strings(c.Organs)
-	return c, c.ContractedCents > 0 || c.RegisteredCents > 0
+	return c, c.hasContractValue() || len(c.Amendments) > 0
+}
+
+func amendmentsOf(acts []PanelAct, contractedCents int64) []panelAmendment {
+	sortPanelActs(acts)
+	var out []panelAmendment
+	for _, a := range acts {
+		cents := AmendmentValueCents(a.Head, a.ValueCents, a.DeclaredIncreaseBP, contractedCents)
+		if cents > 0 && !republishes(out, cents, a.PublishedAt) {
+			out = append(out, panelAmendment{Cents: cents, At: a.PublishedAt})
+		}
+	}
+	return out
+}
+
+func republishes(kept []panelAmendment, cents int64, at time.Time) bool {
+	for _, k := range kept {
+		if k.Cents == cents && at.Sub(k.At) <= amendmentRepublicationDays*24*time.Hour {
+			return true
+		}
+	}
+	return false
 }
 
 func citesAnotherSupplier(others []string) bool {
