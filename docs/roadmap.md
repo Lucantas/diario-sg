@@ -21,17 +21,16 @@ no centro do produto.
 
 | Entrega | Tema | Fontes novas | Depende de |
 | --- | --- | --- | --- |
-| 0 | Base completa | — | — |
-| 1 | Citável e exportável | — | 0 |
-| 2 | Seguir o dinheiro dentro do Diário | — | 1 |
+| 0 | Base completa ✅ | — | — |
+| 1 | Citável e exportável ✅ | — | 0 |
+| 2 | Seguir o dinheiro dentro do Diário ✅ | — | 1 |
 | 3 | Quem é o fornecedor ✅ | Receita (CNPJ), CGU (CEIS/CNEP/CEPIM) | 2 |
-| 4 | Anunciado × pago | PNCP, Portal da Transparência de SG | 3 |
-| 5 | Recorte político | TSE, Câmara Municipal, transferências federais, TCE-RJ | 3 |
+| 4 | Anunciado × pago ✅ | PNCP, empenhos e pessoal do TCE-RJ | 3 |
+| 5 | Recorte político (parcial) | Transferências federais e TCE-RJ ✅; TSE e SICAM bloqueados | 3 |
 
-Disponibilidade, formato e licença de cada fonte externa **ainda não foram
-verificados**; o primeiro passo das entregas 3 a 5 é um levantamento curto
-(`docs/fontes/<fonte>.md`: URL, formato, frequência de atualização, chaves,
-limites de uso).
+O ✅ quer dizer entregue na base local; o que falta para a nuvem está nas
+pendências de cada entrega. Disponibilidade, formato e licença das fontes
+externas estão em `docs/fontes/README.md`, conferidos em setembro de 2026.
 
 ---
 
