@@ -84,9 +84,12 @@ CSV `;`, latin-1 e cabeçalho:
   de 2023: depois de cerca de 30 downloads seguidos, o Portal passou a
   responder com verificação humana (AWS WAF, status 405). O adapter
   passou a esperar 20 segundos entre downloads e a dizer que é
-  verificação humana; o job semanal baixa só três meses. Na base local,
-  1.714 transferências de janeiro de 2021 a junho de 2023 (R$ 1,84
-  bilhão); a página mostra os meses carregados.
+  verificação humana; o job semanal baixa só três meses. Liberado o Portal
+  (meia hora depois), a carga de julho de 2023 a setembro de 2026 rodou
+  com a pausa em 13 minutos sem novo bloqueio. Na base local, 3.972
+  transferências em 69 meses, de janeiro de 2021 a setembro de 2026
+  (R$ 4,74 bilhões); janeiro de 2026 confere com o CSV (31 linhas,
+  R$ 60,87 milhões). A página mostra os meses carregados.
 - A página mostra os 30 favorecidos que mais receberam; o Município e os
   fundos municipais estão entre eles, porque são pessoas jurídicas de São
   Gonçalo.
