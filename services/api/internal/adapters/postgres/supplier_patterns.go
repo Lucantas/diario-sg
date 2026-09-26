@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -88,4 +90,79 @@ func joinNonEmpty(parts ...string) string {
 		}
 	}
 	return strings.Join(kept, ", ")
+}
+
+func (r *SupplierPatternRepo) PaidCreditors(ctx context.Context) ([]domain.CreditorPaid, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT cnpj, array_agg(DISTINCT year ORDER BY year) FILTER (WHERE paid_cents > 0),
+		       array_agg(DISTINCT unit ORDER BY unit), sum(paid_cents)
+		FROM payments
+		WHERE unit NOT ILIKE 'C_MARA%' AND function NOT IN ('ENCARGOS ESPECIAIS', 'PREVIDÊNCIA SOCIAL')
+		GROUP BY cnpj HAVING sum(paid_cents) > 0`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []domain.CreditorPaid
+	for rows.Next() {
+		var c domain.CreditorPaid
+		var years []int64
+		if err := rows.Scan(&c.CNPJ, pq.Array(&years), pq.Array(&c.Units), &c.PaidCents); err != nil {
+			return nil, err
+		}
+		for _, y := range years {
+			c.Years = append(c.Years, int(y))
+		}
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
+func (r *SupplierPatternRepo) CitedInDiario(ctx context.Context) (map[string]bool, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT key FROM entities WHERE kind = 'cnpj'`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]bool{}
+	for rows.Next() {
+		var k string
+		if err := rows.Scan(&k); err != nil {
+			return nil, err
+		}
+		out[k] = true
+	}
+	return out, rows.Err()
+}
+
+func (r *SupplierPatternRepo) PaymentsCoverage(ctx context.Context) (*domain.PaymentCoverage, error) {
+	return NewPaymentRepo(r.db).PaymentsCoverage(ctx)
+}
+
+func (r *SupplierPatternRepo) PanelActsWithoutCNPJ(ctx context.Context, source string) ([]domain.PanelAct, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT a.id, a.type, a.title, a.organ, g.published_at, coalesce(a.main_value_cents, 0), a.declared_increase_bp, left(a.body, $4),
+		       coalesce((SELECT array_agg(DISTINCT e.kind || ':' || e.key)
+		                 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind IN ('processo', 'contrato')
+		                 WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text), '{}')
+		FROM acts a JOIN gazettes g ON g.id = a.gazette_id
+		WHERE g.source = $2 AND a.type = ANY($3) AND (a.main_value_cents > 0 OR a.declared_increase_bp > 0)
+		  AND NOT EXISTS (SELECT 1 FROM entity_links l JOIN entities e ON e.id = l.entity_id AND e.kind = 'cnpj'
+		                  WHERE l.source = $2 AND l.record_kind = $1 AND l.record_id = a.id::text)`,
+		domain.RecordAct, source, pq.Array(panelActTypes), domain.PanelHeadRunes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []domain.PanelAct
+	for rows.Next() {
+		var a domain.PanelAct
+		var typ string
+		if err := rows.Scan(&a.ActID, &typ, &a.Title, &a.Organ, &a.PublishedAt, &a.ValueCents, &a.DeclaredIncreaseBP, &a.Head, pq.Array(&a.Refs)); err != nil {
+			return nil, err
+		}
+		a.Type = domain.ActType(typ)
+		out = append(out, a)
+	}
+	return out, rows.Err()
 }

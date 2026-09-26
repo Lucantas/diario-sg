@@ -93,12 +93,43 @@ func (uc *ListPatterns) supplierReports(ctx context.Context, catalog map[domain.
 		return nil, err
 	}
 	contracts := domain.SupplierContracts(acts)
-	return []domain.PatternReport{
+	payment, err := uc.paymentReports(ctx, catalog, acts, contracts, profiles)
+	if err != nil {
+		return nil, err
+	}
+	return append([]domain.PatternReport{
 		reportOf(catalog[domain.PatternNewCompany], domain.FindNewCompanyContracts(contracts, profiles), domain.NewCompanyFinding),
 		reportOf(catalog[domain.PatternUndercapitalized], domain.FindUndercapitalizedContracts(contracts, profiles), domain.UndercapitalizedFinding),
 		reportOf(catalog[domain.PatternSharedPartner], domain.FindSharedPartners(contracts, profiles), domain.SharedPartnerFinding),
 		reportOf(catalog[domain.PatternSharedAddress], domain.FindSharedAddresses(contracts, profiles), domain.SharedAddressFinding),
 		reportOf(catalog[domain.PatternSanctioned], domain.FindSanctionedContracts(contracts, profiles, sanctions), domain.SanctionedFinding),
+	}, payment...), nil
+}
+
+func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, acts []domain.PanelAct,
+	contracts []domain.SupplierContract, profiles map[string]domain.SupplierProfile) ([]domain.PatternReport, error) {
+	paid, err := uc.suppliers.PaidCreditors(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cited, err := uc.suppliers.CitedInDiario(ctx)
+	if err != nil {
+		return nil, err
+	}
+	coverage, err := uc.suppliers.PaymentsCoverage(ctx)
+	if err != nil {
+		return nil, err
+	}
+	unnamed, err := uc.suppliers.PanelActsWithoutCNPJ(ctx, domain.SourceDiarioPrefeitura)
+	if err != nil {
+		return nil, err
+	}
+	announced := append(append([]domain.PanelAct{}, acts...), domain.AttributeByName(unnamed, paid, profiles)...)
+	return []domain.PatternReport{
+		reportOf(catalog[domain.PatternPaidUnpublished], domain.FindPaidWithoutPublication(paid, cited, profiles), domain.PaidWithoutPublicationFinding),
+		reportOf(catalog[domain.PatternUnpaidContract], domain.FindUnpaidContracts(contracts, paid, coverage, profiles), domain.UnpaidContractFinding),
+		reportOf(catalog[domain.PatternPaidAbove], domain.FindPaidAboveAnnounced(domain.SupplierContracts(announced),
+			domain.AmendedBySupplier(announced), paid, profiles), domain.PaidAboveAnnouncedFinding),
 	}, nil
 }
 

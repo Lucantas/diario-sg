@@ -18,6 +18,9 @@ const (
 	PatternSharedPartner    PatternID = "socio_em_comum"
 	PatternSharedAddress    PatternID = "endereco_em_comum"
 	PatternSanctioned       PatternID = "sancionado_contratado"
+	PatternPaidUnpublished  PatternID = "pago_sem_publicacao"
+	PatternUnpaidContract   PatternID = "contrato_sem_pagamento"
+	PatternPaidAbove        PatternID = "pago_acima_do_anunciado"
 )
 
 type Pattern struct {
@@ -46,6 +49,9 @@ var peakTypeLabel = map[ActType]string{ActNomeacao: "nomeação", ActExoneracao:
 func PatternCatalog() map[PatternID]Pattern {
 	catalog := diarioPatterns()
 	for id, p := range supplierPatterns() {
+		catalog[id] = p
+	}
+	for id, p := range paymentPatterns() {
 		catalog[id] = p
 	}
 	return catalog

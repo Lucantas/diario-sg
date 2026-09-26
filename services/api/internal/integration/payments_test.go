@@ -4,6 +4,7 @@ package integration
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -87,4 +88,36 @@ func TestPaymentsReplaceTheYearAndShowInTheCompanyPage(t *testing.T) {
 	if paidIn[2025] != 101050 || paidIn[2026] != 700 {
 		t.Errorf("pago por ano: %+v", panel.Years)
 	}
+}
+
+func TestPaymentPatternsAndTheRegistryIncludeUncitedCreditors(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	repo, runs := postgres.NewPaymentRepo(db), postgres.NewFetchRunRepo(db)
+	const uncited = "11222333000181"
+	loadPayments(t, repo, runs, tceAPI{2025: {commitment("2025", "05", "PREFEITURA SÃO GONÇALO", "1", uncited, "250000")}}, 2025, 2025)
+
+	cited, err := postgres.NewRegistryRepo(db).CitedCNPJs(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, c := range cited {
+		found = found || c == uncited
+	}
+	if !found {
+		t.Errorf("credor não citado deveria entrar na carga da Receita: %v", cited)
+	}
+
+	var res patternsResponse
+	getJSON(t, srv.URL+"/v1/patterns", &res)
+	for _, item := range res.Items {
+		if item.ID != "pago_sem_publicacao" {
+			continue
+		}
+		if len(item.Findings) != 1 || !strings.HasPrefix(item.Findings[0].Title, "CNPJ 11.222.333/0001-81: R$ 250.000,00 pagos de 2025") {
+			t.Fatalf("pago sem publicação: %+v", item.Findings)
+		}
+		return
+	}
+	t.Fatal("padrão pago_sem_publicacao ausente")
 }

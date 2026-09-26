@@ -41,6 +41,7 @@ type fakeSupplierSource struct {
 	acts      []domain.PanelAct
 	profiles  map[string]domain.SupplierProfile
 	sanctions []domain.Sanction
+	paid      []domain.CreditorPaid
 }
 
 func (f *fakeSupplierSource) PanelActs(context.Context, string) ([]domain.PanelAct, error) {
@@ -66,7 +67,7 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 
 	reports, acts, err := NewListPatterns(src, suppliers).Execute(context.Background())
 
-	if err != nil || len(reports) != 9 {
+	if err != nil || len(reports) != 12 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	want := []domain.PatternID{domain.PatternNewCompany, domain.PatternUndercapitalized, domain.PatternSharedPartner, domain.PatternSharedAddress, domain.PatternSanctioned}
@@ -74,6 +75,12 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 		if reports[4+i].Pattern.ID != id || reports[4+i].Pattern.Rule == "" {
 			t.Fatalf("padrão %d: %+v", 4+i, reports[4+i].Pattern)
 		}
+	}
+	if reports[9].Pattern.ID != domain.PatternPaidUnpublished || reports[10].Pattern.ID != domain.PatternUnpaidContract || reports[11].Pattern.ID != domain.PatternPaidAbove {
+		t.Fatalf("padrões de pagamento: %v %v %v", reports[9].Pattern.ID, reports[10].Pattern.ID, reports[11].Pattern.ID)
+	}
+	if len(reports[10].Findings) != 1 {
+		t.Errorf("contratação sem pagamento: %+v", reports[10].Findings)
 	}
 	if len(reports[4].Findings) != 1 || len(reports[5].Findings) != 1 || acts["contrato"].ID != "contrato" {
 		t.Fatalf("achados: %+v %+v %v", reports[4].Findings, reports[5].Findings, acts)
@@ -92,7 +99,7 @@ func TestListPatternsReturnsEveryPatternWithItsFindingsAndActs(t *testing.T) {
 
 	reports, acts, err := NewListPatterns(src, &fakeSupplierSource{}).Execute(context.Background())
 
-	if err != nil || len(reports) != 9 {
+	if err != nil || len(reports) != 12 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	if reports[0].Pattern.ID != domain.PatternSplitDispensa || len(reports[0].Findings) != 1 || reports[1].Pattern.ID != domain.PatternExcessiveAddenda || len(reports[1].Findings) != 1 ||
@@ -102,4 +109,17 @@ func TestListPatternsReturnsEveryPatternWithItsFindingsAndActs(t *testing.T) {
 	if len(acts) != 3 || acts["a"].ID != "a" || acts["aditivo"].ID != "aditivo" || len(src.askedIDs) != 3 {
 		t.Fatalf("atos inesperados: %+v %v", acts, src.askedIDs)
 	}
+}
+
+func (f *fakeSupplierSource) PaidCreditors(context.Context) ([]domain.CreditorPaid, error) {
+	return f.paid, nil
+}
+func (f *fakeSupplierSource) CitedInDiario(context.Context) (map[string]bool, error) {
+	return map[string]bool{"11222333000181": true}, nil
+}
+func (f *fakeSupplierSource) PaymentsCoverage(context.Context) (*domain.PaymentCoverage, error) {
+	return &domain.PaymentCoverage{FromYear: 2021, FromMonth: 1, ToYear: 2026, ToMonth: 8}, nil
+}
+func (f *fakeSupplierSource) PanelActsWithoutCNPJ(context.Context, string) ([]domain.PanelAct, error) {
+	return nil, nil
 }

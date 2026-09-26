@@ -41,6 +41,10 @@ type SupplierPatternSource interface {
 	PanelActs(ctx context.Context, source string) ([]domain.PanelAct, error)
 	SupplierProfiles(ctx context.Context) (map[string]domain.SupplierProfile, error)
 	AllSanctions(ctx context.Context) ([]domain.Sanction, error)
+	PaidCreditors(ctx context.Context) ([]domain.CreditorPaid, error)
+	CitedInDiario(ctx context.Context) (map[string]bool, error)
+	PaymentsCoverage(ctx context.Context) (*domain.PaymentCoverage, error)
+	PanelActsWithoutCNPJ(ctx context.Context, source string) ([]domain.PanelAct, error)
 }
 
 type PanelSource interface {
