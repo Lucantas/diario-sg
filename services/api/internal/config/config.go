@@ -17,6 +17,7 @@ const (
 	RoleDump    Role = "dump"
 	RoleReports Role = "reports"
 	RoleKeys    Role = "keys"
+	RoleReceita Role = "receita"
 )
 
 type Config struct {
@@ -32,6 +33,8 @@ type Config struct {
 	ResendAPIKey       string
 	EmailFrom          string
 	PublicWebURL       string
+	ReceitaBaseURL     string
+	ReceitaShareToken  string
 }
 
 func Load(role Role) (Config, error) {
@@ -48,6 +51,8 @@ func Load(role Role) (Config, error) {
 		ResendAPIKey:       os.Getenv("RESEND_API_KEY"),
 		EmailFrom:          os.Getenv("EMAIL_FROM"),
 		PublicWebURL:       getenv("PUBLIC_WEB_URL", "http://localhost:5173"),
+		ReceitaBaseURL:     getenv("RECEITA_BASE_URL", "https://arquivos.receitafederal.gov.br/public.php/webdav/"),
+		ReceitaShareToken:  getenv("RECEITA_SHARE_TOKEN", "YggdBLfdninEJX9"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
@@ -56,7 +61,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI {
+	if role == RoleReindex || role == RoleAPI || role == RoleReceita {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {

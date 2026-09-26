@@ -22,12 +22,7 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-const (
-	DefaultBaseURL = "https://arquivos.receitafederal.gov.br/public.php/webdav/"
-	DefaultToken   = "YggdBLfdninEJX9"
-
-	defaultRetryWait = 5 * time.Second
-)
+const defaultRetryWait = 5 * time.Second
 
 var monthDirRe = regexp.MustCompile(`^\d{4}-\d{2}$`)
 

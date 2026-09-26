@@ -134,3 +134,21 @@ type FetchRunRepository interface {
 type ActParsers interface {
 	For(source string) ActParser
 }
+
+type RegistrySource interface {
+	LatestMonth(ctx context.Context) (string, error)
+	Files(ctx context.Context, month string) ([]string, error)
+	Rows(ctx context.Context, month, file string, each func(fields []string) error) (string, error)
+	Codes(ctx context.Context, month string) (domain.RegistryCodes, error)
+}
+
+type RegistryRepository interface {
+	CitedCNPJs(ctx context.Context) ([]string, error)
+	Replace(ctx context.Context, month time.Time, load domain.RegistryLoad) error
+}
+
+type RegistryReader interface {
+	RegistryByCNPJ(ctx context.Context, cnpj string) (*domain.CompanyRegistry, error)
+	RegistryMonth(ctx context.Context) (*time.Time, error)
+	NamesByCNPJ(ctx context.Context, cnpjs []string) (map[string]string, error)
+}

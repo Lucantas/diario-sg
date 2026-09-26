@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex receita dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -24,6 +24,9 @@ migrate: ## Aplica migrations no banco local
 reindex: ## Reprocessa edições já indexadas com o parser atual: make reindex FROM=AAAA-MM-DD TO=AAAA-MM-DD
 	@test -n "$(FROM)" -a -n "$(TO)" || (echo "uso: make reindex FROM=AAAA-MM-DD TO=AAAA-MM-DD"; exit 2)
 	cd services/api && go run ./cmd/reindex -from "$(FROM)" -to "$(TO)"
+
+receita: ## Carrega o cadastro da Receita dos CNPJs citados: make receita [MONTH=AAAA-MM]
+	cd services/api && go run ./cmd/receita -month "$(MONTH)"
 
 dump: ## Publica o dump da base (CSV compactado) no bucket DUMPS_BUCKET
 	cd services/api && go run ./cmd/dump
