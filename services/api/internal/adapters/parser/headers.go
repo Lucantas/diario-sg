@@ -3,6 +3,7 @@ package parser
 import (
 	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -40,8 +41,10 @@ const (
 	civilDefenseOrgan       = "COMDEC"
 )
 
+func withoutAccentTypos(s string) string { return strings.ReplaceAll(s, "ÇÂO", "ÇÃO") }
+
 func isHeader(line string) bool {
-	line = strings.ReplaceAll(line, "nº", "Nº")
+	line = withoutAccentTypos(strings.ReplaceAll(line, "nº", "Nº"))
 	if strings.ToUpper(line) != line || notAnActExtractRe.MatchString(line) {
 		return false
 	}
@@ -77,10 +80,27 @@ func isOrganSection(lines []line, i int) bool {
 	}
 	for _, next := range lines[i+1:] {
 		if next.text != "" {
-			return startsAct(next.text)
+			return startsAct(next.text) || (domain.IsKnownOrgan(lines[i].text) && isSectionTitle(next.text))
 		}
 	}
 	return false
+}
+
+const minSectionTitleWords = 2
+
+var sectionTitleWordRe = regexp.MustCompile(`\p{Lu}{3,}`)
+
+func isSectionTitle(line string) bool {
+	if strings.ToUpper(line) != line || !unicode.IsLetter([]rune(line)[0]) {
+		return false
+	}
+	words := 0
+	for _, w := range sectionTitleWordRe.FindAllString(line, -1) {
+		if !domain.IsKnownOrgan(w) {
+			words++
+		}
+	}
+	return words >= minSectionTitleWords
 }
 
 var nonOrganSections = map[string]bool{"ANEXO": true}

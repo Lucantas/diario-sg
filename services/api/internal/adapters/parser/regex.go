@@ -133,7 +133,7 @@ const (
 
 func (s *segment) act(position int) (domain.Act, bool) {
 	body := strings.TrimSpace(strings.Join(s.lines, "\n"))
-	if body == "" || (s.orphan && utf8.RuneCountInString(body) < minOrphanRunes) {
+	if body == "" || (s.orphan && (utf8.RuneCountInString(body) < minOrphanRunes || isLoneHeading(body))) {
 		return domain.Act{}, false
 	}
 	title := strings.Join(strings.Fields(s.title), " ")
@@ -159,4 +159,10 @@ func sectionOrgan(acronym, current string) string {
 		return acronym
 	}
 	return ""
+}
+
+const maxHeadingLines = 3
+
+func isLoneHeading(body string) bool {
+	return strings.Count(body, "\n") < maxHeadingLines && strings.ToUpper(body) == body
 }

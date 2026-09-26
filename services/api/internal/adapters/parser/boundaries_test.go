@@ -3,6 +3,8 @@ package parser
 import (
 	"strings"
 	"testing"
+
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
 const edition1257 = `ATOS DO PREFEITO
@@ -81,5 +83,61 @@ VALOR TOTAL R$ 5.279.936,30`)
 
 	if len(acts) != 1 {
 		t.Fatalf("produto da lista não abre ato: %+v", acts)
+	}
+}
+
+func TestHeaderWithCircumflexTypoOpensAnAct(t *testing.T) {
+	acts := New().Parse(`EXTRATO DO 1º TERMO ADITIVO A ATA DE REGISTRO DE
+PREÇOS Nº 003/SEMAS/2025
+PARTES: MUNICÍPIO DE SÃO GONÇALO e TOP 01 COMERCIO E SERVIÇOS LTDA.
+FELIPPE MATTOS MONTEIRO
+SEMDUR
+HOMOLOGAÇÂO/ADJUDICAÇÃO
+CONCORRÊNCIA PÚBLICA/ ELETRÔNICA Nº 90010/2025.
+PROCESSO ADMINISTRATIVO Nº. 27.298/2025.
+no valor total de R$ 130.413.999,00`)
+
+	if len(acts) != 2 || acts[1].Type != domain.ActLicitacao || !strings.Contains(acts[1].Body, "130.413.999,00") {
+		t.Fatalf("HOMOLOGAÇÂO com acento trocado abre ato de licitação: %+v", acts)
+	}
+}
+
+func TestKnownOrganFollowedByUppercaseTitleOpensAnAct(t *testing.T) {
+	acts := New().Parse(`PORTARIA N.º 010/SEMED/2020
+Designa servidores para a comissão de avaliação das unidades escolares.
+SEMSADC
+INFORMATIVO CORONAVÍRUS N.º 45/2020
+A Secretaria Municipal de Saúde informa os casos confirmados no município.`)
+
+	if len(acts) != 2 || acts[1].Title != "INFORMATIVO CORONAVÍRUS N.º 45/2020" || acts[1].Organ != "SEMSADC" {
+		t.Fatalf("sigla de órgão seguida de título em caixa alta abre ato: %+v", acts)
+	}
+}
+
+func TestUppercaseWordsInsideABodyDoNotOpenActs(t *testing.T) {
+	acts := New().Parse(`EXTRATO DE CONTRATO Nº 010/2022
+PARTES: MUNICÍPIO DE SÃO GONÇALO e EMPRESA X LTDA.
+OBJETO
+AQUISIÇÃO DE MATERIAL DE LIMPEZA PARA AS ESCOLAS
+SEMED
+SEMFA SEMGIPE SEMDUR 50 50 1
+VALOR GLOBAL: R$ 1.000,00`)
+
+	if len(acts) != 1 {
+		t.Fatalf("palavra em caixa alta que não é órgão e lista de siglas não abrem ato: %+v", acts)
+	}
+}
+
+func TestOrganFullNameBetweenAcronymAndHeaderIsNotAnAct(t *testing.T) {
+	acts := New().Parse(`PORTARIA N.º 010/SMTC/2026
+Designa servidores para a comissão de seleção do carnaval.
+SMTC
+SECRETARIA MUNICIPAL DE TURISMO E CULTURA
+SMTC COM AMPARO NO FUNDO MUNICIPAL DE CULTURA
+CHAMAMENTO PÚBLICO Nº 04/2026
+Seleção de propostas culturais para o carnaval de 2027.`)
+
+	if len(acts) != 2 || acts[1].Organ != "SMTC" || acts[1].Type != domain.ActLicitacao {
+		t.Fatalf("nome do órgão por extenso não vira ato: %+v", acts)
 	}
 }

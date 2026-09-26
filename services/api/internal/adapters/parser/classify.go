@@ -9,7 +9,7 @@ import (
 )
 
 func classify(title, body string) domain.ActType {
-	t := strings.ToUpper(title)
+	t := withoutAccentTypos(strings.ToUpper(title))
 	switch {
 	case hasAnyPrefix(t, "CORRIGENDA", "ERRATA"):
 		return domain.ActCorrigenda
