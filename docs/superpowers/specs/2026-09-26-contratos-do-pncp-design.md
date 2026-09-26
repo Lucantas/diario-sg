@@ -31,12 +31,12 @@ empresa e cruza com o Diário num padrão novo.
 2. **Órgãos:** a Prefeitura (28.636.579/0001-00) e os CNPJs de órgãos
    municipais já conhecidos (`PublicBodyCNPJs`), um pedido por órgão, ano e
    página, com pausa de 3 segundos entre pedidos e espera de 1 minuto
-   (até 5 vezes) quando o limite estoura.
+   (até 4 tentativas) quando o limite estoura.
 3. **Só pessoa jurídica.** Contratos com fornecedor pessoa física são
    descartados na leitura, sem chegar ao banco nem ao bucket (ADR 0006).
 4. **Tabela `pncp_contracts`** (migration 017), chave o número de
-   controle. A carga troca, numa transação, todos os contratos dos anos
-   lidos e refaz as ligações `contrato_pncp` com o CNPJ do fornecedor
+   controle. A carga troca, numa transação, todos os contratos publicados
+   nos anos lidos e refaz as ligações `contrato_pncp` com o CNPJ do fornecedor
    (`exata`). A tabela é conferida antes do primeiro pedido.
 5. **Arquivo bruto:** os contratos lidos em
    `raw/pncp_contratos/AAAA/MM/DD/contratos.jsonl.gz` e um
@@ -70,6 +70,34 @@ empresa e cruza com o Diário num padrão novo.
 - Integração: troca dos anos lidos preservando os outros, ligação
   `exata`, `/v1/entities/cnpj/{cnpj}` com os contratos.
 - Carga real local e conferência de 5 contratos na página do PNCP.
+
+## Depois da entrega
+
+- Carga local de 26/09/2026 em 7 minutos: 131 contratos, 130 gravados e 1
+  descartado (pessoa física). Prefeitura: 58 (1 de 2023 publicado em
+  2025, 5 de 2024, 35 de 2025, 17 de 2026); SG-PREVI 48; Câmara 20;
+  FUNASG 3; Fundação Municipal de Saúde 1. Nada publicado antes de 2024.
+- Um CNPJ da lista de órgãos municipais, 28.579.636/0001-00 (grafia
+  errada do CNPJ do Município que aparece no Diário), não tem dígitos
+  verificadores válidos, e o PNCP responde 422. A lista de órgãos pedidos
+  ao PNCP passou a levar só CNPJ válido.
+- A consulta filtra pela data de publicação no PNCP, e 8 contratos têm
+  ano de contrato diferente do ano de publicação. A troca passou a ser
+  pelo ano de publicação, para que uma carga parcial não apague contrato
+  publicado em outro ano.
+- 106 fornecedores, 102 deles citados pelo CNPJ no Diário (102 ligações
+  `exata`).
+- O padrão ficou sem nenhum caso. Os 7 contratos de pelo menos R$ 100 mil
+  de fornecedor sem CNPJ no Diário têm extrato publicado sem CNPJ: casam
+  pelo processo ou pelo nome do fornecedor lido do texto, regra que entrou
+  depois da primeira carga (o processo no PNCP às vezes vem sem ano, como
+  "29.973"). O padrão fica para as próximas cargas.
+- O município às vezes registra o mesmo contrato duas vezes no PNCP (por
+  exemplo, "006/2025" e "006", com vigências diferentes); a página mostra
+  os dois registros.
+- 5 contratos sorteados conferidos contra a API de detalhe do PNCP
+  (`/api/pncp/v1/orgaos/<cnpj>/contratos/<ano>/<sequencial>`): fornecedor,
+  valor e data de assinatura conferem.
 
 **Pronto quando:** a página de uma empresa com contrato no PNCP mostra o
 contrato com o link, e o padrão lista os contratos do PNCP sem extrato no

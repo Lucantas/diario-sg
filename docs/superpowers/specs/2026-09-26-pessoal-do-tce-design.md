@@ -33,8 +33,8 @@ e põe ao lado as nomeações e exonerações publicadas no Diário.
    troca, numa transação, todos os meses dos anos lidos. Ano sem nenhuma
    linha não apaga o que já existe (a API às vezes responde vazio).
 3. **Arquivo bruto:** a resposta de cada ano em
-   `raw/tce_pessoal/AAAA/MM/DD/<ano>.json.gz` e um `manifest.json` com o
-   SHA-256.
+   `raw/tce_pessoal/AAAA/MM/DD/<ano>.json.gz` e `<ano>.manifest.json` com
+   o SHA-256, como os empenhos.
 4. **Página `/pessoal`** ("Pessoal"): tabela por mês com vínculos e
    remuneração por grupo (efetivos, comissionados, contratados, agentes
    políticos, outros, inativos e pensionistas) e o total; ao lado, as
@@ -62,6 +62,25 @@ e põe ao lado as nomeações e exonerações publicadas no Diário.
 - Integração: duas cargas, `GET /v1/panels/staff` com e sem unidade.
 - Web: rótulo do mês e soma dos grupos.
 - Carga real local e conferência de 3 meses contra o JSON do TCE.
+
+## Depois da entrega
+
+- Carga local de 26/09/2026 (`make tce FROM=2024 TO=2026`): 551 linhas em
+  menos de 1 segundo (204 de 2024, 214 de 2025, 133 de janeiro a julho de
+  2026). Os totais de janeiro de 2024, junho de 2025 e julho de 2026
+  (vínculos e remuneração) conferem com o JSON do TCE.
+- Além da troca de comissionados para "Outros", os contratados por
+  excepcional interesse público somem em abril de 2024 (195 em janeiro,
+  nenhum depois); o aviso da página diz isso.
+- A remuneração de julho de 2026 (R$ 90,4 milhões) sai da faixa dos meses
+  anteriores (R$ 72 a 74 milhões) sem mudança de vínculos: o TCE não diz
+  o que compõe a remuneração.
+- O grupo "Efetivo (com cargo ou função)" chega com e sem espaço no fim;
+  a leitura junta os dois.
+- A Câmara usa as nomeações e exonerações do Diário da Câmara; as outras
+  unidades e o total, as do Diário da Prefeitura.
+- A tabela tem 12 colunas: rola dentro da seção em telas estreitas, sem
+  rolar a página.
 
 **Pronto quando:** `/pessoal` mostra, mês a mês desde 2024, os vínculos e
 a remuneração por grupo com as nomeações e exonerações do Diário, e o job

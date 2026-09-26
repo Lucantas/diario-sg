@@ -405,12 +405,32 @@ Pendências:
   painéis mostram o pago ao lado do contratado, e a ferramenta `entidade`
   do MCP traz `pagamentos_tce`. Desenho em
   `docs/superpowers/specs/2026-09-26-pagamentos-do-tce-design.md`.
+  ✅ PNCP (26/09/2026): job `pncp` semanal com os contratos da Prefeitura,
+  dos fundos e fundações e da Câmara (130 na base local, todos publicados
+  de 2024 em diante). A página da empresa mostra os contratos com o link
+  para o PNCP, e a ferramenta `entidade` traz `contratos_pncp`. Desenho em
+  `docs/superpowers/specs/2026-09-26-contratos-do-pncp-design.md`.
 - Ligação por CNPJ + nº de contrato/processo, com o grau de certeza de cada
-  ligação visível.
+  ligação visível. ✅ Empenhos e contratos do PNCP ligados à empresa pelo
+  CNPJ (`exata`); o TCE não traz número de contrato, e o PNCP casa com o
+  Diário pelo CNPJ, pelo processo ou pelo nome no padrão abaixo.
 - **Novos padrões:** pagamento a fornecedor sem contrato publicado no Diário;
   contrato publicado sem nenhum pagamento; pago acima do contratado mais
   aditivos.
-- Folha de pagamento só em agregados por cargo/órgão (LGPD).
+- **Padrão do PNCP:** contrato no PNCP sem nenhuma citação no Diário. ✅
+  (26/09/2026) Nenhum caso na primeira carga: todo contrato de pelo menos
+  R$ 100 mil tem extrato no Diário.
+- Folha de pagamento só em agregados por cargo/órgão (LGPD). ✅ Pessoal
+  (26/09/2026): o job `tce` também carrega os vínculos e a remuneração por
+  mês, unidade e situação funcional que o município informa ao TCE-RJ (de
+  2024 em diante, sem dado de pessoa), e a página `/pessoal` mostra os
+  grupos mês a mês ao lado das nomeações e exonerações do Diário. Desenho
+  em `docs/superpowers/specs/2026-09-26-pessoal-do-tce-design.md`.
+
+Pendências:
+
+- [ ] Na nuvem: aplicar as migrations 016 a 018 e o Terraform dos jobs
+  `tce` e `pncp`, e rodar `tce` com `-from 2020` e `pncp` uma vez.
 
 ## Entrega 5 — Recorte político
 

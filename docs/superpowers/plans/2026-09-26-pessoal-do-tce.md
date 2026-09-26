@@ -1,6 +1,6 @@
 # Pessoal do TCE-RJ Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Carregar os agregados de pessoal que o município informa ao TCE-RJ e mostrá-los mês a mês em `/pessoal`, ao lado das nomeações e exonerações do Diário.
 
@@ -32,13 +32,13 @@
 - `ports.StaffRepository { Ready(ctx) error; ReplaceStaffYear(ctx, year int, rows []domain.StaffRow) error }`
 - `usecase.NewLoadStaff(src, repo, runs, raw, now).Execute(ctx, from, to int) (domain.FetchRun, error)`
 
-- [ ] Migration:
+- [x] Migration:
   ```sql
   CREATE TABLE tce_staff (month date NOT NULL, unit text NOT NULL, situation text NOT NULL, grp text NOT NULL,
     headcount int NOT NULL, remuneration_cents bigint NOT NULL, PRIMARY KEY (month, unit, situation));
   ```
-- [ ] Testes do domínio, do adapter e do caso de uso; integração com duas cargas.
-- [ ] Commit `feat(api): carga dos agregados de pessoal do TCE-RJ`.
+- [x] Testes do domínio, do adapter e do caso de uso; integração com duas cargas.
+- [x] Commit `feat(api): carga dos agregados de pessoal do TCE-RJ`.
 
 ### Task 2: Painel e página
 
@@ -48,11 +48,11 @@
 - `domain.StaffPanel { Units []string; Unit string; Months []StaffMonth }`, `StaffMonth { Month time.Time; Groups []StaffGroup; Headcount int; RemunerationCents int64; Appointments, Dismissals int }`
 - `GET /v1/panels/staff?unit=`
 
-- [ ] Montagem por grupo, na ordem fixa; contagens do Diário por mês.
-- [ ] Página com filtro de unidade e aviso da classificação.
-- [ ] Commit `feat: painel de pessoal do TCE-RJ`.
+- [x] Montagem por grupo, na ordem fixa; contagens do Diário por mês.
+- [x] Página com filtro de unidade e aviso da classificação.
+- [x] Commit `feat: painel de pessoal do TCE-RJ`.
 
 ### Task 3: Carga real e docs
 
-- [ ] Carga real local; conferir 3 meses contra o JSON; Playwright de `/pessoal` em 1280 e 390 px.
-- [ ] Roadmap, README, spec "Depois da entrega"; commit `docs(roadmap): pessoal do TCE-RJ`.
+- [x] Carga real local; conferir 3 meses contra o JSON; Playwright de `/pessoal` em 1280 e 390 px.
+- [x] Roadmap, README, spec "Depois da entrega"; commit `docs(roadmap): pessoal do TCE-RJ`.

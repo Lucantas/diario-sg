@@ -140,11 +140,12 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca; com `entity`, o link do canal é a página da entidade |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/gazettes/{id}/pdf` | Cópia arquivada do PDF (`ETag` = SHA-256; abra com `#page=N`) |
-| GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos |
+| GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos; `registry` (Receita), `sanctions` (CGU), `payments` (TCE-RJ) e `pncp_contracts` (contratos no PNCP, com `url`) |
 | GET | `/v1/entities/processo/{n}` e `/v1/entities/contrato/{n}` | Atos ligados ao número (os 300 mais recentes), do mais recente ao mais antigo e, na mesma edição, na ordem da página; `n` aceita `-` no lugar de `/` (`30-FMS-2011`). Resposta com `label` (grafia mais frequente no Diário), `count_by_phase` (fase de cada ato, calculada na leitura), `organs` (contagem por órgão, com as variantes de sigla somadas na principal e `""` para os atos sem órgão) e `related` (citados junto, até 20 de cada tipo, pelos que têm mais atos: processo lista contratos e CNPJs, contrato lista processos e CNPJs); tipo desconhecido é 404, número inválido é 400 |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
-| GET | `/v1/patterns` | Padrões para verificar (fracionamento de dispensa de compras e de obras, aditivos acima do limite, emergencial renovada e picos de nomeação e exoneração antes da eleição), calculados na leitura: cada padrão com `id`, `title`, `rule` (a regra por extenso), `caveat` e `findings` (`title`, `detail`, `acts` no formato da busca e `search`, com `type`, `from`, `to` e `source` quando os atos são muitos para listar) |
+| GET | `/v1/patterns` | Padrões para verificar (os 13 de `/padroes`: os do Diário, como fracionamento de dispensa e aditivo acima do limite; os do fornecedor, com o cadastro da Receita e as sanções da CGU; os de anunciado × pago, com os empenhos do TCE-RJ; e o de contrato no PNCP sem extrato), calculados na leitura: cada padrão com `id`, `title`, `rule` (a regra por extenso), `caveat` e `findings` (`title`, `detail`, `acts` no formato da busca, `search`, com `type`, `from`, `to` e `source` quando os atos são muitos para listar, e `link`, com `label` e `url`, quando o caso aponta para fora, como um contrato no PNCP) |
 | GET | `/v1/panels/suppliers` | Maiores fornecedores pelo valor declarado nos extratos, calculados na leitura. `year`, `organ` e `source` (padrão `diario_prefeitura`) filtram. Cada contratação (atos do mesmo CNPJ ligados pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato; ata de registro de preços sem contrato vai para `registered_cents`; aditivos, homologações, multas, sanções, notificações, cancelamentos e atos com mais de um fornecedor ficam de fora. Traz `items` (50 primeiros, com `largest`, o ato de maior valor no formato da busca), `years` (respeita `organ`) e `organs` (respeita `year`) |
+| GET | `/v1/panels/staff?unit=` | Vínculos e remuneração por mês e grupo de situação funcional, informados pelo município ao TCE-RJ (de 2024 em diante), com as nomeações e exonerações do Diário no mês (`diario_source` diz qual). Traz `units`, `groups` (na ordem das colunas) e `months` (do mais recente ao mais antigo); unidade desconhecida é 400 |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
 | POST | `/v1/mcp/keys` | Gera uma chave do servidor MCP (`{"key","prefix","mcp_url"}`); a chave só aparece nesta resposta; 3 por hora por cliente |
@@ -250,6 +251,27 @@ mostram o pago ao lado do contratado.
 ```bash
 make tce                     # ano anterior e corrente
 make tce FROM=2020 TO=2026   # carga completa
+```
+
+O mesmo job carrega, depois dos empenhos, os agregados de pessoal que o
+município informa ao TCE-RJ (`situacao_funcional`: vínculos e remuneração
+por mês, unidade e situação funcional, de 2024 em diante) em `tce_staff`,
+sem nenhum dado de pessoa. A página `/pessoal` mostra os vínculos mês a
+mês por grupo, ao lado das nomeações e exonerações publicadas no Diário.
+
+## Contratos do PNCP
+
+Todo domingo às 06:00, o job `pncp` pede à API de consulta do Portal
+Nacional de Contratações Públicas os contratos da Prefeitura, dos fundos e
+fundações e da Câmara, de 2021 ao ano corrente, e troca os anos lidos em
+`pncp_contracts`. Contratos com pessoa física são descartados na leitura.
+A API limita o ritmo, então a carga pausa entre pedidos e leva alguns
+minutos. A página da empresa mostra os contratos com o link para o PNCP, e
+o padrão `pncp_sem_extrato` lista os que não aparecem no Diário.
+
+```bash
+make pncp                     # 2021 ao ano corrente
+make pncp FROM=2025 TO=2026   # só alguns anos
 ```
 
 ## Entidades e coletas

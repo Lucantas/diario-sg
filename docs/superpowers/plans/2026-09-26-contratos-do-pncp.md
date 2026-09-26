@@ -1,6 +1,6 @@
 # Contratos do PNCP Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Carregar toda semana os contratos do município no PNCP, mostrá-los na página da empresa e no MCP e listar os que não têm extrato no Diário.
 
@@ -32,9 +32,9 @@
 - `ports.PNCPReader { PNCPContractsBySupplier(ctx, cnpj string) ([]domain.PNCPContract, error) }`
 - `usecase.NewLoadPNCP(src, repo, runs, raw, now).Execute(ctx, from, to int) (domain.FetchRun, error)`
 
-- [ ] Testes do adapter e do caso de uso com fakes.
-- [ ] Repositório: troca por anos e ligações `exata`; integração com duas cargas de anos diferentes.
-- [ ] Commit `feat(api): carga dos contratos do PNCP`.
+- [x] Testes do adapter e do caso de uso com fakes.
+- [x] Repositório: troca por anos e ligações `exata`; integração com duas cargas de anos diferentes.
+- [x] Commit `feat(api): carga dos contratos do PNCP`.
 
 ### Task 2: Página da empresa, MCP e padrão
 
@@ -44,12 +44,12 @@
 - `domain.FindPNCPWithoutExtract(contracts []PNCPContract, cited, citedProcesses map[string]bool, lastDiario time.Time) []PNCPContract`
 - `domain.Finding.Link *FindingLink{Label, URL string}`; JSON `link`.
 
-- [ ] Teste do padrão: citado pelo CNPJ ou pelo processo não entra; abaixo de R$ 100 mil e assinado a menos de 30 dias da última edição não entram.
-- [ ] JSON `pncp_contracts`; MCP `contratos_pncp`; seção na página; link no caso do padrão.
-- [ ] Commit `feat: contratos do PNCP na empresa, no MCP e nos padrões`.
+- [x] Teste do padrão: citado pelo CNPJ ou pelo processo não entra; abaixo de R$ 100 mil e assinado a menos de 30 dias da última edição não entram.
+- [x] JSON `pncp_contracts`; MCP `contratos_pncp`; seção na página; link no caso do padrão.
+- [x] Commit `feat: contratos do PNCP na empresa, no MCP e nos padrões`.
 
 ### Task 3: Nuvem, carga real e docs
 
-- [ ] Terraform: job `pncp`, agendamento `0 6 * * 0`, conta de serviço; Dockerfile e deploy.
-- [ ] Carga real local; conferir 5 contratos no PNCP; Playwright da página de uma empresa e de `/padroes`.
-- [ ] Roadmap, README, spec "Depois da entrega"; commit `docs(roadmap): contratos do PNCP`.
+- [x] Terraform: job `pncp`, agendamento `0 6 * * 0`, conta de serviço; Dockerfile e deploy.
+- [x] Carga real local; conferir 5 contratos no PNCP; Playwright da página de uma empresa e de `/padroes`.
+- [x] Roadmap, README, spec "Depois da entrega"; commit `docs(roadmap): contratos do PNCP`.
