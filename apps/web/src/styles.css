@@ -97,6 +97,18 @@ button:disabled { opacity: 0.6; cursor: progress; }
 .supplier h3 { font-size: 1.05rem; margin: 0 0 0.25rem; }
 .supplier-values { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0 0 0.25rem; }
 .supplier .fineprint { margin: 0; }
+.supplier-cnpj { color: var(--slate); font-size: 0.85rem; margin: -0.25rem 0 0.25rem; }
+.registry-facts { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: 0.35rem 1rem; margin: 0 0 1rem; }
+.registry-facts dt { color: var(--slate); font-size: 0.85rem; }
+.registry-facts dd { margin: 0; overflow-wrap: anywhere; }
+.registry-subheading { font-size: 1rem; margin: 1rem 0 0.5rem; }
+.partners { list-style: none; margin: 0 0 1rem; padding: 0; }
+.partners li { padding: 0.35rem 0; border-bottom: 1px solid var(--rule); }
+.fineprint-inline { color: var(--slate); font-size: 0.85rem; }
+@media (max-width: 36rem) {
+  .registry-facts { grid-template-columns: 1fr; gap: 0.1rem; }
+  .registry-facts dd { margin-bottom: 0.5rem; }
+}
 .largest summary { cursor: pointer; color: var(--action); font-size: 0.9rem; margin-top: 0.5rem; }
 .largest ol { list-style: none; margin: 0.5rem 0 0; padding: 0; }
 .totals { overflow-x: auto; }

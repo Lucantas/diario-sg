@@ -65,11 +65,50 @@ export interface Organ {
   acts: number;
 }
 
+export interface RegistryActivity {
+  code: string;
+  description: string;
+}
+
+export interface RegistryPartner {
+  kind: "pessoa_juridica" | "pessoa_fisica" | "estrangeiro";
+  name: string;
+  document: string;
+  role: string;
+  since: string | null;
+}
+
+export interface Registry {
+  month: string;
+  name: string;
+  trade_name: string;
+  legal_nature: string;
+  capital_cents: number;
+  size: string;
+  headquarters: boolean;
+  status: string;
+  status_since: string | null;
+  status_reason: string;
+  opened_at: string | null;
+  main_activity: RegistryActivity;
+  other_activities: RegistryActivity[];
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  zip: string;
+  city: string;
+  uf: string;
+  partners: RegistryPartner[];
+}
+
 export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;
   count_by_type: Partial<Record<ActType, number>>;
   acts: ActHit[];
+  registry: Registry | null;
+  registry_month: string | null;
 }
 
 export interface OrganCount {
@@ -131,6 +170,7 @@ export interface PanelAmounts {
 
 export interface SupplierRow extends PanelAmounts {
   cnpj: string;
+  name: string;
   first: string;
   last: string;
   organs: string[];

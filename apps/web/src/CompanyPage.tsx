@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ActType, CompanyResponse, getCompany } from "./api";
 import { Result } from "./components";
 import { EntityAlert } from "./EntityAlert";
+import { RegistrySection } from "./RegistrySection";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
 
 export function CompanyPage({ cnpj }: { cnpj: string }) {
@@ -20,8 +21,8 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
     <main className="page">
       <p className="crumb"><a href="/">← Voltar para a busca</a></p>
       <header className="masthead">
-        <p className="eyebrow">Empresa</p>
-        <h1>{formatCnpj(cnpj)}</h1>
+        <p className="eyebrow">Empresa · {formatCnpj(cnpj)}</p>
+        <h1>{data?.registry?.name || formatCnpj(cnpj)}</h1>
       </header>
 
       {error && <p className="notice notice-error">{error}</p>}
@@ -29,6 +30,7 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
 
       {data && (
         <>
+          <RegistrySection registry={data.registry} month={data.registry_month} />
           <dl className="summary">
             <div>
               <dt>Atos</dt>

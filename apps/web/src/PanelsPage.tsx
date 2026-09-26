@@ -128,7 +128,8 @@ function SupplierCard({ row }: { row: SupplierRow }) {
   const period = row.first.slice(0, 4) === row.last.slice(0, 4) ? row.first.slice(0, 4) : `${row.first.slice(0, 4)} a ${row.last.slice(0, 4)}`;
   return (
     <li className="supplier">
-      <h3><a href={`/empresa/${row.cnpj}`} title="Ver todos os atos desta empresa">{formatCnpj(row.cnpj)}</a></h3>
+      <h3><a href={`/empresa/${row.cnpj}`} title="Ver todos os atos desta empresa">{row.name || formatCnpj(row.cnpj)}</a></h3>
+      {row.name && <p className="supplier-cnpj">{formatCnpj(row.cnpj)}</p>}
       <p className="supplier-values">
         {row.contracted_cents > 0 && <span><strong>{formatCents(row.contracted_cents)}</strong> contratados</span>}
         {row.registered_cents > 0 && <span><strong>{formatCents(row.registered_cents)}</strong> em atas de registro de preços</span>}
