@@ -44,7 +44,8 @@ export function StaffPage() {
       <p className="notice">
         Vínculos e remuneração do mês por situação funcional, como o município informa ao TCE-RJ (de janeiro de 2024 em
         diante), somados por unidade. Não há dado de pessoa. A classificação é a informada pelo município e muda: de abril
-        de 2024 a abril de 2025, os comissionados da Prefeitura aparecem em "Outros" e os agentes políticos não aparecem.
+        de 2024 a abril de 2025, os comissionados da Prefeitura aparecem em "Outros" e os agentes políticos não aparecem; desde
+        abril de 2024 não há contratados por tempo determinado.
         As nomeações e exonerações são os atos publicados no Diário no mês (um ato pode nomear várias pessoas).
       </p>
 
@@ -63,7 +64,7 @@ export function StaffPage() {
       {panel && panel.months.length === 0 && <p className="count">Nenhum dado de pessoal carregado.</p>}
 
       {panel && panel.months.length > 0 && (
-        <section className="totals" aria-labelledby="staff-heading">
+        <section className="totals staff" aria-labelledby="staff-heading">
           <h2 id="staff-heading" className="panel-heading">Vínculos por mês</h2>
           <table>
             <thead>

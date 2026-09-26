@@ -55,12 +55,13 @@ func BuildStaffPanel(rows []StaffRow, counts []MonthlyActCount) []StaffMonth {
 	for i, g := range groups {
 		index[g.Group] = i
 	}
-	byMonth := map[time.Time]*StaffMonth{}
+	byMonth := map[int]*StaffMonth{}
 	for _, r := range rows {
-		m, ok := byMonth[r.Month]
+		key := staffMonthKey(r.Month.Year(), r.Month.Month())
+		m, ok := byMonth[key]
 		if !ok {
-			m = &StaffMonth{Month: r.Month, Groups: make([]StaffGroupTotal, len(groups))}
-			byMonth[r.Month] = m
+			m = &StaffMonth{Month: time.Date(r.Month.Year(), r.Month.Month(), 1, 0, 0, 0, 0, time.UTC), Groups: make([]StaffGroupTotal, len(groups))}
+			byMonth[key] = m
 		}
 		g := &m.Groups[index[r.Group]]
 		g.Headcount += r.Headcount
@@ -69,7 +70,7 @@ func BuildStaffPanel(rows []StaffRow, counts []MonthlyActCount) []StaffMonth {
 		m.RemunerationCents += r.RemunerationCents
 	}
 	for _, c := range counts {
-		m, ok := byMonth[time.Date(c.Year, c.Month, 1, 0, 0, 0, 0, time.UTC)]
+		m, ok := byMonth[staffMonthKey(c.Year, c.Month)]
 		if !ok {
 			continue
 		}
@@ -86,6 +87,10 @@ func BuildStaffPanel(rows []StaffRow, counts []MonthlyActCount) []StaffMonth {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Month.After(out[j].Month) })
 	return out
+}
+
+func staffMonthKey(year int, month time.Month) int {
+	return year*100 + int(month)
 }
 
 func StaffGroupsOf(rows []StaffRow) []StaffGroup {

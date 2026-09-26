@@ -37,3 +37,14 @@ func TestStaffDiarioSourceFollowsTheUnit(t *testing.T) {
 		t.Fatal("fonte do Diário errada")
 	}
 }
+
+func TestBuildStaffPanelMatchesMonthsFromAnyLocation(t *testing.T) {
+	fromDB := time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0))
+	rows := []StaffRow{{Month: fromDB, Group: "Efetivo", Headcount: 1}, {Month: fromDB.In(time.UTC), Group: "Outros", Headcount: 1}}
+
+	months := BuildStaffPanel(rows, []MonthlyActCount{{Type: ActNomeacao, Year: 2024, Month: time.January, Count: 115}})
+
+	if len(months) != 1 || months[0].Appointments != 115 || months[0].Headcount != 2 {
+		t.Fatalf("meses: %+v", months)
+	}
+}
