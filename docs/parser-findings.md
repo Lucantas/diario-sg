@@ -54,7 +54,8 @@ Efeitos colaterais do modo de leitura:
   SÃO GONÇALO / SECRETARIA ...` e linhas de `_____`).
 - Ocasionalmente um cabeçalho de ato **não sai** no texto (em 2024-03-15 o
   `DECRETO N.º 104/2024` está ausente; a ementa vem colada ao anexo do decreto
-  anterior). Sem OCR não há como recuperar.
+  anterior). O OCR não resolve: ele só lê página quase sem texto, e esta
+  página tem texto.
 
 ## Estrutura de uma edição
 
@@ -337,8 +338,11 @@ Amostra: 88 edições de 2020-11 a 2026-09, baixadas de
   Sem essa condição, os termos de prestação de contas de vereadores
   diferentes, que têm o mesmo título, virariam um ato só.
 - **PDF escaneado.** Muitas edições têm só o cabeçalho em texto e o corpo
-  em imagem (cerca de 170 caracteres por página). Ficam com zero atos,
-  porque o parser não faz OCR.
+  em imagem (cerca de 170 caracteres por página). Até 26/09/2026 ficavam
+  com zero atos; agora a página com menos de 200 letras e imagem cobrindo
+  ao menos 25% dela é lida pelo Tesseract. Das 73 escaneadas, todas
+  ganharam atos. O OCR põe ruído no cabeçalho ("D.0O.E"), e um decreto
+  legislativo que vem logo depois dele pode cair em `outro`.
 - **Backfill local (2020-10-04 a 2026-09-23):**
   - 984 edições, 4.824 atos e 1.896 ligações de entidades; nenhuma falha
     de coleta;

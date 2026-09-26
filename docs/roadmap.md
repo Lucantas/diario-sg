@@ -211,7 +211,15 @@ Pendências:
   009) antes do primeiro deploy com o job da Câmara, e rodar o backfill
   desde 2020-10-04 fora do agendamento (leva mais de uma hora; o job tem
   30 minutos).
-- [ ] OCR das edições escaneadas (8% das edições da Câmara).
+- [x] OCR das edições escaneadas (26/09/2026): página com menos de 200
+  letras e imagem cobrindo ao menos 25% dela é lida pelo Tesseract, e o ato
+  ganha o aviso "lido por OCR". No `reindex` local de 2010 a 2026 (5.286
+  edições, nenhuma falha): 854 atos lidos por OCR em 739 edições (227 atos
+  em 163 edições da Câmara, 627 em 576 da Prefeitura); a Câmara passou de
+  4.853 para 5.018 atos e a Prefeitura de 157.837 para 157.937, sem perda
+  em nenhum tipo nem órgão. Das 78 edições da Câmara sem atos, sobram as 5
+  com PDF em branco. Desenho em
+  `docs/superpowers/specs/2026-09-26-ocr-da-camara-design.md`.
 - [x] Agentes políticos e subsídios: ver Entrega 5.
 - [ ] SICAM (proposições): a API de busca recusa pedidos fora do site; ver
   Entrega 5.
