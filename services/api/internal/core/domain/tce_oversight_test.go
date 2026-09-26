@@ -46,7 +46,7 @@ func TestParseStalledWorksNormalizesTheCNPJ(t *testing.T) {
 }
 
 func TestTCEProcessSearchUsesTheDiarioSpelling(t *testing.T) {
-	if got := TCEProcessSearch("214824-1/2014"); got != `"214.824"` {
+	if got := TCEProcessSearch("214824-1/2014"); got != `"214.824" TCE` {
 		t.Fatalf("busca: %s", got)
 	}
 	if got := TCEProcessSearch("12/2020"); got != "" {
@@ -65,7 +65,7 @@ func TestGroupPenaltiesSumsByProcessNewestFirst(t *testing.T) {
 	got := GroupPenalties(penalties)
 
 	if len(got) != 2 || got[0].Process != "200783-6/2020" || got[1].TotalCents != 150 || len(got[1].Condemnations) != 2 ||
-		len(got[1].Organs) != 2 || len(got[1].Natures) != 1 || got[1].Search != `"200.473"` {
+		len(got[1].Organs) != 2 || len(got[1].Natures) != 1 || got[1].Search != `"200.473" TCE` {
 		t.Fatalf("processos: %+v", got)
 	}
 }

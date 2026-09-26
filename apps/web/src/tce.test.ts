@@ -3,7 +3,7 @@ import { condemnationsLabel, diarioSearchHref, stalledPeriod } from "./tce";
 
 describe("tce", () => {
   it("leva o número do processo para a busca", () => {
-    expect(diarioSearchHref('"214.824"')).toBe("/?q=%22214.824%22");
+    expect(diarioSearchHref('"214.824" TCE')).toBe("/?q=%22214.824%22+TCE");
   });
 
   it("conta as condenações", () => {

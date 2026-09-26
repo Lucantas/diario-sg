@@ -86,7 +86,7 @@ func TestOversightRouteAndCompanyPage(t *testing.T) {
 		} `json:"works"`
 	}
 	getJSON(t, srv.URL+"/v1/tce", &o)
-	if len(o.Accounts) != 2 || o.Accounts[0].Year != 2025 || len(o.Penalties) != 1 || o.Penalties[0].Search != `"214.824"` ||
+	if len(o.Accounts) != 2 || o.Accounts[0].Year != 2025 || len(o.Penalties) != 1 || o.Penalties[0].Search != `"214.824" TCE` ||
 		o.Penalties[0].TotalCents != 102050 || len(o.Penalties[0].Condemnations) != 2 || len(o.Works) != 1 {
 		t.Fatalf("TCE: %+v", o)
 	}

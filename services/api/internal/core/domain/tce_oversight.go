@@ -161,7 +161,7 @@ func TCEProcessSearch(process string) string {
 	if len(digits) <= 3 {
 		return ""
 	}
-	return fmt.Sprintf("%q", digits[:len(digits)-3]+"."+digits[len(digits)-3:])
+	return fmt.Sprintf("%q TCE", digits[:len(digits)-3]+"."+digits[len(digits)-3:])
 }
 
 type PenaltyProcess struct {
