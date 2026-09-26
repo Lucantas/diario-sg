@@ -2,15 +2,18 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
 type FederalReport struct {
-	Transfers  []domain.TransferTotal
-	Amendments []domain.Amendment
-	Favored    []domain.FavoredTotal
+	TransfersFrom *time.Time
+	TransfersTo   *time.Time
+	Transfers     []domain.TransferTotal
+	Amendments    []domain.Amendment
+	Favored       []domain.FavoredTotal
 }
 
 type GetFederal struct{ reader ports.FederalReader }
@@ -21,6 +24,9 @@ func (uc *GetFederal) Execute(ctx context.Context) (FederalReport, error) {
 	var r FederalReport
 	var err error
 	if r.Transfers, err = uc.reader.TransferTotals(ctx); err != nil {
+		return r, err
+	}
+	if r.TransfersFrom, r.TransfersTo, err = uc.reader.TransferMonths(ctx); err != nil {
 		return r, err
 	}
 	if r.Amendments, err = uc.reader.Amendments(ctx); err != nil {

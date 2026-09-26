@@ -94,6 +94,10 @@ func TestFederalRouteAndCompanyPage(t *testing.T) {
 	loadFederal(t, db)
 
 	var f struct {
+		Coverage *struct {
+			From string `json:"from"`
+			To   string `json:"to"`
+		} `json:"transfers_coverage"`
 		Transfers []struct {
 			Year       int   `json:"year"`
 			ValueCents int64 `json:"value_cents"`
@@ -108,7 +112,8 @@ func TestFederalRouteAndCompanyPage(t *testing.T) {
 		} `json:"favored"`
 	}
 	getJSON(t, srv.URL+"/v1/federal", &f)
-	if len(f.Transfers) != 2 || len(f.Amendments) != 1 || len(f.Favored) != 1 || f.Favored[0].CNPJ != fpVieira || f.Favored[0].First != "2026-01" {
+	if len(f.Transfers) != 2 || len(f.Amendments) != 1 || len(f.Favored) != 1 || f.Favored[0].CNPJ != fpVieira || f.Favored[0].First != "2026-01" ||
+		f.Coverage == nil || f.Coverage.From != "2026-01" || f.Coverage.To != "2026-01" {
 		t.Fatalf("federal: %+v", f)
 	}
 

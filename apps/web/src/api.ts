@@ -193,6 +193,7 @@ export interface AmendmentPayment {
 }
 
 export interface FederalReport {
+  transfers_coverage: { from: string; to: string } | null;
   transfers: { year: number; kind: string; function: string; value_cents: number }[];
   amendments: {
     code: string;

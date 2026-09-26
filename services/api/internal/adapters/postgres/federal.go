@@ -140,6 +140,14 @@ func (r *FederalRepo) AmendmentPaymentsByCNPJ(ctx context.Context, cnpj string) 
 	return r.payments(ctx, "WHERE cnpj = $1", cnpj)
 }
 
+func (r *FederalRepo) TransferMonths(ctx context.Context) (*time.Time, *time.Time, error) {
+	var from, to sql.NullTime
+	if err := r.db.QueryRowContext(ctx, `SELECT min(month), max(month) FROM federal_transfers`).Scan(&from, &to); err != nil || !from.Valid {
+		return nil, nil, err
+	}
+	return &from.Time, &to.Time, nil
+}
+
 func (r *FederalRepo) TransferTotals(ctx context.Context) ([]domain.TransferTotal, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT extract(year FROM month)::int, kind, function, sum(value_cents)
 		FROM federal_transfers GROUP BY 1, 2, 3 ORDER BY 1 DESC, 4 DESC`)

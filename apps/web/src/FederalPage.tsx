@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FederalReport, getFederal } from "./api";
 import { monthSpan, transferYears } from "./federal";
 import { formatCompactCents } from "./panels";
+import { coverageLabel } from "./payments";
 import { formatCents, formatCnpj } from "./types";
 
 const TOP_FAVORED = 30;
@@ -39,6 +40,7 @@ export function FederalPage() {
         <>
           <section className="totals" aria-labelledby="transfers-heading">
             <h2 id="transfers-heading" className="panel-heading">Transferências por ano</h2>
+            {data.transfers_coverage && <p className="count">Meses carregados: {coverageLabel(data.transfers_coverage)}.</p>}
             {data.transfers.length === 0 ? <p className="count">Nenhuma transferência carregada.</p> : (
               <table>
                 <thead><tr><th scope="col">Ano</th><th scope="col">Total</th><th scope="col">Por tipo</th></tr></thead>

@@ -203,6 +203,7 @@ type FederalReader interface {
 	Amendments(ctx context.Context) ([]domain.Amendment, error)
 	AmendmentPayments(ctx context.Context) ([]domain.AmendmentPayment, error)
 	TransferTotals(ctx context.Context) ([]domain.TransferTotal, error)
+	TransferMonths(ctx context.Context) (from, to *time.Time, err error)
 }
 
 type AmendmentPaymentReader interface {

@@ -46,9 +46,10 @@ type favoredDTO struct {
 }
 
 type federalDTO struct {
-	Transfers  []transferTotalDTO `json:"transfers"`
-	Amendments []amendmentDTO     `json:"amendments"`
-	Favored    []favoredDTO       `json:"favored"`
+	TransfersCoverage *paymentCoverageDTO `json:"transfers_coverage"`
+	Transfers         []transferTotalDTO  `json:"transfers"`
+	Amendments        []amendmentDTO      `json:"amendments"`
+	Favored           []favoredDTO        `json:"favored"`
 }
 
 const monthDTOLayout = "2006-01"
@@ -61,6 +62,9 @@ func (a *API) federal(w http.ResponseWriter, r *http.Request) {
 	}
 	out := federalDTO{Transfers: make([]transferTotalDTO, len(rep.Transfers)), Amendments: make([]amendmentDTO, len(rep.Amendments)),
 		Favored: make([]favoredDTO, len(rep.Favored))}
+	if rep.TransfersFrom != nil && rep.TransfersTo != nil {
+		out.TransfersCoverage = &paymentCoverageDTO{From: rep.TransfersFrom.Format(monthDTOLayout), To: rep.TransfersTo.Format(monthDTOLayout)}
+	}
 	for i, t := range rep.Transfers {
 		out.Transfers[i] = transferTotalDTO{Year: t.Year, Kind: t.Kind, Function: t.Function, ValueCents: t.ValueCents}
 	}
