@@ -92,3 +92,9 @@ variable "tce_schedule" {
   type        = string
   default     = "0 5 * * 0"
 }
+
+variable "pncp_schedule" {
+  description = "Cron da carga semanal dos contratos do município no PNCP, de 2021 ao ano corrente (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 6 * * 0"
+}
