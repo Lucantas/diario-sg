@@ -266,7 +266,8 @@ Ainda sem fonte externa.
     em R$ 1,30 bilhão. Depois de separar os atos colados, 1.298
     contratações de 900 empresas, R$ 834,1 milhões contratados e R$ 1,30
     bilhão em atas.
-  - [ ] Nome da empresa (Entrega 3).
+  - ✅ Nome da empresa (26/09/2026), pela razão social do cadastro da
+    Receita; CNPJ sem cadastro fica só com o número.
   - ✅ Aditivos e prorrogações (25/09/2026), em coluna própria por
     fornecedor, ano e secretaria, no ano em que foram publicados: a
     prorrogação de 12 meses ou mais conta o valor do novo período; o
@@ -346,6 +347,16 @@ outras fontes são registros estruturados. Registrar em ADR.
 - **Receita Federal — CNPJ (dados abertos).** Situação, data de abertura,
   CNAE, capital social, endereço, quadro de sócios. Carga mensal só dos CNPJs
   que aparecem no Diário.
+  ✅ (26/09/2026) Job `receita` (`make receita`), mensal no dia 20: lê os
+  zips do compartilhamento público da Receita por `Range`, guarda empresa,
+  estabelecimento e sócios só dos CNPJs citados e troca o mês numa
+  transação (ADR 0008). Na base local, o mês 2026-09 levou 83 minutos:
+  4.196 dos 4.394 CNPJs citados têm cadastro (4.196 dos 4.197 com dígito
+  verificador válido; os 197 inválidos são erros de digitação no Diário),
+  com 7.123 sócios; 735 dos estabelecimentos não estão ativos (375
+  inaptos, 334 baixados, 26 suspensos). A página da empresa, a ferramenta
+  `entidade` do MCP e os painéis mostram o cadastro e a razão social.
+  Desenho em `docs/superpowers/specs/2026-09-26-cadastro-da-receita-design.md`.
 - **CGU — CEIS, CNEP, CEPIM.** Sanções vigentes e históricas.
 - **Página da empresa** enriquecida com tudo acima.
 - **Novos padrões:** empresa aberta pouco antes do primeiro contrato; capital
@@ -354,6 +365,15 @@ outras fontes são registros estruturados. Registrar em ADR.
 - **ADR de LGPD** antes de publicar sócios: agentes políticos e secretários
   podem ter página própria; servidores são encontráveis na busca, sem perfil;
   sócios aparecem só dentro da página da empresa.
+
+Pendências:
+
+- [ ] Na nuvem: aplicar a migration 014 antes de rodar o job `receita`
+  (ele lê tudo por uma hora e só então grava; sem as tabelas, falha no
+  fim), aplicar o Terraform (job, agendamento e conta de serviço) e rodar
+  o job uma vez.
+- [ ] Sanções da CGU (CEIS e CNEP; o CEPIM respondeu 403 em 26/09/2026) e
+  os padrões novos, em specs próprias.
 
 ## Entrega 4 — Anunciado × pago
 

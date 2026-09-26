@@ -204,6 +204,24 @@ e guarda o PDF em `raw/diario_camara/AAAA/MM/DD/`. O evento
 da Câmara. Edições anteriores a 2020-10-04 não estão disponíveis por data
 e ficam de fora; os atos da Câmara não têm órgão.
 
+## Cadastro da Receita
+
+Todo dia 20, o job `receita` lê os dados abertos do CNPJ da Receita
+Federal (compartilhamento público do Nextcloud da Receita, por WebDAV) e
+guarda empresa, estabelecimento e sócios só dos CNPJs citados nos Diários
+(`rf_companies`, `rf_establishments`, `rf_partners`, ADR 0008). Os zips
+são lidos por `Range`, sem ir para o disco; a carga leva cerca de uma
+hora e troca o mês anterior numa transação. As linhas filtradas ficam em
+`raw/receita_cnpj/AAAA/MM/01/`, com um `manifest.json` de SHA-256. A
+página da empresa, a ferramenta `entidade` do MCP e os painéis mostram o
+cadastro; sócios só aparecem dentro da empresa (ADR 0006) e não entram no
+dump.
+
+```bash
+make receita                 # mês mais recente publicado pela Receita
+make receita MONTH=2026-09   # um mês específico
+```
+
 ## Entidades e coletas
 
 Cada CNPJ, processo e contrato citado num ato vira uma entidade

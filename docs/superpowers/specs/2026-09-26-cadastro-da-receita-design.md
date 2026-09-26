@@ -113,3 +113,16 @@ e plano próprios:
 
 **Pronto quando:** a página da empresa mostra o cadastro de pelo menos
 95% dos CNPJs válidos citados, e os painéis mostram o nome.
+
+## Depois da entrega
+
+- Carga local de 2026-09: 83 minutos, 4.196 de 4.394 CNPJs (4.196 de
+  4.197 com dígito verificador válido), 7.123 sócios. Na amostra de 20, a
+  razão social bate com o nome citado no Diário em 18; nas outras 2 o
+  trecho em volta do CNPJ não traz o nome.
+- A primeira carga local falhou no fim porque a migration 014 não estava
+  aplicada: a troca atômica funcionou (nada gravado), mas a hora de
+  leitura se perdeu. Na nuvem, a migration vai antes do job.
+- O SHA-256 guardado é o do CSV descompactado, num `manifest.json` ao lado
+  das extrações: o índice do zip fica no fim e a leitura por `Range` não
+  passa pelos bytes em ordem.
