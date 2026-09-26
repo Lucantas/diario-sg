@@ -48,8 +48,9 @@ export function PanelsPage() {
         Valor declarado nos extratos do Diário, não o que foi pago. Cada contratação (atos da mesma empresa ligados
         pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato. Ata de registro de preços é um
         teto e aparece à parte. Aditivos e prorrogações também aparecem à parte, no ano em que foram publicados: a
-        prorrogação conta o valor do novo período; o aditivo de acréscimo, o acréscimo em reais ou o percentual
-        declarado sobre o contratado; prorrogação "sem ônus", supressão e aditivo sem valor de acréscimo não somam.
+        prorrogação de 12 meses ou mais conta o valor do novo período; o aditivo de acréscimo, o acréscimo em reais ou
+        o percentual declarado sobre o contratado; prorrogação mais curta (que repete o valor global da obra),
+        prorrogação "sem ônus", supressão e aditivo sem valor de acréscimo não somam.
         Ficam de fora homologações (que trazem o valor do certame inteiro), editais, multas, cancelamentos e atos que
         citam mais de uma empresa. Confira sempre a edição original.
       </p>
