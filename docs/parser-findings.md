@@ -155,12 +155,10 @@ podem ficar no fim do ato anterior.
   Quando a sigla fica no pé da página, como `SEMED` na edição 1257, o
   rodapé e o cabeçalho removidos deixam três linhas em branco até o ato. O
   limite antigo, de duas linhas, perdia a seção.
-- `AUTORIZAÇÃO DA DESPESA E ADJUDICAÇÃO` ainda não abre ato. Em
-  30/07/2026, duas autorizações de dispensa da SMTC (processos 7405/2026 e
-  07537/2026, fornecedores diferentes) ficaram coladas no edital 023/2026
-  da SEMHAB, que ganhou o CNPJ, o valor e a modalidade delas. A regra de
-  fracionamento dos padrões contorna isso juntando os processos citados no
-  mesmo ato; corrigir o parser pede `make reindex`.
+- `AUTORIZAÇÃO DA DESPESA` abre ato. Em 30/07/2026, duas autorizações de
+  dispensa da SMTC (processos 7405/2026 e 07537/2026, fornecedores
+  diferentes) ficavam coladas no edital 023/2026 da SEMHAB, que ganhava o
+  CNPJ, o valor e a modalidade delas.
 
 ### Edições até abril de 2021
 
@@ -282,6 +280,18 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
     da lista de uma ata de registro de preços) e "EXTRATO BANCÁRIO" (quadro da
     prestação de contas). Antes, o total da ata ia parar num ato "EXTRATO DE
     TOMATE" e era contado como contrato.
+11. "ÇÂO" (erro de digitação da prefeitura, como em "HOMOLOGAÇÂO") vira
+    "ÇÃO" antes de reconhecer o cabeçalho e o tipo.
+12. Sigla de órgão conhecida seguida de um título em caixa alta que não é
+    palavra de cabeçalho ("SEMMA / DECISÃO DO SECRETÁRIO", "SMS /
+    INFORMATIVO CORONAVÍRUS") abre ato, desde que venha texto corrido nas
+    três linhas seguintes (uma com minúscula ou com 40 caracteres ou mais).
+    Sem esse texto, a sigla é célula de tabela ("SSM / DIRETOR DE DIVISAO")
+    e não separa nada.
+13. Segmento sem cabeçalho que é só um título em caixa alta de até três
+    linhas (o nome por extenso da secretaria entre a sigla e o primeiro ato)
+    ou só nome e cargo ("RODRIGO … / Secretário Municipal de Administração")
+    não vira ato.
 
 Os números do parser (atos por edição, % em `outro`, erros conhecidos) estão em
 `docs/fase-1-relatorio.md`.

@@ -170,3 +170,27 @@ Secretário Municipal De Administração`)
 		t.Fatalf("assinatura solta não vira ato: %+v", acts)
 	}
 }
+
+func TestEachExpenseAuthorizationIsItsOwnAct(t *testing.T) {
+	acts := New().Parse(`AUTORIZAÇÃO DA DESPESA E ADJUDICAÇÃO
+Processo nº 7405/2026
+Eu, Júlia Carvalho Silva Sobreira, Secretária Municipal de Turismo e
+Cultura, autorizo a contratação direta da empresa abaixo qualificada.
+Contratada: VITROS LIMPEZAS DE VIDROS
+Valor total: R$ 53.000,00 (cinquenta e três mil reais)
+JULIA SOBREIRA
+Secretária Municipal de Turismo e Cultura
+AUTORIZAÇÃO DA DESPESA E ADJUDICAÇÃO
+Processo nº 07537/2026
+Eu, Júlia Carvalho Silva Sobreira, Secretária Municipal de Turismo e
+Cultura, autorizo a contratação direta da empresa abaixo qualificada.
+Contratada: R R Cores de Minas Tintas e Acessórios Ltda.
+Valor total: R$ 63.232,50 (sessenta e três mil duzentos e trinta e dois reais)`)
+
+	if len(acts) != 2 {
+		t.Fatalf("cada autorização de despesa é um ato: %+v", acts)
+	}
+	if strings.Contains(acts[0].Body, "07537/2026") || !strings.Contains(acts[1].Body, "07537/2026") {
+		t.Errorf("o segundo processo ficou no primeiro ato: %q", acts[0].Body)
+	}
+}

@@ -23,6 +23,7 @@ var headerRes = []*regexp.Regexp{
 	regexp.MustCompile(`^NOTIFICAÇÃO\b`),
 	regexp.MustCompile(`^AUTO DE INFRAÇÃO\b`),
 	regexp.MustCompile(`^DESIGNAÇÃO DE FISCA(?:L|IS)\b`),
+	regexp.MustCompile(`^AUTORIZAÇÃO D[AE] DESPESA\b`),
 	regexp.MustCompile(`^CONTRATO\s+(?:DE\s+[A-ZÇÃÕÉ]+\s+)?(?:` + num + `\s*)?\d`),
 	regexp.MustCompile(`^(?:DISPENSA DE LICITAÇÃO|INEXIGIBILIDADE DE LICITAÇÃO|RATIFICAÇÃO|HOMOLOGAÇÃO|ADJUDICAÇÃO)\b`),
 	regexp.MustCompile(`^PREGÃO ELETRÔNICO\b`),
