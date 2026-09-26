@@ -13,6 +13,11 @@ const (
 	PatternElectionHiring   PatternID = "pico_pessoal_eleicao"
 	PatternExcessiveAddenda PatternID = "aditivo_acima_do_limite"
 	PatternRenewedEmergency PatternID = "emergencial_renovada"
+	PatternNewCompany       PatternID = "empresa_nova_contratada"
+	PatternUndercapitalized PatternID = "capital_menor_que_contrato"
+	PatternSharedPartner    PatternID = "socio_em_comum"
+	PatternSharedAddress    PatternID = "endereco_em_comum"
+	PatternSanctioned       PatternID = "sancionado_contratado"
 )
 
 type Pattern struct {
@@ -39,6 +44,14 @@ var dispensaCategoryLabel = map[DispensaCategory]string{DispensaGoods: "compras 
 var peakTypeLabel = map[ActType]string{ActNomeacao: "nomeação", ActExoneracao: "exoneração"}
 
 func PatternCatalog() map[PatternID]Pattern {
+	catalog := diarioPatterns()
+	for id, p := range supplierPatterns() {
+		catalog[id] = p
+	}
+	return catalog
+}
+
+func diarioPatterns() map[PatternID]Pattern {
 	return map[PatternID]Pattern{
 		PatternSplitDispensa: {
 			ID:    PatternSplitDispensa,

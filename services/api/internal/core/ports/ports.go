@@ -37,6 +37,12 @@ type PatternSource interface {
 	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)
 }
 
+type SupplierPatternSource interface {
+	PanelActs(ctx context.Context, source string) ([]domain.PanelAct, error)
+	SupplierProfiles(ctx context.Context) (map[string]domain.SupplierProfile, error)
+	AllSanctions(ctx context.Context) ([]domain.Sanction, error)
+}
+
 type PanelSource interface {
 	PanelActs(ctx context.Context, source string) ([]domain.PanelAct, error)
 	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)

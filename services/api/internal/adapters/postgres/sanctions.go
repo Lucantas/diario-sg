@@ -101,6 +101,10 @@ func (r *SanctionRepo) SanctionsByCNPJ(ctx context.Context, cnpj string) ([]doma
 		return nil, err
 	}
 	defer rows.Close()
+	return scanSanctions(rows)
+}
+
+func scanSanctions(rows *sql.Rows) ([]domain.Sanction, error) {
 	out := []domain.Sanction{}
 	for rows.Next() {
 		var s domain.Sanction

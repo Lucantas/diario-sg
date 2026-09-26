@@ -38,7 +38,7 @@ export function PatternsPage() {
           <p className="count">
             {casesLabel(p.findings.length)}
           </p>
-          {p.findings.map((f) => <FindingCard key={f.title} finding={f} />)}
+          {p.findings.map((f, i) => <FindingCard key={`${i}-${f.title}`} finding={f} />)}
         </section>
       ))}
     </main>

@@ -7,9 +7,14 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
-type ListPatterns struct{ src ports.PatternSource }
+type ListPatterns struct {
+	src       ports.PatternSource
+	suppliers ports.SupplierPatternSource
+}
 
-func NewListPatterns(src ports.PatternSource) *ListPatterns { return &ListPatterns{src: src} }
+func NewListPatterns(src ports.PatternSource, suppliers ports.SupplierPatternSource) *ListPatterns {
+	return &ListPatterns{src: src, suppliers: suppliers}
+}
 
 func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, map[string]domain.ActHit, error) {
 	catalog := domain.PatternCatalog()
@@ -52,6 +57,15 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 	for _, p := range domain.FindElectionPeaks(counts) {
 		peaks.Findings = append(peaks.Findings, domain.ElectionPeakFinding(p))
 	}
+	supplierReports, err := uc.supplierReports(ctx, catalog)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, rep := range supplierReports {
+		for _, f := range rep.Findings {
+			ids = append(ids, f.ActIDs...)
+		}
+	}
 	acts := map[string]domain.ActHit{}
 	if len(ids) > 0 {
 		hits, err := uc.src.HitsByIDs(ctx, ids)
@@ -62,5 +76,36 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 			acts[h.ID] = h
 		}
 	}
-	return []domain.PatternReport{split, excessive, renewed, peaks}, acts, nil
+	return append([]domain.PatternReport{split, excessive, renewed, peaks}, supplierReports...), acts, nil
+}
+
+func (uc *ListPatterns) supplierReports(ctx context.Context, catalog map[domain.PatternID]domain.Pattern) ([]domain.PatternReport, error) {
+	acts, err := uc.suppliers.PanelActs(ctx, domain.SourceDiarioPrefeitura)
+	if err != nil {
+		return nil, err
+	}
+	profiles, err := uc.suppliers.SupplierProfiles(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sanctions, err := uc.suppliers.AllSanctions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	contracts := domain.SupplierContracts(acts)
+	return []domain.PatternReport{
+		reportOf(catalog[domain.PatternNewCompany], domain.FindNewCompanyContracts(contracts, profiles), domain.NewCompanyFinding),
+		reportOf(catalog[domain.PatternUndercapitalized], domain.FindUndercapitalizedContracts(contracts, profiles), domain.UndercapitalizedFinding),
+		reportOf(catalog[domain.PatternSharedPartner], domain.FindSharedPartners(contracts, profiles), domain.SharedPartnerFinding),
+		reportOf(catalog[domain.PatternSharedAddress], domain.FindSharedAddresses(contracts, profiles), domain.SharedAddressFinding),
+		reportOf(catalog[domain.PatternSanctioned], domain.FindSanctionedContracts(contracts, profiles, sanctions), domain.SanctionedFinding),
+	}, nil
+}
+
+func reportOf[T any](p domain.Pattern, items []T, finding func(T) domain.Finding) domain.PatternReport {
+	rep := domain.PatternReport{Pattern: p, Findings: []domain.Finding{}}
+	for _, item := range items {
+		rep.Findings = append(rep.Findings, finding(item))
+	}
+	return rep
 }
