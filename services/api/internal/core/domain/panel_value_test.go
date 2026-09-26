@@ -53,21 +53,21 @@ func TestPanelValueRoleOf(t *testing.T) {
 		{"notificação", ActContrato, "EXTRATO DE NOTIFICAÇÃO", "EXTRATO DE NOTIFICAÇÃO Notificação 04/2014. A SECRETARIA MUNICIPAL", PanelValueNone},
 		{"aditivo", ActAditivo, "EXTRATO DO PRIMEIRO TERMO ADITIVO AO CONTRATO 010/SEMED/2025",
 			"EXTRATO DO PRIMEIRO TERMO ADITIVO AO CONTRATO 010/SEMED/2025 DO PREGÃO ELETRÔNICO PMSG-90013/2025. Processo: 7.717/2025.",
-			PanelValueNone},
+			PanelValueAmended},
 		{"aditivo com título de contrato", ActContrato, "CONTRATO N° 005/2019",
 			"CONTRATO N° 005/2019 PARTES: SECRETARIA MUNICIPAL DE SAÚDE E DEFESA CIVIL e SOBRAL LABORATÓRIOS DE ANÁLISES CLÍNICAS LTDA. OBJETO: O presente termo aditivo tem por objeto a prorrogação do contrato n° 005/2019",
-			PanelValueNone},
+			PanelValueAmended},
 		{"prorrogação com título de pregão", ActLicitacao, "PREGÃO ELETRÔNICO N° 016/2022",
 			"PREGÃO ELETRÔNICO N° 016/2022 PARTES: FUNDAÇÃO MUNICIPAL DE SAÚDE DE SÃO GONÇALO E A4PM ANALYTICS FOR PUBLIC MANAGEMENT LTDA. OBJETO: TERMO ADITIVO PARA PRORROGAR O PRAZO CONTRATUAL",
-			PanelValueNone},
+			PanelValueAmended},
 		{"prorrogação sem a palavra aditivo", ActContrato, "CONTRATO Nº 013/2019",
 			"CONTRATO Nº 013/2019 PARTES: MUNICÍPIO DE SÃO GONÇALO e OFTALMOCLÍNICA SÃO GONÇALO LTDA OBJETO: O presente tem por objeto prorrogar a vigência do contrato n°. 013/2019",
-			PanelValueNone},
+			PanelValueAmended},
 		{"termo de prorrogação", ActContrato, "EXTRATO DO 2º (SEGUNDO) TERMO DE PRORROGAÇÃO DE CONTRATO",
-			"EXTRATO DO 2º (SEGUNDO) TERMO DE PRORROGAÇÃO DE CONTRATO CHAMADA PÚBLICA N.º 001/2013", PanelValueNone},
+			"EXTRATO DO 2º (SEGUNDO) TERMO DE PRORROGAÇÃO DE CONTRATO CHAMADA PÚBLICA N.º 001/2013", PanelValueAmended},
 		{"prorrogação de ata", ActLicitacao, "EXTRATO DE PRORROGAÇÃO DA ATA DE REGISTRO DE PREÇOS.",
 			"EXTRATO DE PRORROGAÇÃO DA ATA DE REGISTRO DE PREÇOS. O MUNICÍPIO DE SÃO GONÇALO torna público o Extrato de Prorrogação da ATA DE REGISTRO DE PREÇOS Nº 002/SEMED/2025",
-			PanelValueNone},
+			PanelValueAmended},
 		{"rerratificação", ActDispensa, "EXTRATO DE RERRATIFICAÇÃO DE CONTRATO N.º 008/2022",
 			"EXTRATO DE RERRATIFICAÇÃO DE CONTRATO N.º 008/2022 PROCEDIMENTO ADMINISTRATIVO N.º 3090/2021", PanelValueNone},
 		{"retificação com onde se lê", ActContrato, "TERMO DE RERRATIFICAÇÃO AO CONTRATO",
@@ -79,7 +79,7 @@ func TestPanelValueRoleOf(t *testing.T) {
 			"EXTRATO DE REAJUSTE DE VALOR MENSAL DE CONTRATO DE LOCAÇÃO PROCEDIMENTO ADMINISTRATIVO Nº 28.909/14", PanelValueNone},
 		{"ata prorrogada", ActAta, "ATA DE REGISTRO DE PREÇOS Nº 02/FMS/2024.",
 			"ATA DE REGISTRO DE PREÇOS Nº 02/FMS/2024. VALOR GLOBAL DO CONTRATO: R$ 1.029.745,32, o qual correrá à conta da dotação orçamentária. PRAZO: Fica prorrogado por 12 (doze) meses o prazo",
-			PanelValueNone},
+			PanelValueAmended},
 		{"homologação revisada", ActLicitacao, "PREGÃO ELETRÔNICO - PMSG N.º 057/2020",
 			"PREGÃO ELETRÔNICO - PMSG N.º 057/2020 PROCESSO ADMINISTRATIVO N.º 18.171/2020 – PMSG Fica a homologação do Pregão Eletrônico", PanelValueNone},
 		{"homologo a licitação", ActLicitacao, "PREGÃO ELETRÔNICO Nº 046/2012",
@@ -131,6 +131,44 @@ func TestPanelValueRoleOf(t *testing.T) {
 	for _, c := range cases {
 		if got := PanelValueRoleOf(c.typ, c.title, c.head); got != c.want {
 			t.Errorf("%s: veio %d, esperava %d", c.name, got, c.want)
+		}
+	}
+}
+
+func TestAmendmentValueCents(t *testing.T) {
+	cases := []struct {
+		name            string
+		head            string
+		mainValue       int64
+		declaredBP      int
+		contractedCents int64
+		want            int64
+	}{
+		{"prorrogação vale o valor do novo período",
+			"PREGÃO ELETRÔNICO N° 016/2022 PARTES: FUNDAÇÃO MUNICIPAL DE SAÚDE E A4PM ANALYTICS FOR PUBLIC MANAGEMENT LTDA. OBJETO: TERMO ADITIVO PARA PRORROGAR O PRAZO CONTRATUAL PELO PERÍODO DE 12 (DOZE) MESES. VALOR TOTAL DO CONTRATO: R$ 10.439.280,00",
+			1043928000, 0, 1043928000, 1043928000},
+		{"prorrogação sem ônus não soma",
+			"EXTRATO DO SEGUNDO TERMO ADITIVO AO CONTRATO Nº 012/SEMDUR/2021. OBJETO: prorrogação do prazo de execução da obra por 180 dias, sem ônus para a Administração. VALOR GLOBAL: R$ 2.500.000,00",
+			250000000, 0, 250000000, 0},
+		{"prorrogação sem alteração de valor não soma",
+			"TERMO ADITIVO. OBJETO: prorrogação do prazo de vigência, sem alteração do valor contratual. Valor total: R$ 800.000,00",
+			80000000, 0, 80000000, 0},
+		{"acréscimo em reais vence o novo total",
+			"EXTRATO DO PRIMEIRO TERMO ADITIVO AO CONTRATO Nº 007/2015. OBJETO: acréscimo de R$ 150.000,00 ao valor contratado, passando o valor global a R$ 650.000,00",
+			65000000, 0, 50000000, 15000000},
+		{"percentual declarado sobre o contratado",
+			"EXTRATO DO PRIMEIRO TERMO ADITIVO AO CONTRATO FMS Nº 007/2015. OBJETO: acréscimo quantitativo equivalente a 20% do valor contratado. Valor global: R$ 1.200.000,00",
+			120000000, 2000, 100000000, 20000000},
+		{"aditivo de acréscimo sem percentual nem valor de acréscimo fica sem valor",
+			"EXTRATO DO TERCEIRO TERMO ADITIVO AO CONTRATO Nº 003/2024. OBJETO: alteração quantitativa. VALOR GLOBAL: R$ 62.860.061,00",
+			6286006100, 0, 0, 0},
+		{"supressão fica sem valor",
+			"Primeiro Termo Aditivo (Supressão de Valor) ao Contrato PMSG n° 006/15. VALOR: R$ 8.548.741,00",
+			854874100, 0, 900000000, 0},
+	}
+	for _, c := range cases {
+		if got := AmendmentValueCents(c.head, c.mainValue, c.declaredBP, c.contractedCents); got != c.want {
+			t.Errorf("%s: esperava %d, veio %d", c.name, c.want, got)
 		}
 	}
 }
