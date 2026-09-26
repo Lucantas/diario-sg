@@ -33,7 +33,7 @@ func pncpContract(year, seq int, cnpj string) domain.PNCPContract {
 	return domain.PNCPContract{ControlNumber: fmt.Sprintf("%s-2-%06d/%d", domain.MunicipalOrgCNPJs()[0], seq, year),
 		OrgCNPJ: domain.MunicipalOrgCNPJs()[0], UnitName: "SECRETARIA MUNICIPAL DE EDUCAÇÃO", Year: year, Sequence: seq, Kind: "Contrato",
 		Process: "1234/2025", Number: "10/2025", SupplierCNPJ: cnpj, SupplierName: "F.P. VIEIRA ENGENHARIA LTDA", Object: "OBRA",
-		ValueCents: 50000000, SignedAt: &signed}
+		ValueCents: 50000000, SignedAt: &signed, PublishedAt: &signed}
 }
 
 func loadPNCP(t *testing.T, db *sql.DB, api pncpAPI, from, to int) {
@@ -102,5 +102,23 @@ func TestPNCPContractsShowInTheCompanyPageAndInThePattern(t *testing.T) {
 	if last.ID != "pncp_sem_extrato" || len(last.Findings) != 1 || last.Findings[0].Link == nil ||
 		last.Findings[0].Link.URL != uncited.URL() {
 		t.Fatalf("padrão do PNCP: %+v", last)
+	}
+}
+
+func TestPNCPPartialLoadKeepsContractsPublishedInOtherYears(t *testing.T) {
+	_, db := newServerFor(t, semedHomologacao2025)
+	late := pncpContract(2024, 7, fpVieira)
+	published := time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)
+	late.PublishedAt = &published
+
+	loadPNCP(t, db, pncpAPI{2024: {pncpContract(2024, 1, fpVieira)}, 2025: {late}}, 2024, 2025)
+	loadPNCP(t, db, pncpAPI{2024: {pncpContract(2024, 1, fpVieira)}}, 2024, 2024)
+
+	got, err := postgres.NewPNCPRepo(db).PNCPContractsBySupplier(context.Background(), fpVieira)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("o contrato de 2024 publicado em 2025 sumiu: %+v", got)
 	}
 }

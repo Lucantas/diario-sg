@@ -25,14 +25,18 @@ func (r *PNCPRepo) ReplaceYears(ctx context.Context, from, to int, contracts []d
 		return err
 	}
 	defer func() { _ = tx.Rollback() }()
-	if _, err := tx.ExecContext(ctx, `DELETE FROM pncp_contracts WHERE year BETWEEN $1 AND $2`, from, to); err != nil {
+	if _, err := tx.ExecContext(ctx, `DELETE FROM pncp_contracts WHERE coalesce(extract(year FROM published_at)::int, year) BETWEEN $1 AND $2`, from, to); err != nil {
 		return err
 	}
 	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO pncp_contracts (control_number, org_cnpj, unit_name, year, sequence, kind, process, number, supplier_cnpj,
 			supplier_name, object, value_cents, signed_at, published_at, starts_at, ends_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-		ON CONFLICT (control_number) DO NOTHING`)
+		ON CONFLICT (control_number) DO UPDATE SET org_cnpj = excluded.org_cnpj, unit_name = excluded.unit_name, year = excluded.year,
+			sequence = excluded.sequence, kind = excluded.kind, process = excluded.process, number = excluded.number,
+			supplier_cnpj = excluded.supplier_cnpj, supplier_name = excluded.supplier_name, object = excluded.object,
+			value_cents = excluded.value_cents, signed_at = excluded.signed_at, published_at = excluded.published_at,
+			starts_at = excluded.starts_at, ends_at = excluded.ends_at`)
 	if err != nil {
 		return err
 	}
