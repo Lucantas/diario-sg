@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"slices"
+	"sort"
 	"strings"
 	"time"
 )
@@ -160,4 +162,50 @@ func TCEProcessSearch(process string) string {
 		return ""
 	}
 	return fmt.Sprintf("%q", digits[:len(digits)-3]+"."+digits[len(digits)-3:])
+}
+
+type PenaltyProcess struct {
+	Process       string
+	Search        string
+	Organs        []string
+	Natures       []string
+	Condemnations []TCEPenalty
+	TotalCents    int64
+	LastSession   *time.Time
+}
+
+func GroupPenalties(penalties []TCEPenalty) []PenaltyProcess {
+	index := map[string]int{}
+	var out []PenaltyProcess
+	for _, p := range penalties {
+		i, ok := index[p.Process]
+		if !ok {
+			i = len(out)
+			index[p.Process] = i
+			out = append(out, PenaltyProcess{Process: p.Process, Search: TCEProcessSearch(p.Process)})
+		}
+		g := &out[i]
+		g.Condemnations = append(g.Condemnations, p)
+		g.TotalCents += p.ValueCents
+		g.Organs = appendUnique(g.Organs, p.Organ)
+		g.Natures = appendUnique(g.Natures, p.Nature)
+		if p.SessionDate != nil && (g.LastSession == nil || p.SessionDate.After(*g.LastSession)) {
+			g.LastSession = p.SessionDate
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		a, b := out[i].LastSession, out[j].LastSession
+		if a == nil || b == nil {
+			return b == nil && a != nil
+		}
+		return a.After(*b)
+	})
+	return out
+}
+
+func appendUnique(list []string, s string) []string {
+	if s == "" || slices.Contains(list, s) {
+		return list
+	}
+	return append(list, s)
 }

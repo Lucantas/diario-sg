@@ -1,6 +1,9 @@
 package domain
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestParseTCEAccountsKeepsSaoGoncalo(t *testing.T) {
 	body := []byte(`[{"Municipio":"SÃO GONÇALO","Regiao":"Metropolitana","Ano":2024,"Indicador":"FAVORÁVEL","Processo":"213638-8/2025","Responsavel":"NOME DO PREFEITO"},` +
@@ -49,4 +52,28 @@ func TestTCEProcessSearchUsesTheDiarioSpelling(t *testing.T) {
 	if got := TCEProcessSearch("12/2020"); got != "" {
 		t.Fatalf("número curto: %s", got)
 	}
+}
+
+func TestGroupPenaltiesSumsByProcessNewestFirst(t *testing.T) {
+	older, newer := mustDay("2022-05-25"), mustDay("2025-04-07")
+	penalties := []TCEPenalty{
+		{Condemnation: "1-1", Process: "200473-0/2015", ValueCents: 100, Organ: "PREFEITURA", Nature: "PRESTAÇÃO DE CONTAS", SessionDate: older},
+		{Condemnation: "2-0", Process: "200783-6/2020", ValueCents: 5, Organ: "PREFEITURA", Nature: "DENÚNCIA", SessionDate: newer},
+		{Condemnation: "1-2", Process: "200473-0/2015", ValueCents: 50, Organ: "FMS", Nature: "PRESTAÇÃO DE CONTAS", SessionDate: older},
+	}
+
+	got := GroupPenalties(penalties)
+
+	if len(got) != 2 || got[0].Process != "200783-6/2020" || got[1].TotalCents != 150 || len(got[1].Condemnations) != 2 ||
+		len(got[1].Organs) != 2 || len(got[1].Natures) != 1 || got[1].Search != `"200.473"` {
+		t.Fatalf("processos: %+v", got)
+	}
+}
+
+func mustDay(s string) *time.Time {
+	d, err := tceDate(s)
+	if err != nil {
+		panic(err)
+	}
+	return d
 }

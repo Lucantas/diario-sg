@@ -31,6 +31,7 @@ type API struct {
 	Patterns      *usecase.ListPatterns
 	Panels        *usecase.GetSupplierPanel
 	Staff         *usecase.GetStaffPanel
+	Oversight     *usecase.GetOversight
 	Log           *slog.Logger
 }
 
@@ -62,6 +63,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/patterns", a.listPatterns)
 	mux.HandleFunc("GET /v1/panels/suppliers", a.supplierPanel)
 	mux.HandleFunc("GET /v1/panels/staff", a.staffPanel)
+	mux.HandleFunc("GET /v1/tce", a.oversight)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
 
 	mux.HandleFunc("POST /v1/reports", a.reportError(ratelimit.New(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))
@@ -116,8 +118,8 @@ func (a *API) getCompany(w http.ResponseWriter, r *http.Request) {
 		Registry: toRegistryDTO(report.Registry), RegistryMonth: registryMonthOf(report.RegistryMonth),
 		Sanctions: toSanctionDTOs(report.Sanctions, report.SanctionsListedOn, time.Now()), SanctionsListedOn: listedOnDTO(report.SanctionsListedOn),
 		Payments: toPaymentDTOs(report.Payments), PaymentsCoverage: toPaymentCoverageDTO(report.PaymentsCoverage),
-		PNCPContracts: toPNCPDTOs(report.PNCPContracts),
-		CountByType:   make(map[string]int, len(report.CountByType)), Acts: make([]actHitDTO, 0, len(report.Acts))}
+		PNCPContracts: toPNCPDTOs(report.PNCPContracts), StalledWorks: toStalledWorkDTOs(report.StalledWorks),
+		CountByType: make(map[string]int, len(report.CountByType)), Acts: make([]actHitDTO, 0, len(report.Acts))}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n
 	}

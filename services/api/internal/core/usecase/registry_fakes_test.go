@@ -58,6 +58,10 @@ func (f *fakeRegistry) PNCPContractsBySupplier(_ context.Context, cnpj string) (
 	return f.pncp[cnpj], nil
 }
 
+func (f *fakeRegistry) StalledWorksByCNPJ(context.Context, string) ([]domain.StalledWork, error) {
+	return nil, nil
+}
+
 func fakeSources(f *fakeRegistry) CompanySources {
-	return CompanySources{Registry: f, Sanctions: f, Payments: f, PNCP: f}
+	return CompanySources{Registry: f, Sanctions: f, Payments: f, PNCP: f, Works: f}
 }

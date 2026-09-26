@@ -99,6 +99,7 @@ type entityOutput struct {
 	Payments     []paymentYearDTO   `json:"pagamentos_tce,omitempty"`
 	PaymentsSpan string             `json:"pagamentos_tce_cobertura,omitempty"`
 	PNCP         []pncpContractDTO  `json:"contratos_pncp,omitempty"`
+	StalledWorks []stalledWorkDTO   `json:"obras_paralisadas_tce,omitempty"`
 	Organs       []organDTO         `json:"orgaos,omitempty"`
 	Related      []relatedEntityDTO `json:"citados_junto,omitempty"`
 	ByProcess    []processDTO       `json:"por_processo,omitempty"`
@@ -191,7 +192,8 @@ func (s *server) register(srv *sdk.Server) {
 		"pagamentos_tce (só CNPJ) traz, por ano, o empenhado, o liquidado e o pago à empresa segundo o TCE-RJ, com as unidades que pagaram; " +
 		"pagamentos_tce_cobertura diz o período carregado. O TCE não diz a que contrato cada pagamento se refere. " +
 		"contratos_pncp (só CNPJ) traz os contratos da empresa com o município registrados no PNCP (Lei 14.133), com o link de cada um; " +
-		"o município registra no PNCP só parte dos contratos, quase todos de 2024 em diante."},
+		"o município registra no PNCP só parte dos contratos, quase todos de 2024 em diante. " +
+		"obras_paralisadas_tce (só CNPJ) traz as obras da empresa que o TCE-RJ lista como paralisadas em São Gonçalo, com valor do contrato, valor pago e motivo."},
 		recorded(s, "entidade", s.entity))
 	sdk.AddTool(srv, &sdk.Tool{Name: "agrupar", Annotations: readOnly, Description: groupDescription},
 		recorded(s, "agrupar", s.group))
@@ -350,6 +352,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	out.Registry, out.NoRegistry = registryOf(report.Registry), registryAbsence(kind, report.Registry, report.RegistryMonth)
 	out.Payments, out.PaymentsSpan = paymentsOf(kind, report.Payments), paymentsCoverageOf(kind, report.PaymentsCoverage)
 	out.PNCP = pncpContractsOf(report.PNCPContracts)
+	out.StalledWorks = stalledWorksOf(report.StalledWorks)
 	out.Sanctions, out.SanctionsOn = sanctionsOf(kind, report.Sanctions, report.SanctionsListedOn, time.Now()), sanctionsConsulted(kind, report.SanctionsListedOn)
 	if kind == domain.EntityProcesso || kind == domain.EntityContrato {
 		out.Related = relatedOf(report.Related)

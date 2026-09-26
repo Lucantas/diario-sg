@@ -121,6 +121,7 @@ type companyResponse struct {
 	Payments          []paymentYearDTO    `json:"payments"`
 	PaymentsCoverage  *paymentCoverageDTO `json:"payments_coverage"`
 	PNCPContracts     []pncpContractDTO   `json:"pncp_contracts"`
+	StalledWorks      []stalledWorkDTO    `json:"stalled_works"`
 }
 
 type monthCountDTO struct {

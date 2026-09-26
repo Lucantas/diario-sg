@@ -78,6 +78,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), email.NewNotifier(&inbox{}, "https://web.exemplo")),
 		Patterns:      usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)),
 		Staff:         usecase.NewGetStaffPanel(postgres.NewStaffRepo(db), postgres.NewPatternRepo(db)),
+		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db)),
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)),
 		Keys:          keys, MCP: mcpHandler, Log: log}
 	srv := httptest.NewServer(api.Routes())
@@ -164,5 +165,5 @@ func TestSearchOperators(t *testing.T) {
 }
 
 func companySources(db *sql.DB) usecase.CompanySources {
-	return usecase.CompanySources{Registry: postgres.NewRegistryRepo(db), Sanctions: postgres.NewSanctionRepo(db), Payments: postgres.NewPaymentRepo(db), PNCP: postgres.NewPNCPRepo(db)}
+	return usecase.CompanySources{Registry: postgres.NewRegistryRepo(db), Sanctions: postgres.NewSanctionRepo(db), Payments: postgres.NewPaymentRepo(db), PNCP: postgres.NewPNCPRepo(db), Works: postgres.NewOversightRepo(db)}
 }

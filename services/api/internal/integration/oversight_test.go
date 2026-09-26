@@ -5,6 +5,7 @@ package integration
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -62,5 +63,43 @@ func TestOversightReplacesTheSetsAndLinksTheContractor(t *testing.T) {
 	}
 	if links != 1 {
 		t.Fatalf("ligações: %d", links)
+	}
+}
+
+func TestOversightRouteAndCompanyPage(t *testing.T) {
+	srv, db := newServerFor(t, semedHomologacao2025)
+	loadOversight(t, db, oversightFixture())
+
+	var o struct {
+		Accounts []struct {
+			Year    int    `json:"year"`
+			Opinion string `json:"opinion"`
+		} `json:"accounts"`
+		Penalties []struct {
+			Process       string            `json:"process"`
+			Search        string            `json:"search"`
+			TotalCents    int64             `json:"total_cents"`
+			Condemnations []json.RawMessage `json:"condemnations"`
+		} `json:"penalties"`
+		Works []struct {
+			CNPJ string `json:"cnpj"`
+		} `json:"works"`
+	}
+	getJSON(t, srv.URL+"/v1/tce", &o)
+	if len(o.Accounts) != 2 || o.Accounts[0].Year != 2025 || len(o.Penalties) != 1 || o.Penalties[0].Search != `"214.824"` ||
+		o.Penalties[0].TotalCents != 102050 || len(o.Penalties[0].Condemnations) != 2 || len(o.Works) != 1 {
+		t.Fatalf("TCE: %+v", o)
+	}
+
+	var company struct {
+		Works []struct {
+			Contract  string `json:"contract"`
+			PaidCents int64  `json:"paid_cents"`
+			StalledAt string `json:"stalled_at"`
+		} `json:"stalled_works"`
+	}
+	getJSON(t, srv.URL+"/v1/entities/cnpj/"+fpVieira, &company)
+	if len(company.Works) != 1 || company.Works[0].Contract != "025/2016" || company.Works[0].StalledAt != "2016-04-01" {
+		t.Fatalf("obras da empresa: %+v", company.Works)
 	}
 }

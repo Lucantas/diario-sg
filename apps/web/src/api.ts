@@ -148,6 +148,40 @@ export interface PNCPContract {
   ends_at: string | null;
 }
 
+export interface StalledWork {
+  contract: string;
+  cnpj: string;
+  contractor: string;
+  organ: string;
+  function: string;
+  total_cents: number;
+  paid_cents: number;
+  stalled_at: string | null;
+  started_at: string | null;
+  stalled_for: string;
+  reason: string;
+  contract_status: string;
+  funding: string;
+}
+
+export interface TCEOversight {
+  accounts: { year: number; opinion: string; process: string; responsible: string }[];
+  penalties: {
+    process: string;
+    search: string;
+    organs: string[];
+    natures: string[];
+    total_cents: number;
+    last_session: string | null;
+    condemnations: { condemnation: string; year: number; value_cents: number; organ: string; session_date: string | null }[];
+  }[];
+  works: StalledWork[];
+}
+
+export function getOversight() {
+  return request<TCEOversight>("/v1/tce");
+}
+
 export interface CompanyResponse {
   cnpj: string;
   total_value_cents: number;
@@ -160,6 +194,7 @@ export interface CompanyResponse {
   payments: PaymentYear[];
   payments_coverage: { from: string; to: string } | null;
   pncp_contracts: PNCPContract[];
+  stalled_works: StalledWork[];
 }
 
 export interface OrganCount {

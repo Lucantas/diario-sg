@@ -9,6 +9,7 @@ import { PanelsPage } from "./PanelsPage";
 import { PatternsPage } from "./PatternsPage";
 import { SearchPage } from "./SearchPage";
 import { StaffPage } from "./StaffPage";
+import { TCEPage } from "./TCEPage";
 
 export function App() {
   const path = window.location.pathname;
@@ -20,6 +21,7 @@ export function App() {
   if (path === "/padroes") return <PatternsPage />;
   if (path === "/paineis") return <PanelsPage />;
   if (path === "/pessoal") return <StaffPage />;
+  if (path === "/tce") return <TCEPage />;
   const entity = parseEntityPath(path);
   if (entity) return <EntityPage kind={entity.kind} slug={entity.slug} />;
   const company = path.match(/^\/empresa\/([\d./-]+)$/);

@@ -239,6 +239,7 @@ export function SearchPage() {
         <a href="/padroes">Padrões para verificar</a>
         <a href="/paineis">Maiores fornecedores</a>
         <a href="/pessoal">Pessoal</a>
+        <a href="/tce">TCE-RJ</a>
       </footer>
     </main>
   );

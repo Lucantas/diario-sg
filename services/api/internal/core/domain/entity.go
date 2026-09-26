@@ -25,6 +25,7 @@ type CompanyFacts struct {
 	Payments          []PaymentYear
 	PaymentsCoverage  *PaymentCoverage
 	PNCPContracts     []PNCPContract
+	StalledWorks      []StalledWork
 }
 
 type CompanyReport struct {

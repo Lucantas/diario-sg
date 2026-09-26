@@ -12,6 +12,7 @@ type CompanySources struct {
 	Sanctions ports.SanctionReader
 	Payments  ports.PaymentReader
 	PNCP      ports.PNCPReader
+	Works     ports.StalledWorkReader
 }
 
 func (s CompanySources) factsOf(ctx context.Context, cnpj string) (domain.CompanyFacts, error) {
@@ -35,6 +36,9 @@ func (s CompanySources) factsOf(ctx context.Context, cnpj string) (domain.Compan
 	if f.PaymentsCoverage, err = s.Payments.PaymentsCoverage(ctx); err != nil {
 		return f, err
 	}
-	f.PNCPContracts, err = s.PNCP.PNCPContractsBySupplier(ctx, cnpj)
+	if f.PNCPContracts, err = s.PNCP.PNCPContractsBySupplier(ctx, cnpj); err != nil {
+		return f, err
+	}
+	f.StalledWorks, err = s.Works.StalledWorksByCNPJ(ctx, cnpj)
 	return f, err
 }

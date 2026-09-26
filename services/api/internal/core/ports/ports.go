@@ -199,6 +199,9 @@ type OversightRepository interface {
 
 type OversightReader interface {
 	Oversight(ctx context.Context) (domain.TCEOversight, error)
+}
+
+type StalledWorkReader interface {
 	StalledWorksByCNPJ(ctx context.Context, cnpj string) ([]domain.StalledWork, error)
 }
 
