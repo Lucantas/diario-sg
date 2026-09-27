@@ -39,3 +39,17 @@ de 10%", "decide aplicar a sanção de multa à empresa…").
 - Lista de todas as punições da cidade: a ligação é por CNPJ, e ato
   sem CNPJ (TERMO DE ADVERTÊNCIA sem número, por exemplo) não entra.
 - Valor da multa: o ato traz, e a página mostra o ato.
+
+## Depois da entrega
+
+- Na base local: 96 CNPJs com ato candidato, 23 punições classificadas em
+  21 empresas (14 advertências, 9 multas; nenhuma suspensão, impedimento
+  ou inidoneidade publicada com CNPJ).
+- Com o verbo no infinitivo ("aplicar", "impor"), a decisão só conta com
+  "resolve", "decide" ou "decido" logo antes: assim a portaria que dá à
+  comissão de monitoramento a competência de "aplicar penalidade de
+  advertência" não vira punição, e "RESOLVE: Art. 1º - Aplicar a
+  penalidade de Advertência à FUNDAÇÃO BIO RIO" vira.
+- Um "EXTRATO DE ADVERTÊNCIA" saiu colado ao fim do ato anterior (um
+  aditivo de locação de 2014). A punição aparece com o título do aditivo;
+  a página avisa. Corrigir a segmentação é trabalho do parser.

@@ -554,9 +554,13 @@ com entrega ou com o bloqueio conferido e registrado.
   (3.471 leis, 35 complementares, 8 da Lei Orgânica, 12.942 decretos). A
   ligação de cada ato às normas que cita ficou de fora (pediria mudar o
   parser e reindexar); a ferramenta devolve a busca pronta no Diário.
-- [ ] Punições aplicadas pela Prefeitura e publicadas no Diário
-  (advertência, multa, suspensão, inidoneidade): extração própria, porque
-  o CEIS não tem nenhuma (riscos do plano).
+- [x] Punições aplicadas pela Prefeitura e publicadas no Diário
+  (advertência, multa, suspensão, impedimento, inidoneidade): lidas na
+  consulta, do título e da decisão dos atos ligados ao CNPJ, sem
+  reindexar; a empresa mostra `diario_sanctions` e o MCP
+  `punicoes_diario`. Na base local, 23 punições em 21 empresas (14
+  advertências, 9 multas). A lista "empresas penalizadas" do portal da
+  Prefeitura volta vazia.
 - [ ] MCP `pagamentos`: empenhos filtrados por credor, órgão e período,
   com totais.
 - [ ] MCP `contratacoes`: contratações do Diário, do PNCP e do mural por
