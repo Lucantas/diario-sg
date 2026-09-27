@@ -145,13 +145,13 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca; com `entity`, o link do canal é a página da entidade |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/gazettes/{id}/pdf` | Cópia arquivada do PDF (`ETag` = SHA-256; abra com `#page=N`) |
-| GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos; `registry` (Receita), `sanctions` (CGU), `payments` (TCE-RJ) e `pncp_contracts` (contratos no PNCP, com `url`) |
+| GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos; `registry` (Receita), `sanctions` (CGU), `payments` (TCE-RJ), `pncp_contracts` (contratos no PNCP, com `url`) e `municipal_commitments` (empenhos do portal da Prefeitura: `years`, com empenhos, empenhado e pago por ano, e `recent`, os 50 mais recentes com processo, modalidade e objeto) |
 | GET | `/v1/entities/processo/{n}` e `/v1/entities/contrato/{n}` | Atos ligados ao número (os 300 mais recentes), do mais recente ao mais antigo e, na mesma edição, na ordem da página; `n` aceita `-` no lugar de `/` (`30-FMS-2011`). Resposta com `label` (grafia mais frequente no Diário), `count_by_phase` (fase de cada ato, calculada na leitura), `organs` (contagem por órgão, com as variantes de sigla somadas na principal e `""` para os atos sem órgão) e `related` (citados junto, até 20 de cada tipo, pelos que têm mais atos: processo lista contratos e CNPJs, contrato lista processos e CNPJs); tipo desconhecido é 404, número inválido é 400 |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
 | GET | `/v1/patterns` | Padrões para verificar (os 13 de `/padroes`: os do Diário, como fracionamento de dispensa e aditivo acima do limite; os do fornecedor, com o cadastro da Receita e as sanções da CGU; os de anunciado × pago, com os empenhos do TCE-RJ; e o de contrato no PNCP sem extrato), calculados na leitura: cada padrão com `id`, `title`, `rule` (a regra por extenso), `caveat` e `findings` (`title`, `detail`, `acts` no formato da busca, `search`, com `type`, `from`, `to` e `source` quando os atos são muitos para listar, e `link`, com `label` e `url`, quando o caso aponta para fora, como um contrato no PNCP) |
 | GET | `/v1/panels/suppliers` | Maiores fornecedores pelo valor declarado nos extratos, calculados na leitura. `year`, `organ` e `source` (padrão `diario_prefeitura`) filtram. Cada contratação (atos do mesmo CNPJ ligados pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato; ata de registro de preços sem contrato vai para `registered_cents`; aditivos, homologações, multas, sanções, notificações, cancelamentos e atos com mais de um fornecedor ficam de fora. Traz `items` (50 primeiros, com `largest`, o ato de maior valor no formato da busca), `years` (respeita `organ`) e `organs` (respeita `year`) |
 | GET | `/v1/panels/staff?unit=` | Vínculos e remuneração por mês e grupo de situação funcional, informados pelo município ao TCE-RJ (de 2024 em diante), com as nomeações e exonerações do Diário no mês (`diario_source` diz qual). Traz `units`, `groups` (na ordem das colunas) e `months` (do mais recente ao mais antigo); unidade desconhecida é 400 |
-| GET | `/v1/tce` | Controle do TCE-RJ sobre São Gonçalo: `accounts` (parecer prévio por exercício), `penalties` (débitos e multas agrupados por processo do TCE, com `search`, a busca do número no Diário) `works` (obras paralisadas) e `fiscal_control` (por exercício, o total do RREO no SICONFI ao lado dos empenhos do TCE-RJ, com `paid_coverage_bp`, `tce_loaded` e `low_coverage`); `/v1/entities/cnpj/{cnpj}` traz as obras da empresa em `stalled_works` |
+| GET | `/v1/tce` | Controle do TCE-RJ sobre São Gonçalo: `accounts` (parecer prévio por exercício), `penalties` (débitos e multas agrupados por processo do TCE, com `search`, a busca do número no Diário), `works` (obras paralisadas) e `fiscal_control` (por exercício, o total do RREO no SICONFI ao lado dos empenhos do TCE-RJ, com `paid_coverage_bp`, `tce_loaded`, `low_coverage` e `portal_paid_cents`, o pago no portal da Prefeitura); `/v1/entities/cnpj/{cnpj}` traz as obras da empresa em `stalled_works` |
 | GET | `/v1/agentes?role=&q=` | Agentes políticos: `agents` (órgão, cargo, nome, lotações, partido e nome parlamentar do vereador, primeiro e último mês e `months` com bruto, descontos e líquido), `norms` (subsídio fixado, com a busca da norma no Diário) e `coverage` (meses carregados de cada folha); `role` (`prefeito`, `vice_prefeito`, `secretario`, `procurador_geral`, `vereador`) e `q` (parte do nome, do nome parlamentar ou da lotação) filtram |
 | GET | `/v1/federal` | Dinheiro federal: `transfers` (soma por ano, tipo e função, com `transfers_coverage`, os meses carregados), `amendments` (emendas com aplicação em São Gonçalo) `favored` (pessoas jurídicas de São Gonçalo que receberam pagamento de emenda, somadas por CNPJ) e `special_transfers` (transferências especiais do Transferegov: autor, objeto, situação, pago, última ordem bancária e relatório de gestão); `/v1/entities/cnpj/{cnpj}` traz os pagamentos à empresa em `amendment_payments` |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
@@ -292,7 +292,7 @@ mostram o pago ao lado do contratado.
 
 ```bash
 make tce                     # ano anterior e corrente
-make tce FROM=2020 TO=2026   # carga completa
+make tce FROM=2017 TO=2026   # carga completa
 ```
 
 O mesmo job carrega, depois dos empenhos, os agregados de pessoal que o
@@ -305,10 +305,21 @@ município (parecer prévio das contas de governo, débitos e multas e obras
 paralisadas) em `tce_accounts`, `tce_penalties` e `tce_stalled_works`,
 mostrados em `/tce`.
 
+Depois vêm os empenhos do portal da transparência da Prefeitura
+(`sistema.pmsg.rj.gov.br/portal-transparencia/api/`), do mesmo período:
+para cada ano e cada uma das 29 entidades (Prefeitura, fundações, fundos,
+SG-PREVI, Câmara), o empenho com o favorecido, o objeto, o número do
+processo, a modalidade e o empenhado, liquidado e pago acumulados, em
+`municipal_commitments`, e os totais de cada entidade no ano em
+`municipal_totals`. Só entram favorecidos com CNPJ; os totais incluem os
+de pessoa física. O portal vai de 2017 em diante (`make tce FROM=2017`
+carrega tudo; os empenhos do TCE-RJ começam em 2020 e os do pessoal em
+2024, e o job pula os anos anteriores de cada um). A página da empresa mostra os empenhos do portal.
+
 O último passo baixa do SICONFI (Tesouro Nacional) o Anexo 01 do RREO de
 cada ano desde 2017, no bimestre mais recente publicado, e guarda o total
 empenhado, liquidado e pago que a Prefeitura declarou em `fiscal_totals`.
-A página `/tce` põe esse total ao lado da soma dos empenhos do TCE-RJ e
+A página `/tce` põe esse total ao lado do pago no portal e da soma dos empenhos do TCE-RJ e
 marca como incompleto o ano fechado em que o TCE cobre menos de 90% do
 pago: nesses anos, os totais por credor ficam abaixo do real.
 

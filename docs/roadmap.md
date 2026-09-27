@@ -515,7 +515,7 @@ Pendências:
 
 - [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
 - [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
-- [ ] Na nuvem: migrations 019 a 026 e o Terraform dos jobs `federal` e
+- [ ] Na nuvem: migrations 019 a 027 e o Terraform dos jobs `federal` e
   `agentes`.
 
 ## Fechamento do plano de fontes
@@ -534,10 +534,16 @@ com entrega ou com o bloqueio conferido e registrado.
   município (etapa F, tabelas `special_transfers` e
   `special_transfer_executors`, seção em `/federal`). 8 planos de 2022 a
   2024, R$ 5,57 mi pagos, o mesmo total da CGU.
-- [ ] Portal antigo da Prefeitura (portaltp), 2017 a 2022: empenho,
-  liquidação e pagamento por favorecido (etapa E, tabela `expenses`).
-- [ ] Portal novo da Prefeitura (Embras/SIAPEGOV): descobrir se a API
-  pública traz os empenhos de 2023 em diante (etapa E).
+- [x] Portal antigo da Prefeitura (portaltp), 2017 a 2022: coberto pelo
+  portal novo, que tem os mesmos anos. O portaltp em si ficou de fora: o
+  WAF responde 403 ao User-Agent do projeto (`diario-sg-bot/…`) e ao do
+  curl e 200 a um User-Agent genérico (conferido em 27/09/2026), e
+  trocar o User-Agent para passar seria contornar a regra.
+- [x] Portal novo da Prefeitura (Embras/SIAPEGOV): a API pública
+  (`/portal-transparencia/api/execucao/empenhos/empenhos`) traz os
+  empenhos de 2017 a 2026 das 29 entidades, com CNPJ, objeto, processo e
+  modalidade; carregados em `municipal_commitments` pelo job `tce` e
+  mostrados na página da empresa e no total de controle.
 - [ ] Mural de licitações e contratos da Prefeitura (etapa E, tabela
   `procurements`).
 - [ ] Consulta de leis (SIAPEGOV) e a entidade `norma` (tabela `laws`).

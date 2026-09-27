@@ -59,3 +59,22 @@ portal novo para 2023 em diante.
 - Ligar o processo do empenho ao processo do Diário: o portal dá número
   e ano sem o prefixo do órgão nem o dígito; a ligação fica para a
   ferramenta `pagamentos` do MCP.
+
+## Depois da entrega
+
+- Carga real de 2017 a 2026: 42.641 empenhos com CNPJ em 5 minutos e meio.
+  O pago do portal (somando os totais das entidades) fica perto do RREO em
+  todos os anos: 2024, portal R$ 2,88 bi, RREO R$ 2,84 bi, TCE-RJ R$ 2,54
+  bi; 2025, R$ 2,57 bi, R$ 2,54 bi e R$ 2,21 bi.
+- O SG-PREVI repete em 2017 o mesmo empenho em duas linhas iguais, só com
+  o objeto diferente (uma é a inscrição em restos a pagar). A carga fica
+  com a primeira e conta as outras em `skipped` (9 na carga real).
+- Os empenhos do TCE-RJ passaram a pular os anos antes de 2020, como o
+  pessoal já fazia com os anteriores a 2024, para `make tce FROM=2017`
+  carregar o portal inteiro sem falhar no passo do TCE.
+- A página da empresa mostra os 10 empenhos mais recentes; a API devolve
+  50.
+- Objetos de sentença judicial (RPV) citam o nome do autor da ação. É o
+  texto que a Prefeitura publica, como nos atos do Diário; CPF não entra.
+- `empresas_penalizadas` do portal volta vazio para todas as entidades
+  (conferido em 27/09/2026): a Prefeitura não publica ali as punições.
