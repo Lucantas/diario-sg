@@ -74,7 +74,8 @@ func NewCompanyFinding(n NewCompanyContract) Finding {
 		Title: fmt.Sprintf("%s: primeira contratação %d dias depois da abertura", supplierLabel(n.Profile), n.Days),
 		Detail: fmt.Sprintf("Aberta em %s; primeira contratação publicada em %s, de %s%s.", n.Profile.OpenedAt.Format("02/01/2006"),
 			n.Contract.First.Format("02/01/2006"), FormatBRL(contractValueCents(n.Contract)), organsSuffix(n.Contract.Organs)),
-		ActIDs: []string{n.Contract.ActID},
+		ActIDs:   []string{n.Contract.ActID},
+		Entities: cnpjMentions(n.Profile.CNPJ),
 	}
 }
 
@@ -86,7 +87,8 @@ func UndercapitalizedFinding(u UndercapitalizedContract) Finding {
 		Detail: fmt.Sprintf("O valor é %s vezes o capital (%s). Contratação publicada em %s%s.",
 			strings.Replace(fmt.Sprintf("%.1f", times), ".", ",", 1), u.Profile.LegalNature,
 			u.Contract.First.Format("02/01/2006"), organsSuffix(u.Contract.Organs)),
-		ActIDs: []string{u.Contract.ActID},
+		ActIDs:   []string{u.Contract.ActID},
+		Entities: cnpjMentions(u.Profile.CNPJ),
 	}
 }
 
@@ -109,15 +111,23 @@ func SharedPartnerFinding(g SharedSupplierGroup) Finding {
 	if len(named) > 0 {
 		who = append(who, "sócio pessoa jurídica "+joinPortuguese(named))
 	}
-	f := Finding{Title: fmt.Sprintf("%s: %s em comum", groupNames(g), joinPortuguese(who))}
+	f := Finding{Title: fmt.Sprintf("%s: %s em comum", groupNames(g), joinPortuguese(who)), Entities: groupMentions(g)}
 	f.Detail, f.ActIDs = groupDetail(g)
 	return f
 }
 
 func SharedAddressFinding(g SharedSupplierGroup) Finding {
-	f := Finding{Title: fmt.Sprintf("%s: mesmo endereço, %s", groupNames(g), g.Address)}
+	f := Finding{Title: fmt.Sprintf("%s: mesmo endereço, %s", groupNames(g), g.Address), Entities: groupMentions(g)}
 	f.Detail, f.ActIDs = groupDetail(g)
 	return f
+}
+
+func groupMentions(g SharedSupplierGroup) []EntityMention {
+	var out []EntityMention
+	for _, s := range g.Suppliers {
+		out = append(out, cnpjMentions(s.CNPJ)...)
+	}
+	return out
 }
 
 func groupNames(g SharedSupplierGroup) string {
@@ -172,8 +182,9 @@ func SanctionedFinding(s SanctionedContract) Finding {
 	return Finding{
 		Title: fmt.Sprintf("%s: contratação de %s publicada em %s durante sanção", supplierLabel(s.Profile),
 			FormatBRL(contractValueCents(s.Contract)), s.Contract.First.Format("02/01/2006")),
-		Detail: strings.Join(parts, " "),
-		ActIDs: []string{s.Contract.ActID},
+		Detail:   strings.Join(parts, " "),
+		ActIDs:   []string{s.Contract.ActID},
+		Entities: cnpjMentions(s.Profile.CNPJ),
 	}
 }
 

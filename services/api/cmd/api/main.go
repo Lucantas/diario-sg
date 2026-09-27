@@ -56,10 +56,11 @@ func run(l *slog.Logger) error {
 	search := usecase.NewSearchActs(acts)
 	company := usecase.NewGetCompany(acts, sources)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
+	patterns := usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db))
 	webURL := strings.TrimRight(cfg.PublicWebURL, "/")
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
 		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
-		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Keys: keys, PublicWebURL: cfg.PublicWebURL,
+		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Patterns: patterns, Keys: keys, PublicWebURL: cfg.PublicWebURL,
 		MetadataURL: webURL + "/.well-known/oauth-protected-resource/api/mcp", Log: l})
 
 	api := &httpapi.API{
@@ -68,7 +69,7 @@ func run(l *slog.Logger) error {
 		Company:       company,
 		Entity:        entity,
 		Stats:         usecase.NewActStats(acts),
-		Patterns:      usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)),
+		Patterns:      patterns,
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), registry, payments),
 		Staff:         usecase.NewGetStaffPanel(postgres.NewStaffRepo(db), postgres.NewPatternRepo(db)),
 		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db)),

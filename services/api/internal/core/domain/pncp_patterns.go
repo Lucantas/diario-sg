@@ -99,8 +99,17 @@ func PNCPWithoutExtractFinding(p PNCPWithoutExtract) Finding {
 		detail += ". Processo " + c.Process
 	}
 	return Finding{
-		Title:  fmt.Sprintf("%s: contrato de %s assinado em %s", supplierLabel(p.Profile), FormatBRL(c.ValueCents), signed),
-		Detail: detail + ".",
-		Link:   &FindingLink{Label: "Ver o contrato no PNCP", URL: c.URL()},
+		Title:    fmt.Sprintf("%s: contrato de %s assinado em %s", supplierLabel(p.Profile), FormatBRL(c.ValueCents), signed),
+		Detail:   detail + ".",
+		Entities: pncpMentions(c),
+		Link:     &FindingLink{Label: "Ver o contrato no PNCP", URL: c.URL()},
 	}
+}
+
+func pncpMentions(c PNCPContract) []EntityMention {
+	out := cnpjMentions(c.SupplierCNPJ)
+	if key := c.ProcessKey(); key != "" {
+		out = append(out, EntityMention{Kind: EntityProcesso, Key: key, Label: c.Process})
+	}
+	return out
 }

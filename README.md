@@ -210,7 +210,14 @@ e por padrão deixa os CNPJs de órgãos públicos de fora), `pagina_original`
 que o parser leu), `fontes`
 (período coberto, última coleta e lacunas de cada diário) e
 `agentes_politicos` (prefeito, vice, secretários, Procurador-Geral e
-vereadores com a remuneração mês a mês e o subsídio fixado em lei). `buscar_atos` e
+vereadores com a remuneração mês a mês e o subsídio fixado em lei) e
+`padroes` (os padrões para verificar de `/padroes`: sem argumentos, o
+catálogo com o número de achados; com `padrao`, os achados daquele
+padrão; com `cnpj`, `processo` ou `contrato`, só os achados que citam a
+entidade, com a mesma chave de `entidade`; cada achado traz as entidades e
+os atos que o acionaram). Dois prompts prontos encadeiam as ferramentas:
+`investigar_fornecedor` (CNPJ) e `seguir_contrato` (processo ou
+contrato). `buscar_atos` e
 `agrupar` aceitam `modalidade`, `valor_principal_min`/`valor_principal_max`
 e `nome` (pessoa ou empresa com as palavras juntas, sem as listas longas de
 nomes, a menos que venha `incluir_listas`);

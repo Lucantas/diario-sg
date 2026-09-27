@@ -24,6 +24,7 @@ type EmergencyAct struct {
 type EmergencyContract struct {
 	First  time.Time
 	ActIDs []string
+	Refs   []string
 }
 
 type RenewedEmergency struct {
@@ -123,6 +124,7 @@ func emergencyContracts(acts []EmergencyAct, aliases map[string]string) []emerge
 		suppliers := map[string]emergencySupplier{}
 		for _, i := range members {
 			c.ActIDs = append(c.ActIDs, acts[i].ActID)
+			c.Refs = append(c.Refs, acts[i].Refs...)
 			if c.organ == "" {
 				c.organ = PrincipalOrgan(acts[i].Organ)
 			}

@@ -46,8 +46,9 @@ func PaidWithoutPublicationFinding(p PaidWithoutPublication) Finding {
 	return Finding{
 		Title: fmt.Sprintf("%s: %s pagos de %s sem nenhuma citação no Diário", supplierLabel(p.Profile), FormatBRL(p.Paid.PaidCents),
 			paymentYearsLabel(p.Paid.Years)),
-		Detail: "Unidades que pagaram: " + strings.Join(p.Paid.Units, "; ") + ".",
-		Link:   nameSearchLink(p.Profile.Name),
+		Detail:   "Unidades que pagaram: " + strings.Join(p.Paid.Units, "; ") + ".",
+		Entities: cnpjMentions(p.Profile.CNPJ),
+		Link:     nameSearchLink(p.Profile.Name),
 	}
 }
 
@@ -64,8 +65,9 @@ func UnpaidContractFinding(u UnpaidContract) Finding {
 	return Finding{
 		Title: fmt.Sprintf("%s: contratação de %s publicada em %s, sem pagamento em %d nem em %d", supplierLabel(u.Profile),
 			FormatBRL(u.Contract.ContractedCents), u.Contract.First.Format("02/01/2006"), u.Contract.First.Year(), next),
-		Detail: "Órgão no Diário: " + orEmptyLabel(strings.Join(u.Contract.Organs, ", ")) + ".",
-		ActIDs: []string{u.Contract.ActID},
+		Detail:   "Órgão no Diário: " + orEmptyLabel(strings.Join(u.Contract.Organs, ", ")) + ".",
+		ActIDs:   []string{u.Contract.ActID},
+		Entities: cnpjMentions(u.Profile.CNPJ),
 	}
 }
 
@@ -73,7 +75,8 @@ func PaidAboveAnnouncedFinding(p PaidAboveAnnounced) Finding {
 	f := Finding{
 		Title: fmt.Sprintf("%s: %s pagos de %s, contra %s anunciados no Diário", supplierLabel(p.Profile), FormatBRL(p.Paid.PaidCents),
 			paymentYearsLabel(p.Paid.Years), FormatBRL(p.AnnouncedCents)),
-		Detail: fmt.Sprintf("%s no Diário. Unidades que pagaram: %s.", contractsCount(len(p.Contracts)), strings.Join(p.Paid.Units, "; ")),
+		Detail:   fmt.Sprintf("%s no Diário. Unidades que pagaram: %s.", contractsCount(len(p.Contracts)), strings.Join(p.Paid.Units, "; ")),
+		Entities: cnpjMentions(p.Profile.CNPJ),
 	}
 	for _, c := range p.Contracts {
 		f.ActIDs = append(f.ActIDs, c.ActID)

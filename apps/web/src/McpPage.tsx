@@ -9,6 +9,7 @@ const TOOLS: [string, string][] = [
   ["agrupar", "conta os atos encontrados por CNPJ, processo, órgão ou tipo, sem os CNPJs de órgãos públicos"],
   ["pagina_original", "texto cru de uma página do PDF arquivado, para conferir o que foi extraído"],
   ["fontes", "período coberto, última coleta e lacunas conhecidas"],
+  ["padroes", "padrões para verificar (fracionamento, aditivo acima do limite, pago sem publicação…), filtrados por CNPJ, processo ou contrato"],
   ["agentes_politicos", "prefeito, vice, secretários, Procurador-Geral e vereadores, com a remuneração mês a mês"],
 ];
 

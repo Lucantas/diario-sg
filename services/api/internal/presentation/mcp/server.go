@@ -42,6 +42,7 @@ type Deps struct {
 	Page         *usecase.ReadPage
 	Coverage     *usecase.SourceCoverage
 	Agents       *usecase.GetPoliticalAgents
+	Patterns     *usecase.ListPatterns
 	Keys         *usecase.APIKeys
 	PublicWebURL string
 	MetadataURL  string
@@ -57,6 +58,7 @@ type server struct {
 	readPage        *usecase.ReadPage
 	sourceCoverage  *usecase.SourceCoverage
 	politicalAgents *usecase.GetPoliticalAgents
+	listPatterns    *usecase.ListPatterns
 	keys            *usecase.APIKeys
 	webURL          string
 	log             *slog.Logger
@@ -66,17 +68,23 @@ type server struct {
 	covered    []domain.Coverage
 	coveredAt  time.Time
 	hasCovered bool
+
+	patternsMu    sync.Mutex
+	patternsCache patternsSnapshot
+	patternsErr   error
+	patternsRun   chan struct{}
 }
 
 func NewHandler(d Deps) http.Handler {
 	if d.Now == nil {
 		d.Now = time.Now
 	}
-	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, politicalAgents: d.Agents, keys: d.Keys,
+	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, politicalAgents: d.Agents, listPatterns: d.Patterns, keys: d.Keys,
 		webURL: strings.TrimRight(d.PublicWebURL, "/"), log: d.Log, now: d.Now}
 	srv := sdk.NewServer(&sdk.Implementation{Name: "diario-sg", Title: "Diário SG", Version: "0.1.0", WebsiteURL: s.webURL},
 		&sdk.ServerOptions{Instructions: instructions, Logger: d.Log})
 	s.register(srv)
+	registerPrompts(srv)
 	h := sdk.NewStreamableHTTPHandler(func(*http.Request) *sdk.Server { return srv },
 		&sdk.StreamableHTTPOptions{Stateless: true, JSONResponse: true, Logger: d.Log})
 	limiter := ratelimit.New(callsPerKey, callsPerInstance, time.Minute, d.Now)

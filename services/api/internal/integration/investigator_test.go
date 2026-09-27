@@ -70,6 +70,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)), Group: usecase.NewGroupActs(acts),
 		Page: usecase.NewReadPage(gaz, stringStore(text), singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
 		Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), PublicWebURL: "https://web.exemplo",
+		Patterns:    usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)),
 		MetadataURL: "https://web.exemplo/.well-known/oauth-protected-resource/api/mcp", Log: log})
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
 		Gazette: usecase.NewGetGazette(gaz, acts), Reports: usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),

@@ -29,11 +29,45 @@ type Pattern struct {
 }
 
 type Finding struct {
-	Title  string
-	Detail string
-	ActIDs []string
-	Search *ActFilter
-	Link   *FindingLink
+	Title    string
+	Detail   string
+	ActIDs   []string
+	Entities []EntityMention
+	Search   *ActFilter
+	Link     *FindingLink
+}
+
+func (f Finding) Mentions(kind EntityKind, key string) bool {
+	for _, e := range f.Entities {
+		if e.Kind == kind && e.Key == key {
+			return true
+		}
+	}
+	return false
+}
+
+func cnpjMentions(cnpjs ...string) []EntityMention {
+	var out []EntityMention
+	for _, c := range cnpjs {
+		if n, ok := NormalizeCNPJ(c); ok {
+			out = append(out, EntityMention{Kind: EntityCNPJ, Key: n, Label: FormatCNPJ(n)})
+		}
+	}
+	return out
+}
+
+func refMentions(refs []string) []EntityMention {
+	var out []EntityMention
+	seen := map[string]bool{}
+	for _, ref := range refs {
+		kind, key, ok := strings.Cut(ref, ":")
+		if !ok || key == "" || seen[ref] || (EntityKind(kind) != EntityProcesso && EntityKind(kind) != EntityContrato) {
+			continue
+		}
+		seen[ref] = true
+		out = append(out, EntityMention{Kind: EntityKind(kind), Key: key, Label: EntityLabel(EntityKind(kind), key)})
+	}
+	return out
 }
 
 type FindingLink struct {
@@ -118,11 +152,17 @@ func diarioPatterns() map[PatternID]Pattern {
 
 func SplitDispensaFinding(s SplitDispensa) Finding {
 	f := Finding{Title: fmt.Sprintf("CNPJ %s em %d: %d dispensas de %s somam %s, acima do limite de %s",
-		FormatCNPJ(s.CNPJ), s.Year, len(s.Contracts), dispensaCategoryLabel[s.Category], FormatBRL(s.TotalCents), FormatBRL(s.LimitCents))}
+		FormatCNPJ(s.CNPJ), s.Year, len(s.Contracts), dispensaCategoryLabel[s.Category], FormatBRL(s.TotalCents), FormatBRL(s.LimitCents)),
+		Entities: cnpjMentions(s.CNPJ)}
 	parts := make([]string, 0, len(s.Contracts))
 	for _, c := range s.Contracts {
 		parts = append(parts, contractSummary(c))
 		f.ActIDs = append(f.ActIDs, c.ActIDs...)
+		for _, p := range c.Processes {
+			if !f.Mentions(EntityProcesso, p.Key) {
+				f.Entities = append(f.Entities, EntityMention{Kind: EntityProcesso, Key: p.Key, Label: p.Label})
+			}
+		}
 	}
 	f.Detail = strings.Join(parts, " ")
 	return f
@@ -163,7 +203,8 @@ var ordinalLabels = [...]string{"", "Primeiro", "Segundo", "Terceiro", "Quarto",
 
 func ExcessiveAddendumFinding(e ExcessiveAddendum) Finding {
 	f := Finding{Title: fmt.Sprintf("Contrato %s%s: aditivos somam %s de acréscimo, acima do limite de %s",
-		e.ContractKey, organSuffix(e.Organ), FormatPercentBP(e.TotalBP), FormatPercentBP(e.LimitBP))}
+		e.ContractKey, organSuffix(e.Organ), FormatPercentBP(e.TotalBP), FormatPercentBP(e.LimitBP)),
+		Entities: []EntityMention{{Kind: EntityContrato, Key: e.ContractKey, Label: e.ContractKey}}}
 	parts := make([]string, 0, len(e.Acts))
 	for _, a := range e.Acts {
 		label := "Aditivo"
@@ -181,6 +222,14 @@ func RenewedEmergencyFinding(r RenewedEmergency) Finding {
 	first, last := r.Contracts[0].First, r.Contracts[len(r.Contracts)-1].First
 	f := Finding{Title: fmt.Sprintf("%s%s: %d contratações emergenciais seguidas, de %s a %s",
 		r.SupplierLabel, organInSuffix(r.Organ), len(r.Contracts), first.Format("02/01/2006"), last.Format("02/01/2006"))}
+	if cnpj, ok := strings.CutPrefix(r.Supplier, cnpjSupplierPrefix); ok {
+		f.Entities = cnpjMentions(cnpj)
+	}
+	var refs []string
+	for _, c := range r.Contracts {
+		refs = append(refs, c.Refs...)
+	}
+	f.Entities = append(f.Entities, refMentions(refs)...)
 	dates := make([]string, 0, len(r.Contracts))
 	for _, c := range r.Contracts {
 		dates = append(dates, c.First.Format("02/01/2006"))
