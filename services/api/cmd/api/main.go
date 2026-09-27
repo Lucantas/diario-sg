@@ -51,7 +51,7 @@ func run(l *slog.Logger) error {
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
 
 	registry, payments := postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)
-	sources := usecase.CompanySources{Registry: registry, Sanctions: postgres.NewSanctionRepo(db), Payments: payments, PNCP: postgres.NewPNCPRepo(db), Works: postgres.NewOversightRepo(db), Federal: postgres.NewFederalRepo(db), Municipal: postgres.NewMunicipalCommitmentRepo(db), Mural: postgres.NewProcurementRepo(db)}
+	sources := usecase.CompanySources{Registry: registry, Sanctions: postgres.NewSanctionRepo(db), Payments: payments, PNCP: postgres.NewPNCPRepo(db), Works: postgres.NewOversightRepo(db), Federal: postgres.NewFederalRepo(db), Municipal: postgres.NewMunicipalCommitmentRepo(db), Mural: postgres.NewProcurementRepo(db), Punished: postgres.NewDiarioSanctionRepo(db)}
 	entity := usecase.NewGetEntity(postgres.NewLinkRepo(db), sources)
 	search := usecase.NewSearchActs(acts)
 	company := usecase.NewGetCompany(acts, sources)

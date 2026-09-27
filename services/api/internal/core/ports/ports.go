@@ -215,6 +215,11 @@ type FederalReader interface {
 	TransferMonths(ctx context.Context) (from, to *time.Time, err error)
 }
 
+type DiarioSanctionReader interface {
+	SanctionCandidatesByCNPJ(ctx context.Context, cnpj string) ([]domain.SanctionCandidate, error)
+	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)
+}
+
 type NormSource interface {
 	Norms(ctx context.Context, category string) ([]byte, error)
 	BaseURL() string

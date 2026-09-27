@@ -91,3 +91,16 @@ func toMuralDTO(m domain.MuralMatches) muralDTO {
 	}
 	return out
 }
+
+type diarioSanctionDTO struct {
+	Kind domain.DiarioSanctionKind `json:"kind"`
+	Act  actHitDTO                 `json:"act"`
+}
+
+func toDiarioSanctionDTOs(sanctions []domain.DiarioSanction) []diarioSanctionDTO {
+	out := make([]diarioSanctionDTO, len(sanctions))
+	for i, s := range sanctions {
+		out[i] = diarioSanctionDTO{Kind: s.Kind, Act: toHitDTO(s.Act)}
+	}
+	return out
+}

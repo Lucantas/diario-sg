@@ -293,7 +293,10 @@ export interface CompanyResponse {
   amendment_payments: AmendmentPayment[];
   municipal_commitments: MunicipalSupplier;
   procurements: MuralMatches;
+  diario_sanctions: { kind: DiarioSanctionKind; act: ActHit }[];
 }
+
+export type DiarioSanctionKind = "advertencia" | "multa" | "suspensao" | "impedimento" | "inidoneidade";
 
 export interface MuralMatches {
   procurements: {

@@ -29,6 +29,7 @@ type CompanyFacts struct {
 	AmendmentPayments []AmendmentPayment
 	Municipal         MunicipalSupplier
 	Mural             MuralMatches
+	DiarioSanctions   []DiarioSanction
 }
 
 type CompanyReport struct {

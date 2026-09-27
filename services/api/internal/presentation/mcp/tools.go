@@ -82,36 +82,37 @@ type entityInput struct {
 }
 
 type entityOutput struct {
-	Kind         string                `json:"tipo"`
-	Key          string                `json:"chave"`
-	Label        string                `json:"rotulo,omitempty"`
-	PublicBody   string                `json:"orgao_publico,omitempty"`
-	Certainty    string                `json:"certeza,omitempty"`
-	Warning      string                `json:"aviso,omitempty"`
-	TotalActs    int                   `json:"total_atos"`
-	TotalCents   int64                 `json:"soma_valores_centavos"`
-	CountByType  map[string]int        `json:"atos_por_tipo"`
-	CountByPhase map[string]int        `json:"atos_por_fase,omitempty"`
-	Registry     *registryDTO          `json:"cadastro_receita,omitempty"`
-	NoRegistry   string                `json:"cadastro_receita_ausente,omitempty"`
-	Sanctions    []sanctionDTO         `json:"sancoes_cgu,omitempty"`
-	SanctionsOn  map[string]string     `json:"sancoes_cgu_consultadas_em,omitempty"`
-	Payments     []paymentYearDTO      `json:"pagamentos_tce,omitempty"`
-	PaymentsSpan string                `json:"pagamentos_tce_cobertura,omitempty"`
-	PNCP         []pncpContractDTO     `json:"contratos_pncp,omitempty"`
-	StalledWorks []stalledWorkDTO      `json:"obras_paralisadas_tce,omitempty"`
-	Amendments   []amendmentPaymentDTO `json:"emendas_pagas_cgu,omitempty"`
-	Municipal    *municipalSupplierDTO `json:"empenhos_portal_prefeitura,omitempty"`
-	Mural        *muralOfDTO           `json:"mural_licitacoes,omitempty"`
-	Organs       []organDTO            `json:"orgaos,omitempty"`
-	Related      []relatedEntityDTO    `json:"citados_junto,omitempty"`
-	ByProcess    []processDTO          `json:"por_processo,omitempty"`
-	ProcessSum   int64                 `json:"soma_maior_valor_por_processo_centavos,omitempty"`
-	ProcessTotal int                   `json:"processos_total,omitempty"`
-	NoProcess    int                   `json:"atos_sem_processo,omitempty"`
-	Acts         []actSummaryDTO       `json:"atos_recentes"`
-	Coverage     []coverageDTO         `json:"cobertura"`
-	Alerts       []string              `json:"alertas_coleta,omitempty"`
+	Kind         string                 `json:"tipo"`
+	Key          string                 `json:"chave"`
+	Label        string                 `json:"rotulo,omitempty"`
+	PublicBody   string                 `json:"orgao_publico,omitempty"`
+	Certainty    string                 `json:"certeza,omitempty"`
+	Warning      string                 `json:"aviso,omitempty"`
+	TotalActs    int                    `json:"total_atos"`
+	TotalCents   int64                  `json:"soma_valores_centavos"`
+	CountByType  map[string]int         `json:"atos_por_tipo"`
+	CountByPhase map[string]int         `json:"atos_por_fase,omitempty"`
+	Registry     *registryDTO           `json:"cadastro_receita,omitempty"`
+	NoRegistry   string                 `json:"cadastro_receita_ausente,omitempty"`
+	Sanctions    []sanctionDTO          `json:"sancoes_cgu,omitempty"`
+	SanctionsOn  map[string]string      `json:"sancoes_cgu_consultadas_em,omitempty"`
+	Payments     []paymentYearDTO       `json:"pagamentos_tce,omitempty"`
+	PaymentsSpan string                 `json:"pagamentos_tce_cobertura,omitempty"`
+	PNCP         []pncpContractDTO      `json:"contratos_pncp,omitempty"`
+	StalledWorks []stalledWorkDTO       `json:"obras_paralisadas_tce,omitempty"`
+	Amendments   []amendmentPaymentDTO  `json:"emendas_pagas_cgu,omitempty"`
+	Municipal    *municipalSupplierDTO  `json:"empenhos_portal_prefeitura,omitempty"`
+	Mural        *muralOfDTO            `json:"mural_licitacoes,omitempty"`
+	Punishments  []diarioSanctionOutDTO `json:"punicoes_diario,omitempty"`
+	Organs       []organDTO             `json:"orgaos,omitempty"`
+	Related      []relatedEntityDTO     `json:"citados_junto,omitempty"`
+	ByProcess    []processDTO           `json:"por_processo,omitempty"`
+	ProcessSum   int64                  `json:"soma_maior_valor_por_processo_centavos,omitempty"`
+	ProcessTotal int                    `json:"processos_total,omitempty"`
+	NoProcess    int                    `json:"atos_sem_processo,omitempty"`
+	Acts         []actSummaryDTO        `json:"atos_recentes"`
+	Coverage     []coverageDTO          `json:"cobertura"`
+	Alerts       []string               `json:"alertas_coleta,omitempty"`
 }
 
 type organDTO struct {
@@ -199,6 +200,8 @@ func (s *server) register(srv *sdk.Server) {
 		"por ano, e os 10 mais recentes com processo, modalidade e objeto; é mais completo que o TCE-RJ e diz o processo de cada empenho. " +
 		"mural_licitacoes (só CNPJ) traz as licitações e os contratos do mural da Prefeitura com o mesmo processo desses empenhos, com o link do documento; " +
 		"a ligação é pelo número do processo, sem o órgão, então confira fornecedor e objeto. " +
+		"punicoes_diario (só CNPJ) traz as punições que a Prefeitura ou a Câmara publicaram no Diário contra a empresa (advertência, multa, suspensão, " +
+		"impedimento ou inidoneidade), lidas do título e da decisão do ato; o CEIS da CGU não tem nenhuma sanção aplicada pelo município. " +
 		"contratos_pncp (só CNPJ) traz os contratos da empresa com o município registrados no PNCP (Lei 14.133), com o link de cada um; " +
 		"o município registra no PNCP só parte dos contratos, quase todos de 2024 em diante. " +
 		"obras_paralisadas_tce (só CNPJ) traz as obras da empresa que o TCE-RJ lista como paralisadas em São Gonçalo, com valor do contrato, valor pago e motivo. " +
@@ -377,6 +380,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	out.Amendments = amendmentPaymentsOf(report.AmendmentPayments)
 	out.Municipal = municipalOf(report.Municipal)
 	out.Mural = muralOf(report.Mural)
+	out.Punishments = s.diarioSanctionsOf(report.DiarioSanctions)
 	out.Sanctions, out.SanctionsOn = sanctionsOf(kind, report.Sanctions, report.SanctionsListedOn, time.Now()), sanctionsConsulted(kind, report.SanctionsListedOn)
 	if kind == domain.EntityProcesso || kind == domain.EntityContrato {
 		out.Related = relatedOf(report.Related)

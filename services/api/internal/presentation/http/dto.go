@@ -125,6 +125,7 @@ type companyResponse struct {
 	AmendmentPayments []amendmentPaymentDTO `json:"amendment_payments"`
 	Municipal         municipalSupplierDTO  `json:"municipal_commitments"`
 	Mural             muralDTO              `json:"procurements"`
+	DiarioSanctions   []diarioSanctionDTO   `json:"diario_sanctions"`
 }
 
 type monthCountDTO struct {

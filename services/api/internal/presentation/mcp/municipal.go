@@ -91,3 +91,26 @@ func muralOf(m domain.MuralMatches) *muralOfDTO {
 	}
 	return out
 }
+
+type diarioSanctionOutDTO struct {
+	Tipo      string `json:"tipo"`
+	GazetteID string `json:"edicao_id"`
+	Position  int    `json:"posicao"`
+	Diario    string `json:"diario"`
+	Date      string `json:"data"`
+	Pages     string `json:"paginas"`
+	Title     string `json:"titulo"`
+	URL       string `json:"url"`
+	Archived  string `json:"copia_arquivada"`
+}
+
+func (s *server) diarioSanctionsOf(sanctions []domain.DiarioSanction) []diarioSanctionOutDTO {
+	out := make([]diarioSanctionOutDTO, len(sanctions))
+	for i, sn := range sanctions {
+		h := sn.Act
+		src := sourceOf(citableHit(h), s.webURL)
+		out[i] = diarioSanctionOutDTO{Tipo: string(sn.Kind), GazetteID: h.GazetteID, Position: h.Position, Diario: domain.SourceOrDefault(h.Source),
+			Date: h.PublishedAt.Format(time.DateOnly), Pages: pageRange(h.PageStart, h.PageEnd), Title: h.Title, URL: src.URL, Archived: src.ArchivedCopy}
+	}
+	return out
+}

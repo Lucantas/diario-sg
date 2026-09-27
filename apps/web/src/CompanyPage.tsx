@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActType, CompanyResponse, getCompany } from "./api";
 import { Result } from "./components";
+import { DiarioSanctionsSection } from "./DiarioSanctionsSection";
 import { EntityAlert } from "./EntityAlert";
 import { RegistrySection } from "./RegistrySection";
 import { MunicipalCommitmentsSection } from "./MunicipalCommitmentsSection";
@@ -39,6 +40,7 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
         <>
           <RegistrySection registry={data.registry} month={data.registry_month} />
           <SanctionsSection cnpj={data.cnpj} sanctions={data.sanctions} listedOn={data.sanctions_listed_on} />
+          <DiarioSanctionsSection sanctions={data.diario_sanctions} />
           <PaymentsSection payments={data.payments} coverage={data.payments_coverage} />
           <MunicipalCommitmentsSection supplier={data.municipal_commitments} />
           <MuralSection mural={data.procurements} />
