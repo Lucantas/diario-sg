@@ -515,7 +515,7 @@ Pendências:
 
 - [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
 - [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
-- [ ] Na nuvem: migrations 019 a 028 e o Terraform dos jobs `federal` e
+- [ ] Na nuvem: migrations 019 a 029 e o Terraform dos jobs `federal` e
   `agentes`.
 
 ## Fechamento do plano de fontes
@@ -549,7 +549,11 @@ com entrega ou com o bloqueio conferido e registrado.
   licitações, dispensas e inexigibilidades e 645 contratos e atas, com
   o link do documento. Sem CNPJ; a empresa vê as linhas com o processo
   de algum empenho dela no portal (492 dos 645 contratos casam).
-- [ ] Consulta de leis (SIAPEGOV) e a entidade `norma` (tabela `laws`).
+- [x] Consulta de leis (SIAPEGOV) e a entidade `norma` (tabela `norms`,
+  job `agentes`, `GET /v1/norms` e ferramenta `norma`): 16.456 normas
+  (3.471 leis, 35 complementares, 8 da Lei Orgânica, 12.942 decretos). A
+  ligação de cada ato às normas que cita ficou de fora (pediria mudar o
+  parser e reindexar); a ferramenta devolve a busca pronta no Diário.
 - [ ] Punições aplicadas pela Prefeitura e publicadas no Diário
   (advertência, multa, suspensão, inidoneidade): extração própria, porque
   o CEIS não tem nenhuma (riscos do plano).

@@ -44,3 +44,14 @@ leis, 5 decretos).
 - Ligar cada ato do Diário às normas que ele cita (mudaria o parser e
   pediria reindexação); a ferramenta devolve a busca pronta.
 - Página no site.
+
+## Depois da entrega
+
+- Carga real: 16.469 linhas em 31 segundos; 16.456 gravadas, 10
+  repetidas e 3 com ano ilegível (`245/202`, `442/221`, `107/019`).
+- O número pode ter letra (`057/1955 A` e `B` são normas diferentes) e
+  caracteres de controle (`1561/2025\x1f`): a letra vira `suffix`, parte
+  da chave, e os controles saem.
+- A busca usa a configuração `portuguese_unaccent`, a mesma dos atos:
+  "subsidio" acha "SUBSÍDIOS".
+- A página chega em ISO-8859-1 e o adaptador converte para UTF-8.
