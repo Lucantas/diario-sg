@@ -68,6 +68,6 @@ que encadeiam as ferramentas.
 - Na base local: o primeiro cálculo leva ~5 s; o catálogo tem ~65 KB (o
   SDK manda o JSON como texto e como conteúdo estruturado) e a busca por
   um CNPJ, ~3 KB.
-- `go test -race` nos testes de integração acusa uma corrida dentro do
-  `lib/pq` (`CopyIn`), no teste de agentes políticos; não é deste código e
-  fica anotada no roadmap.
+- `go test -race` nos testes de integração acusou uma corrida no `COPY`
+  das cargas (rollback com o `COPY` aberto), corrigida à parte; ver o
+  roadmap.

@@ -180,9 +180,11 @@ Pendências:
   carregar as entidades de que trata. Na base local, o primeiro cálculo
   leva ~5 s e fica 10 minutos em cache. Desenho em
   `docs/superpowers/specs/2026-09-27-padroes-no-mcp-design.md`.
-- [ ] `go test -race` nos testes de integração acusa uma corrida dentro do
-  `lib/pq` v1.10.9 (`CopyIn`, usado pela carga de agentes e outras);
-  avaliar trocar por `pgx` ou atualizar o driver.
+- [x] Corrida no `COPY` (resolvido em 27/09/2026): `go test -race` acusava
+  corrida dentro do `lib/pq` quando uma carga falhava no meio do `COPY` e o
+  rollback rodava com o `COPY` aberto. O `COPY` agora é fechado antes do
+  rollback em todas as cargas, a validação dos agentes vem antes dele, e o
+  driver foi para a v1.12.3. Os testes de integração passam com `-race`.
 - [ ] Na nuvem: migration 024 e a imagem nova do web (o nginx passa a
   encaminhar `/.well-known/` para a API) antes de anunciar o conector.
 - [ ] Limites por IP: usam o primeiro valor de `X-Forwarded-For`, que quem
