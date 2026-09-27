@@ -93,3 +93,38 @@ recurso, `expires_at`). Códigos vencidos são apagados a cada código novo.
   uma URL qualquer; claude.ai e ChatGPT fazem registro dinâmico.
 - Escopos, refresh token e token que expira: a chave é uma só, de leitura.
 - Conta de usuário.
+
+## Depois da entrega
+
+- **Endereço de retorno.** Além de `https` e loopback, vale esquema de
+  aplicativo (`cursor://…`, `com.exemplo.app:/…`), porque o Cursor volta
+  por `cursor://`. Ficam de fora `javascript`, `data`, `file`, `intent`,
+  `search-ms` e outros esquemas do navegador ou do sistema, e host fora do
+  ASCII (evita domínio parecido com outro na página de consentimento).
+- **Sem redirecionar em erro.** O GET e o POST de `/oauth/authorize`
+  mostram o erro na página em vez de voltar ao `redirect_uri`: senão
+  qualquer um registraria um cliente e usaria o endereço do site para
+  mandar gente a outro lugar sem clique. Só "Autorizar" e "Cancelar"
+  redirecionam.
+- **Limites.** A chave nasce no clique em "Autorizar", pedido que sai do
+  navegador da pessoa: 10 por hora por cliente e 200 por hora na
+  instância. O registro e a troca vêm dos servidores do claude.ai e do
+  ChatGPT, com poucos IPs para muita gente, e têm limite folgado (100
+  registros por hora, 60 trocas por minuto). O POST recusa
+  `Sec-Fetch-Site` de outro site, para a página não ser pulada por um
+  formulário de fora.
+- **Limpeza.** Cliente que nunca trocou código é apagado depois de 7 dias
+  (a cada registro novo); código vencido, a cada código novo.
+- **Troca.** O `resource` da troca tem de ser o mesmo da autorização; a
+  query que o cliente registrou no `redirect_uri` volta intacta, com os
+  parâmetros novos no fim.
+- Sem `/.well-known/openid-configuration`: o documento não seria OIDC de
+  verdade, e os clientes do MCP procuram primeiro o RFC 8414.
+- Conferido com o cliente OAuth do SDK oficial em Go (descoberta pelo 401,
+  registro, consentimento, troca e chamada à ferramenta `fontes`) pelo
+  proxy do site, e com o clique em "Autorizar" num Chromium.
+- **Pendente.** Os limites por cliente usam o primeiro valor de
+  `X-Forwarded-For`, que quem chama pode forjar, e a API também responde
+  direto no endereço do Cloud Run. Isso vale para todos os limites do site,
+  não só os do OAuth. A correção depende de conferir no Cloud Run qual
+  posição do cabeçalho é o IP de verdade.

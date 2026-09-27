@@ -166,10 +166,19 @@ ferramenta. Desenho em
 
 Pendências:
 
-- [ ] OAuth: os conectores do claude.ai e do ChatGPT só aceitam servidor
-  com login OAuth. Hoje funcionam Claude Code, Claude Desktop (via
-  `mcp-remote`), Cursor e outros clientes que mandam o cabeçalho
-  `Authorization`.
+- [x] OAuth (resolvido em 27/09/2026): o servidor MCP publica os metadados
+  do recurso e do servidor de autorização, aceita registro dinâmico de
+  cliente e troca o código (PKCE `S256`) por uma chave anônima, a mesma de
+  `/mcp`. O conector do claude.ai e do ChatGPT passa a funcionar com o
+  endereço do servidor e um clique em "Autorizar". Conferido com o cliente
+  OAuth do SDK oficial em Go, pelo proxy do site. Desenho em
+  `docs/superpowers/specs/2026-09-27-oauth-do-mcp-design.md`.
+- [ ] Na nuvem: migration 024 e a imagem nova do web (o nginx passa a
+  encaminhar `/.well-known/` para a API) antes de anunciar o conector.
+- [ ] Limites por IP: usam o primeiro valor de `X-Forwarded-For`, que quem
+  chama pode forjar, e a API também responde direto no endereço do Cloud
+  Run. Conferir no Cloud Run qual posição do cabeçalho é o IP de verdade
+  (ou fechar a API ao tráfego que não vem do site) e passar a usá-la.
 - [x] Revogar chave por abuso (resolvido em 23/09/2026): `make keys` lista as
   chaves com o uso dos últimos 30 dias e `make revoke-key PREFIX=…` revoga
   pelo prefixo que aparece no log.
