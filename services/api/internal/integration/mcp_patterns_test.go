@@ -123,10 +123,37 @@ func TestMCPPromptsGuideTheInvestigation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if text := contract.Messages[0].Content.(*sdk.TextContent).Text; !strings.Contains(text, "tipo processo e numero 8421/2023") || !strings.Contains(text, "tipo contrato e numero 8421/2023") {
+	text = contract.Messages[0].Content.(*sdk.TextContent).Text
+	if !strings.Contains(text, "tipo processo e numero 8421/2023") || !strings.Contains(text, "tipo contrato e numero 8421/2023") {
 		t.Errorf("roteiro do contrato: %s", text)
 	}
 	if _, err := session.GetPrompt(ctx, &sdk.GetPromptParams{Name: "investigar_fornecedor", Arguments: map[string]string{"cnpj": "123"}}); err == nil {
 		t.Error("CNPJ inválido aceito")
+	}
+	if !strings.Contains(text, "pagamentos e contratacoes com processo") {
+		t.Errorf("roteiro do contrato sem o portal e o mural: %s", text)
+	}
+}
+
+func TestMCPResourceDescribesTheSources(t *testing.T) {
+	srv, _ := newServerFor(t, gazetteText)
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+	ctx := context.Background()
+
+	list, err := session.ListResources(ctx, nil)
+	if err != nil || len(list.Resources) != 1 || list.Resources[0].URI != "diario-sg://fontes" {
+		t.Fatalf("recursos: %+v %v", list, err)
+	}
+	read, err := session.ReadResource(ctx, &sdk.ReadResourceParams{URI: "diario-sg://fontes"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := read.Contents[0].Text; !strings.Contains(text, "## O que não está na base") || !strings.Contains(text, "`pagamentos`") {
+		t.Errorf("descrição das fontes: %s", text)
 	}
 }

@@ -92,6 +92,7 @@ func NewHandler(d Deps) http.Handler {
 		&sdk.ServerOptions{Instructions: instructions, Logger: d.Log})
 	s.register(srv)
 	registerPrompts(srv)
+	registerResources(srv)
 	h := sdk.NewStreamableHTTPHandler(func(*http.Request) *sdk.Server { return srv },
 		&sdk.StreamableHTTPOptions{Stateless: true, JSONResponse: true, Logger: d.Log})
 	limiter := ratelimit.New(callsPerKey, callsPerInstance, time.Minute, d.Now)

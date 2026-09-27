@@ -59,7 +59,8 @@ func contractPrompt(_ context.Context, req *sdk.GetPromptRequest) (*sdk.GetPromp
 	text := fmt.Sprintf("Siga o processo ou contrato %s nos Diários Oficiais de São Gonçalo.\n"+
 		"1. Chame entidade com %s: os atos que o citam, por fase, e o que é citado junto (processos, contratos e CNPJs).\n"+
 		"2. Monte a linha do tempo com ler_ato: abertura ou dispensa, homologação, extrato do contrato, aditivos e rescisão, com o valor de cada um.\n"+
-		"3. Para cada CNPJ citado junto, chame entidade com tipo cnpj para ver o que foi pago; chame padroes com o mesmo tipo e número, e com cada CNPJ.\n"+
+		"3. Para cada CNPJ citado junto, chame entidade com tipo cnpj para ver o que foi pago; chame padroes com o mesmo tipo e número, e com cada CNPJ. "+
+		"Para o número do processo, chame pagamentos e contratacoes com processo: os empenhos do portal da Prefeitura e a licitação e os contratos do mural.\n"+
 		"4. Resuma quanto foi contratado, quanto cresceu com aditivos e quanto foi pago, e o que falta conferir. "+
 		"Se a certeza da ligação for fraca, avise que o número pode juntar contratações diferentes.\n%s",
 		number, which, promptRules)
