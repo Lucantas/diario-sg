@@ -36,6 +36,7 @@ func (r *PaymentRepo) ReplaceYear(ctx context.Context, source string, year int, 
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, p := range payments {
 		if _, err := stmt.ExecContext(ctx, p.Source, p.Year, p.Month, p.Unit, p.Commitment, p.CNPJ, p.Function,
 			p.CommittedCents, p.LiquidatedCents, p.PaidCents); err != nil {

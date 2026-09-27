@@ -32,6 +32,7 @@ func (r *StaffRepo) ReplaceStaffYear(ctx context.Context, year int, rows []domai
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, s := range rows {
 		if _, err := stmt.ExecContext(ctx, s.Month, s.Unit, s.Situation, s.Group, s.Headcount, s.RemunerationCents); err != nil {
 			return fmt.Errorf("pessoal de %s: %w", s.Month.Format("01/2006"), err)

@@ -35,6 +35,7 @@ func (r *FederalRepo) ReplaceAmendments(ctx context.Context, amendments []domain
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, a := range amendments {
 		if _, err := stmt.ExecContext(ctx, a.Code, a.Year, a.Kind, a.Author, a.Number, a.Function, a.Subfunction, a.Program, a.Action,
 			a.CommittedCents, a.LiquidatedCents, a.PaidCents); err != nil {
@@ -49,6 +50,7 @@ func (r *FederalRepo) ReplaceAmendments(ctx context.Context, amendments []domain
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, p := range payments {
 		if _, err := stmt.ExecContext(ctx, p.Code, p.Author, p.Kind, p.Month, p.CNPJ, p.Name, p.LegalNature, p.ValueCents); err != nil {
 			return err
@@ -84,6 +86,7 @@ func (r *FederalRepo) ReplaceTransferMonth(ctx context.Context, month time.Time,
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, t := range transfers {
 		if _, err := stmt.ExecContext(ctx, month, t.Kind, t.Organ, t.Function, t.Program, t.Action, t.Label, t.CNPJ, t.Name, t.ValueCents); err != nil {
 			return err

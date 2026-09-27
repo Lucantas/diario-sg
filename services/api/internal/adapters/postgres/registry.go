@@ -76,6 +76,7 @@ func insertCompanies(ctx context.Context, tx *sql.Tx, month time.Time, load doma
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, c := range load.Companies {
 		if _, err := stmt.ExecContext(ctx, c.Base, c.Name, c.LegalNature, c.CapitalCents, c.Size, month); err != nil {
 			return fmt.Errorf("empresa %s: %w", c.Base, err)
@@ -91,6 +92,7 @@ func insertEstablishments(ctx context.Context, tx *sql.Tx, month time.Time, load
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, e := range load.Establishments {
 		others, err := json.Marshal(activitiesJSON(e.OtherActivities))
 		if err != nil {
@@ -110,6 +112,7 @@ func insertPartners(ctx context.Context, tx *sql.Tx, month time.Time, load domai
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, p := range load.Partners {
 		if _, err := stmt.ExecContext(ctx, p.Base, int(p.Kind), p.Name, p.Document, p.Role, p.Since, month); err != nil {
 			return fmt.Errorf("sócio de %s: %w", p.Base, err)
@@ -117,6 +120,8 @@ func insertPartners(ctx context.Context, tx *sql.Tx, month time.Time, load domai
 	}
 	return closeCopy(ctx, stmt)
 }
+
+func closeQuietly(stmt *sql.Stmt) { _ = stmt.Close() }
 
 func closeCopy(ctx context.Context, stmt *sql.Stmt) error {
 	if _, err := stmt.ExecContext(ctx); err != nil {

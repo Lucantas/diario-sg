@@ -23,6 +23,11 @@ func (r *PoliticalAgentRepo) SavePoliticalAgents(ctx context.Context, load domai
 	if load.Body != domain.BodyPrefeitura && load.Body != domain.BodyCamara {
 		return fmt.Errorf("%w: órgão %q", domain.ErrInvalidInput, load.Body)
 	}
+	for _, p := range load.Pay {
+		if p.Body != load.Body {
+			return fmt.Errorf("%s em %s: linha de %s numa carga de %s", p.Name, p.Month.Format("01/2006"), p.Body, load.Body)
+		}
+	}
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -36,10 +41,8 @@ func (r *PoliticalAgentRepo) SavePoliticalAgents(ctx context.Context, load domai
 	if err != nil {
 		return err
 	}
+	defer closeQuietly(stmt)
 	for _, p := range load.Pay {
-		if p.Body != load.Body {
-			return fmt.Errorf("%s em %s: linha de %s numa carga de %s", p.Name, p.Month.Format("01/2006"), p.Body, load.Body)
-		}
 		if _, err := stmt.ExecContext(ctx, p.Body, p.Month, p.Name, p.NameKey, p.Role, p.Office, p.GrossCents, p.DiscountCents, p.NetCents); err != nil {
 			return fmt.Errorf("%s em %s: %w", p.Name, p.Month.Format("01/2006"), err)
 		}
