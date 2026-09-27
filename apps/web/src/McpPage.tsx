@@ -11,6 +11,8 @@ const TOOLS: [string, string][] = [
   ["fontes", "período coberto, última coleta e lacunas conhecidas"],
   ["padroes", "padrões para verificar (fracionamento, aditivo acima do limite, pago sem publicação…), filtrados por CNPJ, processo ou contrato"],
   ["agentes_politicos", "prefeito, vice, secretários, Procurador-Geral e vereadores, com a remuneração mês a mês"],
+  ["pagamentos", "empenhos do portal da Prefeitura por credor, entidade, processo, texto ou ano, com totais e o RREO como controle"],
+  ["contratacoes", "licitações e contratos do mural da Prefeitura e do PNCP por fornecedor, processo, texto, órgão ou ano"],
   ["norma", "leis e decretos do município por número ou texto, com o link do texto integral e a busca no Diário"],
 ];
 

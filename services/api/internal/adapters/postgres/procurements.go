@@ -101,40 +101,21 @@ func (r *ProcurementRepo) commitmentProcessKeys(ctx context.Context, cnpj string
 }
 
 func (r *ProcurementRepo) procurementsByKeys(ctx context.Context, keys []string) ([]domain.Procurement, error) {
-	rows, err := r.db.QueryContext(ctx, `
-		SELECT list, id, notice, process, process_key, modality, criterion, opens_at, object, status, url
+	rows, err := r.db.QueryContext(ctx, `SELECT `+procurementColumns+`
 		FROM procurements WHERE process_key = ANY($1) ORDER BY opens_at DESC NULLS LAST, id DESC`, pq.Array(keys))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []domain.Procurement
-	for rows.Next() {
-		var p domain.Procurement
-		if err := rows.Scan(&p.List, &p.ID, &p.Notice, &p.Process, &p.ProcessKey, &p.Modality, &p.Criterion, &p.OpensAt, &p.Object, &p.Status, &p.URL); err != nil {
-			return nil, err
-		}
-		out = append(out, p)
-	}
-	return out, rows.Err()
+	return scanProcurements(rows)
 }
 
 func (r *ProcurementRepo) contractsByKeys(ctx context.Context, keys []string) ([]domain.ProcurementContract, error) {
-	rows, err := r.db.QueryContext(ctx, `
-		SELECT procurement_id, notice, process, process_key, modality, object, value_cents, supplier, instrument, document_url
+	rows, err := r.db.QueryContext(ctx, `SELECT `+contractColumns+`
 		FROM procurement_contracts WHERE process_key = ANY($1) ORDER BY procurement_id DESC, position`, pq.Array(keys))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []domain.ProcurementContract
-	for rows.Next() {
-		var c domain.ProcurementContract
-		if err := rows.Scan(&c.ProcurementID, &c.Notice, &c.Process, &c.ProcessKey, &c.Modality, &c.Object, &c.ValueCents, &c.Supplier,
-			&c.Instrument, &c.DocumentURL); err != nil {
-			return nil, err
-		}
-		out = append(out, c)
-	}
-	return out, rows.Err()
+	return scanContracts(rows)
 }

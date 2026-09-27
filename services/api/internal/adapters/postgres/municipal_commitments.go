@@ -106,26 +106,17 @@ func (r *MunicipalCommitmentRepo) MunicipalByCNPJ(ctx context.Context, cnpj stri
 	return out, err
 }
 
+const municipalCommitmentColumns = `entity_id, entity, year, commitment_id, number, committed_on, cnpj, name, object, process_kind, process, modality,
+	committed_cents, liquidated_cents, paid_cents`
+
 func (r *MunicipalCommitmentRepo) recent(ctx context.Context, cnpj string) ([]domain.MunicipalCommitment, error) {
-	rows, err := r.db.QueryContext(ctx, `
-		SELECT entity_id, entity, year, commitment_id, number, committed_on, cnpj, name, object, process_kind, process, modality,
-			committed_cents, liquidated_cents, paid_cents
+	rows, err := r.db.QueryContext(ctx, `SELECT `+municipalCommitmentColumns+`
 		FROM municipal_commitments WHERE cnpj = $1 ORDER BY committed_on DESC, commitment_id DESC LIMIT $2`, cnpj, municipalCommitmentsShown)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []domain.MunicipalCommitment
-	for rows.Next() {
-		var c domain.MunicipalCommitment
-		if err := rows.Scan(&c.EntityID, &c.Entity, &c.Year, &c.CommitmentID, &c.Number, &c.Date, &c.CNPJ, &c.Name, &c.Object, &c.ProcessKind,
-			&c.Process, &c.Modality, &c.CommittedCents, &c.LiquidatedCents, &c.PaidCents); err != nil {
-			return nil, err
-		}
-		c.Date = c.Date.UTC()
-		out = append(out, c)
-	}
-	return out, rows.Err()
+	return scanMunicipalCommitments(rows)
 }
 
 func (r *MunicipalCommitmentRepo) MunicipalPaidByYear(ctx context.Context) (map[int]int64, error) {

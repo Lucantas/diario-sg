@@ -133,7 +133,7 @@ func TestMCPWithPerUserKey(t *testing.T) {
 		}
 	}
 	sort.Strings(names)
-	if strings.Join(names, ",") != "agentes_politicos,agrupar,buscar_atos,entidade,fontes,ler_ato,norma,padroes,pagina_original" {
+	if strings.Join(names, ",") != "agentes_politicos,agrupar,buscar_atos,contratacoes,entidade,fontes,ler_ato,norma,padroes,pagamentos,pagina_original" {
 		t.Fatalf("ferramentas: %v", names)
 	}
 

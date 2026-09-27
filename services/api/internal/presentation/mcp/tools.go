@@ -176,7 +176,8 @@ func (s *server) register(srv *sdk.Server) {
 		"partes lista cada CNPJ com o nome provável lido do texto ao lado do número (confira no texto); " +
 		"cota_parlamentar traz vereador, mês de referência e valor dos termos de CEAPM da Câmara."},
 		recorded(s, "ler_ato", s.read))
-	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Atos dos Diários (Prefeitura e Câmara) que citam um CNPJ, " +
+	sdk.AddTool(srv, &sdk.Tool{Name: "entidade", Annotations: readOnly, Description: "Ficha de uma empresa (tipo cnpj), de um processo ou de um contrato. " +
+		"Atos dos Diários (Prefeitura e Câmara) que citam um CNPJ, " +
 		"um processo ou um contrato: total de atos, contagem por tipo, soma dos valores citados nesses atos e os 20 mais recentes. " +
 		"A soma é do que aparece no texto dos atos, não do que foi pago. A certeza diz quão seguro é juntar esses atos: " +
 		"contrato sem a sigla do órgão (certeza fraca) pode juntar contratos de órgãos diferentes com o mesmo número. " +
@@ -221,6 +222,14 @@ func (s *server) register(srv *sdk.Server) {
 	if s.findNorms != nil {
 		sdk.AddTool(srv, &sdk.Tool{Name: "norma", Annotations: readOnly, Description: normsDescription},
 			recorded(s, "norma", s.norms))
+	}
+	if s.queryPayments != nil {
+		sdk.AddTool(srv, &sdk.Tool{Name: "pagamentos", Annotations: readOnly, Description: paymentsDescription},
+			recorded(s, "pagamentos", s.payments))
+	}
+	if s.queryProcurements != nil {
+		sdk.AddTool(srv, &sdk.Tool{Name: "contratacoes", Annotations: readOnly, Description: contractingDescription},
+			recorded(s, "contratacoes", s.contracting))
 	}
 	if s.politicalAgents != nil {
 		sdk.AddTool(srv, &sdk.Tool{Name: "agentes_politicos", Annotations: readOnly, Description: agentsDescription},

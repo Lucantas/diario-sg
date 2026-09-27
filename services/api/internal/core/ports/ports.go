@@ -263,6 +263,14 @@ type MunicipalCommitmentReader interface {
 	MunicipalByCNPJ(ctx context.Context, cnpj string) (domain.MunicipalSupplier, error)
 }
 
+type PaymentQueryReader interface {
+	QueryPayments(ctx context.Context, q domain.PaymentQuery) (domain.PaymentReport, error)
+}
+
+type ProcurementQueryReader interface {
+	QueryProcurements(ctx context.Context, q domain.ProcurementQuery) (domain.ProcurementReport, error)
+}
+
 type MunicipalTotalsReader interface {
 	MunicipalPaidByYear(ctx context.Context) (map[int]int64, error)
 }

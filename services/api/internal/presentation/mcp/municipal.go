@@ -41,11 +41,15 @@ func municipalOf(m domain.MunicipalSupplier) *municipalSupplierDTO {
 		out.PorAno[i] = municipalYearDTO{Ano: y.Year, Empenhos: y.Commitments, EmpenhadoCentavos: y.CommittedCents, PagoCentavos: y.PaidCents}
 	}
 	for _, c := range m.Recent[:min(len(m.Recent), municipalCommitmentsPerEntity)] {
-		out.Recentes = append(out.Recentes, municipalCommitmentDTO{Entidade: c.Entity, Empenho: c.Number + "/" + c.Date.Format("2006"),
-			Data: c.Date.Format(time.DateOnly), Processo: c.Process, TipoProcesso: c.ProcessKind, Modalidade: c.Modality, Objeto: c.Object,
-			EmpenhadoCentavos: c.CommittedCents, PagoCentavos: c.PaidCents})
+		out.Recentes = append(out.Recentes, commitmentOf(c))
 	}
 	return out
+}
+
+func commitmentOf(c domain.MunicipalCommitment) municipalCommitmentDTO {
+	return municipalCommitmentDTO{Entidade: c.Entity, Empenho: c.Number + "/" + c.Date.Format("2006"),
+		Data: c.Date.Format(time.DateOnly), Processo: c.Process, TipoProcesso: c.ProcessKind, Modalidade: c.Modality, Objeto: c.Object,
+		EmpenhadoCentavos: c.CommittedCents, PagoCentavos: c.PaidCents}
 }
 
 const muralRowsPerEntity = 10
@@ -79,17 +83,25 @@ func muralOf(m domain.MuralMatches) *muralOfDTO {
 	}
 	out := &muralOfDTO{Aviso: muralCaveat, Contratos: []muralRowDTO{}, Licitacoes: []muralRowDTO{}}
 	for _, c := range m.Contracts[:min(len(m.Contracts), muralRowsPerEntity)] {
-		out.Contratos = append(out.Contratos, muralRowDTO{Lista: domain.MuralContracts, Edital: c.Notice, Processo: c.Process, Modalidade: c.Modality,
-			Objeto: c.Object, Instrumento: c.Instrument, Fornecedor: c.Supplier, ValorCentavos: c.ValueCents, URL: c.DocumentURL})
+		out.Contratos = append(out.Contratos, muralContractOf(c))
 	}
 	for _, p := range m.Procurements[:min(len(m.Procurements), muralRowsPerEntity)] {
-		row := muralRowDTO{Lista: p.List, Edital: p.Notice, Processo: p.Process, Modalidade: p.Modality, Objeto: p.Object, Situacao: p.Status, URL: p.URL}
-		if p.OpensAt != nil {
-			row.Abertura = p.OpensAt.Format(time.DateOnly)
-		}
-		out.Licitacoes = append(out.Licitacoes, row)
+		out.Licitacoes = append(out.Licitacoes, muralTenderOf(p))
 	}
 	return out
+}
+
+func muralContractOf(c domain.ProcurementContract) muralRowDTO {
+	return muralRowDTO{Lista: domain.MuralContracts, Edital: c.Notice, Processo: c.Process, Modalidade: c.Modality,
+		Objeto: c.Object, Instrumento: c.Instrument, Fornecedor: c.Supplier, ValorCentavos: c.ValueCents, URL: c.DocumentURL}
+}
+
+func muralTenderOf(p domain.Procurement) muralRowDTO {
+	row := muralRowDTO{Lista: p.List, Edital: p.Notice, Processo: p.Process, Modalidade: p.Modality, Objeto: p.Object, Situacao: p.Status, URL: p.URL}
+	if p.OpensAt != nil {
+		row.Abertura = p.OpensAt.Format(time.DateOnly)
+	}
+	return row
 }
 
 type diarioSanctionOutDTO struct {
