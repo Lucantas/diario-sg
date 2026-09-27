@@ -153,7 +153,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/panels/staff?unit=` | Vínculos e remuneração por mês e grupo de situação funcional, informados pelo município ao TCE-RJ (de 2024 em diante), com as nomeações e exonerações do Diário no mês (`diario_source` diz qual). Traz `units`, `groups` (na ordem das colunas) e `months` (do mais recente ao mais antigo); unidade desconhecida é 400 |
 | GET | `/v1/tce` | Controle do TCE-RJ sobre São Gonçalo: `accounts` (parecer prévio por exercício), `penalties` (débitos e multas agrupados por processo do TCE, com `search`, a busca do número no Diário) `works` (obras paralisadas) e `fiscal_control` (por exercício, o total do RREO no SICONFI ao lado dos empenhos do TCE-RJ, com `paid_coverage_bp`, `tce_loaded` e `low_coverage`); `/v1/entities/cnpj/{cnpj}` traz as obras da empresa em `stalled_works` |
 | GET | `/v1/agentes?role=&q=` | Agentes políticos: `agents` (órgão, cargo, nome, lotações, partido e nome parlamentar do vereador, primeiro e último mês e `months` com bruto, descontos e líquido), `norms` (subsídio fixado, com a busca da norma no Diário) e `coverage` (meses carregados de cada folha); `role` (`prefeito`, `vice_prefeito`, `secretario`, `procurador_geral`, `vereador`) e `q` (parte do nome, do nome parlamentar ou da lotação) filtram |
-| GET | `/v1/federal` | Dinheiro federal: `transfers` (soma por ano, tipo e função, com `transfers_coverage`, os meses carregados), `amendments` (emendas com aplicação em São Gonçalo) e `favored` (pessoas jurídicas de São Gonçalo que receberam pagamento de emenda, somadas por CNPJ); `/v1/entities/cnpj/{cnpj}` traz os pagamentos à empresa em `amendment_payments` |
+| GET | `/v1/federal` | Dinheiro federal: `transfers` (soma por ano, tipo e função, com `transfers_coverage`, os meses carregados), `amendments` (emendas com aplicação em São Gonçalo) `favored` (pessoas jurídicas de São Gonçalo que receberam pagamento de emenda, somadas por CNPJ) e `special_transfers` (transferências especiais do Transferegov: autor, objeto, situação, pago, última ordem bancária e relatório de gestão); `/v1/entities/cnpj/{cnpj}` traz os pagamentos à empresa em `amendment_payments` |
 | GET | `/v1/organs` | Órgãos (sigla e nome por extenso, quando conhecido; fonte de cada nome em `docs/orgaos.md`) com a contagem de atos |
 | POST | `/v1/reports` | `{"gazette_id","position","act_title","kind","message"}` → reporte de erro de extração na fila (`kind`: `texto_errado`, `tipo_errado`, `orgao_errado`, `pagina_errada`, `outro`); 5 por minuto por cliente |
 | POST | `/v1/mcp/keys` | Gera uma chave do servidor MCP (`{"key","prefix","mcp_url"}`); a chave só aparece nesta resposta; 3 por hora por cliente |
@@ -321,8 +321,12 @@ aplicação no município (`federal_amendments`), os pagamentos de emenda a
 pessoas jurídicas da cidade (`federal_amendment_payments`, ligados às
 empresas pelo CNPJ) e as transferências (`federal_transfers`). CPF não
 entra. O Portal pede verificação humana quando recebe muitos downloads
-seguidos, então o job espera 20 segundos entre um e outro. A página
-`/federal` mostra os três conjuntos.
+seguidos, então o job espera 20 segundos entre um e outro. Por fim, o job
+baixa do Transferegov as transferências especiais ("emendas Pix") para o
+município: o plano de ação com o parlamentar e a emenda, o executor e o
+objeto, o pago (pelas ordens bancárias) e o relatório de gestão, em
+`special_transfers` e `special_transfer_executors`, sem os dados
+bancários. A página `/federal` mostra os quatro conjuntos.
 
 ```bash
 make federal                         # emendas e três últimos meses

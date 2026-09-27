@@ -56,3 +56,16 @@ e 1.000 linhas de volta é erro (resposta cortada). 1 pedido por segundo.
   o relatório bastam para conferir.
 - Ligação do executor com a página de empresa: o executor é o município
   ou um fundo municipal, não fornecedor.
+
+## Depois da entrega
+
+- Carga real: 8 planos (6 aceitos, 2 impedidos, sem pagamento), R$ 5,57
+  mi pagos em 8 ordens bancárias de 2022 e 2023, igual ao total de
+  "TRANSFERENCIAS ESPECIAIS" da CGU. Cinco planos têm relatório final;
+  o de Jorge Braz (R$ 300 mil, 2022) tem só um relatório parcial de
+  10/2025 com nada executado.
+- A situação `CIENTE` aparece como "aceita pelo município", não como
+  dinheiro liberado: o pago vem separado, das ordens bancárias.
+- O relatório mostrado é o mais recente do plano.
+- A constante do CNPJ do município passou a ser uma só no domínio
+  (`MunicipalityCNPJ`), usada também pelo PNCP.

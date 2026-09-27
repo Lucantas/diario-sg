@@ -515,7 +515,7 @@ Pendências:
 
 - [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
 - [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
-- [ ] Na nuvem: migrations 019 a 025 e o Terraform dos jobs `federal` e
+- [ ] Na nuvem: migrations 019 a 026 e o Terraform dos jobs `federal` e
   `agentes`.
 
 ## Fechamento do plano de fontes
@@ -530,8 +530,10 @@ com entrega ou com o bloqueio conferido e registrado.
   empenhos. Na base local, o TCE cobre 99,8% do pago em 2021 e 2022,
   97,5% em 2023, 89,4% em 2024 e 86,9% em 2025; em 2020 os empenhos do
   TCE vêm com o pago zerado na própria fonte.
-- [ ] Transferegov: transferências especiais ("emendas Pix") para o
-  município (etapa F, tabela `transfers`).
+- [x] Transferegov: transferências especiais ("emendas Pix") para o
+  município (etapa F, tabelas `special_transfers` e
+  `special_transfer_executors`, seção em `/federal`). 8 planos de 2022 a
+  2024, R$ 5,57 mi pagos, o mesmo total da CGU.
 - [ ] Portal antigo da Prefeitura (portaltp), 2017 a 2022: empenho,
   liquidação e pagamento por favorecido (etapa E, tabela `expenses`).
 - [ ] Portal novo da Prefeitura (Embras/SIAPEGOV): descobrir se a API
