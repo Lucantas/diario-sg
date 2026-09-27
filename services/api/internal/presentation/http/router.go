@@ -125,7 +125,7 @@ func (a *API) getCompany(w http.ResponseWriter, r *http.Request) {
 		Sanctions: toSanctionDTOs(report.Sanctions, report.SanctionsListedOn, time.Now()), SanctionsListedOn: listedOnDTO(report.SanctionsListedOn),
 		Payments: toPaymentDTOs(report.Payments), PaymentsCoverage: toPaymentCoverageDTO(report.PaymentsCoverage),
 		PNCPContracts: toPNCPDTOs(report.PNCPContracts), StalledWorks: toStalledWorkDTOs(report.StalledWorks),
-		AmendmentPayments: toAmendmentPaymentDTOs(report.AmendmentPayments), Municipal: toMunicipalSupplierDTO(report.Municipal),
+		AmendmentPayments: toAmendmentPaymentDTOs(report.AmendmentPayments), Municipal: toMunicipalSupplierDTO(report.Municipal), Mural: toMuralDTO(report.Mural),
 		CountByType: make(map[string]int, len(report.CountByType)), Acts: make([]actHitDTO, 0, len(report.Acts))}
 	for t, n := range report.CountByType {
 		out.CountByType[string(t)] = n

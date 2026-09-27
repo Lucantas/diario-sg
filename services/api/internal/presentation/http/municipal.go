@@ -44,3 +44,50 @@ func toMunicipalSupplierDTO(m domain.MunicipalSupplier) municipalSupplierDTO {
 	}
 	return out
 }
+
+type procurementDTO struct {
+	List      string  `json:"list"`
+	ID        int     `json:"id"`
+	Notice    string  `json:"notice"`
+	Process   string  `json:"process"`
+	Modality  string  `json:"modality"`
+	Criterion string  `json:"criterion"`
+	OpensAt   *string `json:"opens_at"`
+	Object    string  `json:"object"`
+	Status    string  `json:"status"`
+	URL       string  `json:"url"`
+}
+
+type procurementContractDTO struct {
+	ProcurementID int    `json:"procurement_id"`
+	Notice        string `json:"notice"`
+	Process       string `json:"process"`
+	Modality      string `json:"modality"`
+	Object        string `json:"object"`
+	ValueCents    int64  `json:"value_cents"`
+	Supplier      string `json:"supplier"`
+	Instrument    string `json:"instrument"`
+	DocumentURL   string `json:"document_url"`
+}
+
+type muralDTO struct {
+	Procurements []procurementDTO         `json:"procurements"`
+	Contracts    []procurementContractDTO `json:"contracts"`
+}
+
+func toMuralDTO(m domain.MuralMatches) muralDTO {
+	out := muralDTO{Procurements: make([]procurementDTO, len(m.Procurements)), Contracts: make([]procurementContractDTO, len(m.Contracts))}
+	for i, p := range m.Procurements {
+		out.Procurements[i] = procurementDTO{List: p.List, ID: p.ID, Notice: p.Notice, Process: p.Process, Modality: p.Modality, Criterion: p.Criterion,
+			Object: p.Object, Status: p.Status, URL: p.URL}
+		if p.OpensAt != nil {
+			day := p.OpensAt.Format(time.DateOnly)
+			out.Procurements[i].OpensAt = &day
+		}
+	}
+	for i, c := range m.Contracts {
+		out.Contracts[i] = procurementContractDTO{ProcurementID: c.ProcurementID, Notice: c.Notice, Process: c.Process, Modality: c.Modality,
+			Object: c.Object, ValueCents: c.ValueCents, Supplier: c.Supplier, Instrument: c.Instrument, DocumentURL: c.DocumentURL}
+	}
+	return out
+}

@@ -62,6 +62,10 @@ func (f *fakeRegistry) StalledWorksByCNPJ(context.Context, string) ([]domain.Sta
 	return nil, nil
 }
 
+func (f *fakeRegistry) MuralByCNPJ(context.Context, string) (domain.MuralMatches, error) {
+	return domain.MuralMatches{}, nil
+}
+
 func (f *fakeRegistry) MunicipalByCNPJ(context.Context, string) (domain.MunicipalSupplier, error) {
 	return domain.MunicipalSupplier{}, nil
 }
@@ -71,5 +75,5 @@ func (f *fakeRegistry) AmendmentPaymentsByCNPJ(context.Context, string) ([]domai
 }
 
 func fakeSources(f *fakeRegistry) CompanySources {
-	return CompanySources{Registry: f, Sanctions: f, Payments: f, PNCP: f, Works: f, Federal: f, Municipal: f}
+	return CompanySources{Registry: f, Sanctions: f, Payments: f, PNCP: f, Works: f, Federal: f, Municipal: f, Mural: f}
 }

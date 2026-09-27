@@ -11,6 +11,7 @@ import (
 
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pmsgmural"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pncp"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
@@ -45,8 +46,22 @@ func main() {
 	start := time.Now()
 	run, err := uc.Execute(ctx, *from, *to)
 	log.Info("contratos do PNCP", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	failed := false
 	if err != nil {
 		log.Error("carga falhou", "error", err)
+		failed = true
+	}
+	mural, err := pmsgmural.New(cfg.PMSGMuralURL, requestTimeout)
+	if err == nil {
+		start = time.Now()
+		run, err = usecase.NewLoadMural(mural, postgres.NewProcurementRepo(db), postgres.NewFetchRunRepo(db), storage, time.Now).Execute(ctx)
+		log.Info("mural de licitações", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	}
+	if err != nil {
+		log.Error("carga do mural falhou", "error", err)
+		failed = true
+	}
+	if failed {
 		os.Exit(1)
 	}
 }

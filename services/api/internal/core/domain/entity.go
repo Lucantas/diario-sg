@@ -28,6 +28,7 @@ type CompanyFacts struct {
 	StalledWorks      []StalledWork
 	AmendmentPayments []AmendmentPayment
 	Municipal         MunicipalSupplier
+	Mural             MuralMatches
 }
 
 type CompanyReport struct {

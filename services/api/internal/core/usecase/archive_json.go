@@ -12,6 +12,10 @@ import (
 )
 
 func archiveJSON(ctx context.Context, raw ports.ObjectWriter, path string, body []byte, rows int) error {
+	return archiveRaw(ctx, raw, path, "json", body, rows)
+}
+
+func archiveRaw(ctx context.Context, raw ports.ObjectWriter, path, ext string, body []byte, rows int) error {
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	if _, err := gz.Write(body); err != nil {
@@ -20,7 +24,7 @@ func archiveJSON(ctx context.Context, raw ports.ObjectWriter, path string, body 
 	if err := gz.Close(); err != nil {
 		return err
 	}
-	if err := raw.Put(ctx, path+".json.gz", "application/gzip", &buf); err != nil {
+	if err := raw.Put(ctx, path+"."+ext+".gz", "application/gzip", &buf); err != nil {
 		return err
 	}
 	sum := sha256.Sum256(body)

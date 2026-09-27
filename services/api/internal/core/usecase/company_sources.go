@@ -15,6 +15,7 @@ type CompanySources struct {
 	Works     ports.StalledWorkReader
 	Federal   ports.AmendmentPaymentReader
 	Municipal ports.MunicipalCommitmentReader
+	Mural     ports.MuralReader
 }
 
 func (s CompanySources) factsOf(ctx context.Context, cnpj string) (domain.CompanyFacts, error) {
@@ -47,6 +48,9 @@ func (s CompanySources) factsOf(ctx context.Context, cnpj string) (domain.Compan
 	if f.AmendmentPayments, err = s.Federal.AmendmentPaymentsByCNPJ(ctx, cnpj); err != nil {
 		return f, err
 	}
-	f.Municipal, err = s.Municipal.MunicipalByCNPJ(ctx, cnpj)
+	if f.Municipal, err = s.Municipal.MunicipalByCNPJ(ctx, cnpj); err != nil {
+		return f, err
+	}
+	f.Mural, err = s.Mural.MuralByCNPJ(ctx, cnpj)
 	return f, err
 }

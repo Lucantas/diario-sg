@@ -4,6 +4,7 @@ import { Result } from "./components";
 import { EntityAlert } from "./EntityAlert";
 import { RegistrySection } from "./RegistrySection";
 import { MunicipalCommitmentsSection } from "./MunicipalCommitmentsSection";
+import { MuralSection } from "./MuralSection";
 import { PaymentsSection } from "./PaymentsSection";
 import { PNCPSection } from "./PNCPSection";
 import { StalledWorksSection } from "./StalledWorksSection";
@@ -40,6 +41,7 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
           <SanctionsSection cnpj={data.cnpj} sanctions={data.sanctions} listedOn={data.sanctions_listed_on} />
           <PaymentsSection payments={data.payments} coverage={data.payments_coverage} />
           <MunicipalCommitmentsSection supplier={data.municipal_commitments} />
+          <MuralSection mural={data.procurements} />
           <PNCPSection contracts={data.pncp_contracts} />
           <StalledWorksSection works={data.stalled_works} />
           <AmendmentsSection payments={data.amendment_payments} />

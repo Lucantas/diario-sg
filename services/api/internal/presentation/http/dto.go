@@ -124,6 +124,7 @@ type companyResponse struct {
 	StalledWorks      []stalledWorkDTO      `json:"stalled_works"`
 	AmendmentPayments []amendmentPaymentDTO `json:"amendment_payments"`
 	Municipal         municipalSupplierDTO  `json:"municipal_commitments"`
+	Mural             muralDTO              `json:"procurements"`
 }
 
 type monthCountDTO struct {

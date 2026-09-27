@@ -215,6 +215,20 @@ type FederalReader interface {
 	TransferMonths(ctx context.Context) (from, to *time.Time, err error)
 }
 
+type MuralSource interface {
+	List(ctx context.Context, name string) ([]byte, error)
+	BaseURL() string
+}
+
+type MuralRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceMural(ctx context.Context, procurements []domain.Procurement, contracts []domain.ProcurementContract) error
+}
+
+type MuralReader interface {
+	MuralByCNPJ(ctx context.Context, cnpj string) (domain.MuralMatches, error)
+}
+
 type MunicipalCommitmentSource interface {
 	Entities(ctx context.Context) ([]byte, error)
 	Commitments(ctx context.Context, year, entity int) ([]byte, error)

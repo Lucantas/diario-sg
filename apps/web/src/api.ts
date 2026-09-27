@@ -292,6 +292,18 @@ export interface CompanyResponse {
   stalled_works: StalledWork[];
   amendment_payments: AmendmentPayment[];
   municipal_commitments: MunicipalSupplier;
+  procurements: MuralMatches;
+}
+
+export interface MuralMatches {
+  procurements: {
+    list: string; id: number; notice: string; process: string; modality: string; criterion: string; opens_at: string | null;
+    object: string; status: string; url: string;
+  }[];
+  contracts: {
+    procurement_id: number; notice: string; process: string; modality: string; object: string; value_cents: number; supplier: string;
+    instrument: string; document_url: string;
+  }[];
 }
 
 export interface MunicipalCommitment {

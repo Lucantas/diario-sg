@@ -102,6 +102,7 @@ type entityOutput struct {
 	StalledWorks []stalledWorkDTO      `json:"obras_paralisadas_tce,omitempty"`
 	Amendments   []amendmentPaymentDTO `json:"emendas_pagas_cgu,omitempty"`
 	Municipal    *municipalSupplierDTO `json:"empenhos_portal_prefeitura,omitempty"`
+	Mural        *muralOfDTO           `json:"mural_licitacoes,omitempty"`
 	Organs       []organDTO            `json:"orgaos,omitempty"`
 	Related      []relatedEntityDTO    `json:"citados_junto,omitempty"`
 	ByProcess    []processDTO          `json:"por_processo,omitempty"`
@@ -196,6 +197,8 @@ func (s *server) register(srv *sdk.Server) {
 		"pagamentos_tce_cobertura diz o período carregado. O TCE não diz a que contrato cada pagamento se refere. " +
 		"empenhos_portal_prefeitura (só CNPJ) traz os empenhos do portal da transparência da Prefeitura (de 2017 em diante, todas as entidades): " +
 		"por ano, e os 10 mais recentes com processo, modalidade e objeto; é mais completo que o TCE-RJ e diz o processo de cada empenho. " +
+		"mural_licitacoes (só CNPJ) traz as licitações e os contratos do mural da Prefeitura com o mesmo processo desses empenhos, com o link do documento; " +
+		"a ligação é pelo número do processo, sem o órgão, então confira fornecedor e objeto. " +
 		"contratos_pncp (só CNPJ) traz os contratos da empresa com o município registrados no PNCP (Lei 14.133), com o link de cada um; " +
 		"o município registra no PNCP só parte dos contratos, quase todos de 2024 em diante. " +
 		"obras_paralisadas_tce (só CNPJ) traz as obras da empresa que o TCE-RJ lista como paralisadas em São Gonçalo, com valor do contrato, valor pago e motivo. " +
@@ -369,6 +372,7 @@ func (s *server) entity(ctx context.Context, _ *sdk.CallToolRequest, in entityIn
 	out.StalledWorks = stalledWorksOf(report.StalledWorks)
 	out.Amendments = amendmentPaymentsOf(report.AmendmentPayments)
 	out.Municipal = municipalOf(report.Municipal)
+	out.Mural = muralOf(report.Mural)
 	out.Sanctions, out.SanctionsOn = sanctionsOf(kind, report.Sanctions, report.SanctionsListedOn, time.Now()), sanctionsConsulted(kind, report.SanctionsListedOn)
 	if kind == domain.EntityProcesso || kind == domain.EntityContrato {
 		out.Related = relatedOf(report.Related)
