@@ -45,13 +45,12 @@ func (c PNCPContract) ProcessKey() string {
 }
 
 func MunicipalOrgCNPJs() []string {
-	const municipalityCNPJ = "28636579000100"
 	var others []string
 	for _, cnpj := range PublicBodyCNPJs() {
-		if cnpj != municipalityCNPJ && HasValidCheckDigits(cnpj) {
+		if cnpj != MunicipalityCNPJ && HasValidCheckDigits(cnpj) {
 			others = append(others, cnpj)
 		}
 	}
 	sort.Strings(others)
-	return append([]string{municipalityCNPJ}, others...)
+	return append([]string{MunicipalityCNPJ}, others...)
 }

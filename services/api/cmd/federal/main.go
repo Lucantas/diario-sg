@@ -13,6 +13,7 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/cgu"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/transferegov"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
@@ -60,6 +61,14 @@ func main() {
 	log.Info("transferências federais", "run", run, "duration_ms", time.Since(start).Milliseconds())
 	if err != nil {
 		log.Error("carga das transferências falhou", "error", err)
+		failed = true
+	}
+	start = time.Now()
+	special := transferegov.New(cfg.TransferegovURL, &http.Client{Timeout: requestTimeout})
+	run, err = usecase.NewLoadSpecialTransfers(special, postgres.NewSpecialTransferRepo(db), postgres.NewFetchRunRepo(db), storage, time.Now).Execute(ctx)
+	log.Info("transferências especiais", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	if err != nil {
+		log.Error("carga das transferências especiais falhou", "error", err)
 		failed = true
 	}
 	if failed {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FederalReport, getFederal } from "./api";
-import { monthSpan, transferYears } from "./federal";
+import { monthSpan, specialExecution, specialPayment, specialStatus, transferYears } from "./federal";
 import { formatCompactCents } from "./panels";
 import { coverageLabel } from "./payments";
 import { formatCents, formatCnpj } from "./types";
@@ -75,6 +75,29 @@ export function FederalPage() {
                 ))}
               </tbody>
             </table>
+          </section>
+
+          <section className="pncp" aria-labelledby="special-heading">
+            <h2 id="special-heading" className="panel-heading">Transferências especiais (emendas Pix)</h2>
+            <p className="count">
+              Emendas individuais que caem direto no caixa do município, sem convênio, segundo o Transferegov. O objeto e a
+              execução são o que o município declarou no plano de trabalho e no relatório de gestão.
+            </p>
+            {data.special_transfers.length === 0 ? <p className="count">Nenhuma transferência especial carregada.</p> : (
+              <ul className="pncp-list">
+                {data.special_transfers.map((st) => (
+                  <li key={st.plan_id}>
+                    <p>
+                      <strong>{st.year} · {st.author}</strong> · {formatCompactCents(st.value_cents)} · {specialStatus(st.status)}
+                    </p>
+                    {st.executors.map((e) => <p key={`${e.cnpj}-${e.object}`}>{e.object} <span className="count">({e.name})</span></p>)}
+                    <p className="count">
+                      {[st.area, specialPayment(st), specialExecution(st), `plano ${st.code}`].filter(Boolean).join(" · ")}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="pncp" aria-labelledby="favored-heading">

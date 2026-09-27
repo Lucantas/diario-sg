@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	"io"
+	"net/url"
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
@@ -212,6 +213,19 @@ type FederalReader interface {
 	AmendmentPayments(ctx context.Context) ([]domain.AmendmentPayment, error)
 	TransferTotals(ctx context.Context) ([]domain.TransferTotal, error)
 	TransferMonths(ctx context.Context) (from, to *time.Time, err error)
+}
+
+type SpecialTransferSource interface {
+	Rows(ctx context.Context, table string, filter url.Values) ([]byte, error)
+}
+
+type SpecialTransferRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceSpecialTransfers(ctx context.Context, transfers []domain.SpecialTransfer) error
+}
+
+type SpecialTransferReader interface {
+	SpecialTransfers(ctx context.Context) ([]domain.SpecialTransfer, error)
 }
 
 type AmendmentPaymentReader interface {

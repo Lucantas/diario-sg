@@ -45,11 +45,40 @@ type favoredDTO struct {
 	Last       string   `json:"last"`
 }
 
+type specialExecutorDTO struct {
+	CNPJ       string `json:"cnpj"`
+	Name       string `json:"name"`
+	Object     string `json:"object"`
+	ValueCents int64  `json:"value_cents"`
+}
+
+type specialTransferDTO struct {
+	PlanID         int64                `json:"plan_id"`
+	Code           string               `json:"code"`
+	Year           int                  `json:"year"`
+	Status         string               `json:"status"`
+	Author         string               `json:"author"`
+	Amendment      string               `json:"amendment"`
+	Area           string               `json:"area"`
+	ValueCents     int64                `json:"value_cents"`
+	Executors      []specialExecutorDTO `json:"executors"`
+	CommittedCents int64                `json:"committed_cents"`
+	PaidCents      int64                `json:"paid_cents"`
+	LastPaidAt     *string              `json:"last_paid_at"`
+	WorkPlanStatus string               `json:"work_plan_status"`
+	ExecutionEnd   *string              `json:"execution_end"`
+	ReportKind     string               `json:"report_kind"`
+	ReportAt       *string              `json:"report_at"`
+	ExecutedCents  int64                `json:"executed_cents"`
+	PendingCents   int64                `json:"pending_cents"`
+}
+
 type federalDTO struct {
-	TransfersCoverage *paymentCoverageDTO `json:"transfers_coverage"`
-	Transfers         []transferTotalDTO  `json:"transfers"`
-	Amendments        []amendmentDTO      `json:"amendments"`
-	Favored           []favoredDTO        `json:"favored"`
+	TransfersCoverage *paymentCoverageDTO  `json:"transfers_coverage"`
+	Transfers         []transferTotalDTO   `json:"transfers"`
+	Amendments        []amendmentDTO       `json:"amendments"`
+	Favored           []favoredDTO         `json:"favored"`
+	SpecialTransfers  []specialTransferDTO `json:"special_transfers"`
 }
 
 const monthDTOLayout = "2006-01"
@@ -61,7 +90,7 @@ func (a *API) federal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	out := federalDTO{Transfers: make([]transferTotalDTO, len(rep.Transfers)), Amendments: make([]amendmentDTO, len(rep.Amendments)),
-		Favored: make([]favoredDTO, len(rep.Favored))}
+		Favored: make([]favoredDTO, len(rep.Favored)), SpecialTransfers: toSpecialTransferDTOs(rep.Special)}
 	if rep.TransfersFrom != nil && rep.TransfersTo != nil {
 		out.TransfersCoverage = &paymentCoverageDTO{From: rep.TransfersFrom.Format(monthDTOLayout), To: rep.TransfersTo.Format(monthDTOLayout)}
 	}
@@ -85,6 +114,21 @@ func toAmendmentPaymentDTOs(payments []domain.AmendmentPayment) []amendmentPayme
 	for i, p := range payments {
 		out[i] = amendmentPaymentDTO{Code: p.Code, Author: p.Author, Kind: p.Kind, Month: p.Month.Format(monthDTOLayout), CNPJ: p.CNPJ,
 			Name: p.Name, ValueCents: p.ValueCents}
+	}
+	return out
+}
+
+func toSpecialTransferDTOs(transfers []domain.SpecialTransfer) []specialTransferDTO {
+	out := make([]specialTransferDTO, len(transfers))
+	for i, st := range transfers {
+		dto := specialTransferDTO{PlanID: st.PlanID, Code: st.Code, Year: st.Year, Status: st.Status, Author: st.Author, Amendment: st.Amendment,
+			Area: st.Area, ValueCents: st.ValueCents, Executors: make([]specialExecutorDTO, len(st.Executors)), CommittedCents: st.CommittedCents,
+			PaidCents: st.PaidCents, LastPaidAt: dayOf(st.LastPaidAt), WorkPlanStatus: st.WorkPlanStatus, ExecutionEnd: dayOf(st.ExecutionEnd),
+			ReportKind: st.ReportKind, ReportAt: dayOf(st.ReportAt), ExecutedCents: st.ExecutedCents, PendingCents: st.PendingCents}
+		for j, e := range st.Executors {
+			dto.Executors[j] = specialExecutorDTO{CNPJ: e.CNPJ, Name: e.Name, Object: e.Object, ValueCents: e.ValueCents}
+		}
+		out[i] = dto
 	}
 	return out
 }

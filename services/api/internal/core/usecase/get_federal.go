@@ -14,11 +14,17 @@ type FederalReport struct {
 	Transfers     []domain.TransferTotal
 	Amendments    []domain.Amendment
 	Favored       []domain.FavoredTotal
+	Special       []domain.SpecialTransfer
 }
 
-type GetFederal struct{ reader ports.FederalReader }
+type GetFederal struct {
+	reader  ports.FederalReader
+	special ports.SpecialTransferReader
+}
 
-func NewGetFederal(reader ports.FederalReader) *GetFederal { return &GetFederal{reader: reader} }
+func NewGetFederal(reader ports.FederalReader, special ports.SpecialTransferReader) *GetFederal {
+	return &GetFederal{reader: reader, special: special}
+}
 
 func (uc *GetFederal) Execute(ctx context.Context) (FederalReport, error) {
 	var r FederalReport
@@ -37,5 +43,6 @@ func (uc *GetFederal) Execute(ctx context.Context) (FederalReport, error) {
 		return r, err
 	}
 	r.Favored = domain.AggregateFavored(payments)
-	return r, nil
+	r.Special, err = uc.special.SpecialTransfers(ctx)
+	return r, err
 }

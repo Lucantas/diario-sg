@@ -224,6 +224,28 @@ export interface FederalReport {
     paid_cents: number;
   }[];
   favored: { cnpj: string; name: string; payments: number; value_cents: number; authors: string[]; first: string; last: string }[];
+  special_transfers: SpecialTransfer[];
+}
+
+export interface SpecialTransfer {
+  plan_id: number;
+  code: string;
+  year: number;
+  status: string;
+  author: string;
+  amendment: string;
+  area: string;
+  value_cents: number;
+  executors: { cnpj: string; name: string; object: string; value_cents: number }[];
+  committed_cents: number;
+  paid_cents: number;
+  last_paid_at: string | null;
+  work_plan_status: string;
+  execution_end: string | null;
+  report_kind: string;
+  report_at: string | null;
+  executed_cents: number;
+  pending_cents: number;
 }
 
 export function getFederal() {
