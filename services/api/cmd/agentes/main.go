@@ -13,6 +13,7 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/agentes"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/siapegov"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
@@ -50,8 +51,20 @@ func main() {
 	start := time.Now()
 	run, err := uc.Execute(ctx, fromMonth, toMonth)
 	log.Info("agentes políticos", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	failed := false
 	if err != nil {
 		log.Error("carga dos agentes políticos falhou", "error", err)
+		failed = true
+	}
+	start = time.Now()
+	norms := siapegov.New(cfg.SIAPEGOVURL, &http.Client{Timeout: requestTimeout})
+	run, err = usecase.NewLoadNorms(norms, postgres.NewNormRepo(db), postgres.NewFetchRunRepo(db), storage, time.Now).Execute(ctx)
+	log.Info("normas do SIAPEGOV", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	if err != nil {
+		log.Error("carga das normas falhou", "error", err)
+		failed = true
+	}
+	if failed {
 		os.Exit(1)
 	}
 }

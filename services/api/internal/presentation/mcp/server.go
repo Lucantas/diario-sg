@@ -43,6 +43,7 @@ type Deps struct {
 	Coverage     *usecase.SourceCoverage
 	Agents       *usecase.GetPoliticalAgents
 	Patterns     *usecase.ListPatterns
+	Norms        *usecase.FindNorms
 	Keys         *usecase.APIKeys
 	PublicWebURL string
 	MetadataURL  string
@@ -59,6 +60,7 @@ type server struct {
 	sourceCoverage  *usecase.SourceCoverage
 	politicalAgents *usecase.GetPoliticalAgents
 	listPatterns    *usecase.ListPatterns
+	findNorms       *usecase.FindNorms
 	keys            *usecase.APIKeys
 	webURL          string
 	log             *slog.Logger
@@ -79,7 +81,7 @@ func NewHandler(d Deps) http.Handler {
 	if d.Now == nil {
 		d.Now = time.Now
 	}
-	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, politicalAgents: d.Agents, listPatterns: d.Patterns, keys: d.Keys,
+	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, politicalAgents: d.Agents, listPatterns: d.Patterns, findNorms: d.Norms, keys: d.Keys,
 		webURL: strings.TrimRight(d.PublicWebURL, "/"), log: d.Log, now: d.Now}
 	srv := sdk.NewServer(&sdk.Implementation{Name: "diario-sg", Title: "Diário SG", Version: "0.1.0", WebsiteURL: s.webURL},
 		&sdk.ServerOptions{Instructions: instructions, Logger: d.Log})

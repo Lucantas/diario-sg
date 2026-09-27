@@ -215,6 +215,10 @@ func (s *server) register(srv *sdk.Server) {
 		sdk.AddTool(srv, &sdk.Tool{Name: "padroes", Annotations: readOnly, Description: patternsDescription},
 			recorded(s, "padroes", s.patterns))
 	}
+	if s.findNorms != nil {
+		sdk.AddTool(srv, &sdk.Tool{Name: "norma", Annotations: readOnly, Description: normsDescription},
+			recorded(s, "norma", s.norms))
+	}
 	if s.politicalAgents != nil {
 		sdk.AddTool(srv, &sdk.Tool{Name: "agentes_politicos", Annotations: readOnly, Description: agentsDescription},
 			recorded(s, "agentes_politicos", s.agents))

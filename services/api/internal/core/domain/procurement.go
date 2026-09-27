@@ -1,14 +1,11 @@
 package domain
 
 import (
-	"bytes"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-
-	"golang.org/x/net/html"
 )
 
 const (
@@ -78,10 +75,6 @@ func allDigits(s string) bool {
 	return s != ""
 }
 
-type muralCell struct {
-	text, strong, small, href string
-}
-
 func ParseProcurements(list string, page []byte, base string) ([]Procurement, error) {
 	rows, err := muralRows(page, muralTenderColumns)
 	if err != nil {
@@ -139,89 +132,6 @@ func muralID(href string) (int, error) {
 		return 0, fmt.Errorf("link %q sem licitacao_id", href)
 	}
 	return id, nil
-}
-
-func muralRows(page []byte, columns int) ([][]muralCell, error) {
-	doc, err := html.Parse(bytes.NewReader(page))
-	if err != nil {
-		return nil, err
-	}
-	var rows [][]muralCell
-	var walk func(*html.Node)
-	walk = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "tr" {
-			if cells := muralCells(n); len(cells) > 0 {
-				rows = append(rows, cells)
-			}
-			return
-		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c)
-		}
-	}
-	walk(doc)
-	if len(rows) == 0 {
-		return nil, fmt.Errorf("nenhuma linha na tabela")
-	}
-	for _, r := range rows {
-		if len(r) != columns {
-			return nil, fmt.Errorf("linha com %d colunas, esperava %d", len(r), columns)
-		}
-	}
-	return rows, nil
-}
-
-func muralCells(tr *html.Node) []muralCell {
-	var cells []muralCell
-	for td := tr.FirstChild; td != nil; td = td.NextSibling {
-		if td.Type != html.ElementNode || td.Data != "td" {
-			continue
-		}
-		c := muralCell{text: squeezed(nodeText(td))}
-		var find func(*html.Node)
-		find = func(n *html.Node) {
-			if n.Type == html.ElementNode {
-				switch n.Data {
-				case "strong":
-					if c.strong == "" {
-						c.strong = squeezed(nodeText(n))
-					}
-				case "small":
-					if c.small == "" {
-						c.small = squeezed(nodeText(n))
-					}
-				case "a":
-					for _, a := range n.Attr {
-						if a.Key == "href" && c.href == "" {
-							c.href = a.Val
-						}
-					}
-				}
-			}
-			for ch := n.FirstChild; ch != nil; ch = ch.NextSibling {
-				find(ch)
-			}
-		}
-		find(td)
-		cells = append(cells, c)
-	}
-	return cells
-}
-
-func nodeText(n *html.Node) string {
-	var b strings.Builder
-	var walk func(*html.Node)
-	walk = func(n *html.Node) {
-		if n.Type == html.TextNode {
-			b.WriteString(n.Data)
-			b.WriteByte(' ')
-		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c)
-		}
-	}
-	walk(n)
-	return b.String()
 }
 
 type MuralMatches struct {

@@ -69,7 +69,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: usecase.NewSearchActs(acts), Read: usecase.NewReadAct(gaz, acts),
 		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)), Group: usecase.NewGroupActs(acts),
 		Page: usecase.NewReadPage(gaz, stringStore(text), singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
-		Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), PublicWebURL: "https://web.exemplo",
+		Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Norms: usecase.NewFindNorms(postgres.NewNormRepo(db)), PublicWebURL: "https://web.exemplo",
 		Patterns:    usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)),
 		MetadataURL: "https://web.exemplo/.well-known/oauth-protected-resource/api/mcp", Log: log})
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
@@ -83,6 +83,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db), postgres.NewFiscalRepo(db), postgres.NewMunicipalCommitmentRepo(db)),
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db), postgres.NewSpecialTransferRepo(db)),
 		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
+		Norms:         usecase.NewFindNorms(postgres.NewNormRepo(db)),
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)),
 		Keys:          keys, MCP: mcpHandler, Log: log,
 		OAuth: usecase.NewOAuth(postgres.NewOAuthRepo(db), keys, "https://web.exemplo/api/mcp", time.Now)}

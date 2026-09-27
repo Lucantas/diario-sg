@@ -50,6 +50,7 @@ type Config struct {
 	TransferegovURL    string
 	PMSGPortalURL      string
 	PMSGMuralURL       string
+	SIAPEGOVURL        string
 }
 
 func Load(role Role) (Config, error) {
@@ -79,6 +80,7 @@ func Load(role Role) (Config, error) {
 		TransferegovURL: getenv("TRANSFEREGOV_URL", "https://api.transferegov.gestao.gov.br/transferenciasespeciais/"),
 		PMSGPortalURL:   getenv("PMSG_PORTAL_URL", "https://sistema.pmsg.rj.gov.br/portal-transparencia/api/"),
 		PMSGMuralURL:    getenv("PMSG_MURAL_URL", "https://licitacao.pmsg.rj.gov.br/"),
+		SIAPEGOVURL:     getenv("SIAPEGOV_URL", "https://sistema.pmsg.rj.gov.br/pmsaogoncalo/websis/siapegov/legislativo/leis/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
