@@ -561,12 +561,18 @@ com entrega ou com o bloqueio conferido e registrado.
   `punicoes_diario`. Na base local, 23 punições em 21 empresas (14
   advertências, 9 multas). A lista "empresas penalizadas" do portal da
   Prefeitura volta vazia.
-- [ ] MCP `pagamentos`: empenhos filtrados por credor, órgão e período,
-  com totais.
-- [ ] MCP `contratacoes`: contratações do Diário, do PNCP e do mural por
-  fornecedor ou órgão.
-- [ ] MCP `empresa`: decidir entre ferramenta própria e `entidade` com
-  CNPJ, que já traz Receita, sanções e pagamentos.
+- [x] MCP `pagamentos`: empenhos do portal da Prefeitura filtrados por
+  CNPJ do credor, entidade, processo, texto e anos, com totais, por ano,
+  por entidade, os maiores credores e o pago do RREO como controle quando
+  o filtro é só de anos.
+- [x] MCP `contratacoes`: licitações e contratos do mural por CNPJ,
+  processo, texto, sigla do órgão no edital e anos; com CNPJ, também os
+  contratos do PNCP. Os extratos do Diário continuam em `buscar_atos` e
+  `entidade`, que já filtram por tipo, órgão, CNPJ e processo.
+- [x] MCP `empresa`: não virou ferramenta. `entidade` com `tipo=cnpj` já
+  é a ficha da empresa (Receita, sanções da CGU e do Diário, pagamentos do
+  TCE e do portal, mural, PNCP, obras e emendas), e a descrição dela diz
+  isso; o prompt `investigar_fornecedor` encadeia o resto.
 
 ---
 

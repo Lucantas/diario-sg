@@ -37,3 +37,20 @@ e só por CNPJ: não dá para perguntar "quanto a Saúde pagou em 2025" nem
 
 - Pagamentos do TCE-RJ em `pagamentos`: o portal cobre mais anos e é
   mais completo (ver o total de controle); o TCE continua em `entidade`.
+
+## Depois da entrega
+
+- Na base local, `pagamentos` com só os anos 2023 a 2025 soma 19.760
+  empenhos; o pago do portal fica a menos de 3,1% do RREO em cada ano
+  (2025: R$ 2,536 bi contra R$ 2,540 bi; 2024: R$ 2,869 bi contra
+  R$ 2,839 bi; 2023: R$ 2,682 bi contra R$ 2,766 bi). "saude" em 2025
+  junta três entidades (fundo, fundação de saúde e a dos servidores),
+  1.508 empenhos.
+- O processo 17943/2024 tem 14 empenhos no portal e, no mural, uma
+  licitação e dois contratos (R$ 13,84 mi).
+- Os filtros respondem em menos de 100 ms, menos o de texto, que passa
+  por `unaccent` no objeto e no nome de todos os empenhos (1,5 s na
+  base local); um índice de trigramas resolveria se virar problema.
+- A sigla SEMED não aparece nos editais do mural: os números usam PMSG
+  (745), FMS (440), FAESG (42) e FMAS (6). A descrição da ferramenta cita
+  essas.

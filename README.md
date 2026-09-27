@@ -214,7 +214,13 @@ que o parser leu), `fontes`
 vereadores com a remuneração mês a mês e o subsídio fixado em lei),
 `norma` (leis, leis complementares, Lei Orgânica e decretos da consulta de
 leis da Prefeitura, por tipo e número ou por texto na ementa e no autor,
-com o link do texto integral e a busca pronta do número no Diário) e
+com o link do texto integral e a busca pronta do número no Diário),
+`pagamentos` (empenhos do portal da Prefeitura, de 2017 em diante, por
+CNPJ do credor, entidade, processo, texto e anos, com totais, por ano, por
+entidade, os 10 maiores credores e 20 empenhos por página; com só os anos,
+o pago do RREO de cada ano como total de controle), `contratacoes`
+(licitações e contratos do mural da Prefeitura por CNPJ, processo, texto,
+sigla do órgão no edital e anos, e com CNPJ os contratos do PNCP) e
 `padroes` (os padrões para verificar de `/padroes`: sem argumentos, o
 catálogo com o número de achados; com `padrao`, os achados daquele
 padrão; com `cnpj`, `processo` ou `contrato`, só os achados que citam a
