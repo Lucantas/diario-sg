@@ -36,3 +36,21 @@ corrente só tem os bimestres já publicados (em 27/09/2026, nenhum de
 ## Fora
 
 - RGF, DCA e MSC; outras contas do RREO.
+
+## Depois da entrega
+
+- O bruto fica em `raw/siconfi/AAAA/MM/DD/rreo_AAAA_P.json.gz`, com o
+  manifesto (SHA-256) ao lado, como os outros conjuntos do TCE; o
+  arquivamento em gzip com manifesto virou uma função só
+  (`archiveJSON`), usada também pelo pessoal e pelo controle do TCE.
+- A carga pede sempre de 2017 ao ano corrente (cerca de 15 pedidos, 13
+  segundos): o bimestre do ano corrente muda, e os anos fechados podem
+  ser retificados. `fiscal_totals` troca a linha do ano.
+- Ano sem empenho do TCE carregado (2017 a 2019 na base local) sai com
+  `tce_loaded: false` e "sem empenhos carregados", não como incompleto.
+- A seção na página se chama "Total de controle" e usa valores
+  compactos (R$ 2,5 bi); a cobertura dá a precisão.
+- Na carga real, os RREO de 2017 e 2019 declaram empenhado, liquidado e
+  pago iguais; é o que a Prefeitura mandou ao Tesouro, não erro de
+  leitura (conferido na consulta). Os empenhos de 2020 no TCE-RJ vêm com
+  liquidado e pago zerados na fonte, e o controle mostra 0%.
