@@ -1,12 +1,7 @@
 package usecase
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -82,24 +77,7 @@ func (uc *LoadStaff) loadYear(ctx context.Context, year int, run *domain.FetchRu
 }
 
 func (uc *LoadStaff) archive(ctx context.Context, year int, body []byte, rows int) error {
-	var buf bytes.Buffer
-	gz := gzip.NewWriter(&buf)
-	if _, err := gz.Write(body); err != nil {
-		return err
-	}
-	if err := gz.Close(); err != nil {
-		return err
-	}
-	name := strconv.Itoa(year)
-	if err := uc.raw.Put(ctx, uc.rawPath(name+".json.gz"), "application/gzip", &buf); err != nil {
-		return err
-	}
-	sum := sha256.Sum256(body)
-	manifest, err := json.MarshalIndent(archivedFile{SourceSHA256: hex.EncodeToString(sum[:]), Rows: rows}, "", "  ")
-	if err != nil {
-		return err
-	}
-	return uc.raw.Put(ctx, uc.rawPath(name+".manifest.json"), "application/json", bytes.NewReader(manifest))
+	return archiveJSON(ctx, uc.raw, uc.rawPath(strconv.Itoa(year)), body, rows)
 }
 
 func (uc *LoadStaff) rawPath(name string) string {

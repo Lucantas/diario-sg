@@ -178,6 +178,21 @@ export interface TCEOversight {
     condemnations: { condemnation: string; year: number; value_cents: number; organ: string; session_date: string | null }[];
   }[];
   works: StalledWork[];
+  fiscal_control: FiscalControl[];
+}
+
+export interface FiscalControl {
+  year: number;
+  period: number;
+  committed_cents: number;
+  liquidated_cents: number;
+  paid_cents: number;
+  source_url: string;
+  tce_committed_cents: number;
+  tce_paid_cents: number;
+  tce_loaded: boolean;
+  paid_coverage_bp: number;
+  low_coverage: boolean;
 }
 
 export function getOversight() {

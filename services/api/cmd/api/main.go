@@ -72,7 +72,7 @@ func run(l *slog.Logger) error {
 		Patterns:      patterns,
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), registry, payments),
 		Staff:         usecase.NewGetStaffPanel(postgres.NewStaffRepo(db), postgres.NewPatternRepo(db)),
-		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db)),
+		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db), postgres.NewFiscalRepo(db)),
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db)),
 		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
 		Organs:        usecase.NewListOrgans(acts),

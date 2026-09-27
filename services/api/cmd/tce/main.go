@@ -12,6 +12,7 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/siconfi"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/tce"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
@@ -62,6 +63,14 @@ func main() {
 	log.Info("controle do TCE-RJ", "run", run, "duration_ms", time.Since(start).Milliseconds())
 	if err != nil {
 		log.Error("carga do controle falhou", "error", err)
+		failed = true
+	}
+	start = time.Now()
+	fiscal := siconfi.New(cfg.SiconfiURL, &http.Client{Timeout: requestTimeout})
+	run, err = usecase.NewLoadFiscalTotals(fiscal, postgres.NewFiscalRepo(db), runs, storage, time.Now).Execute(ctx)
+	log.Info("totais do SICONFI", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	if err != nil {
+		log.Error("carga dos totais do SICONFI falhou", "error", err)
 		failed = true
 	}
 	if failed {

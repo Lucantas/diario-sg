@@ -1,12 +1,7 @@
 package usecase
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -87,22 +82,6 @@ func fetchDataset[T any](ctx context.Context, uc *LoadOversight, name string, pa
 }
 
 func (uc *LoadOversight) archive(ctx context.Context, name string, body []byte, rows int) error {
-	var buf bytes.Buffer
-	gz := gzip.NewWriter(&buf)
-	if _, err := gz.Write(body); err != nil {
-		return err
-	}
-	if err := gz.Close(); err != nil {
-		return err
-	}
 	dir := fmt.Sprintf("raw/%s/%s/", domain.SourceOversight, uc.now().Format("2006/01/02"))
-	if err := uc.raw.Put(ctx, dir+name+".json.gz", "application/gzip", &buf); err != nil {
-		return err
-	}
-	sum := sha256.Sum256(body)
-	manifest, err := json.MarshalIndent(archivedFile{SourceSHA256: hex.EncodeToString(sum[:]), Rows: rows}, "", "  ")
-	if err != nil {
-		return err
-	}
-	return uc.raw.Put(ctx, dir+name+".manifest.json", "application/json", bytes.NewReader(manifest))
+	return archiveJSON(ctx, uc.raw, dir+name, body, rows)
 }

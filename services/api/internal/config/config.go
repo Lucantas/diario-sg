@@ -46,6 +46,7 @@ type Config struct {
 	PrefeituraPayURL   string
 	CamaraPayURL       string
 	SICAMURL           string
+	SiconfiURL         string
 }
 
 func Load(role Role) (Config, error) {
@@ -71,6 +72,7 @@ func Load(role Role) (Config, error) {
 			"https://sistema.pmsg.rj.gov.br/pmsaogoncalo/websis/portal_transparencia/financeiro/contas_publicas/lai_remuneracoes_api.php"),
 		CamaraPayURL: getenv("CAMARA_PAY_URL", "https://cmsaogoncalo-rj.portaltp.com.br/api/pessoal/api-servidores.aspx"),
 		SICAMURL:     getenv("SICAM_URL", "https://sg.processolegislativo.com.br/integracao/"),
+		SiconfiURL:   getenv("SICONFI_URL", "https://apidatalake.tesouro.gov.br/ords/siconfi/tt/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}

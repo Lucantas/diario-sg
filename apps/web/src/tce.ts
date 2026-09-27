@@ -15,3 +15,13 @@ export function stalledPeriod(started: string | null, stalled: string | null): s
   if (stop) return `paralisada em ${stop}`;
   return start ? `iniciada em ${start}` : "datas não informadas";
 }
+
+const LAST_PERIOD = 6;
+
+export function rreoPeriodLabel(period: number): string {
+  return period === LAST_PERIOD ? "ano fechado" : `até o ${period}º bimestre`;
+}
+
+export function coverageLabel(basisPoints: number): string {
+  return `${(basisPoints / 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+}

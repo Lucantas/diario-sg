@@ -218,6 +218,21 @@ type AmendmentPaymentReader interface {
 	AmendmentPaymentsByCNPJ(ctx context.Context, cnpj string) ([]domain.AmendmentPayment, error)
 }
 
+type FiscalSource interface {
+	RREO(ctx context.Context, year, period int) ([]byte, error)
+	RREOURL(year, period int) string
+}
+
+type FiscalRepository interface {
+	Ready(ctx context.Context) error
+	SaveFiscalTotals(ctx context.Context, totals []domain.FiscalTotal) error
+}
+
+type FiscalReader interface {
+	FiscalTotals(ctx context.Context) ([]domain.FiscalTotal, error)
+	PaidByYear(ctx context.Context) ([]domain.YearPaid, error)
+}
+
 type OversightSource interface {
 	Dataset(ctx context.Context, name string) ([]byte, error)
 }

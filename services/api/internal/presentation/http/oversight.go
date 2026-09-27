@@ -47,20 +47,41 @@ type penaltyProcessDTO struct {
 	Condemnations []condemnationDTO `json:"condemnations"`
 }
 
+type fiscalControlDTO struct {
+	Year              int    `json:"year"`
+	Period            int    `json:"period"`
+	CommittedCents    int64  `json:"committed_cents"`
+	LiquidatedCents   int64  `json:"liquidated_cents"`
+	PaidCents         int64  `json:"paid_cents"`
+	SourceURL         string `json:"source_url"`
+	TCECommittedCents int64  `json:"tce_committed_cents"`
+	TCEPaidCents      int64  `json:"tce_paid_cents"`
+	TCELoaded         bool   `json:"tce_loaded"`
+	PaidCoverageBP    int    `json:"paid_coverage_bp"`
+	LowCoverage       bool   `json:"low_coverage"`
+}
+
 type oversightDTO struct {
-	Accounts  []accountDTO        `json:"accounts"`
-	Penalties []penaltyProcessDTO `json:"penalties"`
-	Works     []stalledWorkDTO    `json:"works"`
+	Accounts      []accountDTO        `json:"accounts"`
+	Penalties     []penaltyProcessDTO `json:"penalties"`
+	Works         []stalledWorkDTO    `json:"works"`
+	FiscalControl []fiscalControlDTO  `json:"fiscal_control"`
 }
 
 func (a *API) oversight(w http.ResponseWriter, r *http.Request) {
-	o, processes, err := a.Oversight.Execute(r.Context())
+	o, err := a.Oversight.Execute(r.Context())
 	if err != nil {
 		writeError(w, err, a.Log)
 		return
 	}
+	processes := o.Processes
 	out := oversightDTO{Accounts: make([]accountDTO, len(o.Accounts)), Penalties: make([]penaltyProcessDTO, len(processes)),
-		Works: toStalledWorkDTOs(o.Works)}
+		Works: toStalledWorkDTOs(o.Works), FiscalControl: make([]fiscalControlDTO, len(o.Fiscal))}
+	for i, f := range o.Fiscal {
+		out.FiscalControl[i] = fiscalControlDTO{Year: f.Year, Period: f.Period, CommittedCents: f.CommittedCents, LiquidatedCents: f.LiquidatedCents,
+			PaidCents: f.PaidCents, SourceURL: f.SourceURL, TCECommittedCents: f.TCECommittedCents, TCEPaidCents: f.TCEPaidCents, TCELoaded: f.TCELoaded,
+			PaidCoverageBP: f.PaidCoverageBP, LowCoverage: f.LowCoverage()}
+	}
 	for i, acc := range o.Accounts {
 		out.Accounts[i] = accountDTO{Year: acc.Year, Opinion: acc.Opinion, Process: acc.Process, Responsible: acc.Responsible}
 	}
