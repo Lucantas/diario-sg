@@ -173,6 +173,16 @@ Pendências:
   endereço do servidor e um clique em "Autorizar". Conferido com o cliente
   OAuth do SDK oficial em Go, pelo proxy do site. Desenho em
   `docs/superpowers/specs/2026-09-27-oauth-do-mcp-design.md`.
+- [x] Padrões no MCP (etapa G do plano de fontes, 27/09/2026): ferramenta
+  `padroes` com o catálogo, os achados de um padrão ou só os que citam um
+  CNPJ, processo ou contrato (a mesma chave de `entidade`), e os prompts
+  `investigar_fornecedor` e `seguir_contrato`. Cada achado passou a
+  carregar as entidades de que trata. Na base local, o primeiro cálculo
+  leva ~5 s e fica 10 minutos em cache. Desenho em
+  `docs/superpowers/specs/2026-09-27-padroes-no-mcp-design.md`.
+- [ ] `go test -race` nos testes de integração acusa uma corrida dentro do
+  `lib/pq` v1.10.9 (`CopyIn`, usado pela carga de agentes e outras);
+  avaliar trocar por `pgx` ou atualizar o driver.
 - [ ] Na nuvem: migration 024 e a imagem nova do web (o nginx passa a
   encaminhar `/.well-known/` para a API) antes de anunciar o conector.
 - [ ] Limites por IP: usam o primeiro valor de `X-Forwarded-For`, que quem

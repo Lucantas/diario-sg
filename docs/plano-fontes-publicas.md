@@ -181,7 +181,7 @@ fontes de cada uma e adiciona o MCP desde cedo.
 | **D. Quem é o fornecedor** (Entrega 3) | Receita e sanções da CGU; página e ferramenta `empresa` | Receita, CGU |
 | **E. Anunciado × pago** (Entrega 4) | Empenhos e dispensas do TCE-RJ (com CNPJ, até o mês corrente); portaltp 2017–2022 para liquidação e pagamento detalhados; mural de licitações; PNCP; SICONFI como total de controle; ferramenta `pagamentos` | TCE-RJ, Prefeitura, PNCP, Tesouro |
 | **F. Recorte político** (Entrega 5) | TSE (pelo espelho da Base dos Dados, se o TSE continuar bloqueando), transferências e emendas (CGU, Transferegov), pareceres e penalidades do TCE-RJ; folha agregada | Estado e União |
-| **G. Padrões nas fontes novas** | Os padrões das Entregas 3 a 5 viram ferramenta `padroes` | todas |
+| **G. Padrões nas fontes novas** (entregue em 27/09/2026) | Os padrões das Entregas 2 a 5 viram a ferramenta `padroes`, filtrável por CNPJ, processo ou contrato; prompts `investigar_fornecedor` e `seguir_contrato` | todas |
 
 O Diário da Câmara vem antes da Receita porque é a lacuna que já apareceu
 (o salário dos vereadores não está no Diário da Prefeitura) e reaproveita

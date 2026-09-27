@@ -23,7 +23,7 @@ que encadeiam as ferramentas.
 - **Ferramenta `padroes`.** Argumentos opcionais: `cnpj`, `processo`,
   `contrato` (um de cada vez), `padrao` (o id) e `pular`.
   - Sem nada: o catálogo, cada padrão com id, título, regra, ressalva e
-    número de achados, e os 5 primeiros achados de cada.
+    número de achados, e os 3 primeiros achados de cada, sem a lista de atos.
   - Com `padrao`: até 20 achados daquele padrão, com `pular` para seguir.
   - Com uma entidade: só os achados que citam aquela chave, de todos os
     padrões (ou do `padrao` pedido).
@@ -50,3 +50,24 @@ que encadeiam as ferramentas.
   fica fora do módulo Go e a ferramenta `fontes` já diz cobertura e
   lacunas.
 - Alerta por e-mail quando uma entidade passa a acionar um padrão.
+
+## Depois da entrega
+
+- Além do previsto, a emergencial renovada leva o processo e o contrato
+  dos atos que juntou, e o contrato do PNCP leva o processo; assim
+  `seguir_contrato` acha esses padrões pelo número.
+- CNPJ inválido (fornecedor pessoa física ou estrangeiro no PNCP) não vira
+  entidade.
+- No catálogo, `achados_encontrados` é o total de achados, não o dos 3
+  mostrados; `pular` sem padrão nem entidade é recusado.
+- O recálculo roda fora da trava, uma vez só para todas as chamadas que
+  chegam juntas, com prazo próprio de 2 minutos: quem desiste não derruba
+  os outros.
+- `seguir_contrato` sem `tipo` pede à IA as duas leituras que o número
+  admite (processo e contrato), em vez de adivinhar pela pontuação.
+- Na base local: o primeiro cálculo leva ~5 s; o catálogo tem ~65 KB (o
+  SDK manda o JSON como texto e como conteúdo estruturado) e a busca por
+  um CNPJ, ~3 KB.
+- `go test -race` nos testes de integração acusa uma corrida dentro do
+  `lib/pq` (`CopyIn`), no teste de agentes políticos; não é deste código e
+  fica anotada no roadmap.
