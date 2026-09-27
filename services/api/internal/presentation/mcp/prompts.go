@@ -32,7 +32,7 @@ func supplierPrompt(_ context.Context, req *sdk.GetPromptRequest) (*sdk.GetPromp
 		return nil, err
 	}
 	text := fmt.Sprintf("Investigue o fornecedor de CNPJ %s nos Diários Oficiais de São Gonçalo.\n"+
-		"1. Chame entidade com tipo cnpj e numero %s: cadastro da Receita, sanções da CGU, pagamentos do TCE-RJ, contratos do PNCP, "+
+		"1. Chame entidade com tipo cnpj e numero %s: cadastro da Receita, sanções da CGU, pagamentos do TCE-RJ, empenhos do portal da Prefeitura (com o processo), contratos do PNCP, "+
 		"obras paralisadas e emendas, além dos atos que citam o CNPJ.\n"+
 		"2. Chame padroes com cnpj %s e explique cada achado com a regra e a ressalva.\n"+
 		"3. Leia com ler_ato os atos mais importantes (primeiro contrato, aditivos, dispensas) e, se a empresa aparece só pelo nome, "+

@@ -123,6 +123,7 @@ type companyResponse struct {
 	PNCPContracts     []pncpContractDTO     `json:"pncp_contracts"`
 	StalledWorks      []stalledWorkDTO      `json:"stalled_works"`
 	AmendmentPayments []amendmentPaymentDTO `json:"amendment_payments"`
+	Municipal         municipalSupplierDTO  `json:"municipal_commitments"`
 }
 
 type monthCountDTO struct {

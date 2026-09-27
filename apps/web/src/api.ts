@@ -193,6 +193,7 @@ export interface FiscalControl {
   tce_loaded: boolean;
   paid_coverage_bp: number;
   low_coverage: boolean;
+  portal_paid_cents: number | null;
 }
 
 export function getOversight() {
@@ -290,6 +291,26 @@ export interface CompanyResponse {
   pncp_contracts: PNCPContract[];
   stalled_works: StalledWork[];
   amendment_payments: AmendmentPayment[];
+  municipal_commitments: MunicipalSupplier;
+}
+
+export interface MunicipalCommitment {
+  entity: string;
+  year: number;
+  number: string;
+  date: string;
+  object: string;
+  process_kind: string;
+  process: string;
+  modality: string;
+  committed_cents: number;
+  liquidated_cents: number;
+  paid_cents: number;
+}
+
+export interface MunicipalSupplier {
+  years: { year: number; commitments: number; committed_cents: number; paid_cents: number }[];
+  recent: MunicipalCommitment[];
 }
 
 export interface OrganCount {

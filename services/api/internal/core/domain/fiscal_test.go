@@ -37,15 +37,18 @@ func TestBuildFiscalControlComparesTCEWithTheRREO(t *testing.T) {
 	totals := []FiscalTotal{{Year: 2024, Period: 6, PaidCents: 1000}, {Year: 2025, Period: 6, PaidCents: 1000}, {Year: 2026, Period: 3, PaidCents: 500}}
 	tce := []YearPaid{{Year: 2024, PaidCents: 950}, {Year: 2025, PaidCents: 800}, {Year: 2026, PaidCents: 100}}
 
-	got := BuildFiscalControl(totals, tce)
+	got := BuildFiscalControl(totals, tce, map[int]int64{2025: 990})
 
 	if got[0].PaidCoverageBP != 9500 || got[0].LowCoverage() || got[1].PaidCoverageBP != 8000 || !got[1].LowCoverage() {
 		t.Errorf("anos fechados: %+v", got[:2])
 	}
+	if !got[1].PortalLoaded || got[1].PortalPaidCents != 990 || got[0].PortalLoaded {
+		t.Errorf("portal: %+v", got[:2])
+	}
 	if got[2].LowCoverage() {
 		t.Error("ano em curso não é comparável ao bimestre publicado")
 	}
-	if missing := BuildFiscalControl([]FiscalTotal{{Year: 2017, Period: 6, PaidCents: 1000}}, tce)[0]; missing.TCELoaded || missing.LowCoverage() {
+	if missing := BuildFiscalControl([]FiscalTotal{{Year: 2017, Period: 6, PaidCents: 1000}}, tce, nil)[0]; missing.TCELoaded || missing.LowCoverage() {
 		t.Errorf("ano sem carga do TCE marcado como incompleto: %+v", missing)
 	}
 }

@@ -33,8 +33,12 @@ func (uc *LoadPayments) Execute(ctx context.Context, from, to int) (domain.Fetch
 	if from == 0 && to == 0 {
 		from, to = started.Year()-1, started.Year()
 	}
-	if from < firstTCEYear || to < from || to > started.Year() {
-		return domain.FetchRun{}, fmt.Errorf("%w: anos %d a %d (de %d até o ano corrente)", domain.ErrInvalidInput, from, to, firstTCEYear)
+	if to < from || to > started.Year() {
+		return domain.FetchRun{}, fmt.Errorf("%w: anos %d a %d (até o ano corrente)", domain.ErrInvalidInput, from, to)
+	}
+	from = max(from, firstTCEYear)
+	if from > to {
+		return domain.FetchRun{}, nil
 	}
 	run := domain.FetchRun{ID: domain.NewRunID(), Source: domain.SourceTCE, StartedAt: started,
 		RequestedFrom: time.Date(from, 1, 1, 0, 0, 0, 0, time.UTC), RequestedTo: time.Date(to, 12, 31, 0, 0, 0, 0, time.UTC)}

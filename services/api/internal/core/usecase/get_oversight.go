@@ -16,10 +16,11 @@ type OversightView struct {
 type GetOversight struct {
 	reader ports.OversightReader
 	fiscal ports.FiscalReader
+	portal ports.MunicipalTotalsReader
 }
 
-func NewGetOversight(reader ports.OversightReader, fiscal ports.FiscalReader) *GetOversight {
-	return &GetOversight{reader: reader, fiscal: fiscal}
+func NewGetOversight(reader ports.OversightReader, fiscal ports.FiscalReader, portal ports.MunicipalTotalsReader) *GetOversight {
+	return &GetOversight{reader: reader, fiscal: fiscal, portal: portal}
 }
 
 func (uc *GetOversight) Execute(ctx context.Context) (OversightView, error) {
@@ -35,5 +36,9 @@ func (uc *GetOversight) Execute(ctx context.Context) (OversightView, error) {
 	if err != nil {
 		return OversightView{}, err
 	}
-	return OversightView{TCEOversight: o, Processes: domain.GroupPenalties(o.Penalties), Fiscal: domain.BuildFiscalControl(totals, paid)}, nil
+	portalPaid, err := uc.portal.MunicipalPaidByYear(ctx)
+	if err != nil {
+		return OversightView{}, err
+	}
+	return OversightView{TCEOversight: o, Processes: domain.GroupPenalties(o.Penalties), Fiscal: domain.BuildFiscalControl(totals, paid, portalPaid)}, nil
 }

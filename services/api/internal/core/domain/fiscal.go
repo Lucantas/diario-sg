@@ -39,6 +39,8 @@ type FiscalControl struct {
 	TCEPaidCents      int64
 	TCELoaded         bool
 	PaidCoverageBP    int
+	PortalPaidCents   int64
+	PortalLoaded      bool
 }
 
 func (c FiscalControl) LowCoverage() bool {
@@ -83,7 +85,7 @@ func ParseRREOTotals(body []byte, year, period int) (FiscalTotal, bool, error) {
 	return t, true, nil
 }
 
-func BuildFiscalControl(totals []FiscalTotal, tce []YearPaid) []FiscalControl {
+func BuildFiscalControl(totals []FiscalTotal, tce []YearPaid, portalPaid map[int]int64) []FiscalControl {
 	byYear := map[int]YearPaid{}
 	for _, y := range tce {
 		byYear[y.Year] = y
@@ -92,6 +94,7 @@ func BuildFiscalControl(totals []FiscalTotal, tce []YearPaid) []FiscalControl {
 	for _, t := range totals {
 		y, loaded := byYear[t.Year]
 		c := FiscalControl{FiscalTotal: t, TCECommittedCents: y.CommittedCents, TCEPaidCents: y.PaidCents, TCELoaded: loaded}
+		c.PortalPaidCents, c.PortalLoaded = portalPaid[t.Year]
 		if loaded && t.PaidCents > 0 {
 			c.PaidCoverageBP = int(c.TCEPaidCents * basisPointsWhole / t.PaidCents)
 		}

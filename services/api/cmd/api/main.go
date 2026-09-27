@@ -51,7 +51,7 @@ func run(l *slog.Logger) error {
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
 
 	registry, payments := postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)
-	sources := usecase.CompanySources{Registry: registry, Sanctions: postgres.NewSanctionRepo(db), Payments: payments, PNCP: postgres.NewPNCPRepo(db), Works: postgres.NewOversightRepo(db), Federal: postgres.NewFederalRepo(db)}
+	sources := usecase.CompanySources{Registry: registry, Sanctions: postgres.NewSanctionRepo(db), Payments: payments, PNCP: postgres.NewPNCPRepo(db), Works: postgres.NewOversightRepo(db), Federal: postgres.NewFederalRepo(db), Municipal: postgres.NewMunicipalCommitmentRepo(db)}
 	entity := usecase.NewGetEntity(postgres.NewLinkRepo(db), sources)
 	search := usecase.NewSearchActs(acts)
 	company := usecase.NewGetCompany(acts, sources)
@@ -72,7 +72,7 @@ func run(l *slog.Logger) error {
 		Patterns:      patterns,
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), registry, payments),
 		Staff:         usecase.NewGetStaffPanel(postgres.NewStaffRepo(db), postgres.NewPatternRepo(db)),
-		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db), postgres.NewFiscalRepo(db)),
+		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db), postgres.NewFiscalRepo(db), postgres.NewMunicipalCommitmentRepo(db)),
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db), postgres.NewSpecialTransferRepo(db)),
 		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
 		Organs:        usecase.NewListOrgans(acts),

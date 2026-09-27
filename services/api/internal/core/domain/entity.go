@@ -27,6 +27,7 @@ type CompanyFacts struct {
 	PNCPContracts     []PNCPContract
 	StalledWorks      []StalledWork
 	AmendmentPayments []AmendmentPayment
+	Municipal         MunicipalSupplier
 }
 
 type CompanyReport struct {

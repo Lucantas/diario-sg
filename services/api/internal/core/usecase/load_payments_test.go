@@ -89,10 +89,20 @@ func TestLoadPaymentsStopsAtTheFailingYear(t *testing.T) {
 	}
 }
 
+func TestLoadPaymentsSkipsYearsBeforeTheTCECoverage(t *testing.T) {
+	repo, runs := &fakePaymentRepo{}, &memRuns{}
+
+	run, err := NewLoadPayments(tceFixture(), repo, runs, &memObjects{}, paymentsNow).Execute(context.Background(), 2017, 2019)
+
+	if err != nil || run.ID != "" || len(runs.runs) != 0 {
+		t.Errorf("anos antes de 2020: %+v %v %+v", run, err, runs.runs)
+	}
+}
+
 func TestLoadPaymentsRejectsYearsOutsideTheCoverage(t *testing.T) {
 	uc := NewLoadPayments(tceFixture(), &fakePaymentRepo{}, &memRuns{}, &memObjects{}, paymentsNow)
 
-	for _, r := range [][2]int{{2019, 2020}, {2026, 2025}, {2025, 2027}} {
+	for _, r := range [][2]int{{2026, 2025}, {2025, 2027}} {
 		if _, err := uc.Execute(context.Background(), r[0], r[1]); !errors.Is(err, domain.ErrInvalidInput) {
 			t.Errorf("%v: %v", r, err)
 		}

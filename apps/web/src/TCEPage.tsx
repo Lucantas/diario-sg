@@ -57,8 +57,8 @@ export function TCEPage() {
           <section className="totals" aria-labelledby="fiscal-heading">
             <h2 id="fiscal-heading" className="panel-heading">Total de controle</h2>
             <p className="count">
-              O total que a Prefeitura declara ao Tesouro Nacional no RREO (SICONFI) ao lado da soma dos empenhos que o TCE-RJ
-              publica. Quando o TCE cobre menos de 90% do que foi pago no ano fechado, faltam empenhos na base do tribunal, e os
+              O total que a Prefeitura declara ao Tesouro Nacional no RREO (SICONFI) ao lado do pago no portal da transparência
+              da Prefeitura e da soma dos empenhos que o TCE-RJ publica. Quando o TCE cobre menos de 90% do que foi pago no ano fechado, faltam empenhos na base do tribunal, e os
               totais por credor ficam abaixo do real.
             </p>
             {data.fiscal_control.length === 0 ? <p className="count">Nenhum RREO carregado.</p> : (
@@ -66,14 +66,15 @@ export function TCEPage() {
                 <thead>
                   <tr>
                     <th scope="col">Exercício</th><th scope="col">Empenhado (RREO)</th><th scope="col">Pago (RREO)</th>
-                    <th scope="col">Pago (TCE-RJ)</th><th scope="col">Cobertura</th>
+                    <th scope="col">Pago (portal)</th><th scope="col">Pago (TCE-RJ)</th><th scope="col">Cobertura TCE</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.fiscal_control.map((f) => (
                     <tr key={f.year}>
                       <th scope="row"><a href={f.source_url}>{f.year}</a><br /><span className="count">{rreoPeriodLabel(f.period)}</span></th>
-                      <td>{formatCompactCents(f.committed_cents)}</td><td>{formatCompactCents(f.paid_cents)}</td>{f.tce_loaded ? (
+                      <td>{formatCompactCents(f.committed_cents)}</td><td>{formatCompactCents(f.paid_cents)}</td>
+                      <td>{f.portal_paid_cents === null ? "—" : formatCompactCents(f.portal_paid_cents)}</td>{f.tce_loaded ? (
                         <><td>{formatCompactCents(f.tce_paid_cents)}</td><td>{coverageLabel(f.paid_coverage_bp)}{f.low_coverage && " · incompleto"}</td></>
                       ) : <td colSpan={2}>sem empenhos carregados</td>}
                     </tr>

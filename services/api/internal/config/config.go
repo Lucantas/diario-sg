@@ -48,6 +48,7 @@ type Config struct {
 	SICAMURL           string
 	SiconfiURL         string
 	TransferegovURL    string
+	PMSGPortalURL      string
 }
 
 func Load(role Role) (Config, error) {
@@ -75,6 +76,7 @@ func Load(role Role) (Config, error) {
 		SICAMURL:        getenv("SICAM_URL", "https://sg.processolegislativo.com.br/integracao/"),
 		SiconfiURL:      getenv("SICONFI_URL", "https://apidatalake.tesouro.gov.br/ords/siconfi/tt/"),
 		TransferegovURL: getenv("TRANSFEREGOV_URL", "https://api.transferegov.gestao.gov.br/transferenciasespeciais/"),
+		PMSGPortalURL:   getenv("PMSG_PORTAL_URL", "https://sistema.pmsg.rj.gov.br/portal-transparencia/api/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}

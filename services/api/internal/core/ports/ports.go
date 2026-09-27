@@ -215,6 +215,24 @@ type FederalReader interface {
 	TransferMonths(ctx context.Context) (from, to *time.Time, err error)
 }
 
+type MunicipalCommitmentSource interface {
+	Entities(ctx context.Context) ([]byte, error)
+	Commitments(ctx context.Context, year, entity int) ([]byte, error)
+}
+
+type MunicipalCommitmentRepository interface {
+	Ready(ctx context.Context) error
+	ReplaceMunicipalYear(ctx context.Context, year int, commitments []domain.MunicipalCommitment, totals []domain.MunicipalTotal) error
+}
+
+type MunicipalCommitmentReader interface {
+	MunicipalByCNPJ(ctx context.Context, cnpj string) (domain.MunicipalSupplier, error)
+}
+
+type MunicipalTotalsReader interface {
+	MunicipalPaidByYear(ctx context.Context) (map[int]int64, error)
+}
+
 type SpecialTransferSource interface {
 	Rows(ctx context.Context, table string, filter url.Values) ([]byte, error)
 }

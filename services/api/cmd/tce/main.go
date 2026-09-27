@@ -11,6 +11,7 @@ import (
 
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pmsgportal"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/siconfi"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/tce"
@@ -63,6 +64,14 @@ func main() {
 	log.Info("controle do TCE-RJ", "run", run, "duration_ms", time.Since(start).Milliseconds())
 	if err != nil {
 		log.Error("carga do controle falhou", "error", err)
+		failed = true
+	}
+	start = time.Now()
+	portal := pmsgportal.New(cfg.PMSGPortalURL, &http.Client{Timeout: requestTimeout})
+	run, err = usecase.NewLoadMunicipalCommitments(portal, postgres.NewMunicipalCommitmentRepo(db), runs, storage, time.Now).Execute(ctx, *from, *to)
+	log.Info("empenhos do portal da Prefeitura", "run", run, "duration_ms", time.Since(start).Milliseconds())
+	if err != nil {
+		log.Error("carga dos empenhos do portal falhou", "error", err)
 		failed = true
 	}
 	start = time.Now()

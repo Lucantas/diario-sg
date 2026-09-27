@@ -59,6 +59,7 @@ type fiscalControlDTO struct {
 	TCELoaded         bool   `json:"tce_loaded"`
 	PaidCoverageBP    int    `json:"paid_coverage_bp"`
 	LowCoverage       bool   `json:"low_coverage"`
+	PortalPaidCents   *int64 `json:"portal_paid_cents"`
 }
 
 type oversightDTO struct {
@@ -81,6 +82,10 @@ func (a *API) oversight(w http.ResponseWriter, r *http.Request) {
 		out.FiscalControl[i] = fiscalControlDTO{Year: f.Year, Period: f.Period, CommittedCents: f.CommittedCents, LiquidatedCents: f.LiquidatedCents,
 			PaidCents: f.PaidCents, SourceURL: f.SourceURL, TCECommittedCents: f.TCECommittedCents, TCEPaidCents: f.TCEPaidCents, TCELoaded: f.TCELoaded,
 			PaidCoverageBP: f.PaidCoverageBP, LowCoverage: f.LowCoverage()}
+		if f.PortalLoaded {
+			paid := f.PortalPaidCents
+			out.FiscalControl[i].PortalPaidCents = &paid
+		}
 	}
 	for i, acc := range o.Accounts {
 		out.Accounts[i] = accountDTO{Year: acc.Year, Opinion: acc.Opinion, Process: acc.Process, Responsible: acc.Responsible}
