@@ -50,3 +50,16 @@ anexado; o PNCP cobre pouco (2 contratos em 2024).
 - Página de detalhe de cada licitação (um pedido por linha): a lista já
   traz o que a ligação usa.
 - Baixar os documentos anexados.
+
+## Depois da entrega
+
+- Carga real: 1.190 licitações, 44 dispensas, 37 inexigibilidades e 645
+  contratos e atas em 3 segundos; 492 contratos casam com o processo de
+  algum empenho do portal.
+- `ProcessKey` também lê o ano com dois dígitos (`30656/25`) e o formato
+  do Diário, com órgão e dígito (`74.00210/2025-0` vira `210/2025`): com
+  cinco dígitos depois do ponto, o que vem antes é o órgão; com três, é
+  ponto de milhar.
+- A URL de detalhe da licitação é gravada na linha, como a do documento.
+- O `golang.org/x/net/html` entrou na versão v0.50.0, a última que aceita
+  Go 1.25; a v0.59 pedia Go 1.26 e subiria a versão do projeto.

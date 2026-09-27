@@ -145,7 +145,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca; com `entity`, o link do canal é a página da entidade |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
 | GET | `/v1/gazettes/{id}/pdf` | Cópia arquivada do PDF (`ETag` = SHA-256; abra com `#page=N`) |
-| GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos; `registry` (Receita), `sanctions` (CGU), `payments` (TCE-RJ), `pncp_contracts` (contratos no PNCP, com `url`) e `municipal_commitments` (empenhos do portal da Prefeitura: `years`, com empenhos, empenhado e pago por ano, e `recent`, os 50 mais recentes com processo, modalidade e objeto) |
+| GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos; `registry` (Receita), `sanctions` (CGU), `payments` (TCE-RJ), `pncp_contracts` (contratos no PNCP, com `url`) `municipal_commitments` (empenhos do portal da Prefeitura: `years`, com empenhos, empenhado e pago por ano, e `recent`, os 50 mais recentes com processo, modalidade e objeto) e `procurements` (linhas do mural de licitações com o processo de algum desses empenhos: `procurements`, com `url`, e `contracts`, com `document_url`) |
 | GET | `/v1/entities/processo/{n}` e `/v1/entities/contrato/{n}` | Atos ligados ao número (os 300 mais recentes), do mais recente ao mais antigo e, na mesma edição, na ordem da página; `n` aceita `-` no lugar de `/` (`30-FMS-2011`). Resposta com `label` (grafia mais frequente no Diário), `count_by_phase` (fase de cada ato, calculada na leitura), `organs` (contagem por órgão, com as variantes de sigla somadas na principal e `""` para os atos sem órgão) e `related` (citados junto, até 20 de cada tipo, pelos que têm mais atos: processo lista contratos e CNPJs, contrato lista processos e CNPJs); tipo desconhecido é 404, número inválido é 400 |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
 | GET | `/v1/patterns` | Padrões para verificar (os 13 de `/padroes`: os do Diário, como fracionamento de dispensa e aditivo acima do limite; os do fornecedor, com o cadastro da Receita e as sanções da CGU; os de anunciado × pago, com os empenhos do TCE-RJ; e o de contrato no PNCP sem extrato), calculados na leitura: cada padrão com `id`, `title`, `rule` (a regra por extenso), `caveat` e `findings` (`title`, `detail`, `acts` no formato da busca, `search`, com `type`, `from`, `to` e `source` quando os atos são muitos para listar, e `link`, com `label` e `url`, quando o caso aponta para fora, como um contrato no PNCP) |
@@ -379,6 +379,15 @@ fundações e da Câmara, de 2021 ao ano corrente, e troca os anos lidos em
 A API limita o ritmo, então a carga pausa entre pedidos e leva alguns
 minutos. A página da empresa mostra os contratos com o link para o PNCP, e
 o padrão `pncp_sem_extrato` lista os que não aparecem no Diário.
+
+Depois do PNCP, o job lê as quatro listas do mural de licitações e
+contratos da Prefeitura (`licitacao.pmsg.rj.gov.br`: licitações,
+dispensas, inexigibilidades e contratos) e troca tudo em `procurements` e
+`procurement_contracts`. O certificado do mural sai da raiz nova do Let's
+Encrypt ("ISRG Root YR"), que alguns sistemas ainda não trazem; o
+adaptador confia nela além das raízes do sistema. O mural não tem CNPJ: a
+página da empresa mostra as linhas com o mesmo processo de algum empenho
+dela no portal da Prefeitura.
 
 ```bash
 make pncp                     # 2021 ao ano corrente

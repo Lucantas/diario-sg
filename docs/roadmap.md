@@ -515,7 +515,7 @@ Pendências:
 
 - [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
 - [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
-- [ ] Na nuvem: migrations 019 a 027 e o Terraform dos jobs `federal` e
+- [ ] Na nuvem: migrations 019 a 028 e o Terraform dos jobs `federal` e
   `agentes`.
 
 ## Fechamento do plano de fontes
@@ -544,8 +544,11 @@ com entrega ou com o bloqueio conferido e registrado.
   empenhos de 2017 a 2026 das 29 entidades, com CNPJ, objeto, processo e
   modalidade; carregados em `municipal_commitments` pelo job `tce` e
   mostrados na página da empresa e no total de controle.
-- [ ] Mural de licitações e contratos da Prefeitura (etapa E, tabela
-  `procurements`).
+- [x] Mural de licitações e contratos da Prefeitura (etapa E, tabelas
+  `procurements` e `procurement_contracts`, job `pncp`): 1.271
+  licitações, dispensas e inexigibilidades e 645 contratos e atas, com
+  o link do documento. Sem CNPJ; a empresa vê as linhas com o processo
+  de algum empenho dela no portal (492 dos 645 contratos casam).
 - [ ] Consulta de leis (SIAPEGOV) e a entidade `norma` (tabela `laws`).
 - [ ] Punições aplicadas pela Prefeitura e publicadas no Diário
   (advertência, multa, suspensão, inidoneidade): extração própria, porque
