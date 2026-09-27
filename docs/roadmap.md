@@ -518,6 +518,33 @@ Pendências:
 - [ ] Na nuvem: migrations 019 a 023 e o Terraform dos jobs `federal` e
   `agentes`.
 
+## Fechamento do plano de fontes
+
+Itens do `docs/plano-fontes-publicas.md` que não dependem de acesso de
+fora e ainda não tinham entrega (auditoria de 27/09/2026). Cada um fecha
+com entrega ou com o bloqueio conferido e registrado.
+
+- [ ] SICONFI (Tesouro): RREO e RGF do município como total de controle
+  dos pagamentos do TCE-RJ (etapa E, tabela `fiscal_reports`).
+- [ ] Transferegov: transferências especiais ("emendas Pix") para o
+  município (etapa F, tabela `transfers`).
+- [ ] Portal antigo da Prefeitura (portaltp), 2017 a 2022: empenho,
+  liquidação e pagamento por favorecido (etapa E, tabela `expenses`).
+- [ ] Portal novo da Prefeitura (Embras/SIAPEGOV): descobrir se a API
+  pública traz os empenhos de 2023 em diante (etapa E).
+- [ ] Mural de licitações e contratos da Prefeitura (etapa E, tabela
+  `procurements`).
+- [ ] Consulta de leis (SIAPEGOV) e a entidade `norma` (tabela `laws`).
+- [ ] Punições aplicadas pela Prefeitura e publicadas no Diário
+  (advertência, multa, suspensão, inidoneidade): extração própria, porque
+  o CEIS não tem nenhuma (riscos do plano).
+- [ ] MCP `pagamentos`: empenhos filtrados por credor, órgão e período,
+  com totais.
+- [ ] MCP `contratacoes`: contratações do Diário, do PNCP e do mural por
+  fornecedor ou órgão.
+- [ ] MCP `empresa`: decidir entre ferramenta própria e `entidade` com
+  CNPJ, que já traz Receita, sanções e pagamentos.
+
 ---
 
 ## Fora do produto: Querido Diário
