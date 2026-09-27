@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -43,6 +44,7 @@ type Deps struct {
 	Agents       *usecase.GetPoliticalAgents
 	Keys         *usecase.APIKeys
 	PublicWebURL string
+	MetadataURL  string
 	Log          *slog.Logger
 	Now          func() time.Time
 }
@@ -78,8 +80,8 @@ func NewHandler(d Deps) http.Handler {
 	h := sdk.NewStreamableHTTPHandler(func(*http.Request) *sdk.Server { return srv },
 		&sdk.StreamableHTTPOptions{Stateless: true, JSONResponse: true, Logger: d.Log})
 	limiter := ratelimit.New(callsPerKey, callsPerInstance, time.Minute, d.Now)
-	bearer := auth.RequireBearerToken(s.verify, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})
-	return requireBearerHeader(bearer(limited(limiter, rejectBatch(h))))
+	bearer := auth.RequireBearerToken(s.verify, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true, ResourceMetadataURL: d.MetadataURL})
+	return requireBearerHeader(d.MetadataURL, bearer(limited(limiter, rejectBatch(h))))
 }
 
 func (s *server) verify(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
@@ -100,11 +102,15 @@ func (errInvalidKey) Error() string { return domain.ErrUnauthorized.Error() }
 
 func (errInvalidKey) Is(target error) bool { return target == auth.ErrInvalidToken }
 
-func requireBearerHeader(next http.Handler) http.Handler {
+func requireBearerHeader(metadataURL string, next http.Handler) http.Handler {
+	challenge := `Bearer realm="diario-sg"`
+	if metadataURL != "" {
+		challenge += fmt.Sprintf(", resource_metadata=%q", metadataURL)
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fields := strings.Fields(r.Header.Get("Authorization"))
 		if len(fields) != 2 || !strings.EqualFold(fields[0], "bearer") {
-			w.Header().Set("WWW-Authenticate", `Bearer realm="diario-sg"`)
+			w.Header().Set("WWW-Authenticate", challenge)
 			http.Error(w, domain.ErrUnauthorized.Error()+"; gere a sua em /mcp no site", http.StatusUnauthorized)
 			return
 		}

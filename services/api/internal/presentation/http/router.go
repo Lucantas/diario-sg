@@ -25,6 +25,7 @@ type API struct {
 	Feed          *usecase.ActFeed
 	Reports       *usecase.ErrorReports
 	Keys          *usecase.APIKeys
+	OAuth         *usecase.OAuth
 	MCP           http.Handler
 	PublicWebURL  string
 	Subscriptions *usecase.Subscriptions
@@ -76,6 +77,7 @@ func (a *API) Routes() http.Handler {
 	if a.MCP != nil {
 		mux.Handle("/mcp", perClient(ratelimit.New(mcpPerClient, mcpPerInstance, time.Minute, time.Now), a.MCP))
 	}
+	a.oauthRoutes(mux)
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)
 	mux.HandleFunc("POST /v1/subscriptions/unsubscribe", a.unsubscribe)
 	return withMiddleware(mux, a.Log)

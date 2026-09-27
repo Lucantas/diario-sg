@@ -9,6 +9,7 @@ export default defineConfig({
         target: "http://localhost:8080",
         rewrite: (p) => p.replace(/^\/api/, ""),
       },
+      "^/\\.well-known/oauth-": "http://localhost:8080",
       "^/dados/": {
         target: "http://localhost:4443",
         changeOrigin: true,

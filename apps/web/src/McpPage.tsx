@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { IssuedKey, issueMcpKey, revokeMcpKey } from "./api";
-import { mcpSnippets } from "./mcp";
+import { mcpServerUrl, mcpSnippets, oauthSnippet } from "./mcp";
 
 const TOOLS: [string, string][] = [
   ["buscar_atos", "busca nos Diários da Prefeitura e da Câmara com os mesmos filtros do site"],
@@ -9,6 +9,7 @@ const TOOLS: [string, string][] = [
   ["agrupar", "conta os atos encontrados por CNPJ, processo, órgão ou tipo, sem os CNPJs de órgãos públicos"],
   ["pagina_original", "texto cru de uma página do PDF arquivado, para conferir o que foi extraído"],
   ["fontes", "período coberto, última coleta e lacunas conhecidas"],
+  ["agentes_politicos", "prefeito, vice, secretários, Procurador-Geral e vereadores, com a remuneração mês a mês"],
 ];
 
 export function McpPage() {
@@ -36,7 +37,7 @@ export function McpPage() {
         <p className="eyebrow">Para usar com IA</p>
         <h1>Pergunte ao Diário pela sua IA.</h1>
         <p className="lede">
-          O Diário SG tem um servidor MCP: você pluga na IA que já usa (Claude, Cursor e outras compatíveis) e
+          O Diário SG tem um servidor MCP: você pluga na IA que já usa (Claude, ChatGPT, Cursor e outras compatíveis) e
           pergunta em linguagem natural. A IA busca e lê os atos por aqui e cita a edição, a página e a cópia
           arquivada. A IA é sua; nós só servimos os dados.
         </p>
@@ -51,8 +52,10 @@ export function McpPage() {
         </ul>
       </section>
 
+      <ConnectorSection />
+
       <section className="howto" aria-label="Gerar chave">
-        <h2>1. Gere a sua chave</h2>
+        <h2>Ou gere uma chave</h2>
         <p>
           A chave não pede cadastro nem e-mail. Ela serve para contar o uso e aplicar o limite de 60 chamadas por
           minuto. Ela aparece uma única vez: guarde num lugar seguro.
@@ -93,7 +96,7 @@ function IssuedKeyPanel({ issued }: { issued: IssuedKey }) {
         <p>{issued.key}</p>
         <button onClick={copy}>{copied ? "Copiada" : "Copiar chave"}</button>
       </div>
-      <h2>2. Configure a sua IA</h2>
+      <h2>Configure a sua IA</h2>
       <p>Claude Code, no terminal:</p>
       <pre>{snippets.claudeCode}</pre>
       <p>Claude Desktop, em <code>claude_desktop_config.json</code> (precisa do Node instalado):</p>
@@ -102,10 +105,36 @@ function IssuedKeyPanel({ issued }: { issued: IssuedKey }) {
       <pre>{snippets.cursor}</pre>
       <p className="hint">
         Outras IAs: servidor HTTP em <code>{issued.mcp_url}</code> com o cabeçalho{" "}
-        <code>Authorization: Bearer</code> e a chave. Os conectores do claude.ai e do ChatGPT pedem login por
-        OAuth, que ainda não temos.
+        <code>Authorization: Bearer</code> e a chave.
       </p>
     </>
+  );
+}
+
+function ConnectorSection() {
+  const url = mcpServerUrl(window.location.origin);
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+  }
+
+  return (
+    <section className="howto" aria-label="Conectar pelo endereço">
+      <h2>Conecte pelo endereço</h2>
+      <p>
+        No claude.ai, no ChatGPT e em outras IAs que aceitam conector personalizado, adicione um conector com este
+        endereço. Vai abrir uma página do Diário SG: clique em <strong>Autorizar</strong> e pronto. Não há cadastro;
+        a IA recebe uma chave como a de baixo, com o mesmo limite.
+      </p>
+      <div className="cite">
+        <p>{url}</p>
+        <button onClick={copy}>{copied ? "Copiado" : "Copiar endereço"}</button>
+      </div>
+      <p>Claude Code, no terminal (depois, <code>/mcp</code> para autorizar):</p>
+      <pre>{oauthSnippet(url)}</pre>
+    </section>
   );
 }
 

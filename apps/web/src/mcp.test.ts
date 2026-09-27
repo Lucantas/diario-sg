@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mcpSnippets } from "./mcp";
+import { mcpServerUrl, mcpSnippets, oauthSnippet } from "./mcp";
 
 const url = "https://diario.exemplo/api/mcp";
 const key = "dsg_abc123";
@@ -24,5 +24,16 @@ describe("mcpSnippets", () => {
     const config = JSON.parse(mcpSnippets(url, key).cursor);
 
     expect(config.mcpServers["diario-sg"]).toEqual({ url, headers: { Authorization: `Bearer ${key}` } });
+  });
+});
+
+describe("mcpServerUrl", () => {
+  it("junta a origem do site ao caminho do servidor, sem barra dobrada", () => {
+    expect(mcpServerUrl("https://diario.exemplo")).toBe(url);
+    expect(mcpServerUrl("https://diario.exemplo/")).toBe(url);
+  });
+
+  it("monta o comando do Claude Code sem chave, para o login por OAuth", () => {
+    expect(oauthSnippet(url)).toBe(`claude mcp add --transport http diario-sg ${url}`);
   });
 });

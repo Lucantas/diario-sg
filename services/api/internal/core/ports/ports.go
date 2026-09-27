@@ -132,6 +132,14 @@ type APIKeyRepository interface {
 	RevokeByPrefix(ctx context.Context, prefix string) error
 }
 
+type OAuthRepository interface {
+	CreateClient(ctx context.Context, c domain.OAuthClient, unusedBefore time.Time) error
+	MarkClientUsed(ctx context.Context, id string, at time.Time) error
+	Client(ctx context.Context, id string) (domain.OAuthClient, error)
+	SaveCode(ctx context.Context, code domain.OAuthCode, now time.Time) error
+	TakeCode(ctx context.Context, hash string) (domain.OAuthCode, error)
+}
+
 type CoverageReader interface {
 	Coverage(ctx context.Context) ([]domain.Coverage, error)
 }

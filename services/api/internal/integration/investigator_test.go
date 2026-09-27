@@ -69,7 +69,8 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: usecase.NewSearchActs(acts), Read: usecase.NewReadAct(gaz, acts),
 		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)), Group: usecase.NewGroupActs(acts),
 		Page: usecase.NewReadPage(gaz, stringStore(text), singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
-		Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), PublicWebURL: "https://web.exemplo", Log: log})
+		Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), PublicWebURL: "https://web.exemplo",
+		MetadataURL: "https://web.exemplo/.well-known/oauth-protected-resource/api/mcp", Log: log})
 	api := &httpapi.API{Search: usecase.NewSearchActs(acts), Stats: usecase.NewActStats(acts),
 		Gazette: usecase.NewGetGazette(gaz, acts), Reports: usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
 		Entity:  usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)),
@@ -82,7 +83,8 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db)),
 		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)),
-		Keys:          keys, MCP: mcpHandler, Log: log}
+		Keys:          keys, MCP: mcpHandler, Log: log,
+		OAuth: usecase.NewOAuth(postgres.NewOAuthRepo(db), keys, "https://web.exemplo/api/mcp", time.Now)}
 	srv := httptest.NewServer(api.Routes())
 	t.Cleanup(srv.Close)
 	return srv, db

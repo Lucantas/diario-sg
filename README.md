@@ -159,19 +159,38 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | POST | `/v1/mcp/keys` | Gera uma chave do servidor MCP (`{"key","prefix","mcp_url"}`); a chave só aparece nesta resposta; 3 por hora por cliente |
 | DELETE | `/v1/mcp/keys` | Revoga a chave enviada em `Authorization: Bearer` |
 | POST | `/mcp` | Servidor MCP (HTTP "streamable", sem sessão); ver abaixo |
+| GET | `/.well-known/oauth-protected-resource`, `/.well-known/oauth-authorization-server` | Metadados OAuth do servidor MCP (RFC 9728 e RFC 8414); o site passa `/.well-known/` para a API |
+| POST | `/oauth/register` | Registro dinâmico de cliente (RFC 7591): `{"redirect_uris","client_name"}` → `client_id`; só cliente público; 100 por hora por cliente; cliente que nunca trocou código some em 7 dias |
+| GET, POST | `/oauth/authorize` | Página de consentimento (código com PKCE `S256`); "Autorizar" volta ao `redirect_uri` com `code`, `state` e `iss`, 10 por hora por cliente; pedido malformado fica na página, sem redirecionar |
+| POST | `/oauth/token` | Troca o código por uma chave MCP (`access_token`), sem expiração nem refresh token; 60 por minuto por cliente |
 | POST | `/v1/subscriptions` | `{"email","query"}` (termo) ou `{"email","entity":{"kind","value"}}` (CNPJ, processo ou contrato; o alerta sai pelas ligações da edição, não pelo texto) → envia e-mail de confirmação; a resposta traz `subject` e `entity` |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |
 
 ## Servidor MCP
 
-Para perguntar ao Diário pela IA que você já usa. Gere uma chave em
-`/mcp` no site e configure o cliente, por exemplo no Claude Code:
+Para perguntar ao Diário pela IA que você já usa. No claude.ai, no
+ChatGPT e em outros clientes com OAuth, adicione um conector com o
+endereço `https://<site>/api/mcp`: abre uma página do Diário SG, a pessoa
+clica em "Autorizar" e o cliente recebe uma chave. No Claude Code:
+
+```bash
+claude mcp add --transport http diario-sg https://<site>/api/mcp   # depois /mcp para autorizar
+```
+
+Sem OAuth, gere uma chave em `/mcp` no site e mande no cabeçalho:
 
 ```bash
 claude mcp add --transport http diario-sg https://<site>/api/mcp \
   --header "Authorization: Bearer dsg_…"
 ```
+
+Não há conta de usuário: o token do OAuth é uma chave como a de `/mcp`,
+anônima, com o mesmo limite, a mesma contagem de uso e a mesma revogação
+(`make revoke-key`). O fluxo segue a especificação de autorização do MCP:
+o 401 do `/mcp` aponta os metadados do recurso, o cliente se registra
+sozinho e troca o código com PKCE. Desenho em
+`docs/superpowers/specs/2026-09-27-oauth-do-mcp-design.md`.
 
 Ferramentas, todas só de leitura: `buscar_atos` (a busca do site,
 paginada, até 20 atos; `diario` escolhe Prefeitura ou Câmara), `ler_ato`
@@ -200,8 +219,8 @@ de CEAPM da Câmara, `cota_parlamentar` (vereador, mês e valor). A cobertura ve
 na primeira página da busca, e `alertas_coleta` aparece em toda resposta
 quando a última coleta de um diário falhou. Todo ato vem com o diário, a edição, o link oficial na página do ato, a
 cópia arquivada e o SHA-256 do PDF. Limite de 60 chamadas por minuto por
-chave. Conectores que exigem OAuth (claude.ai, ChatGPT) ainda não
-funcionam. Localmente: `make run-api` e `http://localhost:8080/mcp`.
+chave. Localmente: `make run-api` e `http://localhost:8080/mcp`, ou
+`make run-web` e `http://localhost:5173/api/mcp` para testar o OAuth.
 
 ## Diário da Câmara
 

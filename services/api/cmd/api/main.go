@@ -5,7 +5,9 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
@@ -54,9 +56,11 @@ func run(l *slog.Logger) error {
 	search := usecase.NewSearchActs(acts)
 	company := usecase.NewGetCompany(acts, sources)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
+	webURL := strings.TrimRight(cfg.PublicWebURL, "/")
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
 		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
-		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Keys: keys, PublicWebURL: cfg.PublicWebURL, Log: l})
+		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Keys: keys, PublicWebURL: cfg.PublicWebURL,
+		MetadataURL: webURL + "/.well-known/oauth-protected-resource/api/mcp", Log: l})
 
 	api := &httpapi.API{
 		Search:        search,
@@ -76,6 +80,7 @@ func run(l *slog.Logger) error {
 		Feed:          usecase.NewActFeed(acts),
 		Reports:       usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),
 		Keys:          keys,
+		OAuth:         usecase.NewOAuth(postgres.NewOAuthRepo(db), keys, webURL+"/api/mcp", time.Now),
 		MCP:           mcpHandler,
 		PublicWebURL:  cfg.PublicWebURL,
 		Subscriptions: usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), notifier),
