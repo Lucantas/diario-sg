@@ -227,7 +227,8 @@ padrão; com `cnpj`, `processo` ou `contrato`, só os achados que citam a
 entidade, com a mesma chave de `entidade`; cada achado traz as entidades e
 os atos que o acionaram). Dois prompts prontos encadeiam as ferramentas:
 `investigar_fornecedor` (CNPJ) e `seguir_contrato` (processo ou
-contrato). `buscar_atos` e
+contrato), e o recurso `diario-sg://fontes` descreve cada fonte, a
+ferramenta que a devolve e o que ficou de fora. `buscar_atos` e
 `agrupar` aceitam `modalidade`, `valor_principal_min`/`valor_principal_max`
 e `nome` (pessoa ou empresa com as palavras juntas, sem as listas longas de
 nomes, a menos que venha `incluir_listas`);

@@ -513,7 +513,8 @@ Pendências:
 
 Pendências:
 
-- [ ] TSE: acesso negado a esta máquina; tentar de outra rede.
+- [ ] TSE: acesso negado a esta máquina; tentar de outra rede, ou usar o
+  espelho da Base dos Dados com conta na plataforma ou projeto do BigQuery.
 - [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
 - [ ] Na nuvem: migrations 019 a 029 e o Terraform dos jobs `federal` e
   `agentes`.
@@ -573,6 +574,19 @@ com entrega ou com o bloqueio conferido e registrado.
   é a ficha da empresa (Receita, sanções da CGU e do Diário, pagamentos do
   TCE e do portal, mural, PNCP, obras e emendas), e a descrição dela diz
   isso; o prompt `investigar_fornecedor` encadeia o resto.
+- [x] Recurso do MCP com a descrição das fontes (pedido no plano ao lado
+  dos prompts): `diario-sg://fontes`, com cada fonte, a ferramenta que a
+  devolve e o que ficou de fora. `seguir_contrato` passa a chamar
+  `pagamentos` e `contratacoes` com o processo.
+- [x] `entidade` para norma e órgão (tabela do plano): a norma tem a
+  ferramenta `norma`, e o órgão é filtro de `buscar_atos`, `agrupar` e
+  `contratacoes`; uma ficha de órgão não acrescentaria dado.
+- [x] TSE pelo espelho da Base dos Dados (plano, etapa F): conferido em
+  27/09/2026, as tabelas do TSE estão no BigQuery e o download direto
+  pede conta na plataforma (até 100 MB no plano grátis); consultar pede
+  um projeto do Google Cloud com cobrança. Depende de você: conta na Base
+  dos Dados ou projeto do BigQuery. Fica com o TSE nas pendências da
+  Entrega 5.
 
 ---
 
