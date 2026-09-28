@@ -110,3 +110,9 @@ variable "agentes_schedule" {
   type        = string
   default     = "0 9 10 * *"
 }
+
+variable "sicam_schedule" {
+  description = "Cron da carga diária das proposições da Câmara (SICAM): processos novos e projetos abertos, até 3.000 páginas (fuso America/Sao_Paulo)."
+  type        = string
+  default     = "0 5 * * *"
+}

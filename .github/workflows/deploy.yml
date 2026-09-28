@@ -122,6 +122,8 @@ jobs:
         run: gcloud run jobs update $PREFIX-federal --image $REGISTRY/api:$TAG --region $REGION --quiet
       - name: agentes (job)
         run: gcloud run jobs update $PREFIX-agentes --image $REGISTRY/api:$TAG --region $REGION --quiet
+      - name: sicam (job)
+        run: gcloud run jobs update $PREFIX-sicam --image $REGISTRY/api:$TAG --region $REGION --quiet
       - name: scraper da Câmara (job)
         run: gcloud run jobs update $PREFIX-scraper-camara --image $REGISTRY/scraper:$TAG --region $REGION --quiet
 

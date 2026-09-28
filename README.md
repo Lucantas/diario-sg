@@ -140,7 +140,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/v1/acts?q=&source=&type=&organ=&modality=&from=&to=&min_value=&max_value=&main_value_min=&main_value_max=&entity=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa; `modality` (`dispensa`, `inexigibilidade`, `pregao`…) e `main_value_min`/`main_value_max` filtram pela modalidade e pelo valor principal lidos do texto (`modality` e `main_value_cents` em cada ato); `entity=<tipo>:<número>` (`cnpj`, `processo` ou `contrato`, com `-` no lugar de `/` se preferir) traz só os atos ligados ao número, como nas páginas de entidade, e número inválido é 400. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents`, `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`, `lido_por_ocr`) e `mentions` (processos e contratos citados no ato, cada um com `kind`, `key`, `label` e `slug` para a URL das páginas de processo/contrato); `phase` só aparece no relatório de `/v1/entities/processo` e `/v1/entities/contrato` |
+| GET | `/v1/acts?q=&source=&type=&organ=&modality=&from=&to=&min_value=&max_value=&main_value_min=&main_value_max=&entity=&limit=&offset=` | Busca textual nos dois diários; `source` (`diario_prefeitura` ou `diario_camara`) restringe a um deles, e cada ato traz `source` e `source_name`; termos encontrados vêm entre `⟦ ⟧` no `snippet`; `organ` é a sigla de um órgão da prefeitura (`SEMED`); `theme=meio_ambiente` traz os atos do tema (ver Proposições da Câmara); `min_value`/`max_value` em reais com ponto (`1500.50`) filtram atos que citam ao menos um valor na faixa; `modality` (`dispensa`, `inexigibilidade`, `pregao`…) e `main_value_min`/`main_value_max` filtram pela modalidade e pelo valor principal lidos do texto (`modality` e `main_value_cents` em cada ato); `entity=<tipo>:<número>` (`cnpj`, `processo` ou `contrato`, com `-` no lugar de `/` se preferir) traz só os atos ligados ao número, como nas páginas de entidade, e número inválido é 400. Operadores: `"frase"`, `OU`/`OR`, `-excluir`. Cada ato traz `position` (ordem na edição), `page_start`/`page_end` (`null` se ainda não reindexado), `pdf_sha256`, `values_cents`, `warnings` (avisos de extração: `sem_numero`, `so_titulo`, `muitas_paginas`, `varios_atos_possiveis`, `lido_por_ocr`) e `mentions` (processos e contratos citados no ato, cada um com `kind`, `key`, `label` e `slug` para a URL das páginas de processo/contrato); `phase` só aparece no relatório de `/v1/entities/processo` e `/v1/entities/contrato` |
 | GET | `/v1/acts/export?format=csv\|json&<filtros da busca>` | Até 10.000 atos da busca com texto completo e a coluna `fonte`. CSV para Excel pt-BR (`;`, BOM, decimal com vírgula); `X-Total-Count` e `X-Export-Truncated` nos cabeçalhos |
 | GET | `/v1/feeds/acts?<filtros da busca>` | RSS 2.0 com os 50 atos mais recentes da busca; com `entity`, o link do canal é a página da entidade |
 | GET | `/v1/gazettes/{id}` | Edição com todos os atos |
@@ -216,7 +216,11 @@ que o parser leu), `fontes`
 vereadores com a remuneração mês a mês e o subsídio fixado em lei),
 `norma` (leis, leis complementares, Lei Orgânica e decretos da consulta de
 leis da Prefeitura, por tipo e número ou por texto na ementa e no autor,
-com o link do texto integral e a busca pronta do número no Diário),
+com o link do texto integral e a busca pronta do número no Diário, e o
+projeto da Câmara que deu origem à lei, quando se sabe), `proposicoes`
+(projetos, mensagens, emendas, indicações e moções da Câmara com a fase
+deduzida da tramitação, os dias sem movimentação, a tramitação inteira,
+os pareceres e a lei que resultou),
 `pagamentos` (empenhos do portal da Prefeitura, de 2017 em diante, por
 CNPJ do credor, entidade, processo, texto e anos, com totais, por ano, por
 entidade, os 10 maiores credores e 20 empenhos por página; com só os anos,
@@ -389,6 +393,41 @@ MCP consultam a tabela.
 ```bash
 make agentes                            # três últimos meses
 make agentes FROM=2010-10 TO=2026-09    # histórico
+```
+
+## Proposições da Câmara
+
+Todo dia às 05:00, o job `sicam` lê a área pública do sistema de processo
+legislativo da Câmara (SICAM), liberada no `robots.txt`: o sitemap lista
+todos os processos, e cada página traz tipo, número do documento, ementa,
+autores, situação, a tramitação inteira, os pareceres das comissões e,
+quando o projeto virou lei, o selo com o número da lei. O job pede uma
+página por segundo. Na rodada diária lê até 3.000 páginas: primeiro os
+processos novos, depois os projetos ainda abertos, dos lidos há mais tempo
+para os mais recentes; com `FULL=1` relê todos (cerca de 14 horas). Cada página vai para `bills`,
+`bill_events` e `bill_opinions`, e o bruto de cada lote vai para o bucket
+em JSON Lines. A API do SICAM, onde está o voto de cada vereador, recusa
+pedidos de fora da página da Câmara e não é usada.
+
+A fase (`em_comissao`, `aprovado`, `virou_lei`, `arquivado`…) é calculada
+na leitura por regras sobre o texto da tramitação; um projeto que virou
+lei também é arquivado no fim do mandato, por isso `virou_lei` vale mais.
+A ligação com a lei vem do selo da página (certeza `exata`) ou do autor da
+norma no SIAPEGOV, que às vezes cita o projeto (`forte`). A página
+`/proposicoes` do site lista as proposições, e `/proposicoes/{n}-{ano}`
+mostra uma delas.
+
+O tema `meio_ambiente` (em `/v1/acts`, `/v1/norms`, `/v1/bills` e no
+MCP) é uma regra escrita, sem IA: atos da SEMMA, da SEMA, da SEMMADU, do
+COMMADS e do PROMEA, atos da SEMMATRAN que não são de trânsito, transporte ou
+previdência, títulos e ementas com termos do tema e proposições que
+passaram pela comissão de meio ambiente. `/v1/bills` devolve a regra
+inteira em `theme_rule`, e o MCP em `regra_tema`.
+
+```bash
+make sicam                 # até 3.000 páginas, novos primeiro
+make sicam MAX=500         # até 500 páginas
+make sicam FULL=1          # todos os processos
 ```
 
 ## Contratos do PNCP
