@@ -91,15 +91,15 @@ func (r *BillRepo) SaveBills(ctx context.Context, bills []domain.Bill) error {
 
 func upsertBill(ctx context.Context, tx *sql.Tx, b domain.Bill) error {
 	_, err := tx.ExecContext(ctx, `INSERT INTO bills (process_number, process_year, kind, doc_label, doc_number, doc_year, summary, authors,
-			presented_on, status, current_body, last_movement, source_updated_at, law_number, law_year, law_url, url, fetched_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+			presented_on, status, current_body, last_movement, source_updated_at, law_kind, law_number, law_year, law_url, url, fetched_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
 		ON CONFLICT (process_number, process_year) DO UPDATE SET kind = EXCLUDED.kind, doc_label = EXCLUDED.doc_label,
 			doc_number = EXCLUDED.doc_number, doc_year = EXCLUDED.doc_year, summary = EXCLUDED.summary, authors = EXCLUDED.authors,
 			presented_on = EXCLUDED.presented_on, status = EXCLUDED.status, current_body = EXCLUDED.current_body,
-			last_movement = EXCLUDED.last_movement, source_updated_at = EXCLUDED.source_updated_at, law_number = EXCLUDED.law_number,
+			last_movement = EXCLUDED.last_movement, source_updated_at = EXCLUDED.source_updated_at, law_kind = EXCLUDED.law_kind, law_number = EXCLUDED.law_number,
 			law_year = EXCLUDED.law_year, law_url = EXCLUDED.law_url, url = EXCLUDED.url, fetched_at = EXCLUDED.fetched_at`,
 		b.Key.Number, b.Key.Year, b.Kind, b.DocLabel, b.DocNumber, b.DocYear, b.Summary, b.Authors, b.PresentedOn, b.Status,
-		b.CurrentBody, b.LastMovement, b.SourceUpdatedAt, b.LawNumber, b.LawYear, b.LawURL, b.URL, b.FetchedAt)
+		b.CurrentBody, b.LastMovement, b.SourceUpdatedAt, b.LawKind, b.LawNumber, b.LawYear, b.LawURL, b.URL, b.FetchedAt)
 	return err
 }
 
@@ -136,7 +136,7 @@ func copyBillOpinions(ctx context.Context, tx *sql.Tx, bills []domain.Bill) erro
 }
 
 const billColumns = `b.process_number, b.process_year, b.kind, b.doc_label, b.doc_number, b.doc_year, b.summary, b.authors, b.presented_on,
-	b.status, b.current_body, b.last_movement, b.source_updated_at, b.law_number, b.law_year, b.law_url, b.url, b.fetched_at`
+	b.status, b.current_body, b.last_movement, b.source_updated_at, b.law_kind, b.law_number, b.law_year, b.law_url, b.url, b.fetched_at`
 
 func (r *BillRepo) CandidateBills(ctx context.Context, f domain.BillFilter) ([]domain.Bill, error) {
 	q, args := candidateBillsSQL(f)
@@ -203,9 +203,9 @@ func (r *BillRepo) BillsByDoc(ctx context.Context, ref domain.BillDocRef) ([]dom
 		ORDER BY b.process_year, b.process_number`, ref.Kind, ref.Number, ref.Year)
 }
 
-func (r *BillRepo) BillsByLaw(ctx context.Context, number, year int) ([]domain.Bill, error) {
-	return r.queryBillsWithEvents(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.law_number = $1 AND b.law_year = $2
-		ORDER BY b.process_year, b.process_number`, number, year)
+func (r *BillRepo) BillsByLaw(ctx context.Context, kind domain.NormKind, number, year int) ([]domain.Bill, error) {
+	return r.queryBillsWithEvents(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.law_kind = $1 AND b.law_number = $2 AND b.law_year = $3
+		ORDER BY b.process_year, b.process_number`, kind, number, year)
 }
 
 func (r *BillRepo) queryBillsWithEvents(ctx context.Context, q string, args ...any) ([]domain.Bill, error) {
@@ -226,7 +226,7 @@ func (r *BillRepo) queryBills(ctx context.Context, q string, args ...any) ([]dom
 	for rows.Next() {
 		var b domain.Bill
 		if err := rows.Scan(&b.Key.Number, &b.Key.Year, &b.Kind, &b.DocLabel, &b.DocNumber, &b.DocYear, &b.Summary, &b.Authors, &b.PresentedOn,
-			&b.Status, &b.CurrentBody, &b.LastMovement, &b.SourceUpdatedAt, &b.LawNumber, &b.LawYear, &b.LawURL, &b.URL, &b.FetchedAt); err != nil {
+			&b.Status, &b.CurrentBody, &b.LastMovement, &b.SourceUpdatedAt, &b.LawKind, &b.LawNumber, &b.LawYear, &b.LawURL, &b.URL, &b.FetchedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, b)

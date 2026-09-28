@@ -536,11 +536,12 @@ export async function revokeMcpKey(key: string) {
 }
 
 export type BillPhase =
-  | "virou_lei" | "vetado" | "rejeitado" | "retirado" | "arquivado"
+  | "virou_norma" | "vetado" | "rejeitado" | "retirado" | "arquivado"
   | "enviado_ao_executivo" | "aprovado" | "em_votacao" | "em_comissao" | "apresentado";
 
 export interface BillLaw {
   kind: string;
+  kind_name: string;
   number: string;
   summary: string;
   url: string;

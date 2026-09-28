@@ -1,7 +1,7 @@
 import { BillPhase } from "./api";
 
 const PHASE_LABELS: Record<BillPhase, string> = {
-  virou_lei: "Virou lei",
+  virou_norma: "Virou norma",
   vetado: "Vetada",
   rejeitado: "Rejeitada",
   retirado: "Retirada pelo autor",

@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema Legislativo de São Gonçalo - Consulta Pública do Processo Legislativo 3997/2026: DISP&#213;E SOBRE O JULGAMENTO DAS CONTAS DO PREFEITO DO MUNIC&#205;PIO DE S&#195;O GON&#199;ALO, RELATIVAS AO EXERC&#205;CIO FINANCEIRO DE 2024.">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="target_country" content="br" />
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://sg.processolegislativo.com.br/areapublica/processo/3997-2026">
+    <title>Processo Legislativo 3997/2026 – Câmara Municipal de São Gonçalo</title>
+
+    <!-- Open Graph / Social Meta Tags -->
+    <meta property="og:title" content="PROJETO DE RESOLU&#199;&#195;O N&#186; 010/2026" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="https://sg.processolegislativo.com.br/imagens/brasao.jpg" />
+    <meta property="og:url" content="https://sg.processolegislativo.com.br/areapublica/processo/3997-2026" />
+    <meta property="og:description" content="DISP&#213;E SOBRE O JULGAMENTO DAS CONTAS DO PREFEITO DO MUNIC&#205;PIO DE S&#195;O GON&#199;ALO, RELATIVAS AO EXERC&#205;CIO FINANCEIRO DE 2024. – Câmara Municipal de São Gonçalo" />
+    <meta property="og:locale" content="pt_BR" />
+
+    <script type="text/javascript">
+        const BASE_API_URL = 'https://api.sicam.app/votacao/v2';
+        const BASE_DATABASE = 'saogoncalo';
+        const ID_PROCESSO = 50171;
+        function IR(Id) { ExibirDocumento('proposicao', Id); }
+        function ExibirParecer(id) { ExibirDocumento('ParecerComissao', id); }
+        function ExibirLei(id) { ExibirDocumento('Lei', id); }
+        function ExibirDocumento(tipo, id) {
+            $.get('/DocumentoDigital/?'+tipo+'/'+id).done(function(data) {
+                var janela = data;
+                var altura = 550, largura = 650;
+                var winl = (screen.width - largura) / 2 - 10;
+                var wint = (screen.height - altura) / 2 - 30;
+                var config = 'height='+altura+',width='+largura+',top='+wint+',left='+winl+',scrollbars=1,resizable=0,status=no,toolbar=no';
+                if(data != '') {
+                    var ExibeDoc = window.open(janela, 'JanelaDocumento', config);
+                    ExibeDoc.focus();
+                } else {
+                    alert('Documento ' + tipo + ' não localizado!');
+                }
+            });
+        }
+        function ImprimeOficio(id) { ExibirDocumento('Oficio', id); }
+    </script>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- DESIGN SYSTEM & ESTILOS DA PÁGINA (Alinhado a lei_compilada.asp) -->
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --primary-light: #e7f1ff;
+            --secondary: #6c757d;
+            --success: #198754;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #0dcaf0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --border-color: #dee2e6;
+            --bg-page: #f4f6f9;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 10px;
+            background: var(--dark);
+            color: white;
+            padding: 10px 15px;
+            z-index: 10000;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: top 0.2s;
+        }
+        .skip-link:focus { top: 10px; }
+
+        /* Container & Header */
+        header { display: block !important; }
+        .process-container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 25px 15px;
+        }
+
+        .hero-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: none;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 4px 25px rgba(0,0,0,0.05);
+            padding: 25px 30px;
+            margin-bottom: 25px;
+        }
+
+        .hero-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .ementa-box {
+            background-color: #f8fafc;
+            border-left: 4px solid #4f6ef7;
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            font-size: 1.08rem;
+            line-height: 1.65;
+            color: #334155;
+            font-weight: 500;
+            margin: 18px 0;
+        }
+
+        /* Títulos de Seção */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 35px 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .section-header i { color: var(--primary); }
+
+        /* Cards Gerais */
+        .content-card {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        /* Resumo Executivo (Grid de Síntese) */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .summary-box {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border-color: #cbd5e1;
+        }
+        .summary-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+        .summary-box.status-box::before { background: var(--info); }
+        .summary-box.orgao-box::before { background: var(--success); }
+        .summary-box.mov-box::before { background: var(--warning); }
+        
+        .summary-label {
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--secondary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .summary-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Linha do Tempo (Timeline Vertical) */
+        .timeline-vertical {
+            position: relative;
+            padding-left: 35px;
+            margin: 20px 0;
+        }
+        .timeline-vertical::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            bottom: 5px;
+            left: 14px;
+            width: 3px;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        .timeline-node {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .timeline-marker {
+            position: absolute;
+            left: -35px;
+            top: 3px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #94a3b8;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 0 2px #cbd5e1;
+            z-index: 2;
+            transition: all 0.3s;
+        }
+        .timeline-node.active .timeline-marker {
+            background: var(--primary);
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
+            transform: scale(1.15);
+        }
+
+        .timeline-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            transition: all 0.2s;
+        }
+        .timeline-node.active .timeline-card {
+            border: 2px solid var(--primary);
+            background: #f8fbff;
+            box-shadow: 0 8px 25px rgba(13,110,253,0.08);
+        }
+        .timeline-date {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 6px;
+        }
+        .timeline-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .timeline-despacho {
+            background: #f1f5f9;
+            border-left: 3px solid #94a3b8;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 0.92rem;
+            color: #475569;
+            margin-top: 10px;
+        }
+
+        /* Pareceres da Comissão */
+        .parecer-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        .parecer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            border-color: #cbd5e1;
+        }
+        .parecer-info { flex: 1 1 300px; }
+        .parecer-title { font-weight: 700; font-size: 1.1rem; color: #1e293b; margin-bottom: 4px; }
+        .parecer-meta { font-size: 0.9rem; color: var(--secondary); }
+
+        /* Documentos Relacionados */
+        .doc-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #ffffff;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+        }
+        .doc-item:hover {
+            background: #f8fafc;
+            border-color: var(--primary);
+            transform: translateX(4px);
+            color: inherit;
+        }
+        .doc-icon {
+            font-size: 1.5rem;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        /* Acessibilidade (Toolbar Flutuante) */
+        .accessibility-toolbar {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 9999;
+            transition: all 0.3s;
+        }
+        .toolbar-toggle {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .toolbar-toggle:hover { transform: scale(1.08); }
+        .toolbar-content {
+            position: absolute;
+            bottom: 65px;
+            right: 0;
+            width: 280px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid var(--border-color);
+            padding: 18px;
+        }
+        .accessibility-toolbar.collapsed .toolbar-content { display: none; }
+
+        /* Modo Alto Contraste */
+        body.high-contrast {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+        body.high-contrast .hero-card,
+        body.high-contrast .content-card,
+        body.high-contrast .summary-box,
+        body.high-contrast .timeline-card,
+        body.high-contrast .parecer-card,
+        body.high-contrast .doc-item,
+        body.high-contrast .toolbar-content {
+            background-color: #121212 !important;
+            border-color: #ffffff !important;
+            color: #ffffff !important;
+        }
+        body.high-contrast .ementa-box {
+            background-color: #1e1e1e !important;
+            color: #ffff00 !important;
+            border-color: #ffff00 !important;
+        }
+        body.high-contrast .hero-title,
+        body.high-contrast .section-header,
+        body.high-contrast .timeline-title,
+        body.high-contrast .parecer-title,
+        body.high-contrast .summary-value {
+            color: #ffffff !important;
+        }
+        body.high-contrast .text-muted,
+        body.high-contrast .summary-label,
+        body.high-contrast .timeline-date,
+        body.high-contrast .parecer-meta {
+            color: #dddddd !important;
+        }
+
+        /* Estilos e Layout de Votação (Placar e Nominais) */
+        #map { height: 380px; width: 100%; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        .spinner-border { width: 3rem; height: 3rem; }
+        
+        .votacao-card { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 24px; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02); transition: all 0.3s ease; }
+        .votacao-card:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04); border-color: #cbd5e1; }
+        
+        /* Cabeçalho da Sessão */
+        .session-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #ffffff; padding: 14px 20px; font-weight: 600; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .session-header > div:first-child { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .session-header span { opacity: 0.9; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; }
+        .session-info { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 0.88rem; background: rgba(255, 255, 255, 0.15); padding: 4px 14px; border-radius: 20px; backdrop-filter: blur(4px); }
+        
+        /* Barra de Resumo e Badges de Filtro */
+        .votacao-resumo { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; background: #f8fafc; padding: 14px 20px; border-bottom: 1px solid #e2e8f0; }
+        .resumo-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: #475569; }
+        .resumo-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: inline-block; }
+        .resumo-badge:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); filter: brightness(0.95); }
+        .resumo-badge.active { box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--primary); transform: translateY(-2px); }
+        .badge-favoravel { background: #d1e7dd; color: #0a3622; border-color: #a3cfbb; }
+        .badge-contrario { background: #f8d7da; color: #58151c; border-color: #f1aeb5; }
+        .badge-abstencao { background: #fff3cd; color: #664d03; border-color: #ffe69c; }
+        .badge-ausente { background: #e2e3e5; color: #2b2f32; border-color: #c4c8cb; }
+        
+        /* Grid e Cards de Parlamentares */
+        .parlamentares-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; padding: 20px; background-color: #ffffff; }
+        .parlamentar-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; display: flex; gap: 14px; align-items: center; background: #ffffff; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); position: relative; }
+        .parlamentar-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); border-color: #cbd5e1; z-index: 2; }
+        
+        /* Fotos dos Parlamentares e Placeholder */
+        .parlamentar-foto { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid #e2e8f0; flex-shrink: 0; background-color: #f1f5f9; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06); transition: transform 0.25s ease; }
+        .parlamentar-card:hover .parlamentar-foto { transform: scale(1.05); border-color: #94a3b8; }
+        .parlamentar-foto-placeholder { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #475569 0%, #1e293b 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.15rem; flex-shrink: 0; border: 2px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06); letter-spacing: 0.5px; text-transform: uppercase; }
+        
+        /* Informações Internas do Card */
+        .parlamentar-info { display: flex; flex-direction: column; min-width: 0; flex-grow: 1; justify-content: center; }
+        .parlamentar-nome { font-weight: 700; font-size: 0.95rem; color: #1e293b; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .parlamentar-partido { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        
+        /* Badges de Voto Individual */
+        .voto-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.3px; text-transform: uppercase; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .voto-favoravel { background-color: #d1e7dd; color: #0a3622; border: 1px solid #badbcc; }
+        .voto-contrario { background-color: #f8d7da; color: #58151c; border: 1px solid #f5c2c7; }
+        .voto-abstencao { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
+        .voto-ausente { background-color: #e2e3e5; color: #2b2f32; border: 1px solid #d3d6d8; }
+        .voto-presidente, .voto-presente { background-color: #cff4fc; color: #055160; border: 1px solid #b6effb; }
+        
+        /* Estados de Filtro Ativo */
+        .parlamentar-card.dimmed { opacity: 0.3; filter: grayscale(80%); transform: none !important; box-shadow: none !important; border-color: #e2e8f0; pointer-events: none; }
+        .parlamentar-card.highlighted { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25), 0 8px 16px rgba(0,0,0,0.08); transform: translateY(-3px); background-color: #f8fbff; }
+        
+        /* Votações Simples / Simbólicas */
+        .votacao-body { padding: 10px 20px 20px; }
+        .resultado-container { display: flex; align-items: center; gap: 20px; padding: 15px 0; }
+        .resultado-icon { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .resultado-aprovado { background: linear-gradient(135deg, #d1e7dd 0%, #a3cfbb 100%); color: #0a3622; }
+        .resultado-rejeitado { background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%); color: #58151c; }
+        .resultado-titulo { font-size: 1.35rem; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+        .resultado-subtitulo { font-size: 0.9rem; color: #64748b; line-height: 1.4; }
+        .resumo-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-top: 5px; }
+        .stat-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 12px; text-align: center; background: #f8fafc; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: #cbd5e1; background: #ffffff; }
+        .stat-icon { font-size: 1.3rem; margin-bottom: 8px; opacity: 0.85; }
+        .stat-label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.7rem; font-weight: 800; color: #1e293b; line-height: 1; }
+        .stat-total .stat-icon { color: #0d6efd; }
+        .stat-favoravel .stat-icon, .stat-favoravel .stat-value { color: #0f5132; }
+        .stat-contrario .stat-icon, .stat-contrario .stat-value { color: #842029; }
+        .stat-abstencao .stat-icon, .stat-abstencao .stat-value { color: #664d03; }
+        
+        /* Compatibilidade Alto Contraste para Votação */
+        body.high-contrast .votacao-card, body.high-contrast .stat-card, body.high-contrast .parlamentar-card { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+        body.high-contrast .parlamentar-nome, body.high-contrast .stat-value, body.high-contrast .resultado-titulo, body.high-contrast .resumo-item { color: #ffffff !important; }
+        body.high-contrast .votacao-resumo { background-color: #1a1a1a !important; border-bottom-color: #ffffff !important; }
+
+        @media (max-width: 768px) {
+            .hero-card { padding: 18px 20px; }
+            .hero-title { font-size: 1.4rem; }
+            .timeline-vertical { padding-left: 25px; }
+            .timeline-marker { left: -25px; }
+            .session-header { flex-direction: column; gap: 10px; align-items: flex-start; padding: 14px 16px; }
+            .session-info { width: 100%; justify-content: flex-start; font-size: 0.85rem; }
+            .votacao-resumo { padding: 12px 16px; gap: 10px; justify-content: flex-start; }
+            .resumo-item { font-size: 0.8rem; width: 100%; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px dashed #e2e8f0; }
+            .resumo-item:last-child { border-bottom: none; padding-bottom: 0; }
+            .parlamentares-grid { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
+            .parlamentar-card { padding: 12px; gap: 12px; }
+            .resultado-container { flex-direction: column; text-align: center; gap: 14px; padding: 10px 0; }
+            .resumo-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Link de Acessibilidade -->
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+
+    <!-- Header Principal / Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" role="navigation" aria-label="Menu principal">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/areapublica" aria-label="Início - Câmara Municipal">
+                    <i class="fas fa-university me-2" aria-hidden="true"></i>
+                    <span class="fw-bold">Câmara Municipal de São Gonçalo - RJ</span>
+                </a>
+                <div class="ms-auto d-flex align-items-center">
+                    <span class="badge bg-light text-primary border px-3 py-2 fw-semibold">
+                        <i class="fas fa-search me-1"></i> Consulta Pública
+                    </span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Conteúdo Principal em Leitura Contínua (Stream Layout) -->
+    <main id="main-content" role="main" class="process-container my-4">
+        
+        <!-- 1. CABEÇALHO PRINCIPAL (HERO SECTION) -->
+        <article class="hero-card">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill fw-semibold">
+                    <i class="fas fa-file-alt me-1"></i> PROJETO DE RESOLUÇÃO
+                </span>
+                <div class="d-flex align-items-center gap-2">
+                    
+                    <span class="badge bg-primary px-3 py-2 rounded-pill fs-6">
+                        <i class="fas fa-info-circle me-1"></i> Ativo
+                    </span>
+                    
+                        <a href="/areapublica/documento/?Lei/871" target="_blank" rel="noopener noreferrer" class="badge bg-success text-white px-3 py-2 rounded-pill fs-6 text-decoration-none shadow-sm" title="Ver Resolução nº 1054/2026">
+                            <i class="fas fa-gavel me-1"></i> Resolução nº 1054/2026 <i class="fas fa-external-link-alt ms-1 small"></i>
+                        </a>
+                    
+                </div>
+            </div>
+
+            <h1 class="hero-title">
+                <span>PROJETO DE RESOLUÇÃO Nº 010/2026</span>
+                <span class="text-muted fs-4">|</span>
+                <span class="text-secondary fs-4">Processo: 3997/2026</span>
+            </h1>
+
+            <!-- Ementa Destaque -->
+            <div class="ementa-box" role="region" aria-label="Ementa do Processo">
+                DISPÕE SOBRE O JULGAMENTO DAS CONTAS DO PREFEITO DO MUNICÍPIO DE SÃO GONÇALO, RELATIVAS AO EXERCÍCIO FINANCEIRO DE 2024.
+            </div>
+
+            <!-- Meta e Ações Rápidas -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 pt-3 border-top">
+                <div class="d-flex flex-wrap gap-4 text-muted small">
+                    <div>
+                        <i class="fas fa-user-edit text-primary me-1"></i>
+                        <strong>Autor(es): </strong>
+                        <span class="text-dark fw-medium">
+                            Comissão de COMISSÃO DE FINANÇAS E ORÇAMENTO,  ALEXANDRE GOMES , ALEXANDRE GOMES , ALEXANDRE GOMES , BETO DA SERRARIA , NELSINHO RUAS , BETO DA SERRARIA , NELSINHO RUAS , ALEXANDRE GOMES 
+                        </span>
+                    </div>
+                    <div>
+                        <i class="fas fa-calendar-alt text-primary me-1"></i>
+                        <strong>Apresentação: </strong>
+                        <span class="text-dark fw-medium">11/08/2026</span>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="btn-group shadow-sm" role="group" aria-label="Ações do documento">
+                    <button type="button" onclick="window.open('/processos/?DocumentoPDF/Processo/3997_2026/web')" class="btn btn-primary fw-semibold px-4">
+                        <i class="fas fa-file-pdf me-2"></i> Exibir Documento Original
+                    </button>
+                    <div class="btn-group" role="group">
+                        <button id="btnCompartilhar" type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-share-alt me-1"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="btnCompartilhar">
+                            
+                            <li><a class="dropdown-item" href="https://api.whatsapp.com/send?text=Confira o processo legislativo 3997/2026: https://sg.processolegislativo.com.br/areapublica/documento/?Processo/3997_2026" target="_blank"><i class="fab fa-whatsapp text-success me-2"></i> WhatsApp</a></li>
+                            <li><a class="dropdown-item" href="https://t.me/share/url?url=https://sg.processolegislativo.com.br/areapublica/documento/?Processo/3997_2026&text=Confira este processo legislativo" target="_blank"><i class="fab fa-telegram text-info me-2"></i> Telegram</a></li>
+                            <li><a class="dropdown-item" href="https://www.facebook.com/sharer/sharer.php?u=https://sg.processolegislativo.com.br/areapublica/documento/?Processo/3997_2026" target="_blank"><i class="fab fa-facebook text-primary me-2"></i> Facebook</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- 2. RESUMO EXECUTIVO (SÍNTESE DO PROCESSO) -->
+        <section aria-label="Resumo Executivo">
+            <h2 class="section-header">
+                <i class="fas fa-tachometer-alt"></i> Resumo Executivo
+            </h2>
+            <div class="summary-grid">
+                <div class="summary-box status-box">
+                    <div class="summary-label"><i class="fas fa-flag"></i> Situação Atual</div>
+                    <div class="summary-value text-primary">Ativo</div>
+                    
+                        <div class="mt-2 pt-2 border-top small">
+                            <i class="fas fa-gavel text-success me-1"></i>
+                            <a href="/areapublica/documento/?Lei/871" target="_blank" rel="noopener noreferrer" class="fw-bold text-success text-decoration-none" title="Ver Resolução nº 1054/2026">
+                                Resolução nº 1054/2026 <i class="fas fa-external-link-alt ms-1 small"></i>
+                            </a>
+                        </div>
+                    
+                </div>
+                <div class="summary-box orgao-box">
+                    <div class="summary-label"><i class="fas fa-building"></i> Órgão / Comissão Atual</div>
+                    <div class="summary-value">Câmara Municipal</div>
+                </div>
+                <div class="summary-box mov-box">
+                    <div class="summary-label"><i class="fas fa-exchange-alt"></i> Última Movimentação</div>
+                    <div class="summary-value fs-6 fw-semibold text-truncate" title="Resolu&#231;&#227;o &lt;a href=&quot;javascript:void(0)&quot; onclick=&quot;ExibirLei(871)&quot;&gt;1054/2026&lt;/a&gt; de 19/08/2026">
+                        Resolução <a href="javascript:void(0)" onclick="ExibirLei(871)">1054/2026</a> de 19/08/2026
+                    </div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-label"><i class="fas fa-clock"></i> Última Atualização</div>
+                    <div class="summary-value fs-6">19/08/2026 às 18:27</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. LINHA DO TEMPO (TRAMITAÇÃO COMPLETA) -->
+        <section aria-label="Linha do tempo de tramitação">
+            <h2 class="section-header">
+                <i class="fas fa-history"></i> Linha do Tempo da Tramitação
+                <span class="badge bg-secondary ms-2 fs-6">15</span>
+            </h2>
+            
+            <div class="content-card">
+                
+                    <div class="timeline-vertical">
+                        
+                            <div class="timeline-node active">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:27</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Resolução <a href="javascript:void(0)" onclick="ExibirLei(871)">1054/2026</a> de 19/08/2026</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:27</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Processo recebido no setor</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:27</span>
+                                        
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1">
+                                                Em andamento
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Encaminhado ao setor Setor de Expediente</div>
+                                    
+                                        <div class="small text-muted mb-1"><i class="fas fa-map-marker-alt me-1 text-primary"></i> <strong>Setor:</strong> Setor de Expediente</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:25</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Andamento
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Aprovado - Votação única por 23 a 2  na Sessão de 18/08/2026 às 19:00<i class="fa fa-users" aria-hidden="true" style="width:25px; height:25px" title="Consultar Registro dos votos" id="ConsultaRegistroVoto" data-id="7491"></i></i></div>
+                                    
+                                        <div class="small text-muted mb-1"><i class="fas fa-map-marker-alt me-1 text-primary"></i> <strong>Setor:</strong> Para Votação</div>
+                                    
+                                        <div class="timeline-despacho">
+                                            <strong><i class="fas fa-comment-dots me-1"></i> Despacho:</strong> Aprovado - Votação única por 23 a 2  na Sessão de 18/08/2026 às 19:00<i class="fa fa-users" aria-hidden="true" style="width:25px; height:25px" title="Consultar Registro dos votos" id="ConsultaRegistroVoto" data-id="7491"></i></i>
+                                        </div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:16</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Andamento
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Encaminhado ao local Para Votação</div>
+                                    
+                                        <div class="small text-muted mb-1"><i class="fas fa-map-marker-alt me-1 text-primary"></i> <strong>Setor:</strong> Para Votação</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:15</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Processo recebido no setor</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:13</span>
+                                        
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info px-2 py-1">
+                                                Finalizado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Encaminhado ao local Diretoria das Comissões</div>
+                                    
+                                        <div class="small text-muted mb-1"><i class="fas fa-map-marker-alt me-1 text-primary"></i> <strong>Setor:</strong> Diretoria das Comissões</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 19 DE AGOSTO DE 2026 - 18:13</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title"><a href="javascript:void(0)" class="links" onclick="ExibirParecer(6491)">Parecer Aprovado definido pelo relator ALEXANDRE GOMES finalizado na Comissão</a></div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> SEGUNDA-FEIRA, 17 DE AGOSTO DE 2026 - 11:21</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title"><a href="JavaScript:void(0)" onclick="DetalhesMovimento(92025)">Parecer Aprovado distribuído para assinatura por  ALEXANDRE GOMES!</a></div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> SEGUNDA-FEIRA, 17 DE AGOSTO DE 2026 - 11:01</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Definida Relatoria - Vereador ALEXANDRE GOMES</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> SEGUNDA-FEIRA, 17 DE AGOSTO DE 2026 - 10:59</span>
+                                        
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info px-2 py-1">
+                                                Finalizado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Recebido na Comissão de COMISSÃO DE FINANÇAS E ORÇAMENTO</div>
+                                    
+                                        <div class="small text-muted mb-1"><i class="fas fa-map-marker-alt me-1 text-primary"></i> <strong>Setor:</strong> Procuradoria</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> QUARTA-FEIRA, 12 DE AGOSTO DE 2026 - 12:53</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Encaminhado a Comiss&atilde;o COMISSÃO DE FINANÇAS E ORÇAMENTO</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> TERÇA-FEIRA, 11 DE AGOSTO DE 2026 - 19:00</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Lido no Expediente - Sess&atilde;o Ordinária de Ter&ccedil;a - feira, 11 de agosto de 2026 19:00</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> TERÇA-FEIRA, 11 DE AGOSTO DE 2026 - 19:00</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Inclusa no Expediente - Sess&atilde;o de Ordinária 11/08/2026 as 19:00</div>
+                                    
+                                </div>
+                            </div>
+                        
+                            <div class="timeline-node ">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="timeline-date"><i class="far fa-calendar me-1"></i> TERÇA-FEIRA, 11 DE AGOSTO DE 2026 - 15:10</span>
+                                        
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1">
+                                                Movimentado
+                                            </span>
+                                        
+                                    </div>
+                                    <div class="timeline-title">Entrada no Protocolo Geral - Regime de tramitação Ordinário</div>
+                                    
+                                </div>
+                            </div>
+                        
+                    </div>
+                
+            </div>
+        </section>
+
+        <!-- 4. PARECERES DAS COMISSÕES -->
+        <section aria-label="Pareceres das comissões">
+            <h2 class="section-header">
+                <i class="fas fa-gavel"></i> Pareceres das Comissões
+                <span class="badge bg-secondary ms-2 fs-6">1</span>
+            </h2>
+            
+            <div class="content-card">
+                
+                        <div class="parecer-card">
+                            <div class="parecer-info">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-secondary px-2 py-1">Aprovado</span>
+                                    <span class="text-muted small"><i class="far fa-calendar me-1"></i> 17/08/2026</span>
+                                </div>
+                                <div class="parecer-title">
+                                    COMISSÃO DE FINANÇAS E ORÇAMENTO
+                                </div>
+                                <div class="parecer-meta">
+                                    <i class="fas fa-user-tie me-1 text-primary"></i> <strong>Relator(a):</strong> ALEXANDRE GOMES
+                                </div>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold px-3 py-2 shadow-sm" onclick="ExibirParecer('6491')">
+                                    <i class="fas fa-file-contract me-1"></i> Exibir Parecer
+                                </button>
+                            </div>
+                        </div>
+                    
+            </div>
+        </section>
+
+        <!-- 5. VOTAÇÕES NO PLENÁRIO -->
+        
+        <section aria-label="Resultados de Votação">
+            <h2 class="section-header">
+                <i class="fas fa-vote-yea"></i> Votações no Plenário
+            </h2>
+            <div class="content-card" id="votacao-container">
+                <div class="text-center py-4" id="loading-votacao">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Carregando placar e votos nominais do plenário...</p>
+                </div>
+                <div class="d-none text-center py-4 text-muted" id="empty-votacao">
+                    <i class="fas fa-vote-yea fs-2 mb-2 opacity-50"></i>
+                    <p class="mb-0">Nenhuma votação nominal registrada para este processo.</p>
+                </div>
+                <div id="votacoes-list"></div>
+            </div>
+        </section>
+        
+
+        <!-- 6. DOCUMENTOS RELACIONADOS (UNIFICAÇÃO DE ANEXOS, EMENDAS E LEIS) -->
+        <section aria-label="Documentos Relacionados">
+            <h2 class="section-header">
+                <i class="fas fa-folder-open"></i> Documentos Relacionados
+                <span class="badge bg-secondary ms-2 fs-6">2</span>
+            </h2>
+            
+            <div class="content-card">
+                <!-- 6.1 Documento Original PDF -->
+                <a href="/processos/?DocumentoPDF/Processo/3997_2026/web" target="_blank" rel="noopener noreferrer" class="doc-item">
+                    <div class="d-flex align-items-center">
+                        <div class="doc-icon text-danger"><i class="fas fa-file-pdf"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark">Documento Original da Proposição (PROJETO DE RESOLUÇÃO)</div>
+                            <div class="small text-muted">Apresentado em 11/08/2026</div>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary px-3 py-2">Abrir PDF <i class="fas fa-external-link-alt ms-1"></i></span>
+                </a>
+
+                <!-- 6.2 Leis / Normas Jurídicas Geradas -->
+                
+                    <a href="/areapublica/documento/?Lei/871" target="_blank" rel="noopener noreferrer" class="doc-item bg-light border-start border-4 border-success">
+                        <div class="d-flex align-items-center">
+                            <div class="doc-icon text-success"><i class="fas fa-gavel"></i></div>
+                            <div>
+                                <div class="fw-bold text-dark">Resolução nº 1054/2026</div>
+                                <div class="small text-muted">
+                                    DISPÕE SOBRE O JULGAMENTO DAS CONTAS DO PREFEITO DO MUNICÍPIO DE SÃO GONÇALO, RELATIVAS AO EXERCÍCIO FINANCEIRO DE 2024.
+                                </div>
+                            </div>
+                        </div>
+                        <span class="badge bg-success text-white px-3 py-2">Ver Norma / Lei <i class="fas fa-external-link-alt ms-1"></i></span>
+                    </a>
+                
+
+                <!-- 6.3 Anexos Digitais Autenticados -->
+                
+                                <a href="https://api.sicam.app/exibir_documento_eletronico/.eJwVy8EKwjAMANB_ydmKK-tSdvU3cmm6RAtbUtwEQfx39frgvUHbKlY2gRlwyYyaJMhQMYx5kMAaNUSUxFEZp2k890XhBLVsze7-S9eZqJkc_clEe_GbWy2rExWTl-_94YdX_0OKGS_w-QI0myYI.arpqTg.u8r9A8ojvmW2LSH5ln6hmLp6z18" target="_blank" rel="noopener noreferrer" class="doc-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="doc-icon"><i class="fas fa-file-pdf text-danger"></i></div>
+                                        <div>
+                                            <div class="fw-bold text-dark">PROJETO DE RESOLU����O INTEGRA</div>
+                                            <div class="small text-muted">
+                                                Anexo do Processo  | 20/08/2026
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark border px-3 py-2">4,9 MB <i class="fas fa-download ms-1 text-primary"></i></span>
+                                </a>
+                
+                                <a href="https://api.sicam.app/exibir_documento_eletronico/.eJwVy8EKwjAMANB_ydnKFldbd_U3cknTTAtbU9wEQfbv0-uD94WpzFp5URghpz757NGFIOiGhJ3jSwwu5qsON-lRVM8tT3AC4aXUp_3SfSQqVbf2TkQr28Oq8GxEXPVja3vZZmJ_8BhDB_sBF58lwg.arpqTg.M3e_snHLLzw4H4qH6N_5lcGz6CU" target="_blank" rel="noopener noreferrer" class="doc-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="doc-icon"><i class="fas fa-file-pdf text-danger"></i></div>
+                                        <div>
+                                            <div class="fw-bold text-dark">PROJETO DE RESOLU����O INTEGRA</div>
+                                            <div class="small text-muted">
+                                                Anexo do Processo  | 20/08/2026
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark border px-3 py-2">4,9 MB <i class="fas fa-download ms-1 text-primary"></i></span>
+                                </a>
+                
+                                <a href="https://api.sicam.app/exibir_documento_eletronico/.eJwVy8EKwjAMANB_ydlKt7Wm7Opv5JK1qRa2pLgJgvjv6vXBe0NtqyhvAjNwmZYJs3cYA7ogIbh0wcGloUaOiX0dy7mXCifIvDW92y9dZ6KmcvTnQrSz3Uwzr0bEKi_b-8MOy_aHOCb08PkC69glOA.arpqTg.BYtaT4RrtaBJ9W89GUHVJ8QTFzs" target="_blank" rel="noopener noreferrer" class="doc-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="doc-icon"><i class="fas fa-file-pdf text-danger"></i></div>
+                                        <div>
+                                            <div class="fw-bold text-dark">PROC 0824-26.pdf - parecer tce contas 2024.pdf</div>
+                                            <div class="small text-muted">
+                                                Anexo do Processo  | 11/08/2026
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark border px-3 py-2">494,3 KB <i class="fas fa-download ms-1 text-primary"></i></span>
+                                </a>
+                
+                                <a href="https://api.sicam.app/exibir_documento_eletronico/.eJwVy8EKwyAMANB_yXkOM3Utve43colRN6E1srYwGP33btcH7wulzrnxkmECZnQuhWRsHNB4X8TEe0KD2Tks1o8S0rWnAhcQXmp76S89JqLa8tb3SLSyPrUJz0rELX907W_dVPQP4TYOFo4TFGAlrQ.arpqTg.oKWc6xChVjuQnSmfp5uzpv-U_AI" target="_blank" rel="noopener noreferrer" class="doc-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="doc-icon"><i class="fas fa-file-pdf text-danger"></i></div>
+                                        <div>
+                                            <div class="fw-bold text-dark">Acordao - Processo 213638_8_2025 - Sessao 08_07_2026  - contas pmsg 2024.pdf</div>
+                                            <div class="small text-muted">
+                                                Anexo do Processo  | 11/08/2026
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark border px-3 py-2">1,7 MB <i class="fas fa-download ms-1 text-primary"></i></span>
+                                </a>
+                
+
+                <!-- 6.3 Emendas Apresentadas -->
+                
+            </div>
+        </section>
+
+        <!-- 7. AUTORIA E COAUTORIAS -->
+        <section aria-label="Autores da Proposição">
+            <h2 class="section-header">
+                <i class="fas fa-users"></i> Autoria e Coautorias
+            </h2>
+            <div class="content-card d-flex flex-wrap gap-4 align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="doc-icon bg-primary bg-opacity-10 text-primary rounded-circle m-0" style="width: 55px; height: 55px;">
+                        <i class="fas fa-user-tie fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="badge bg-primary mb-1">Autor(a) Principal</span>
+                        <div class="fs-5 fw-bold text-dark">Comissão de COMISSÃO DE FINANÇAS E ORÇAMENTO</div>
+                    </div>
+                </div>
+                
+                <div class="border-start ps-md-4">
+                    <span class="badge bg-secondary mb-1">Coautor(es)</span>
+                    <div class="fs-6 fw-medium text-secondary"> ALEXANDRE GOMES , ALEXANDRE GOMES , ALEXANDRE GOMES , BETO DA SERRARIA , NELSINHO RUAS , BETO DA SERRARIA , NELSINHO RUAS , ALEXANDRE GOMES </div>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- 8. INFORMAÇÕES COMPLEMENTARES (IA, MAPA LEAFLET E TEXTOS) -->
+        <section aria-label="Informações Complementares">
+            <h2 class="section-header">
+                <i class="fas fa-plus-circle"></i> Informações Complementares
+            </h2>
+
+            <!-- 8.1 Explicação por Inteligência Artificial -->
+            
+            <div class="content-card mb-4 border-start border-4 border-primary">
+                <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="fas fa-robot text-primary fs-4"></i> Análise e Explicação Inteligente (IA)
+                </h3>
+                <div id="CorpoInteligencia" data-ajax-load="https://sg.processolegislativo.com.br/integracao/?CarregaInformacoesProcesso/50171">
+                    <div class="d-flex justify-content-center align-items-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando análise IA...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- 8.2 Localização Geográfica (Mapa Leaflet) -->
+            
+
+            <!-- 8.3 Texto Integral e Justificativa -->
+            <div class="content-card">
+                <h3 class="h5 fw-bold mb-3"><i class="fas fa-align-left text-primary me-2"></i> Texto da Matéria</h3>
+                <div class="document-content p-3 bg-light rounded-3 mb-4">
+                    <p><strong>A CÂMARA MUNICIPAL DE SO GONÇALO, no uso de suas atribuições legais e regimentais, RESOLVE:</strong></p>
+<p><strong>Art. 1º</strong> Ficam APROVADAS, nos termos desta Resolução, as Contas de Governo do Poder Executivo do Município de São Gonçalo, relativas ao exercício financeiro de 2024, de responsabilidade do Senhor Nelson Ruas dos Santos, acompanhando-se o Parecer Prévio Favorável emitido pelo Tribunal de Contas do Estado do Rio de Janeiro – TCE/RJ, no Processo TCE-RJ nº 213.638-8/2025, consubstanciado no Acórdão nº 023127/2026-PLEN, com as ressalvas e determinações nele consignadas.</p>
+<p><strong>Art. 2º</strong> Integra a presente Resolução, para todos os fins, o Parecer Prévio do Tribunal de Contas do Estado do Rio de Janeiro, bem como o respectivo Acórdão e voto da Relatora, que passam a constituir parte integrante do processo legislativo de julgamento das contas, como anexo.</p>
+<p><strong>Art. 3º</strong> O julgamento de que trata esta Resolução refere-se às Contas de Governo do Poder Executivo Municipal relativas ao exercício financeiro de 2024, de responsabilidade do Senhor Nelson Ruas dos Santos, na condição de Chefe do Poder Executivo Municipal à época.</p>
+<p><strong>Art. 4º</strong> O disposto nesta Resolução não afasta eventual responsabilidade de ordenadores de despesas, gestores, agentes públicos ou terceiros, nas hipóteses de competência própria dos órgãos de controle e fiscalização, observados os termos do Acórdão nº 023127/2026-PLEN.</p>
+<p><strong>Art. 5º</strong> Fica a Presidência da Câmara Municipal autorizada a adotar as providências necessárias à comunicação do resultado do julgamento ao Tribunal de Contas do Estado do Rio de Janeiro e aos demais órgãos competentes.</p>
+<p><strong>Art. 6º</strong> Esta Resolução entra em vigor na data de sua publicação.</p>
+                </div>
+
+                
+                    <h3 class="h5 fw-bold mb-3"><i class="fas fa-info-circle text-primary me-2"></i> Justificativa</h3>
+                    <div class="document-content p-3 bg-light rounded-3">
+                        <p>O presente Projeto de Resolução tem por finalidade formalizar o julgamento, pela Câmara Municipal de São Gonçalo, das Contas de Governo do Poder Executivo Municipal relativas ao exercício financeiro de 2024, de responsabilidade do Senhor Nelson Ruas dos Santos, então Chefe do Poder Executivo Municipal.</p>
+<p>O Tribunal de Contas do Estado do Rio de Janeiro, no âmbito do Processo TCE-RJ nº 213.638-8/2025, procedeu à análise técnica da Prestação de Contas de Governo do Município de São Gonçalo referente ao exercício de 2024.</p>
+<p>Após a análise da matéria, o Plenário do Tribunal de Contas do Estado do Rio de Janeiro, em sessão realizada em 8 de julho de 2026, deliberou, por unanimidade, pela emissão de Parecer Prévio Favorável à aprovação das contas, com ressalvas, determinações, comunicação e arquivamento.</p>
+<p>O Parecer Prévio consignou expressamente a conclusão pela aprovação das Contas de Governo do Poder Executivo do Município de São Gonçalo, referentes ao exercício de 2024, de responsabilidade do Senhor Nelson Ruas dos Santos, com ressalvas, determinações e comunicações constantes do voto da Relatora.</p>
+<p>Entre os aspectos considerados pelo Tribunal, registrou-se o cumprimento de importantes limites constitucionais e legais, incluindo a aplicação de recursos na manutenção e desenvolvimento do ensino, a aplicação dos recursos do FUNDEB, a aplicação mínima em ações e serviços públicos de saúde, o atendimento dos limites relativos à despesa com pessoal e à dívida consolidada líquida, bem como o atendimento aos dispositivos pertinentes ao Poder Executivo previstos no art. 29-A da Constituição Federal.</p>
+<p>Por outro lado, o Tribunal consignou ressalvas e determinações, entre elas a necessidade de aprimoramento dos procedimentos relacionados ao lançamento, fiscalização e cobrança dos tributos municipais, especialmente diante da ausência de revisão da Planta Genérica de Valores, conforme registrado na Ressalva nº 1 do voto.</p>
+<p>Importante destacar que o próprio Parecer Prévio estabelece que a análise realizada pelo Tribunal de Contas possui natureza técnica, estando o julgamento das contas submetido à Câmara Municipal, razão pela qual compete a esta Casa Legislativa, no exercício de sua atribuição constitucional, proceder à apreciação e ao julgamento das Contas de Governo.</p>
+<p>Assim, diante da manifestação técnica favorável do Tribunal de Contas do Estado do Rio de Janeiro e considerando a inexistência, no Parecer Prévio, de indicação de irregularidade capaz de ensejar a rejeição das contas, apresenta-se o presente Projeto de Resolução para que esta Casa Legislativa delibere pela aprovação das Contas de Governo do Município de São Gonçalo relativas ao exercício financeiro de 2024, acompanhando o entendimento firmado pelo TCE/RJ, sem prejuízo da observância das ressalvas e determinações constantes do respectivo Acórdão.</p>
+<p>Diante do exposto, submetemos a presente proposição à apreciação dos Nobres Vereadores, esperando contar com o apoio necessário à sua aprovação.</p>
+<p> </p>
+                    </div>
+                
+            </div>
+        </section>
+    </main>
+
+    <!-- BARRA FLUTUANTE DE ACESSIBILIDADE (WCAG 2.2 AA) -->
+    <div class="accessibility-toolbar collapsed" id="accessibilityToolbar" role="region" aria-label="Ferramentas de acessibilidade">
+        <button class="toolbar-toggle" aria-label="Abrir ferramentas de acessibilidade" id="toolbarToggle">
+            <i class="fas fa-universal-access" aria-hidden="true"></i>
+        </button>
+        <div class="toolbar-content" id="DvAcessibilidade">
+            <h3 class="h6 fw-bold mb-3 border-bottom pb-2"><i class="fas fa-universal-access text-primary me-1"></i> Acessibilidade</h3>
+            
+            <div class="mb-3">
+                <label class="d-block small fw-semibold mb-2">Tamanho do texto:</label>
+                <div class="btn-group w-100" role="group" aria-label="Controle de zoom de fonte">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnFontDec" aria-label="Diminuir fonte">A<sup>-</sup></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnFontRes" aria-label="Fonte normal">A</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnFontInc" aria-label="Aumentar fonte">A<sup>+</sup></button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="d-block small fw-semibold mb-2">Contraste visual:</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="contrastToggle" aria-label="Alternar alto contraste">
+                    <label class="form-check-label small" for="contrastToggle">Alto Contraste</label>
+                </div>
+            </div>
+
+            <div>
+                <label class="d-block small fw-semibold mb-2">Leitor de texto (TTS):</label>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary btn-sm flex-fill" id="ttsPlayBtn">
+                        <i class="fas fa-volume-up me-1"></i> Ler Conteúdo
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" id="ttsStopBtn" style="display:none;" aria-label="Parar leitura">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-3 pt-3 border-top">
+                <div class="d-flex gap-2 mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="window.print()" title="Imprimir página">
+                        <i class="fas fa-print me-1"></i> Imprimir
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Voltar ao topo">
+                        <i class="fas fa-arrow-up me-1"></i> Topo
+                    </button>
+                </div>
+                <div class="dropdown w-100">
+                    <button class="btn btn-outline-primary btn-sm w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Compartilhar">
+                        <i class="fas fa-share-nodes me-1"></i> Compartilhar
+                    </button>
+                    <ul class="dropdown-menu shadow w-100 text-small">
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(window.location.href), '_blank')"><i class="fab fa-whatsapp text-success me-2"></i>WhatsApp</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank')"><i class="fab fa-facebook text-primary me-2"></i>Facebook</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado com sucesso!');"><i class="fas fa-link me-2"></i>Copiar Link</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer mt-auto py-4 bg-white border-top text-center small text-muted">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 Câmara Municipal de São Gonçalo - RJ. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- jQuery & Bootstrap 5 JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- SCRIPTS DE INTERATIVIDADE, ACESSIBILIDADE E MAPAS -->
+    <script>
+        $(document).ready(function() {
+            // 1. Carregamento Automático da Explicação IA (Sem clique em aba)
+            var $iaDiv = $('#CorpoInteligencia');
+            if ($iaDiv.length > 0) {
+                var urlIA = $iaDiv.data('ajax-load');
+                if (urlIA) {
+                    $.ajax({
+                        url: urlIA,
+                        method: 'GET',
+                        dataType: 'html',
+                        success: function(data) { $iaDiv.html(data); },
+                        error: function() {
+                            $iaDiv.html('<div class="alert alert-secondary mb-0 small">Explicação por IA não disponível no momento.</div>');
+                        }
+                    });
+                }
+            }
+
+            // 2. Inicialização de Votações (voto.js)
+            
+            if (typeof carregarVotacao === 'function') {
+                carregarVotacao();
+            }
+            
+
+            // 3. Inicialização de Mapa Leaflet
+            
+
+            // 4. Controle da Barra Flutuante de Acessibilidade
+            $('#toolbarToggle').on('click', function() {
+                var $toolbar = $('#accessibilityToolbar');
+                $toolbar.toggleClass('collapsed');
+                var col = $toolbar.hasClass('collapsed');
+                $(this).attr('aria-label', col ? 'Abrir ferramentas de acessibilidade' : 'Fechar ferramentas de acessibilidade');
+            });
+
+            // Zoom de Fonte
+            $('#btnFontInc').on('click', function() { changeFontSize(2); });
+            $('#btnFontDec').on('click', function() { changeFontSize(-2); });
+            $('#btnFontRes').on('click', function() { $('.document-content, .ementa-box, .timeline-card').css('font-size', ''); });
+
+            function changeFontSize(step) {
+                $('.document-content, .ementa-box, .timeline-card').each(function() {
+                    var cur = parseFloat($(this).css('font-size'));
+                    if (cur + step >= 12 && cur + step <= 26) {
+                        $(this).css('font-size', (cur + step) + 'px');
+                    }
+                });
+            }
+
+            // Alto Contraste
+            $('#contrastToggle').on('change', function() {
+                $('body').toggleClass('high-contrast', this.checked);
+            });
+
+            // Leitor de Voz (SpeechSynthesis)
+            $('#ttsPlayBtn').on('click', function() {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    var textoLer = $('.hero-card').text() + '. ' + $('.document-content').text();
+                    var utt = new SpeechSynthesisUtterance(textoLer);
+                    utt.lang = 'pt-BR';
+                    utt.rate = 0.9;
+                    $('#ttsPlayBtn').hide();
+                    $('#ttsStopBtn').show();
+                    utt.onend = utt.onerror = function() {
+                        $('#ttsPlayBtn').show();
+                        $('#ttsStopBtn').hide();
+                    };
+                    window.speechSynthesis.speak(utt);
+                } else {
+                    alert('Navegador sem suporte ao leitor de voz.');
+                }
+            });
+
+            $('#ttsStopBtn').on('click', function() {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    $('#ttsPlayBtn').show();
+                    $('#ttsStopBtn').hide();
+                }
+            });
+        });
+
+        // Função de renderização de Mapa (Leaflet)
+        function initMap() {
+            
+        }
+    </script>
+    <script lang="js" src="/areapublica/js/voto.js"></script>
+</body>
+</html>

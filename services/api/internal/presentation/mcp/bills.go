@@ -23,9 +23,10 @@ const billsDescription = "Proposições da Câmara Municipal de São Gonçalo (p
 	"(projeto de lei, 270/2019) traz a proposição daquele documento. Sem eles, lista com filtros: texto (ementa e autor), autor, tipo " +
 	"(padrão: só as que podem virar norma; todos inclui indicações e moções), fase, situacao, parado_ha_dias (mínimo de dias sem " +
 	"movimentação), tema (meio_ambiente) e de/ate (apresentação); paginada, até 20. por_fase conta as proposições dos outros filtros em " +
-	"cada fase. A fase é deduzida da tramitação por regra (virou_lei, vetado, rejeitado, retirado, arquivado, enviado_ao_executivo, aprovado, " +
-	"em_votacao, em_comissao, apresentado): confira na tramitação. Um projeto que virou lei também é arquivado no fim do mandato. leis traz " +
-	"a lei que resultou do projeto: certeza exata vem do selo da página do SICAM, forte vem do autor da norma no SIAPEGOV, que cita o projeto. " +
+	"cada fase. A fase é deduzida da tramitação por regra (virou_norma, vetado, rejeitado, retirado, arquivado, enviado_ao_executivo, aprovado, " +
+	"em_votacao, em_comissao, apresentado): confira na tramitação. virou_norma vale para lei, lei complementar, resolução e emenda à Lei Orgânica; " +
+	"um projeto que virou norma também é arquivado no fim do mandato. leis traz a norma que resultou do projeto, com o tipo em rotulo: " +
+	"certeza exata vem do selo da página do SICAM, forte vem do autor da norma no SIAPEGOV, que cita o projeto. " +
 	"O voto de cada vereador não está na base; o placar aparece no texto da tramitação. Cite o link da página do processo."
 
 type billsInput struct {
@@ -34,7 +35,7 @@ type billsInput struct {
 	Number      string `json:"numero,omitempty" jsonschema:"número/ano do documento, como 270/2019 (use com tipo)"`
 	Text        string `json:"texto,omitempty" jsonschema:"palavras da ementa ou do autor; aceita \"frase exata\", OR e -excluir"`
 	Author      string `json:"autor,omitempty" jsonschema:"parte do nome do autor, como aparece no SICAM"`
-	Phase       string `json:"fase,omitempty" jsonschema:"virou_lei, vetado, rejeitado, retirado, arquivado, enviado_ao_executivo, aprovado, em_votacao, em_comissao ou apresentado"`
+	Phase       string `json:"fase,omitempty" jsonschema:"virou_norma, vetado, rejeitado, retirado, arquivado, enviado_ao_executivo, aprovado, em_votacao, em_comissao ou apresentado"`
 	Status      string `json:"situacao,omitempty" jsonschema:"situação como o SICAM escreve: Ativo ou Arquivado"`
 	MinIdleDays int    `json:"parado_ha_dias,omitempty" jsonschema:"só proposições sem movimentação há pelo menos estes dias; ordena das mais paradas para as menos"`
 	Theme       string `json:"tema,omitempty" jsonschema:"meio_ambiente"`
@@ -47,6 +48,7 @@ type billsInput struct {
 type billLawOut struct {
 	Tipo        string `json:"tipo"`
 	Numero      string `json:"numero"`
+	Rotulo      string `json:"rotulo"`
 	Ementa      string `json:"ementa,omitempty"`
 	Link        string `json:"link,omitempty"`
 	Certeza     string `json:"certeza"`
@@ -157,7 +159,7 @@ func (s *server) billOut(sum domain.BillSummary) billOut {
 	}
 	for _, l := range sum.Laws {
 		search := domain.NormDiarioSearch(l.Norm)
-		law := billLawOut{Tipo: string(l.Norm.Kind), Numero: l.Norm.Label(), Ementa: l.Norm.Summary, Link: l.URL, Certeza: string(l.Certainty),
+		law := billLawOut{Tipo: string(l.Norm.Kind), Numero: l.Norm.Label(), Rotulo: l.Norm.Kind.Name() + " nº " + l.Norm.Label(), Ementa: l.Norm.Summary, Link: l.URL, Certeza: string(l.Certainty),
 			BuscaDiario: search, BuscaNoSite: s.webURL + "/?" + url.Values{"q": {search}}.Encode()}
 		if l.Norm.PromulgatedOn != nil {
 			law.Promulgacao = l.Norm.PromulgatedOn.Format(time.DateOnly)

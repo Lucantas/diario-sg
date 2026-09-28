@@ -21,6 +21,7 @@ type billsResponse struct {
 		Phase    string `json:"phase"`
 		DaysIdle int    `json:"days_idle"`
 		Laws     []struct {
+			KindName  string `json:"kind_name"`
 			Number    string `json:"number"`
 			Certainty string `json:"certainty"`
 		} `json:"laws"`
@@ -52,7 +53,7 @@ func seedBills(t *testing.T, ctx context.Context, repo *postgres.BillRepo) {
 	viaCommittee := sampleBill(101, 2025, "PROJETO DE LEI", "Ativo", recent, "Recebido na Comissão de COMISSÃO DE DEFESA DO MEIO AMBIENTE")
 	viaCommittee.Summary, viaCommittee.PresentedOn, viaCommittee.Events[0].At = "INSTITUI O PROGRAMA HORTA NA ESCOLA", day(2025, 6, 1), recent
 	law := sampleBill(102, 2019, "PROJETO DE LEI", "Arquivado", old, "Lei nº. 1147/2020 de 05/02/2020 Publicada em 06/02/2020")
-	law.Summary, law.LawNumber, law.LawYear, law.DocNumber, law.DocYear, law.PresentedOn = "INSTITUI O PROJETO CAPOEIRA NA ESCOLA", 1147, 2020, 268, 2019, day(2019, 11, 26)
+	law.Summary, law.LawKind, law.LawNumber, law.LawYear, law.DocNumber, law.DocYear, law.PresentedOn = "INSTITUI O PROJETO CAPOEIRA NA ESCOLA", domain.NormLaw, 1147, 2020, 268, 2019, day(2019, 11, 26)
 	byAuthor := sampleBill(103, 2019, "PROJETO DE LEI", "Arquivado", old, "Processo Arquivado - Término de mandato")
 	byAuthor.Summary, byAuthor.DocNumber, byAuthor.DocYear, byAuthor.PresentedOn = "INSTITUI O CÓDIGO DE PROTEÇÃO AOS ANIMAIS", 133, 2019, day(2019, 5, 1)
 	indication := sampleBill(104, 2025, "INDICAÇÃO LEGISLATIVA", "Ativo", recent, "Entrada no Protocolo Geral")
@@ -102,8 +103,8 @@ func TestBillsListFiltersByThemePhaseAndIdleDaysAndLinksLaws(t *testing.T) {
 	}
 
 	var laws billsResponse
-	getJSON(t, srv.URL+"/v1/bills?phase=virou_lei", &laws)
-	if laws.Total != 1 || len(laws.Items[0].Laws) != 1 || laws.Items[0].Laws[0].Number != "1147/2020" || laws.Items[0].Laws[0].Certainty != "exata" {
+	getJSON(t, srv.URL+"/v1/bills?phase=virou_norma", &laws)
+	if laws.Total != 1 || len(laws.Items[0].Laws) != 1 || laws.Items[0].Laws[0].Number != "1147/2020" || laws.Items[0].Laws[0].Certainty != "exata" || laws.Items[0].Laws[0].KindName != "Lei" {
 		t.Fatalf("lei pelo selo: %+v", laws)
 	}
 
@@ -147,6 +148,7 @@ type mcpBills struct {
 		Link     string `json:"link"`
 		Leis     []struct {
 			Numero  string `json:"numero"`
+			Rotulo  string `json:"rotulo"`
 			Certeza string `json:"certeza"`
 		} `json:"leis"`
 	} `json:"proposicoes"`
@@ -181,7 +183,7 @@ func TestMCPProposicoes(t *testing.T) {
 	}
 
 	byDoc, _ := call[mcpBills](t, session, "proposicoes", map[string]any{"tipo": "projeto de lei", "numero": "268/2019"})
-	if byDoc.Total != 1 || byDoc.Proposicoes[0].Processo != "102/2019" || byDoc.Proposicoes[0].Fase != "virou_lei" || byDoc.Proposicoes[0].Leis[0].Numero != "1147/2020" {
+	if byDoc.Total != 1 || byDoc.Proposicoes[0].Processo != "102/2019" || byDoc.Proposicoes[0].Fase != "virou_norma" || byDoc.Proposicoes[0].Leis[0].Rotulo != "Lei nº 1147/2020" {
 		t.Fatalf("por documento: %+v", byDoc)
 	}
 

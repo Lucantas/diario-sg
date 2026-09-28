@@ -120,7 +120,7 @@ function BillItem({ bill }: { bill: Bill }) {
         {bill.authors}
         {bill.presented_on && ` · apresentada em ${bill.presented_on.split("-").reverse().join("/")}`}
         {bill.current_body && ` · ${bill.current_body}`}
-        {bill.laws.map((l) => ` · Lei ${l.number}`).join("")}
+        {bill.laws.map((l) => ` · ${l.kind_name} ${l.number}`).join("")}
       </p>
     </li>
   );

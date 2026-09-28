@@ -152,7 +152,7 @@ func (uc *FindBills) One(ctx context.Context, process string) (domain.BillSummar
 
 func (uc *FindBills) ForNorm(ctx context.Context, n domain.Norm) (*domain.Bill, domain.Certainty, error) {
 	if n.Kind == domain.NormLaw || n.Kind == domain.NormComplementary {
-		bills, err := uc.bills.BillsByLaw(ctx, n.Number, n.Year)
+		bills, err := uc.bills.BillsByLaw(ctx, n.Kind, n.Number, n.Year)
 		if err != nil || len(bills) > 0 {
 			return firstBill(bills), domain.CertaintyExact, err
 		}
@@ -191,17 +191,9 @@ func (uc *FindBills) citedBills(ctx context.Context) (map[domain.BillDocRef][]do
 
 func (uc *FindBills) laws(ctx context.Context, b domain.Bill, cited map[domain.BillDocRef][]domain.Norm) ([]domain.BillLaw, error) {
 	if b.LawNumber > 0 {
-		kind := domain.NormLaw
-		if strings.Contains(b.Kind, "COMPLEMENTAR") {
-			kind = domain.NormComplementary
-		}
-		norms, err := uc.norms.NormsByNumber(ctx, kind, b.LawNumber, b.LawYear)
+		norm, err := uc.badgeNorm(ctx, b)
 		if err != nil {
 			return nil, err
-		}
-		norm := domain.Norm{Kind: kind, Number: b.LawNumber, Year: b.LawYear}
-		if len(norms) > 0 {
-			norm = norms[0]
 		}
 		return []domain.BillLaw{{Norm: norm, URL: b.LawURL, Certainty: domain.CertaintyExact}}, nil
 	}
@@ -210,6 +202,18 @@ func (uc *FindBills) laws(ctx context.Context, b domain.Bill, cited map[domain.B
 		out = append(out, domain.BillLaw{Norm: n, URL: n.TextURL, Certainty: domain.CertaintyStrong})
 	}
 	return out, nil
+}
+
+func (uc *FindBills) badgeNorm(ctx context.Context, b domain.Bill) (domain.Norm, error) {
+	norm := domain.Norm{Kind: b.LawKind, Number: b.LawNumber, Year: b.LawYear}
+	if _, inSIAPEGOV := domain.NormCategories[b.LawKind]; !inSIAPEGOV {
+		return norm, nil
+	}
+	norms, err := uc.norms.NormsByNumber(ctx, b.LawKind, b.LawNumber, b.LawYear)
+	if err != nil || len(norms) == 0 {
+		return norm, err
+	}
+	return norms[0], nil
 }
 
 func (uc *FindBills) ByDoc(ctx context.Context, kind, number string) ([]domain.BillSummary, error) {

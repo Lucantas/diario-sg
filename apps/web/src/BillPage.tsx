@@ -54,13 +54,13 @@ export function BillPage({ process }: { process: string }) {
 
           {bill.laws.length > 0 && (
             <section aria-labelledby="law-heading">
-              <h2 id="law-heading" className="panel-heading">Lei que resultou do projeto</h2>
+              <h2 id="law-heading" className="panel-heading">Norma que resultou do projeto</h2>
               <ul className="pncp-list">
                 {bill.laws.map((l) => (
                   <li key={l.number}>
                     <p>
-                      <strong>Lei {l.number}</strong>{l.url && <> · <a href={l.url}>texto</a></>}
-                      {" "}· <a href={`/?${new URLSearchParams({ q: l.diario_search }).toString()}`}>atos do Diário que citam a lei</a>
+                      <strong>{l.kind_name} {l.number}</strong>{l.url && <> · <a href={l.url}>texto</a></>}
+                      {" "}· <a href={`/?${new URLSearchParams({ q: l.diario_search }).toString()}`}>atos do Diário que citam o número</a>
                     </p>
                     {l.summary && <p>{l.summary}</p>}
                     <p className="count">Ligação {l.certainty}: {CERTAINTY_TEXT[l.certainty]}.</p>

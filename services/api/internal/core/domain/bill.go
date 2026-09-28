@@ -47,6 +47,7 @@ type Bill struct {
 	CurrentBody     string
 	LastMovement    string
 	SourceUpdatedAt *time.Time
+	LawKind         NormKind
 	LawNumber       int
 	LawYear         int
 	LawURL          string
@@ -76,7 +77,7 @@ func (b Bill) LawLabel() string {
 	if b.LawNumber == 0 {
 		return ""
 	}
-	return fmt.Sprintf("%d/%d", b.LawNumber, b.LawYear)
+	return fmt.Sprintf("%s nº %d/%d", b.LawKind.Name(), b.LawNumber, b.LawYear)
 }
 
 var NormativeBillKinds = []string{

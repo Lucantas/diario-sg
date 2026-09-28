@@ -100,6 +100,8 @@ func fullYear(s string) int {
 	return y
 }
 
+var lawBadgeRe = regexp.MustCompile(`^Ver\s+(.+?)\s+n\S*\s*0*(\d+)/(\d{4})`)
+
 func readLaw(hero *html.Node, base string, b *Bill) {
 	link := findFirst(hero, func(n *html.Node) bool {
 		return n.Type == html.ElementNode && n.Data == "a" && strings.Contains(firstAttr("", n, "href"), "documento/?Lei/")
@@ -107,12 +109,13 @@ func readLaw(hero *html.Node, base string, b *Bill) {
 	if link == nil {
 		return
 	}
-	m := processKeyRe.FindStringSubmatch(firstAttr("", link, "title") + " " + nodeText(link))
+	m := lawBadgeRe.FindStringSubmatch(firstAttr("", link, "title"))
 	if m == nil {
 		return
 	}
-	b.LawNumber, _ = strconv.Atoi(m[1])
-	b.LawYear, _ = strconv.Atoi(m[2])
+	b.LawKind = NormKindFromSICAM(m[1])
+	b.LawNumber, _ = strconv.Atoi(m[2])
+	b.LawYear, _ = strconv.Atoi(m[3])
 	b.LawURL = strings.TrimRight(base, "/") + firstAttr("", link, "href")
 }
 

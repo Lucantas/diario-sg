@@ -13,6 +13,7 @@ import (
 
 type billLawDTO struct {
 	Kind         domain.NormKind  `json:"kind"`
+	KindName     string           `json:"kind_name"`
 	Number       string           `json:"number"`
 	Summary      string           `json:"summary"`
 	URL          string           `json:"url"`
@@ -63,7 +64,7 @@ func toBillDTO(s domain.BillSummary) billDTO {
 		PresentedOn: optionalDate(b.PresentedOn), Status: b.Status, Phase: string(s.Phase), DaysIdle: s.DaysIdle,
 		CurrentBody: b.CurrentBody, LastMovement: b.LastMovement, URL: b.URL, FetchedAt: b.FetchedAt.Format(time.RFC3339), Laws: []billLawDTO{}}
 	for _, l := range s.Laws {
-		out.Laws = append(out.Laws, billLawDTO{Kind: l.Norm.Kind, Number: l.Norm.Label(), Summary: l.Norm.Summary, URL: l.URL,
+		out.Laws = append(out.Laws, billLawDTO{Kind: l.Norm.Kind, KindName: l.Norm.Kind.Name(), Number: l.Norm.Label(), Summary: l.Norm.Summary, URL: l.URL,
 			Certainty: l.Certainty, DiarioSearch: domain.NormDiarioSearch(l.Norm)})
 	}
 	return out

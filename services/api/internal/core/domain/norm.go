@@ -21,11 +21,32 @@ const (
 	NormComplementary NormKind = "lei_complementar"
 	NormOrganic       NormKind = "lei_organica"
 	NormDecree        NormKind = "decreto"
+
+	NormResolution        NormKind = "resolucao"
+	NormOrganicAmendment  NormKind = "emenda_lei_organica"
+	NormLegislativeDecree NormKind = "decreto_legislativo"
 )
 
 var NormCategories = map[NormKind]string{NormLaw: "01", NormOrganic: "02", NormComplementary: "03", NormDecree: "05"}
 
 var NormKindsInOrder = []NormKind{NormLaw, NormComplementary, NormOrganic, NormDecree}
+
+var normKindNames = map[NormKind]string{
+	NormLaw: "Lei", NormComplementary: "Lei Complementar", NormOrganic: "Lei Orgânica", NormDecree: "Decreto",
+	NormResolution: "Resolução", NormOrganicAmendment: "Emenda à Lei Orgânica", NormLegislativeDecree: "Decreto Legislativo",
+}
+
+func (k NormKind) Name() string { return normKindNames[k] }
+
+func NormKindFromSICAM(label string) NormKind {
+	folded := foldAccents(strings.Join(strings.Fields(label), " "))
+	for kind, name := range normKindNames {
+		if foldAccents(name) == folded {
+			return kind
+		}
+	}
+	return ""
+}
 
 type Norm struct {
 	Kind          NormKind

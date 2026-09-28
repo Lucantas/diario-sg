@@ -3,7 +3,7 @@ import { billApiParams, billPath, billsPageUrl, idleLabel, parseBillPath, phaseL
 
 describe("proposições", () => {
   it("nomeia cada fase", () => {
-    expect(phaseLabel("virou_lei")).toBe("Virou lei");
+    expect(phaseLabel("virou_norma")).toBe("Virou norma");
     expect(phaseLabel("enviado_ao_executivo")).toBe("Enviada ao Executivo");
     expect(phaseLabel("em_comissao")).toBe("Em comissão");
   });

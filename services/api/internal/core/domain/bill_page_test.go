@@ -94,14 +94,40 @@ func TestParseBillPageArchivedAtEndOfTerm(t *testing.T) {
 func TestParseBillPageBillThatBecameLaw(t *testing.T) {
 	b := parseSICAM(t, "3823-2019.html")
 
-	if b.LawNumber != 1147 || b.LawYear != 2020 || b.LawURL != sicamBase+"/areapublica/documento/?Lei/216" {
-		t.Fatalf("lei: %d/%d %q", b.LawNumber, b.LawYear, b.LawURL)
+	if b.LawKind != NormLaw || b.LawNumber != 1147 || b.LawYear != 2020 || b.LawURL != sicamBase+"/areapublica/documento/?Lei/216" {
+		t.Fatalf("lei: %s %d/%d %q", b.LawKind, b.LawNumber, b.LawYear, b.LawURL)
+	}
+	if b.LawLabel() != "Lei nº 1147/2020" {
+		t.Fatalf("rótulo: %q", b.LawLabel())
 	}
 	if b.Status != "Arquivado" || b.DocLabel != "PROJETO DE LEI Nº 268/2019" {
 		t.Fatalf("cabeçalho: %+v", b)
 	}
 	if !hasEvent(b, "Lei nº. 1147/2020 de 05/02/2020 Publicada em 06/02/2020", "") {
 		t.Fatalf("evento da lei ausente: %+v", b.Events)
+	}
+}
+
+func TestParseBillPageResolutionBadgeKeepsTheNormKind(t *testing.T) {
+	b := parseSICAM(t, "3997-2026.html")
+
+	if b.Kind != "PROJETO DE RESOLUÇÃO" || b.LawKind != NormResolution || b.LawNumber != 1054 || b.LawYear != 2026 {
+		t.Fatalf("resolução: %q %s %d/%d", b.Kind, b.LawKind, b.LawNumber, b.LawYear)
+	}
+	if b.LawLabel() != "Resolução nº 1054/2026" {
+		t.Fatalf("rótulo: %q", b.LawLabel())
+	}
+}
+
+func TestNormKindFromSICAMBadge(t *testing.T) {
+	cases := map[string]NormKind{
+		"Lei": NormLaw, "Lei Complementar": NormComplementary, "Resolução": NormResolution,
+		"Emenda à Lei Orgânica": NormOrganicAmendment, "Decreto Legislativo": NormLegislativeDecree, "Portaria": "",
+	}
+	for label, want := range cases {
+		if got := NormKindFromSICAM(label); got != want {
+			t.Errorf("%q: veio %q, esperava %q", label, got, want)
+		}
 	}
 }
 

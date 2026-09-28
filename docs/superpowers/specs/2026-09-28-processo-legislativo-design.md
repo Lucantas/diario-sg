@@ -71,14 +71,15 @@ Meio Ambiente.
   complementar, substitutivo, de resolução, de emenda à Lei Orgânica,
   mensagem e emenda. São os atualizados todo dia e o padrão da ferramenta.
 - Fase, calculada na leitura a partir do selo da lei, da situação e da
-  tramitação, da mais forte para a mais fraca: `virou_lei` (selo "Lei nº"
-  na página ou evento "Lei nº. 1147/2020 … Publicada em"), `vetado`,
+  tramitação, da mais forte para a mais fraca: `virou_norma` (selo "Lei nº",
+  "Resolução nº" ou "Emenda à Lei Orgânica nº" na página, ou evento
+  "Lei nº. 1147/2020 de …", "Resolução 1054/2026 de …"), `vetado`,
   `rejeitado`, `retirado` (pelo autor), `arquivado` (situação ou evento),
   `enviado_ao_executivo` ("Enviado para PREFEITURA", "Ao Executivo"),
   `aprovado` ("Aprovado - Votação …"), `em_votacao` ("Para Votação", ordem
   do dia), `em_comissao` (comissão, relatoria, parecer), `apresentado`.
-  O projeto que virou lei também fica "Arquivado" no fim do mandato, por
-  isso `virou_lei` vem antes. `dias_sem_movimentacao` conta do último
+  O projeto que virou norma também fica "Arquivado" no fim do mandato, por
+  isso `virou_norma` vem antes. `dias_sem_movimentacao` conta do último
   evento até hoje.
 - Projeto → lei: a página do processo que virou lei traz o selo "Lei nº
   1147/2020" com o link da lei no SICAM (`/areapublica/documento/?Lei/216`);

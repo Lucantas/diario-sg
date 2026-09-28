@@ -58,8 +58,9 @@ externa, chame `fontes`.
 - **Processo legislativo (área pública do SICAM)**: projetos de lei, de
   resolução, de emenda à Lei Orgânica, mensagens do Executivo, emendas,
   indicações e moções, com a tramitação inteira, os pareceres das
-  comissões e, quando virou lei, o número da lei. A fase (em comissão,
-  aprovado, virou lei, arquivado…) é deduzida da tramitação por regra.
+  comissões e, quando virou norma, o tipo e o número dela (lei, lei
+  complementar, resolução ou emenda à Lei Orgânica). A fase (em comissão,
+  aprovado, virou norma, arquivado…) é deduzida da tramitação por regra.
   Ferramenta: `proposicoes`; a `norma` traz o `projeto` que deu origem à
   lei.
 

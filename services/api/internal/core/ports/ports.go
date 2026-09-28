@@ -256,7 +256,7 @@ type BillReader interface {
 	CandidateBills(ctx context.Context, f domain.BillFilter) ([]domain.Bill, error)
 	BillByKey(ctx context.Context, key domain.BillKey) (domain.Bill, bool, error)
 	BillsByDoc(ctx context.Context, ref domain.BillDocRef) ([]domain.Bill, error)
-	BillsByLaw(ctx context.Context, number, year int) ([]domain.Bill, error)
+	BillsByLaw(ctx context.Context, kind domain.NormKind, number, year int) ([]domain.Bill, error)
 }
 
 type BillNormReader interface {

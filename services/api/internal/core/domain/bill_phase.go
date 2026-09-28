@@ -11,7 +11,7 @@ import (
 type BillPhase string
 
 const (
-	PhaseLaw             BillPhase = "virou_lei"
+	PhaseLaw             BillPhase = "virou_norma"
 	PhaseVetoed          BillPhase = "vetado"
 	PhaseRejected        BillPhase = "rejeitado"
 	PhaseWithdrawn       BillPhase = "retirado"
@@ -30,7 +30,7 @@ var billPhaseRules = []struct {
 	phase BillPhase
 	re    *regexp.Regexp
 }{
-	{PhaseLaw, regexp.MustCompile(`^lei n\S*\s*\d`)},
+	{PhaseLaw, regexp.MustCompile(`^(lei( complementar)?|resolucao|emenda a lei organica|decreto legislativo) (n\S*\s*)?\d+/\d{4} de `)},
 	{PhaseVetoed, regexp.MustCompile(`\bveto\b|\bvetad[oa]`)},
 	{PhaseRejected, regexp.MustCompile(`^(rejeitad|reprovad)[oa]\b`)},
 	{PhaseWithdrawn, regexp.MustCompile(`retirad[oa] pel[oa] autor|pedido de retirada`)},

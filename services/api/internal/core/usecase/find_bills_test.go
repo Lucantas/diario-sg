@@ -38,10 +38,10 @@ func (f *fakeBillReader) BillsByDoc(_ context.Context, ref domain.BillDocRef) ([
 	return out, nil
 }
 
-func (f *fakeBillReader) BillsByLaw(_ context.Context, number, year int) ([]domain.Bill, error) {
+func (f *fakeBillReader) BillsByLaw(_ context.Context, kind domain.NormKind, number, year int) ([]domain.Bill, error) {
 	var out []domain.Bill
 	for _, b := range f.bills {
-		if b.LawNumber == number && b.LawYear == year {
+		if b.LawKind == kind && b.LawNumber == number && b.LawYear == year {
 			out = append(out, b)
 		}
 	}
@@ -116,7 +116,7 @@ func TestFindBillsAllKindsAndValidation(t *testing.T) {
 
 func TestFindBillsLinksLawsByBadgeAndByNormAuthor(t *testing.T) {
 	badge := idleBill(1, 10, "Lei nº. 1147/2020 de 05/02/2020")
-	badge.LawNumber, badge.LawYear, badge.LawURL = 1147, 2020, "https://sicam/lei/216"
+	badge.LawKind, badge.LawNumber, badge.LawYear, badge.LawURL = domain.NormLaw, 1147, 2020, "https://sicam/lei/216"
 	cited := idleBill(133, 10, "Processo Arquivado")
 	cited.DocYear = 2019
 	norms := fakeBillNorms{
@@ -141,6 +141,23 @@ func TestFindBillsLinksLawsByBadgeAndByNormAuthor(t *testing.T) {
 	bill, certainty, err = uc.ForNorm(context.Background(), norms[0])
 	if err != nil || bill == nil || bill.Key.Number != 1 || certainty != domain.CertaintyExact {
 		t.Fatalf("norma → projeto pelo selo: %+v %v %v", bill, certainty, err)
+	}
+}
+
+func TestFindBillsLinksAResolutionBadgeWithoutMistakingItForALaw(t *testing.T) {
+	resolution := idleBill(3997, 10, "Resolução 1054/2026 de 19/08/2026")
+	resolution.Kind = "PROJETO DE RESOLUÇÃO"
+	resolution.LawKind, resolution.LawNumber, resolution.LawYear, resolution.LawURL = domain.NormResolution, 1054, 2026, "https://sicam/lei/871"
+	sameNumberLaw := domain.Norm{Kind: domain.NormLaw, Number: 1054, Year: 2026, Summary: "OUTRA COISA"}
+	uc := NewFindBills(&fakeBillReader{bills: []domain.Bill{resolution}}, fakeBillNorms{sameNumberLaw}, billsToday)
+
+	one, err := uc.One(context.Background(), "3997/2025")
+	if err != nil || len(one.Laws) != 1 || one.Laws[0].Norm.Kind != domain.NormResolution || one.Laws[0].Norm.Summary != "" || one.Phase != domain.PhaseLaw {
+		t.Fatalf("resolução: %+v %v", one, err)
+	}
+	bill, _, err := uc.ForNorm(context.Background(), sameNumberLaw)
+	if err != nil || bill != nil {
+		t.Fatalf("a lei de mesmo número não é a resolução: %+v %v", bill, err)
 	}
 }
 
