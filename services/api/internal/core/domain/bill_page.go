@@ -331,3 +331,5 @@ func ParseSitemapIndex(page []byte, prefix string) ([]string, error) {
 	}
 	return out, nil
 }
+
+func InSaoPaulo(t time.Time) time.Time { return t.In(saoPaulo) }

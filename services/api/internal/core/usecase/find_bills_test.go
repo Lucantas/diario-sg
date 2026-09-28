@@ -143,3 +143,20 @@ func TestFindBillsLinksLawsByBadgeAndByNormAuthor(t *testing.T) {
 		t.Fatalf("norma → projeto pelo selo: %+v %v %v", bill, certainty, err)
 	}
 }
+
+func TestFindBillsByDocument(t *testing.T) {
+	b := idleBill(3865, 10, "Processo Arquivado")
+	b.DocNumber, b.DocYear = 270, 2019
+	uc := NewFindBills(&fakeBillReader{bills: []domain.Bill{b}}, fakeBillNorms{}, billsToday)
+
+	got, err := uc.ByDoc(context.Background(), "projeto de lei", "270/2019")
+	if err != nil || len(got) != 1 || got[0].Bill.Key.Number != 3865 || got[0].Phase != domain.PhaseArchived {
+		t.Fatalf("por documento: %+v %v", got, err)
+	}
+	if _, err := uc.ByDoc(context.Background(), "", "270/2019"); !errors.Is(err, domain.ErrInvalidInput) {
+		t.Errorf("sem tipo: %v", err)
+	}
+	if _, err := uc.ByDoc(context.Background(), "projeto de lei", "abc"); !errors.Is(err, domain.ErrInvalidInput) {
+		t.Errorf("número inválido: %v", err)
+	}
+}

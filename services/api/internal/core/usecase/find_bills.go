@@ -211,3 +211,31 @@ func (uc *FindBills) laws(ctx context.Context, b domain.Bill, cited map[domain.B
 	}
 	return out, nil
 }
+
+func (uc *FindBills) ByDoc(ctx context.Context, kind, number string) ([]domain.BillSummary, error) {
+	kind = strings.ToUpper(strings.TrimSpace(kind))
+	if kind == "" {
+		return nil, fmt.Errorf("%w: informe o tipo do documento, como projeto de lei", domain.ErrInvalidInput)
+	}
+	n, year, _, err := domain.ParseNormNumber(number)
+	if err != nil {
+		return nil, fmt.Errorf("%w: número do documento %q (use número/ano, como 270/2019)", domain.ErrInvalidInput, number)
+	}
+	bills, err := uc.bills.BillsByDoc(ctx, domain.BillDocRef{Kind: kind, Number: n, Year: year})
+	if err != nil {
+		return nil, err
+	}
+	cited, err := uc.citedBills(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.BillSummary, 0, len(bills))
+	for _, b := range bills {
+		s := domain.SummarizeBill(b, uc.now())
+		if s.Laws, err = uc.laws(ctx, b, cited); err != nil {
+			return nil, err
+		}
+		out = append(out, s)
+	}
+	return out, nil
+}

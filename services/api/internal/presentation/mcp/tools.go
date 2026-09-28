@@ -223,6 +223,10 @@ func (s *server) register(srv *sdk.Server) {
 		sdk.AddTool(srv, &sdk.Tool{Name: "norma", Annotations: readOnly, Description: normsDescription},
 			recorded(s, "norma", s.norms))
 	}
+	if s.findBills != nil {
+		sdk.AddTool(srv, &sdk.Tool{Name: "proposicoes", Annotations: readOnly, Description: billsDescription},
+			recorded(s, "proposicoes", s.bills))
+	}
 	if s.queryPayments != nil {
 		sdk.AddTool(srv, &sdk.Tool{Name: "pagamentos", Annotations: readOnly, Description: paymentsDescription},
 			recorded(s, "pagamentos", s.payments))

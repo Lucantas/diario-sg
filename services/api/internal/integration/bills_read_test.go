@@ -135,3 +135,58 @@ func TestBillsListFiltersByThemePhaseAndIdleDaysAndLinksLaws(t *testing.T) {
 		t.Errorf("processo inexistente: %d", r.StatusCode)
 	}
 }
+
+type mcpBills struct {
+	Total       int            `json:"total"`
+	PorFase     map[string]int `json:"por_fase"`
+	RegraTema   string         `json:"regra_tema"`
+	Proposicoes []struct {
+		Processo string `json:"processo"`
+		Fase     string `json:"fase"`
+		Dias     int    `json:"dias_sem_movimentacao"`
+		Link     string `json:"link"`
+		Leis     []struct {
+			Numero  string `json:"numero"`
+			Certeza string `json:"certeza"`
+		} `json:"leis"`
+	} `json:"proposicoes"`
+	Tramitacao []struct {
+		Quando string `json:"quando"`
+		Texto  string `json:"texto"`
+	} `json:"tramitacao"`
+	Pareceres []struct {
+		Comissao string `json:"comissao"`
+	} `json:"pareceres"`
+}
+
+func TestMCPProposicoes(t *testing.T) {
+	srv, db := newServerFor(t, gazetteText)
+	ctx := context.Background()
+	seedBills(t, ctx, postgres.NewBillRepo(db))
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	stuck, _ := call[mcpBills](t, session, "proposicoes", map[string]any{"tema": "meio_ambiente", "parado_ha_dias": 90})
+	if stuck.Total != 2 || stuck.Proposicoes[0].Processo != "100/2025" || stuck.RegraTema == "" || stuck.Proposicoes[0].Link == "" {
+		t.Fatalf("parados do tema: %+v", stuck)
+	}
+
+	one, _ := call[mcpBills](t, session, "proposicoes", map[string]any{"processo": "100/2025"})
+	if one.Total != 1 || len(one.Tramitacao) != 1 || one.Tramitacao[0].Quando != "2025-01-10 09:00" || len(one.Pareceres) != 1 {
+		t.Fatalf("processo: %+v", one)
+	}
+
+	byDoc, _ := call[mcpBills](t, session, "proposicoes", map[string]any{"tipo": "projeto de lei", "numero": "268/2019"})
+	if byDoc.Total != 1 || byDoc.Proposicoes[0].Processo != "102/2019" || byDoc.Proposicoes[0].Fase != "virou_lei" || byDoc.Proposicoes[0].Leis[0].Numero != "1147/2020" {
+		t.Fatalf("por documento: %+v", byDoc)
+	}
+
+	_, res := call[mcpBills](t, session, "proposicoes", map[string]any{"limite": 50})
+	if !res.IsError {
+		t.Fatal("limite acima de 20 deveria ser erro")
+	}
+}

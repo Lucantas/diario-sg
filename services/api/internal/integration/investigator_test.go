@@ -70,6 +70,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)), Group: usecase.NewGroupActs(acts),
 		Page: usecase.NewReadPage(gaz, stringStore(text), singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
 		Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Norms: usecase.NewFindNorms(postgres.NewNormRepo(db)),
+		Bills:        usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now),
 		Payments:     usecase.NewQueryPayments(postgres.NewMunicipalCommitmentRepo(db), postgres.NewFiscalRepo(db)),
 		Contracting:  usecase.NewQueryProcurements(postgres.NewProcurementRepo(db), postgres.NewPNCPRepo(db)),
 		PublicWebURL: "https://web.exemplo",
