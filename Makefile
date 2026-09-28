@@ -7,7 +7,7 @@ GO_MODULES := pkg services/api services/scraper
 .PHONY: help up down setup migrate reindex receita sancoes tce pncp federal agentes sicam dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
 
 up: ## Sobe Postgres e emuladores (Pub/Sub, GCS)
 	docker compose up -d --wait postgres && docker compose up -d pubsub gcs
