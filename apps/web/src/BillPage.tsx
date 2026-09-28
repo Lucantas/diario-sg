@@ -3,7 +3,7 @@ import { BillDetail, getBill } from "./api";
 import { idleLabel, phaseLabel } from "./bills";
 
 const CERTAINTY_TEXT = {
-  exata: "a página do processo no SICAM aponta a lei",
+  exata: "a página do processo no SICAM aponta a norma",
   forte: "o autor da lei, na consulta de leis da Prefeitura, cita este projeto",
   fraca: "ligação fraca",
 } as const;
