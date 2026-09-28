@@ -543,19 +543,42 @@ SEMMATRAN (licenças, autos de infração, apreensões); 100 atas do COMMADS.
 O Diário da Câmara quase não fala de projetos (24 atos citam "projeto de
 lei").
 
-- [ ] 6.1 Coletor do SICAM: job `sicam` (`make sicam`), sitemap e página
+- [x] 6.1 Coletor do SICAM: job `sicam` (`make sicam`), sitemap e página
   de cada processo, tabelas `bills`, `bill_events` e `bill_opinions`
-  (migration 030), carga completa e atualização diária.
-- [ ] 6.2 Leitura: fase e dias sem movimentação, ligação projeto → lei
-  pelo autor das normas, `GET /v1/bills` e ferramenta `proposicoes` no
-  MCP; `norma` devolve o projeto de origem.
-- [ ] 6.3 Tema ambiental por regra escrita (`tema=meio_ambiente`) em
-  `proposicoes`, `norma`, `buscar_atos` e `agrupar`.
-- [ ] 6.4 Página `/proposicoes` no site, com a lista e a página do
-  processo.
-- [ ] 6.5 Fontes: `fontes`, recurso `diario-sg://fontes`,
-  `docs/fontes/README.md` e `docs/plano-fontes-publicas.md` com o SICAM na
-  base e o que ficou de fora.
+  (migrations 030 e 031), bruto em JSON Lines no bucket, atualização diária
+  (até 3.000 páginas: novos primeiro, depois os projetos abertos lidos há
+  mais tempo) e carga completa com `FULL=1`. Terraform do job com
+  agendamento às 05:00.
+- [x] 6.2 Leitura: fase calculada na tramitação (`virou_norma`, `vetado`,
+  `rejeitado`, `retirado`, `arquivado`, `enviado_ao_executivo`,
+  `aprovado`, `em_votacao`, `em_comissao`, `apresentado`) e dias sem
+  movimentação; ligação projeto → norma pelo selo da página (certeza
+  exata, com o tipo: lei, lei complementar, resolução, emenda à Lei
+  Orgânica) e pelo autor das normas do SIAPEGOV (forte); `GET /v1/bills`,
+  `GET /v1/bills/{n}-{ano}` e ferramenta `proposicoes`; `norma` devolve o
+  projeto de origem.
+- [x] 6.3 Tema ambiental por regra escrita (`tema=meio_ambiente`) em
+  `proposicoes`, `norma`, `buscar_atos` e `agrupar` (e `theme` em
+  `/v1/acts`, `/v1/norms` e `/v1/bills`). A SEMMATRAN entra só sem os atos
+  de trânsito, transporte e previdência.
+- [x] 6.4 Página `/proposicoes` no site, com a lista (filtros de fase,
+  tema, texto e dias parado) e a página do processo com tramitação,
+  pareceres e a norma que resultou.
+- [x] 6.5 Fontes: `fontes` (com `outras_fontes`, a última coleta de cada
+  fonte externa), recurso `diario-sg://fontes`, `docs/fontes/README.md`,
+  `docs/plano-fontes-publicas.md` e README com o SICAM na base e o voto
+  nominal de fora.
+
+Achados no caminho (28/09/2026):
+
+- [x] O selo "?Lei/N" da página do processo também aponta para resoluções
+  e emendas à Lei Orgânica; o tipo passou a vir do título do selo, e a
+  fase `virou_lei` virou `virou_norma`.
+- [x] Parser: a seção `SG-PREVI` (sigla com hífen) não era reconhecida, e
+  as portarias do instituto ficavam com o órgão anterior; o expediente da
+  edição (lista de secretários) virava um ato em 391 edições desde 2025.
+  Base local reindexada.
+- [x] `make help` mostrava "Makefile" no lugar do nome do alvo.
 
 **Pronto quando:** dá para responder, com link para a página do processo,
 quais projetos ambientais estão parados, em qual comissão e há quantos
@@ -563,9 +586,11 @@ dias, e quais viraram lei.
 
 Pendências:
 
-- [ ] Na nuvem: migration 030 e o Terraform do job `sicam` (diário), e a
+- [ ] Na nuvem: migrations 030 e 031, `terraform apply` do job `sicam` e a
   carga completa uma vez fora do agendamento (≈14 h a 1 pedido por
-  segundo).
+  segundo; a tarefa precisa de um limite maior que o do agendamento:
+  `gcloud run jobs execute <prefixo>-sicam --args=-full,-max,0
+  --task-timeout=86400s`), e reindexar a produção pelas mudanças do parser.
 
 ## Fechamento do plano de fontes
 
@@ -664,8 +689,9 @@ Dependem de acesso de fora ou de decisão do dono do projeto:
     (Entrega 4).
   - [ ] Migrations 019 a 029 e o Terraform dos jobs `federal` e `agentes`
     (Entrega 5).
-  - [ ] Migration 030 e o Terraform do job `sicam`, com a carga completa
-    (Entrega 6).
+  - [ ] Migrations 030 e 031, `terraform apply` do job `sicam` (já
+    escrito), a carga completa e a reindexação pelas correções do parser de
+    28/09/2026 (Entrega 6).
   - [ ] Limites por IP: conferir no Cloud Run qual posição do
     `X-Forwarded-For` é o IP de verdade, ou fechar a API ao tráfego que não
     vem do site (Etapa A).
@@ -676,9 +702,7 @@ Dependem de acesso de fora ou de decisão do dono do projeto:
 - [ ] SICAM, voto nominal: pedir acesso à API à Câmara ou à DB Nova
   (Entrega 5).
 
-Podem ser feitas aqui:
-
-- [ ] Entrega 6 (6.1 a 6.5).
+Podem ser feitas aqui: nenhuma (auditoria de 28/09/2026).
 
 ---
 
