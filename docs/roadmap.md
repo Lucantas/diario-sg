@@ -26,7 +26,8 @@ no centro do produto.
 | 2 | Seguir o dinheiro dentro do Diário ✅ | — | 1 |
 | 3 | Quem é o fornecedor ✅ | Receita (CNPJ), CGU (CEIS/CNEP/CEPIM) | 2 |
 | 4 | Anunciado × pago ✅ | PNCP, empenhos e pessoal do TCE-RJ | 3 |
-| 5 | Recorte político (parcial) | Transferências federais, TCE-RJ e agentes políticos ✅; TSE e proposições do SICAM bloqueados | 3 |
+| 5 | Recorte político (parcial) | Transferências federais, TCE-RJ e agentes políticos ✅; TSE bloqueado | 3 |
+| 6 | Andamento das leis (em andamento) | Processo legislativo da Câmara (SICAM, área pública); tema ambiental | 5 |
 
 O ✅ quer dizer entregue na base local; o que falta para a nuvem está nas
 pendências de cada entrega. Disponibilidade, formato e licença das fontes
@@ -242,8 +243,8 @@ Pendências:
   com PDF em branco. Desenho em
   `docs/superpowers/specs/2026-09-26-ocr-da-camara-design.md`.
 - [x] Agentes políticos e subsídios: ver Entrega 5.
-- [ ] SICAM (proposições): a API de busca recusa pedidos fora do site; ver
-  Entrega 5.
+- [x] SICAM (proposições): a API de busca recusa pedidos fora do site, mas
+  a área pública é aberta; ver Entrega 6.
 - [ ] Reindexar a produção: `TERMO DE HOMOLOGAÇÃO` e `TERMO DE
   ADJUDICAÇÃO` viraram licitação. Na base local (4.302 edições, 9 min), 166
   atos da Prefeitura passaram de `outro` para `licitacao`; nenhum outro
@@ -480,9 +481,12 @@ Pendências:
   Denied" (Akamai) a esta máquina; precisa de outra rede ou de pedido ao
   TSE.
 - **Câmara Municipal:** leis, projetos e votações; perfil de vereador.
-  Bloqueado (26/09/2026): a API do SICAM (`POST https://api.sicam.app/pesquisar`)
-  responde 403 fora da página pública da Câmara; ler exigiria imitar o
-  navegador do site. Depende de pedir acesso à Câmara ou à DB Nova.
+  A API do SICAM (`POST https://api.sicam.app/pesquisar`) responde 403
+  fora da página pública da Câmara, mas a área pública
+  (`/areapublica/`, liberada no `robots.txt`, com sitemap de 50 mil
+  processos) traz projeto, autor, ementa, tramitação e pareceres
+  (conferido em 28/09/2026). Projetos e tramitação: ver Entrega 6. O voto
+  de cada vereador continua só na API bloqueada.
 - **Transferências federais e emendas** destinadas ao município. ✅
   Dinheiro federal (26/09/2026): job `federal` semanal com as emendas
   parlamentares com aplicação em São Gonçalo, os pagamentos de emenda a
@@ -515,9 +519,53 @@ Pendências:
 
 - [ ] TSE: acesso negado a esta máquina; tentar de outra rede, ou usar o
   espelho da Base dos Dados com conta na plataforma ou projeto do BigQuery.
-- [ ] SICAM: pedir acesso à API ou autorização para ler pela página.
+- [ ] SICAM, voto nominal: a página do processo busca os votos em
+  `api.sicam.app/votacao/v2`, a API que recusa pedidos de fora do site.
+  Pedir acesso à Câmara ou à DB Nova (projetos e tramitação já vêm da
+  área pública, Entrega 6).
 - [ ] Na nuvem: migrations 019 a 029 e o Terraform dos jobs `federal` e
   `agentes`.
+
+## Entrega 6 — Andamento das leis
+
+A base sabe o que foi sancionado (`norms`) e o que a Prefeitura publica
+para aplicar a lei (licenças, autos de infração, atas do conselho no
+Diário), mas não o que acontece antes: projeto apresentado, comissão onde
+está parado, votação, arquivamento, envio à sanção. A pergunta de partida
+foi "como andam as leis de proteção ambiental em São Gonçalo". Desenho em
+`docs/superpowers/specs/2026-09-28-processo-legislativo-design.md`.
+
+O que já havia (conferido em 28/09/2026 na base local): 46 leis
+ambientais de 2017 em diante no SIAPEGOV (ex.: 1601/2025, sanções por
+infração ambiental; 1606/2025, arborização; 1566/2025, fundo de meio
+ambiente); 1.890 atos da SEMMA até janeiro de 2025 e, depois, os da
+SEMMATRAN (licenças, autos de infração, apreensões); 100 atas do COMMADS.
+O Diário da Câmara quase não fala de projetos (24 atos citam "projeto de
+lei").
+
+- [ ] 6.1 Coletor do SICAM: job `sicam` (`make sicam`), sitemap e página
+  de cada processo, tabelas `bills`, `bill_events` e `bill_opinions`
+  (migration 030), carga completa e atualização diária.
+- [ ] 6.2 Leitura: fase e dias sem movimentação, ligação projeto → lei
+  pelo autor das normas, `GET /v1/bills` e ferramenta `proposicoes` no
+  MCP; `norma` devolve o projeto de origem.
+- [ ] 6.3 Tema ambiental por regra escrita (`tema=meio_ambiente`) em
+  `proposicoes`, `norma`, `buscar_atos` e `agrupar`.
+- [ ] 6.4 Página `/proposicoes` no site, com a lista e a página do
+  processo.
+- [ ] 6.5 Fontes: `fontes`, recurso `diario-sg://fontes`,
+  `docs/fontes/README.md` e `docs/plano-fontes-publicas.md` com o SICAM na
+  base e o que ficou de fora.
+
+**Pronto quando:** dá para responder, com link para a página do processo,
+quais projetos ambientais estão parados, em qual comissão e há quantos
+dias, e quais viraram lei.
+
+Pendências:
+
+- [ ] Na nuvem: migration 030 e o Terraform do job `sicam` (diário), e a
+  carga completa uma vez fora do agendamento (≈14 h a 1 pedido por
+  segundo).
 
 ## Fechamento do plano de fontes
 
@@ -587,6 +635,50 @@ com entrega ou com o bloqueio conferido e registrado.
   um projeto do Google Cloud com cobrança. Depende de você: conta na Base
   dos Dados ou projeto do BigQuery. Fica com o TSE nas pendências da
   Entrega 5.
+
+## Lista de controle das pendências
+
+Todas as pendências abertas do roadmap num lugar só, com de quem
+dependem. Os detalhes ficam na seção de cada entrega. Atualizada em
+28/09/2026.
+
+Dependem de acesso de fora ou de decisão do dono do projeto:
+
+- [ ] Nuvem: o environment `dev` do GitHub não tem as variáveis e os
+  workflows de infra e deploy falham na autenticação (Entrega 1). Tudo o
+  que diz "na nuvem" abaixo espera isso.
+  - [ ] Infra da Entrega 1 (job de reindexação, dump semanal, bucket
+    público) e o MCP (Etapa A).
+  - [ ] Migration 024 e a imagem nova do web antes de anunciar o conector
+    OAuth (Etapa A).
+  - [ ] Terraform da fila `fetch.completed` antes da imagem nova do
+    scraper (Etapa B).
+  - [ ] Job e agendamento do Diário da Câmara, migration 009 e o backfill
+    desde 2020-10-04 (Etapa C1).
+  - [ ] Reindexar a produção depois das mudanças do parser (Etapa C1 e
+    Entrega 2, migration 013).
+  - [ ] Migration 012 antes da imagem nova da API e do worker (Entrega 2).
+  - [ ] Migrations 014, 015 e 021 e o Terraform dos jobs `receita` e
+    `sancoes` (Entrega 3).
+  - [ ] Migrations 016 a 019 e o Terraform dos jobs `tce` e `pncp`
+    (Entrega 4).
+  - [ ] Migrations 019 a 029 e o Terraform dos jobs `federal` e `agentes`
+    (Entrega 5).
+  - [ ] Migration 030 e o Terraform do job `sicam`, com a carga completa
+    (Entrega 6).
+  - [ ] Limites por IP: conferir no Cloud Run qual posição do
+    `X-Forwarded-For` é o IP de verdade, ou fechar a API ao tráfego que não
+    vem do site (Etapa A).
+- [ ] Diário da Câmara de 2018 a 2020-10-03: pedido pela LAI à Câmara com
+  as URLs ou os PDFs (Etapa C1).
+- [ ] TSE: acesso negado a esta máquina; outra rede, ou conta na Base dos
+  Dados ou projeto do BigQuery (Entrega 5).
+- [ ] SICAM, voto nominal: pedir acesso à API à Câmara ou à DB Nova
+  (Entrega 5).
+
+Podem ser feitas aqui:
+
+- [ ] Entrega 6 (6.1 a 6.5).
 
 ---
 
