@@ -242,6 +242,7 @@ export function SearchPage() {
         <a href="/tce">TCE-RJ</a>
         <a href="/federal">Dinheiro federal</a>
         <a href="/agentes">Agentes políticos</a>
+        <a href="/proposicoes">Proposições da Câmara</a>
       </footer>
     </main>
   );

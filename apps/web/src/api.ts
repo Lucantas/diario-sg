@@ -534,3 +534,53 @@ export async function revokeMcpKey(key: string) {
     throw new Error(body.error ?? `Erro ${res.status}`);
   }
 }
+
+export type BillPhase =
+  | "virou_lei" | "vetado" | "rejeitado" | "retirado" | "arquivado"
+  | "enviado_ao_executivo" | "aprovado" | "em_votacao" | "em_comissao" | "apresentado";
+
+export interface BillLaw {
+  kind: string;
+  number: string;
+  summary: string;
+  url: string;
+  certainty: "exata" | "forte" | "fraca";
+  diario_search: string;
+}
+
+export interface Bill {
+  process: string;
+  kind: string;
+  document: string;
+  summary: string;
+  authors: string;
+  presented_on: string | null;
+  status: string;
+  phase: BillPhase;
+  days_idle: number;
+  current_body: string;
+  last_movement: string;
+  url: string;
+  fetched_at: string;
+  laws: BillLaw[];
+}
+
+export interface BillDetail extends Bill {
+  events: { at: string; label: string; text: string; sector?: string }[];
+  opinions: { result: string; on: string | null; committee: string; rapporteur: string }[];
+}
+
+export interface BillsResponse {
+  total: number;
+  by_phase: Partial<Record<BillPhase, number>>;
+  theme_rule: string;
+  items: Bill[];
+}
+
+export function listBills(params: URLSearchParams) {
+  return request<BillsResponse>(`/v1/bills?${params}`);
+}
+
+export function getBill(process: string) {
+  return request<BillDetail>(`/v1/bills/${process}`);
+}
