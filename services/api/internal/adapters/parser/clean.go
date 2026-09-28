@@ -108,7 +108,7 @@ var preambleMarkers = map[string]bool{"ATOS DO PREFEITO": true, "GABINETE DO PRE
 
 func dropPreamble(lines []line) []line {
 	for i, l := range lines {
-		if preambleMarkers[l.text] {
+		if preambleMarkers[l.text] && actFollows(lines, i) {
 			return lines[i+1:]
 		}
 	}
@@ -118,6 +118,15 @@ func dropPreamble(lines []line) []line {
 		}
 	}
 	return lines
+}
+
+func actFollows(lines []line, marker int) bool {
+	for j := marker + 1; j < len(lines); j++ {
+		if lines[j].text != "" {
+			return startsAct(lines[j].text) || isOrganSection(lines, j)
+		}
+	}
+	return false
 }
 
 var splitHeaderStart = map[string]bool{

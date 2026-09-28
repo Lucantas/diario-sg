@@ -74,7 +74,7 @@ var danglingEndRe = regexp.MustCompile(`\b(?:DE|DO|DA|DOS|DAS|AO|À|COM|SEM|E|PA
 
 func headerContinues(line string) bool { return danglingEndRe.MatchString(line) }
 
-var organRe = regexp.MustCompile(`^[A-Z]{2,14}$`)
+var organRe = regexp.MustCompile(`^[A-Z]{2,14}(?:-[A-Z]{2,10})?$`)
 
 func isOrganSection(lines []line, i int) bool {
 	if !organRe.MatchString(lines[i].text) || isHeader(lines[i].text) {

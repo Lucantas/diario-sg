@@ -1,7 +1,7 @@
 # Nomes por extenso dos órgãos
 
 `domain.organNames` (`services/api/internal/core/domain/organ.go`) tem as
-125 siglas que o parser aceita como cabeçalho de órgão. Este arquivo diz
+126 siglas que o parser aceita como cabeçalho de órgão. Este arquivo diz
 de onde veio o nome de cada uma. A busca e a API mostram o nome ao lado da
 sigla; sigla sem nome aparece sozinha.
 
@@ -181,6 +181,7 @@ que saiu no Diário. A tabela vive em `domain/organ_variants.go`.
 | SEMTRAN | Secretaria Municipal de Transportes | 2025-08-20: "Secretaria Municipal de Transportes (SEMTRAN)" | em 2025 incorporada à SEMMATRAN |
 | SEOP | Secretaria Municipal de Ordem Pública | 2026-08-04: "Secretaria Municipal de Ordem Pública – SEOP" |  |
 | SETURCUL | Secretaria Municipal de Turismo e Cultura | 2023-06-19: "…FOMENTO N.º 001/2022/SETURCUL … A SECRETÁRIA MUNICIPAL DE TURISMO E CULTURA" | mesma pasta da SMTC |
+| SG-PREVI | Instituto de Previdência do Município de São Gonçalo | 2026-07-31: "Instituto de Previdência do Município de São Gonçalo (SG-PREVI)" | única sigla com hífen; até 28/09/2026 o parser não a lia como seção e as portarias ficavam com o órgão anterior (FMS, SEMMATRAN…) |
 | SMAP |  |  | uma ocorrência (2012-01-05), ato assinado pelo "Subsecretário de Agricultura e Pesca"; não dá para afirmar se é Secretaria ou Subsecretaria |
 | SMAS | Secretaria Municipal de Assistência Social | 2026-08-07: "Secretaria Municipal de Assistência Social – SMAS" | variante de SEMAS; cabeçalho só em jan/2021 |
 | SMC |  | 2011-07-15: cabeçalho SMC → termo com a D-BUG Comunicação assinado "Secretária Municipal de Comunicação" | ambígua: no Diário "SMC" também é "Sistema Municipal de Cultura" e "Secretaria Municipal de Cultura" (em texto de lei); evidência indireta: cabeçalho seguido de ato que identifica o órgão, sem sigla e nome lado a lado |

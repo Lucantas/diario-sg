@@ -194,3 +194,25 @@ Valor total: R$ 63.232,50 (sessenta e três mil duzentos e trinta e dois reais)`
 		t.Errorf("o segundo processo ficou no primeiro ato: %q", acts[0].Body)
 	}
 }
+
+func TestTheEditionStaffListIsNotAnAct(t *testing.T) {
+	acts := New().Parse(`SECRETARIAS
+PREFEITO
+CAPITÃO NELSON RUAS
+GABINETE DO PREFEITO
+RODRIGO TORREGROSA OLIVEIRA
+SECRETARIA MUNICIPAL DE ADMINISTRAÇÃO
+DANIEL LIMA DE MAGALHÃES BASTOS
+SECRETARIA MUNICIPAL DE AGRICULTURA E PESCA
+MAGNO JOSE DA SILVA
+SECRETARIA MUNICIPAL DE MEIO AMBIENTE E
+TRANSPORTES
+FÁBIO RICARDO FONTES LEMOS
+ATOS DO PREFEITO
+DECRETO Nº 1/2026
+Dispõe sobre o horário.`)
+
+	if len(acts) != 1 || acts[0].Title != "DECRETO Nº 1/2026" {
+		t.Fatalf("o expediente da edição não vira ato: %+v", acts)
+	}
+}

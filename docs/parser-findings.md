@@ -261,9 +261,16 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
 1. Extrair sem `-layout`.
 2. Remover ruído de página (cabeçalho/rodapé, número de página seguido da URL).
 3. Descartar capa e expediente: tudo antes de `ATOS DO PREFEITO` (até 2020,
-   `GABINETE DO PREFEITO`; na falta dos dois, do primeiro início de ato).
+   `GABINETE DO PREFEITO`; na falta dos dois, do primeiro início de ato). O
+   marcador só vale se a linha seguinte abre um ato ou uma seção de órgão:
+   desde 2025 o expediente lista `GABINETE DO PREFEITO` com o nome do chefe
+   de gabinete embaixo, e o corte parava ali. O expediente virava um ato
+   com o nome da pessoa no título, em 391 edições.
 4. Linhas só com sigla de órgão em caixa alta abrem seção: encerram o ato
-   anterior e não entram no próximo.
+   anterior e não entram no próximo. A sigla pode ter hífen (`SG-PREVI`);
+   antes de 28/09/2026 não podia, e as portarias do instituto de
+   previdência ficavam com o órgão da seção anterior (FMS, SEMMATRAN,
+   FUNASG…).
 5. Juntar sequências de linhas de uma palavra em caixa alta que começam com uma
    palavra de cabeçalho (`TERMO` `DE` `APREENSÃO` ...) antes de casar os regex.
 6. Classificar pelo cabeçalho e, para portarias, pelo verbo nas primeiras

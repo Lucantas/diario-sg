@@ -12,7 +12,7 @@ func TestNormalizeOrgan(t *testing.T) {
 		ok   bool
 	}{
 		"SEMED": {"SEMED", true}, " semed ": {"SEMED", true}, "": {"", true},
-		"TOTAL": {"", false}, "SEM ED": {"", false},
+		"TOTAL": {"", false}, "SEM ED": {"", false}, "sg-previ": {"SG-PREVI", true},
 	}
 	for in, c := range cases {
 		got, ok := NormalizeOrgan(in)
@@ -23,8 +23,8 @@ func TestNormalizeOrgan(t *testing.T) {
 }
 
 func TestOrganCatalogIsWellFormed(t *testing.T) {
-	if len(organNames) != 125 {
-		t.Fatalf("esperava as 125 siglas conhecidas, veio %d", len(organNames))
+	if len(organNames) != 126 {
+		t.Fatalf("esperava as 126 siglas conhecidas, veio %d", len(organNames))
 	}
 	for acronym, name := range organNames {
 		if acronym != strings.ToUpper(acronym) || strings.ContainsAny(acronym, " \t") {
@@ -54,8 +54,8 @@ func TestOrganNameSpellsOutTheAcronym(t *testing.T) {
 			named++
 		}
 	}
-	if named != 119 {
-		t.Fatalf("esperava 119 siglas com nome (ver docs/orgaos.md), veio %d", named)
+	if named != 120 {
+		t.Fatalf("esperava 120 siglas com nome (ver docs/orgaos.md), veio %d", named)
 	}
 }
 

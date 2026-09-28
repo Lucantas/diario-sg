@@ -12,7 +12,7 @@ import (
 )
 
 var expectedActs = map[string]int{
-	"2026_09_18": 51,
+	"2026_09_18": 50,
 }
 
 func TestMeasureRealEditions(t *testing.T) {

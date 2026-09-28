@@ -144,6 +144,7 @@ var organNames = map[string]string{
 	"SEMTRAN":      "Secretaria Municipal de Transportes",
 	"SEOP":         "Secretaria Municipal de Ordem Pública",
 	"SETURCUL":     "Secretaria Municipal de Turismo e Cultura",
+	"SG-PREVI":     "Instituto de Previdência do Município de São Gonçalo",
 	"SMAP":         "",
 	"SMAS":         "Secretaria Municipal de Assistência Social",
 	"SMC":          "",

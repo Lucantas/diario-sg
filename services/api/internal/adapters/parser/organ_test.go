@@ -84,3 +84,14 @@ func TestParse_ResolutionWithQuotedSeriesLetterOpensTheOrganSection(t *testing.T
 		t.Errorf("esperava\n%s\nveio\n%s", want, got)
 	}
 }
+
+func TestParse_HyphenatedAcronymOpensTheOrganSection(t *testing.T) {
+	text := "SEMMATRAN\nEDITAL DE CONVOCAÇÃO\nConvoca o autorizatário.\n" +
+		"SG-PREVI\nPORTARIA - SEI Nº 379/SG-PREVI/PRES/DPV/GBP/SCB/2026\nConcede aposentadoria.\n" +
+		"XY-ZW\nEXTRATO DO CONTRATO Nº 3/2026\nObjeto: obras."
+
+	want := "EDITAL DE CONVOCAÇÃO=SEMMATRAN|PORTARIA - SEI Nº 379/SG-PREVI/PRES/DPV/GBP/SCB/2026=SG-PREVI|EXTRATO DO CONTRATO Nº 3/2026="
+	if got := organs(text); got != want {
+		t.Errorf("esperava\n%s\nveio\n%s", want, got)
+	}
+}
