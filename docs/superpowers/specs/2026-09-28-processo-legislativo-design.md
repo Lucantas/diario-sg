@@ -85,7 +85,7 @@ Meio Ambiente.
   a ligação com `norms` é pelo número e ano da lei (certeza `exata`).
   Sem selo, `BillReference(author)` lê "PROJETO DE LEI [COMPLEMENTAR] Nº
   0133/2019" do autor da norma e liga pelo tipo e nº/ano do documento
-  (certeza `provavel`). A página de número inexistente traz um selo de lei
+  (certeza `forte`). A página de número inexistente traz um selo de lei
   qualquer, por defeito do SICAM; o parser a descarta antes.
 
 ### Coleta (job `sicam`)

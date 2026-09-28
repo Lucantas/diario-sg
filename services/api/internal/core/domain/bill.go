@@ -98,3 +98,44 @@ func IsNormativeKind(kind string) bool {
 	}
 	return false
 }
+
+type BillFilter struct {
+	Text        string
+	Author      string
+	Kinds       []string
+	Status      string
+	Phase       BillPhase
+	MinIdleDays int
+	Theme       Theme
+	From, To    time.Time
+	Limit       int
+	Offset      int
+}
+
+type BillSummary struct {
+	Bill     Bill
+	Phase    BillPhase
+	DaysIdle int
+	Laws     []BillLaw
+}
+
+type BillLaw struct {
+	Norm      Norm
+	URL       string
+	Certainty Certainty
+}
+
+type BillPage struct {
+	Total     int
+	ByPhase   map[BillPhase]int
+	Items     []BillSummary
+	ThemeRule string
+}
+
+func SummarizeBill(b Bill, today time.Time) BillSummary {
+	return BillSummary{Bill: b, Phase: BillPhaseOf(b), DaysIdle: DaysIdle(b, today)}
+}
+
+func (f BillFilter) Keep(s BillSummary) bool {
+	return (f.Phase == "" || s.Phase == f.Phase) && s.DaysIdle >= f.MinIdleDays
+}

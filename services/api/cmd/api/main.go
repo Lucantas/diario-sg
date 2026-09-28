@@ -58,6 +58,7 @@ func run(l *slog.Logger) error {
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	patterns := usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db))
 	norms := usecase.NewFindNorms(postgres.NewNormRepo(db))
+	bills := usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now)
 	webURL := strings.TrimRight(cfg.PublicWebURL, "/")
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
 		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
@@ -80,6 +81,7 @@ func run(l *slog.Logger) error {
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db), postgres.NewSpecialTransferRepo(db)),
 		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
 		Norms:         norms,
+		Bills:         bills,
 		Organs:        usecase.NewListOrgans(acts),
 		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Export:        usecase.NewExportActs(acts),

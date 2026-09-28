@@ -87,6 +87,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db), postgres.NewSpecialTransferRepo(db)),
 		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
 		Norms:         usecase.NewFindNorms(postgres.NewNormRepo(db)),
+		Bills:         usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now),
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)),
 		Keys:          keys, MCP: mcpHandler, Log: log,
 		OAuth: usecase.NewOAuth(postgres.NewOAuthRepo(db), keys, "https://web.exemplo/api/mcp", time.Now)}

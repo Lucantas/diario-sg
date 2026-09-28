@@ -74,10 +74,10 @@ func TestParseBillPhase(t *testing.T) {
 func TestBillReferenceFromNormAuthors(t *testing.T) {
 	cases := map[string]BillDocRef{
 		"PROJETO DE LEI Nº 0133/2019 VEREADOR ´PROFESSOR JOSEMAR":  {Kind: "PROJETO DE LEI", Number: 133, Year: 2019},
-		"PROJETO D LEI N 118/2019 VEREADOR BRUNO PORTO":             {Kind: "PROJETO DE LEI", Number: 118, Year: 2019},
-		"PROJETO DE LEI 0254/2018 VEREADOR PAULO CESAR":             {Kind: "PROJETO DE LEI", Number: 254, Year: 2018},
-		"VEREADOR JALMIR JUNIOR PROJETO DE LEI 110/22":              {Kind: "PROJETO DE LEI", Number: 110, Year: 2022},
-		"PROJETO DE LEI COMPLEMENTAR Nº 3/2021 PODER EXECUTIVO":     {Kind: "PROJETO DE LEI COMPLEMENTAR", Number: 3, Year: 2021},
+		"PROJETO D LEI N 118/2019 VEREADOR BRUNO PORTO":            {Kind: "PROJETO DE LEI", Number: 118, Year: 2019},
+		"PROJETO DE LEI 0254/2018 VEREADOR PAULO CESAR":            {Kind: "PROJETO DE LEI", Number: 254, Year: 2018},
+		"VEREADOR JALMIR JUNIOR PROJETO DE LEI 110/22":             {Kind: "PROJETO DE LEI", Number: 110, Year: 2022},
+		"PROJETO DE LEI COMPLEMENTAR Nº 3/2021 PODER EXECUTIVO":    {Kind: "PROJETO DE LEI COMPLEMENTAR", Number: 3, Year: 2021},
 		"PROJETO DE LEI Nº 0135/2019 - VEREADOR PROFESSOR JOSEMAR": {Kind: "PROJETO DE LEI", Number: 135, Year: 2019},
 	}
 	for author, want := range cases {

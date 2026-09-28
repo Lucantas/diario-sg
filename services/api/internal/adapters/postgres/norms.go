@@ -74,3 +74,7 @@ func (r *NormRepo) query(ctx context.Context, q string, args ...any) ([]domain.N
 	}
 	return out, rows.Err()
 }
+
+func (r *NormRepo) NormsCitingBills(ctx context.Context) ([]domain.Norm, error) {
+	return r.query(ctx, `SELECT `+normColumns+` FROM norms WHERE unaccent(author) ~* 'projeto d' ORDER BY year, number`)
+}

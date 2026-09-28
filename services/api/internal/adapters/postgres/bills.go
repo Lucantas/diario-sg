@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/lib/pq"
 
@@ -130,4 +133,150 @@ func copyBillOpinions(ctx context.Context, tx *sql.Tx, bills []domain.Bill) erro
 		}
 	}
 	return closeCopy(ctx, stmt)
+}
+
+const billColumns = `b.process_number, b.process_year, b.kind, b.doc_label, b.doc_number, b.doc_year, b.summary, b.authors, b.presented_on,
+	b.status, b.current_body, b.last_movement, b.source_updated_at, b.law_number, b.law_year, b.law_url, b.url, b.fetched_at`
+
+func (r *BillRepo) CandidateBills(ctx context.Context, f domain.BillFilter) ([]domain.Bill, error) {
+	q, args := candidateBillsSQL(f)
+	bills, err := r.queryBills(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	return bills, r.attachEvents(ctx, bills)
+}
+
+func candidateBillsSQL(f domain.BillFilter) (string, []any) {
+	var b strings.Builder
+	var args []any
+	param := func(v any) string {
+		args = append(args, v)
+		return "$" + strconv.Itoa(len(args))
+	}
+	b.WriteString(`SELECT ` + billColumns + ` FROM bills b WHERE true`)
+	if len(f.Kinds) > 0 {
+		b.WriteString(` AND b.kind = ANY(` + param(pq.StringArray(f.Kinds)) + `)`)
+	}
+	if f.Text != "" {
+		b.WriteString(` AND to_tsvector('portuguese_unaccent', b.summary || ' ' || b.authors) @@ websearch_to_tsquery('portuguese_unaccent', ` + param(f.Text) + `)`)
+	}
+	if f.Author != "" {
+		b.WriteString(` AND unaccent(b.authors) ILIKE '%' || unaccent(` + param(f.Author) + `) || '%'`)
+	}
+	if f.Status != "" {
+		b.WriteString(` AND lower(unaccent(b.status)) = lower(unaccent(` + param(f.Status) + `))`)
+	}
+	if !f.From.IsZero() {
+		b.WriteString(` AND b.presented_on >= ` + param(f.From.Format(time.DateOnly)) + `::date`)
+	}
+	if !f.To.IsZero() {
+		b.WriteString(` AND b.presented_on <= ` + param(f.To.Format(time.DateOnly)) + `::date`)
+	}
+	if !f.Theme.IsZero() {
+		committee := param("%comissao%" + f.Theme.Committee + "%")
+		b.WriteString(` AND ((lower(unaccent(b.summary)) ~ ` + param(f.Theme.TermsSQLRegex()) + ` AND lower(unaccent(b.summary)) !~ ` + param(f.Theme.ExcludeSQLRegex()) + `)
+			OR lower(unaccent(b.current_body)) LIKE ` + param("%"+f.Theme.Committee+"%") + `
+			OR EXISTS (SELECT 1 FROM bill_opinions o WHERE o.process_number = b.process_number AND o.process_year = b.process_year AND lower(unaccent(o.committee)) LIKE ` + committee + `)
+			OR EXISTS (SELECT 1 FROM bill_events e WHERE e.process_number = b.process_number AND e.process_year = b.process_year AND lower(unaccent(e.text)) LIKE ` + committee + `))`)
+	}
+	b.WriteString(` ORDER BY b.presented_on DESC NULLS LAST, b.process_year DESC, b.process_number DESC`)
+	return b.String(), args
+}
+
+func (r *BillRepo) BillByKey(ctx context.Context, key domain.BillKey) (domain.Bill, bool, error) {
+	bills, err := r.queryBills(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.process_number = $1 AND b.process_year = $2`, key.Number, key.Year)
+	if err != nil || len(bills) == 0 {
+		return domain.Bill{}, false, err
+	}
+	if err := r.attachEvents(ctx, bills); err != nil {
+		return domain.Bill{}, false, err
+	}
+	if err := r.attachOpinions(ctx, bills); err != nil {
+		return domain.Bill{}, false, err
+	}
+	return bills[0], true, nil
+}
+
+func (r *BillRepo) BillsByDoc(ctx context.Context, ref domain.BillDocRef) ([]domain.Bill, error) {
+	return r.queryBills(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.kind = $1 AND b.doc_number = $2 AND b.doc_year = $3
+		ORDER BY b.process_year, b.process_number`, ref.Kind, ref.Number, ref.Year)
+}
+
+func (r *BillRepo) BillsByLaw(ctx context.Context, number, year int) ([]domain.Bill, error) {
+	return r.queryBills(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.law_number = $1 AND b.law_year = $2
+		ORDER BY b.process_year, b.process_number`, number, year)
+}
+
+func (r *BillRepo) queryBills(ctx context.Context, q string, args ...any) ([]domain.Bill, error) {
+	rows, err := r.db.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []domain.Bill{}
+	for rows.Next() {
+		var b domain.Bill
+		if err := rows.Scan(&b.Key.Number, &b.Key.Year, &b.Kind, &b.DocLabel, &b.DocNumber, &b.DocYear, &b.Summary, &b.Authors, &b.PresentedOn,
+			&b.Status, &b.CurrentBody, &b.LastMovement, &b.SourceUpdatedAt, &b.LawNumber, &b.LawYear, &b.LawURL, &b.URL, &b.FetchedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, b)
+	}
+	return out, rows.Err()
+}
+
+func billKeyArrays(bills []domain.Bill) (pq.Int64Array, pq.Int64Array, map[domain.BillKey]int) {
+	numbers, years := make(pq.Int64Array, len(bills)), make(pq.Int64Array, len(bills))
+	index := make(map[domain.BillKey]int, len(bills))
+	for i, b := range bills {
+		numbers[i], years[i] = int64(b.Key.Number), int64(b.Key.Year)
+		index[b.Key] = i
+	}
+	return numbers, years, index
+}
+
+func (r *BillRepo) attachEvents(ctx context.Context, bills []domain.Bill) error {
+	if len(bills) == 0 {
+		return nil
+	}
+	numbers, years, index := billKeyArrays(bills)
+	rows, err := r.db.QueryContext(ctx, `SELECT e.process_number, e.process_year, e.position, e.happened_at, e.label, e.text, e.sector
+		FROM bill_events e JOIN unnest($1::int[], $2::int[]) AS k(n, y) ON e.process_number = k.n AND e.process_year = k.y
+		ORDER BY e.process_year, e.process_number, e.position`, numbers, years)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var k domain.BillKey
+		var e domain.BillEvent
+		if err := rows.Scan(&k.Number, &k.Year, &e.Position, &e.At, &e.Label, &e.Text, &e.Sector); err != nil {
+			return err
+		}
+		i := index[k]
+		bills[i].Events = append(bills[i].Events, e)
+	}
+	return rows.Err()
+}
+
+func (r *BillRepo) attachOpinions(ctx context.Context, bills []domain.Bill) error {
+	numbers, years, index := billKeyArrays(bills)
+	rows, err := r.db.QueryContext(ctx, `SELECT o.process_number, o.process_year, o.position, o.result, o.issued_on, o.committee, o.rapporteur
+		FROM bill_opinions o JOIN unnest($1::int[], $2::int[]) AS k(n, y) ON o.process_number = k.n AND o.process_year = k.y
+		ORDER BY o.process_year, o.process_number, o.position`, numbers, years)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var k domain.BillKey
+		var o domain.BillOpinion
+		if err := rows.Scan(&k.Number, &k.Year, &o.Position, &o.Result, &o.On, &o.Committee, &o.Rapporteur); err != nil {
+			return err
+		}
+		i := index[k]
+		bills[i].Opinions = append(bills[i].Opinions, o)
+	}
+	return rows.Err()
 }

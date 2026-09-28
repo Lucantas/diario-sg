@@ -248,6 +248,18 @@ type BillRepository interface {
 	SaveBills(ctx context.Context, bills []domain.Bill) error
 }
 
+type BillReader interface {
+	CandidateBills(ctx context.Context, f domain.BillFilter) ([]domain.Bill, error)
+	BillByKey(ctx context.Context, key domain.BillKey) (domain.Bill, bool, error)
+	BillsByDoc(ctx context.Context, ref domain.BillDocRef) ([]domain.Bill, error)
+	BillsByLaw(ctx context.Context, number, year int) ([]domain.Bill, error)
+}
+
+type BillNormReader interface {
+	NormsByNumber(ctx context.Context, kind domain.NormKind, number, year int) ([]domain.Norm, error)
+	NormsCitingBills(ctx context.Context) ([]domain.Norm, error)
+}
+
 type MuralSource interface {
 	List(ctx context.Context, name string) ([]byte, error)
 	BaseURL() string

@@ -34,6 +34,7 @@ type API struct {
 	Staff         *usecase.GetStaffPanel
 	Oversight     *usecase.GetOversight
 	Norms         *usecase.FindNorms
+	Bills         *usecase.FindBills
 	Federal       *usecase.GetFederal
 	Agents        *usecase.GetPoliticalAgents
 	Log           *slog.Logger
@@ -69,6 +70,8 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/panels/staff", a.staffPanel)
 	mux.HandleFunc("GET /v1/tce", a.oversight)
 	mux.HandleFunc("GET /v1/norms", a.norms)
+	mux.HandleFunc("GET /v1/bills", a.bills)
+	mux.HandleFunc("GET /v1/bills/{process}", a.bill)
 	mux.HandleFunc("GET /v1/federal", a.federal)
 	mux.HandleFunc("GET /v1/agentes", a.politicalAgents)
 	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
