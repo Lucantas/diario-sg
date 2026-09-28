@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex receita sancoes tce pncp federal agentes dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex receita sancoes tce pncp federal agentes sicam dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -42,6 +42,9 @@ agentes: ## Carrega a remuneração dos agentes políticos: make agentes [FROM=A
 
 pncp: ## Carrega os contratos do município no PNCP: make pncp [FROM=AAAA TO=AAAA] (padrão: 2021 ao ano corrente)
 	cd services/api && go run ./cmd/pncp -from "$(or $(FROM),0)" -to "$(or $(TO),0)"
+
+sicam: ## Carrega os processos da Câmara (SICAM): make sicam [FULL=1] [MAX=n] (padrão: novos e abertos, até 3000 páginas)
+	cd services/api && go run ./cmd/sicam $(if $(FULL),-full) -max "$(or $(MAX),3000)"
 
 dump: ## Publica o dump da base (CSV compactado) no bucket DUMPS_BUCKET
 	cd services/api && go run ./cmd/dump

@@ -235,6 +235,19 @@ type NormReader interface {
 	SearchNorms(ctx context.Context, kind domain.NormKind, text string, limit int) ([]domain.Norm, error)
 }
 
+type BillSource interface {
+	BaseURL() string
+	ProcessKeys(ctx context.Context) ([]domain.BillKey, error)
+	ProcessPage(ctx context.Context, key domain.BillKey) ([]byte, error)
+}
+
+type BillRepository interface {
+	Ready(ctx context.Context) error
+	KnownBills(ctx context.Context) (map[domain.BillKey]bool, error)
+	StaleOpenBills(ctx context.Context, kinds []string, limit int) ([]domain.BillKey, error)
+	SaveBills(ctx context.Context, bills []domain.Bill) error
+}
+
 type MuralSource interface {
 	List(ctx context.Context, name string) ([]byte, error)
 	BaseURL() string

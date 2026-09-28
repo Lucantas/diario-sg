@@ -23,6 +23,7 @@ const (
 	RolePNCP      Role = "pncp"
 	RoleFederal   Role = "federal"
 	RoleAgents    Role = "agentes"
+	RoleSICAM     Role = "sicam"
 )
 
 type Config struct {
@@ -51,6 +52,7 @@ type Config struct {
 	PMSGPortalURL      string
 	PMSGMuralURL       string
 	SIAPEGOVURL        string
+	SICAMSiteURL       string
 }
 
 func Load(role Role) (Config, error) {
@@ -81,6 +83,7 @@ func Load(role Role) (Config, error) {
 		PMSGPortalURL:   getenv("PMSG_PORTAL_URL", "https://sistema.pmsg.rj.gov.br/portal-transparencia/api/"),
 		PMSGMuralURL:    getenv("PMSG_MURAL_URL", "https://licitacao.pmsg.rj.gov.br/"),
 		SIAPEGOVURL:     getenv("SIAPEGOV_URL", "https://sistema.pmsg.rj.gov.br/pmsaogoncalo/websis/siapegov/legislativo/leis/"),
+		SICAMSiteURL:    getenv("SICAM_SITE_URL", "https://sg.processolegislativo.com.br/"),
 	}
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
@@ -89,7 +92,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents {
+	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents || role == RoleSICAM {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {
