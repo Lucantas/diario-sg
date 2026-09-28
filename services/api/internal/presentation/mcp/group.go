@@ -18,6 +18,7 @@ type groupInput struct {
 	Diario        string  `json:"diario,omitempty" jsonschema:"diario_prefeitura ou diario_camara; vazio agrupa os dois"`
 	Type          string  `json:"tipo,omitempty" jsonschema:"tipo do ato, como em buscar_atos"`
 	Organ         string  `json:"orgao,omitempty" jsonschema:"sigla do órgão da Prefeitura, como SEMED"`
+	Theme         string  `json:"tema,omitempty" jsonschema:"meio_ambiente, como em buscar_atos"`
 	From          string  `json:"de,omitempty" jsonschema:"data inicial da edição, AAAA-MM-DD"`
 	To            string  `json:"ate,omitempty" jsonschema:"data final da edição, AAAA-MM-DD"`
 	MinValue      float64 `json:"valor_min,omitempty" jsonschema:"só atos que citam ao menos um valor a partir deste, em reais"`
@@ -61,7 +62,7 @@ const groupDescription = "Agrupa os atos encontrados por cnpj, processo, orgao o
 	"Use entidade para ver todos os atos de um CNPJ ou processo."
 
 func (s *server) group(ctx context.Context, _ *sdk.CallToolRequest, in groupInput) (*sdk.CallToolResult, groupOutput, error) {
-	f, err := filterOf(searchInput{Query: in.Query, Name: in.Name, Lists: in.Lists, Diario: in.Diario, Type: in.Type, Organ: in.Organ, From: in.From, To: in.To,
+	f, err := filterOf(searchInput{Query: in.Query, Name: in.Name, Lists: in.Lists, Diario: in.Diario, Type: in.Type, Organ: in.Organ, Theme: in.Theme, From: in.From, To: in.To,
 		MinValue: in.MinValue, MaxValue: in.MaxValue, Modality: in.Modality, MainMin: in.MainMin, MainMax: in.MainMax})
 	if err != nil {
 		return nil, groupOutput{}, err

@@ -103,3 +103,14 @@ func TestParseTheme(t *testing.T) {
 		t.Errorf("tema desconhecido: %v", err)
 	}
 }
+
+func TestActFilterNormalizeValidatesTheme(t *testing.T) {
+	ok := ActFilter{Theme: " Meio_Ambiente "}
+	if err := ok.Normalize(); err != nil || ok.Theme != ThemeEnvironment {
+		t.Errorf("tema válido: %q %v", ok.Theme, err)
+	}
+	bad := ActFilter{Theme: "saude"}
+	if err := bad.Normalize(); !errors.Is(err, ErrInvalidFilter) {
+		t.Errorf("tema inválido: %v", err)
+	}
+}

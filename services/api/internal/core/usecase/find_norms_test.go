@@ -12,6 +12,7 @@ type fakeNormReader struct {
 	byNumber []domain.Norm
 	searched string
 	kind     domain.NormKind
+	theme    domain.Theme
 }
 
 func (f *fakeNormReader) NormsByNumber(_ context.Context, kind domain.NormKind, number, year int) ([]domain.Norm, error) {
@@ -19,15 +20,15 @@ func (f *fakeNormReader) NormsByNumber(_ context.Context, kind domain.NormKind, 
 	return f.byNumber, nil
 }
 
-func (f *fakeNormReader) SearchNorms(_ context.Context, kind domain.NormKind, text string, _ int) ([]domain.Norm, error) {
-	f.kind, f.searched = kind, text
+func (f *fakeNormReader) SearchNorms(_ context.Context, kind domain.NormKind, text string, theme domain.Theme, _ int) ([]domain.Norm, error) {
+	f.kind, f.searched, f.theme = kind, text, theme
 	return []domain.Norm{}, nil
 }
 
 func TestFindNormsByNumberFiltersTheSuffix(t *testing.T) {
 	r := &fakeNormReader{byNumber: []domain.Norm{{Number: 57, Year: 1955, Suffix: "A"}, {Number: 57, Year: 1955, Suffix: "B"}}}
 
-	got, err := NewFindNorms(r).Execute(context.Background(), "lei", "057/1955 b", "")
+	got, err := NewFindNorms(r).Execute(context.Background(), NormQuery{Kind: "lei", Number: "057/1955 b"})
 
 	if err != nil || len(got) != 1 || got[0].Suffix != "B" || r.kind != domain.NormLaw {
 		t.Errorf("veio %+v %v", got, err)
@@ -37,12 +38,22 @@ func TestFindNormsByNumberFiltersTheSuffix(t *testing.T) {
 func TestFindNormsSearchesTextWithOptionalKind(t *testing.T) {
 	r := &fakeNormReader{}
 
-	if _, err := NewFindNorms(r).Execute(context.Background(), "", "", " subsídio "); err != nil || r.searched != "subsídio" || r.kind != "" {
+	if _, err := NewFindNorms(r).Execute(context.Background(), NormQuery{Text: " subsídio "}); err != nil || r.searched != "subsídio" || r.kind != "" {
 		t.Errorf("busca: %v %q %q", err, r.searched, r.kind)
 	}
-	for _, in := range [][3]string{{"", "", ""}, {"", "1/2020", ""}, {"portaria", "", "x"}, {"lei", "abc", ""}} {
-		if _, err := NewFindNorms(r).Execute(context.Background(), in[0], in[1], in[2]); !errors.Is(err, domain.ErrInvalidInput) {
+	for _, in := range []NormQuery{{}, {Number: "1/2020"}, {Kind: "portaria", Text: "x"}, {Kind: "lei", Number: "abc"}, {Theme: "saude"}} {
+		if _, err := NewFindNorms(r).Execute(context.Background(), in); !errors.Is(err, domain.ErrInvalidInput) {
 			t.Errorf("%v aceito: %v", in, err)
 		}
+	}
+}
+
+func TestFindNormsByThemeWithoutText(t *testing.T) {
+	r := &fakeNormReader{}
+
+	_, err := NewFindNorms(r).Execute(context.Background(), NormQuery{Kind: "lei", Theme: "meio_ambiente"})
+
+	if err != nil || r.theme.Slug != domain.ThemeEnvironment || r.searched != "" || r.kind != domain.NormLaw {
+		t.Errorf("tema: %v %+v", err, r)
 	}
 }

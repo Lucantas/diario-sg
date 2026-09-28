@@ -26,6 +26,7 @@ type searchInput struct {
 	Diario   string  `json:"diario,omitempty" jsonschema:"diario_prefeitura ou diario_camara; vazio busca nos dois"`
 	Type     string  `json:"tipo,omitempty" jsonschema:"tipo do ato: nomeacao, exoneracao, contrato, aditivo, licitacao, dispensa, decreto, lei, portaria, resolucao, despacho, edital, ata, corrigenda, prestacao_contas ou outro"`
 	Organ    string  `json:"orgao,omitempty" jsonschema:"sigla do órgão da Prefeitura, como SEMED"`
+	Theme    string  `json:"tema,omitempty" jsonschema:"meio_ambiente: atos dos órgãos ambientais ou com título do tema (a regra está na ferramenta proposicoes, em regra_tema)"`
 	From     string  `json:"de,omitempty" jsonschema:"data inicial da edição, AAAA-MM-DD"`
 	To       string  `json:"ate,omitempty" jsonschema:"data final da edição, AAAA-MM-DD"`
 	MinValue float64 `json:"valor_min,omitempty" jsonschema:"só atos que citam ao menos um valor a partir deste, em reais"`
@@ -306,7 +307,7 @@ func (s *server) omittedLists(ctx context.Context, f domain.ActFilter, total int
 
 func filterOf(in searchInput) (domain.ActFilter, error) {
 	f := domain.ActFilter{Query: in.Query, Name: in.Name, IncludeLists: in.Lists, Source: in.Diario, Type: domain.ActType(in.Type), Organ: in.Organ,
-		Modality: domain.Modality(in.Modality), Limit: in.Limit, Offset: in.Offset}
+		Theme: in.Theme, Modality: domain.Modality(in.Modality), Limit: in.Limit, Offset: in.Offset}
 	if f.Limit <= 0 {
 		f.Limit = defaultSearchLimit
 	}

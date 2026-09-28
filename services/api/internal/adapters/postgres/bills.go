@@ -199,13 +199,21 @@ func (r *BillRepo) BillByKey(ctx context.Context, key domain.BillKey) (domain.Bi
 }
 
 func (r *BillRepo) BillsByDoc(ctx context.Context, ref domain.BillDocRef) ([]domain.Bill, error) {
-	return r.queryBills(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.kind = $1 AND b.doc_number = $2 AND b.doc_year = $3
+	return r.queryBillsWithEvents(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.kind = $1 AND b.doc_number = $2 AND b.doc_year = $3
 		ORDER BY b.process_year, b.process_number`, ref.Kind, ref.Number, ref.Year)
 }
 
 func (r *BillRepo) BillsByLaw(ctx context.Context, number, year int) ([]domain.Bill, error) {
-	return r.queryBills(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.law_number = $1 AND b.law_year = $2
+	return r.queryBillsWithEvents(ctx, `SELECT `+billColumns+` FROM bills b WHERE b.law_number = $1 AND b.law_year = $2
 		ORDER BY b.process_year, b.process_number`, number, year)
+}
+
+func (r *BillRepo) queryBillsWithEvents(ctx context.Context, q string, args ...any) ([]domain.Bill, error) {
+	bills, err := r.queryBills(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	return bills, r.attachEvents(ctx, bills)
 }
 
 func (r *BillRepo) queryBills(ctx context.Context, q string, args ...any) ([]domain.Bill, error) {

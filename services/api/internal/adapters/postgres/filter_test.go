@@ -88,3 +88,23 @@ func TestFilterSQLBySource(t *testing.T) {
 		t.Errorf("veio %q %v", where, args)
 	}
 }
+
+func TestFilterSQLThemeUsesOrgansPartialOrganAndTitle(t *testing.T) {
+	theme, _ := domain.ParseTheme(domain.ThemeEnvironment)
+
+	where, args := filterSQL(domain.ActFilter{Theme: domain.ThemeEnvironment}, 2)
+
+	want := " AND (a.organ = ANY($2) OR (a.organ = $3 AND regexp_replace(lower(unaccent(a.body)), $4, '', 'g') !~ $5)" +
+		" OR (lower(unaccent(a.title)) ~ $6 AND lower(unaccent(a.title)) !~ $7))"
+	if where != want {
+		t.Fatalf("veio\n%s\nesperava\n%s", where, want)
+	}
+	organs := args[0].(pq.StringArray)
+	if !strings.Contains(strings.Join(organs, ","), "SEMMA") || !strings.Contains(strings.Join(organs, ","), "COMMADS") {
+		t.Errorf("órgãos: %v", organs)
+	}
+	if args[1] != "SEMMATRAN" || args[2] != theme.PartialOrganNameSQLRegex() || args[3] != theme.PartialOrganExcludeSQLRegex() ||
+		args[4] != theme.TermsSQLRegex() || args[5] != theme.ExcludeSQLRegex() {
+		t.Errorf("argumentos: %v", args[1:])
+	}
+}

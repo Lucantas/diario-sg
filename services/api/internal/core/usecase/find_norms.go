@@ -15,8 +15,16 @@ type FindNorms struct{ reader ports.NormReader }
 
 func NewFindNorms(reader ports.NormReader) *FindNorms { return &FindNorms{reader: reader} }
 
-func (uc *FindNorms) Execute(ctx context.Context, kind, number, text string) ([]domain.Norm, error) {
-	number, text = strings.TrimSpace(number), strings.TrimSpace(text)
+type NormQuery struct {
+	Kind, Number, Text, Theme string
+}
+
+func (uc *FindNorms) Execute(ctx context.Context, q NormQuery) ([]domain.Norm, error) {
+	kind, number, text := q.Kind, strings.TrimSpace(q.Number), strings.TrimSpace(q.Text)
+	theme, err := domain.ParseTheme(q.Theme)
+	if err != nil {
+		return nil, err
+	}
 	var k domain.NormKind
 	if strings.TrimSpace(kind) != "" || number != "" {
 		var err error
@@ -32,10 +40,10 @@ func (uc *FindNorms) Execute(ctx context.Context, kind, number, text string) ([]
 		}
 		norms, err := uc.reader.NormsByNumber(ctx, k, n, year)
 		return withSuffix(norms, suffix), err
-	case text != "":
-		return uc.reader.SearchNorms(ctx, k, text, maxNormsFound)
+	case text != "" || !theme.IsZero():
+		return uc.reader.SearchNorms(ctx, k, text, theme, maxNormsFound)
 	default:
-		return nil, fmt.Errorf("%w: informe tipo e número, ou um texto para buscar na ementa e no autor", domain.ErrInvalidInput)
+		return nil, fmt.Errorf("%w: informe tipo e número, ou um texto ou um tema para buscar na ementa e no autor", domain.ErrInvalidInput)
 	}
 }
 

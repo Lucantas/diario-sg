@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
 
 type normDTO struct {
@@ -20,7 +21,7 @@ type normDTO struct {
 
 func (a *API) norms(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	norms, err := a.Norms.Execute(r.Context(), q.Get("kind"), q.Get("number"), q.Get("q"))
+	norms, err := a.Norms.Execute(r.Context(), usecase.NormQuery{Kind: q.Get("kind"), Number: q.Get("number"), Text: q.Get("q"), Theme: q.Get("theme")})
 	if err != nil {
 		writeError(w, err, a.Log)
 		return

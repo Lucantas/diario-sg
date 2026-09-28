@@ -82,6 +82,7 @@ type ActFilter struct {
 	Source   string
 	Type     ActType
 	Organ    string
+	Theme    string
 	From     time.Time
 	To       time.Time
 	MinCents int64
@@ -119,6 +120,11 @@ func (f *ActFilter) Normalize() error {
 		return ErrInvalidFilter
 	}
 	f.Organ = organ
+	theme, err := ParseTheme(f.Theme)
+	if err != nil {
+		return ErrInvalidFilter
+	}
+	f.Theme = theme.Slug
 	if f.MinCents < 0 || f.MaxCents < 0 || (f.MaxCents > 0 && f.MinCents > f.MaxCents) {
 		return ErrInvalidFilter
 	}

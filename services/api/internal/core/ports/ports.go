@@ -232,7 +232,7 @@ type NormRepository interface {
 
 type NormReader interface {
 	NormsByNumber(ctx context.Context, kind domain.NormKind, number, year int) ([]domain.Norm, error)
-	SearchNorms(ctx context.Context, kind domain.NormKind, text string, limit int) ([]domain.Norm, error)
+	SearchNorms(ctx context.Context, kind domain.NormKind, text string, theme domain.Theme, limit int) ([]domain.Norm, error)
 }
 
 type BillSource interface {

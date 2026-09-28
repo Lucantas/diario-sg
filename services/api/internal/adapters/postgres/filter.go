@@ -26,6 +26,9 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 	if f.Organ != "" {
 		b.WriteString(" AND a.organ = ANY(" + param(pq.StringArray(domain.OrganAcronyms(f.Organ))) + ")")
 	}
+	if theme, err := domain.ParseTheme(f.Theme); err == nil && !theme.IsZero() {
+		b.WriteString(themeSQL(theme, param))
+	}
 	if !f.From.IsZero() {
 		b.WriteString(" AND g.published_at >= " + param(f.From.Format(time.DateOnly)) + "::date")
 	}
@@ -62,4 +65,15 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 		b.WriteString(")")
 	}
 	return b.String(), args
+}
+
+func themeSQL(t domain.Theme, param func(any) string) string {
+	var organs []string
+	for _, o := range t.Organs {
+		organs = append(organs, domain.OrganAcronyms(o)...)
+	}
+	return " AND (a.organ = ANY(" + param(pq.StringArray(organs)) + ")" +
+		" OR (a.organ = " + param(t.PartialOrgan) + " AND regexp_replace(lower(unaccent(a.body)), " + param(t.PartialOrganNameSQLRegex()) +
+		", '', 'g') !~ " + param(t.PartialOrganExcludeSQLRegex()) + ")" +
+		" OR (lower(unaccent(a.title)) ~ " + param(t.TermsSQLRegex()) + " AND lower(unaccent(a.title)) !~ " + param(t.ExcludeSQLRegex()) + "))"
 }

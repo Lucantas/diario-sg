@@ -50,10 +50,12 @@ func (r *NormRepo) NormsByNumber(ctx context.Context, kind domain.NormKind, numb
 	return r.query(ctx, `SELECT `+normColumns+` FROM norms WHERE kind = $1 AND number = $2 AND year = $3 ORDER BY suffix`, string(kind), number, year)
 }
 
-func (r *NormRepo) SearchNorms(ctx context.Context, kind domain.NormKind, text string, limit int) ([]domain.Norm, error) {
+func (r *NormRepo) SearchNorms(ctx context.Context, kind domain.NormKind, text string, theme domain.Theme, limit int) ([]domain.Norm, error) {
 	return r.query(ctx, `SELECT `+normColumns+` FROM norms
-		WHERE ($1 = '' OR kind = $1) AND to_tsvector('portuguese_unaccent', summary || ' ' || author) @@ plainto_tsquery('portuguese_unaccent', $2)
-		ORDER BY promulgated_on DESC NULLS LAST, year DESC, number DESC LIMIT $3`, string(kind), text, limit)
+		WHERE ($1 = '' OR kind = $1)
+			AND ($2 = '' OR to_tsvector('portuguese_unaccent', summary || ' ' || author) @@ plainto_tsquery('portuguese_unaccent', $2))
+			AND ($4 = '' OR (lower(unaccent(summary)) ~ $4 AND lower(unaccent(summary)) !~ $5))
+		ORDER BY promulgated_on DESC NULLS LAST, year DESC, number DESC LIMIT $3`, string(kind), text, limit, theme.TermsSQLRegex(), theme.ExcludeSQLRegex())
 }
 
 func (r *NormRepo) query(ctx context.Context, q string, args ...any) ([]domain.Norm, error) {
