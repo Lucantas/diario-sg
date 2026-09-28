@@ -76,13 +76,18 @@ func headerContinues(line string) bool { return danglingEndRe.MatchString(line) 
 
 var organRe = regexp.MustCompile(`^[A-Z]{2,14}(?:-[A-Z]{2,10})?$`)
 
+var spacedHyphenRe = regexp.MustCompile(`\s*-\s*`)
+
+func sectionAcronym(text string) string { return spacedHyphenRe.ReplaceAllString(text, "-") }
+
 func isOrganSection(lines []line, i int) bool {
-	if !organRe.MatchString(lines[i].text) || isHeader(lines[i].text) {
+	acronym := sectionAcronym(lines[i].text)
+	if !organRe.MatchString(acronym) || isHeader(lines[i].text) || (strings.Contains(acronym, "-") && !domain.IsKnownOrgan(acronym)) {
 		return false
 	}
 	for j := i + 1; j < len(lines); j++ {
 		if lines[j].text != "" {
-			return startsAct(lines[j].text) || (domain.IsKnownOrgan(lines[i].text) && isSectionTitle(lines[j].text) && proseFollows(lines, j))
+			return startsAct(lines[j].text) || (domain.IsKnownOrgan(acronym) && isSectionTitle(lines[j].text) && proseFollows(lines, j))
 		}
 	}
 	return false

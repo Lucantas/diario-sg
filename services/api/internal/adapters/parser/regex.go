@@ -39,7 +39,7 @@ func (r Regex) Parse(text string) []domain.Act {
 		switch {
 		case !r.withoutOrgans && isOrganSection(lines, i):
 			flush()
-			organ = sectionOrgan(l.text, organ)
+			organ = sectionOrgan(sectionAcronym(l.text), organ)
 		case isContinuation(l.text):
 			flush()
 			organ = ""
