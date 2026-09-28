@@ -70,16 +70,23 @@ Meio Ambiente.
 - Tipos normativos (os que andam para virar norma): projeto de lei, de lei
   complementar, substitutivo, de resolução, de emenda à Lei Orgânica,
   mensagem e emenda. São os atualizados todo dia e o padrão da ferramenta.
-- Fase, calculada na leitura a partir da situação e da tramitação, da mais
-  forte para a mais fraca: `arquivado` (situação ou "Processo Arquivado"),
-  `retirado`, `rejeitado`, `enviado_ao_executivo` ("Enviado para
-  PREFEITURA", "Ao Executivo"), `aprovado` ("Aprovado - Votação"),
-  `em_votacao` ("Para Votação", pauta), `em_comissao` (recebido,
-  encaminhado ou aguardando parecer em comissão), `apresentado`.
-  `dias_sem_movimentacao` conta do último evento até hoje.
-- Projeto → lei: `BillReference(author)` lê "PROJETO DE LEI [COMPLEMENTAR]
-  Nº 0133/2019" do autor da norma; a ligação é pelo tipo e pelo nº/ano do
-  documento (não do processo), com certeza `provavel`.
+- Fase, calculada na leitura a partir do selo da lei, da situação e da
+  tramitação, da mais forte para a mais fraca: `virou_lei` (selo "Lei nº"
+  na página ou evento "Lei nº. 1147/2020 … Publicada em"), `vetado`,
+  `rejeitado`, `retirado` (pelo autor), `arquivado` (situação ou evento),
+  `enviado_ao_executivo` ("Enviado para PREFEITURA", "Ao Executivo"),
+  `aprovado` ("Aprovado - Votação …"), `em_votacao` ("Para Votação", ordem
+  do dia), `em_comissao` (comissão, relatoria, parecer), `apresentado`.
+  O projeto que virou lei também fica "Arquivado" no fim do mandato, por
+  isso `virou_lei` vem antes. `dias_sem_movimentacao` conta do último
+  evento até hoje.
+- Projeto → lei: a página do processo que virou lei traz o selo "Lei nº
+  1147/2020" com o link da lei no SICAM (`/areapublica/documento/?Lei/216`);
+  a ligação com `norms` é pelo número e ano da lei (certeza `exata`).
+  Sem selo, `BillReference(author)` lê "PROJETO DE LEI [COMPLEMENTAR] Nº
+  0133/2019" do autor da norma e liga pelo tipo e nº/ano do documento
+  (certeza `provavel`). A página de número inexistente traz um selo de lei
+  qualquer, por defeito do SICAM; o parser a descarta antes.
 
 ### Coleta (job `sicam`)
 
