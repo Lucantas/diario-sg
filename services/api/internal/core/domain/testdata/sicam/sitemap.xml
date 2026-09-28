@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-comissoes.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-leis.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-pautas.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-atas.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-parlamentares.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-processos-1.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-processos-2.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://sg.processolegislativo.com.br/sitemap-votacoes.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+</sitemapindex>
