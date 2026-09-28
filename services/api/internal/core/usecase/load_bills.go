@@ -96,6 +96,7 @@ func (uc *LoadBills) queue(ctx context.Context, full bool, max int) ([]domain.Bi
 	if err != nil {
 		return nil, err
 	}
+	keys = uniqueKeys(keys)
 	var queue []domain.BillKey
 	if full {
 		queue = keys
@@ -121,6 +122,18 @@ func (uc *LoadBills) queue(ctx context.Context, full bool, max int) ([]domain.Bi
 		queue = queue[:max]
 	}
 	return queue, nil
+}
+
+func uniqueKeys(keys []domain.BillKey) []domain.BillKey {
+	seen := make(map[domain.BillKey]bool, len(keys))
+	out := make([]domain.BillKey, 0, len(keys))
+	for _, k := range keys {
+		if !seen[k] {
+			seen[k] = true
+			out = append(out, k)
+		}
+	}
+	return out
 }
 
 func remaining(max, used int) int {

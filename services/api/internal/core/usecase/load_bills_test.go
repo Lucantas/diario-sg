@@ -131,6 +131,21 @@ func TestLoadBillsFullSavesInBatchesAndArchivesEachBatch(t *testing.T) {
 	}
 }
 
+func TestLoadBillsReadsAProcessRepeatedInTheSitemapOnlyOnce(t *testing.T) {
+	keys := keysUpTo(2)
+	src := &fakeBillSource{keys: append(append([]domain.BillKey{}, keys...), keys[0]), pages: map[domain.BillKey]string{}}
+	for _, k := range keys {
+		src.pages[k] = billPage(k)
+	}
+	repo := &fakeBillRepo{}
+
+	run, err := NewLoadBills(src, repo, &memRuns{}, &memObjects{}, staffNow).Execute(context.Background(), true, 0)
+
+	if err != nil || run.Found != 2 || len(src.requested) != 2 || repo.saved() != 2 {
+		t.Fatalf("processo repetido no sitemap: %+v %v pedidos=%v", run, err, src.requested)
+	}
+}
+
 func TestLoadBillsKeepsGoingAfterAFailedPageButStopsWhenTheSiteIsDown(t *testing.T) {
 	keys := keysUpTo(3)
 	src := &fakeBillSource{keys: keys, pages: map[domain.BillKey]string{keys[0]: billPage(keys[0]), keys[2]: billPage(keys[2])}}
