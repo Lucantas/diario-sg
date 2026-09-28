@@ -45,6 +45,7 @@ type Deps struct {
 	Patterns     *usecase.ListPatterns
 	Norms        *usecase.FindNorms
 	Bills        *usecase.FindBills
+	Collections  *usecase.LatestCollections
 	Payments     *usecase.QueryPayments
 	Contracting  *usecase.QueryProcurements
 	Keys         *usecase.APIKeys
@@ -65,6 +66,7 @@ type server struct {
 	listPatterns      *usecase.ListPatterns
 	findNorms         *usecase.FindNorms
 	findBills         *usecase.FindBills
+	collections       *usecase.LatestCollections
 	queryPayments     *usecase.QueryPayments
 	queryProcurements *usecase.QueryProcurements
 	keys              *usecase.APIKeys
@@ -87,7 +89,7 @@ func NewHandler(d Deps) http.Handler {
 	if d.Now == nil {
 		d.Now = time.Now
 	}
-	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, politicalAgents: d.Agents, listPatterns: d.Patterns, findNorms: d.Norms, findBills: d.Bills,
+	s := &server{searchActs: d.Search, readAct: d.Read, getEntity: d.Entity, groupActs: d.Group, readPage: d.Page, sourceCoverage: d.Coverage, politicalAgents: d.Agents, listPatterns: d.Patterns, findNorms: d.Norms, findBills: d.Bills, collections: d.Collections,
 		queryPayments: d.Payments, queryProcurements: d.Contracting, keys: d.Keys,
 		webURL: strings.TrimRight(d.PublicWebURL, "/"), log: d.Log, now: d.Now}
 	srv := sdk.NewServer(&sdk.Implementation{Name: "diario-sg", Title: "Diário SG", Version: "0.1.0", WebsiteURL: s.webURL},

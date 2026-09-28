@@ -190,3 +190,46 @@ func TestMCPProposicoes(t *testing.T) {
 		t.Fatal("limite acima de 20 deveria ser erro")
 	}
 }
+
+func TestSourcesToolListsTheLatestRunOfEveryCollector(t *testing.T) {
+	srv, db := newServerFor(t, gazetteText)
+	ctx := context.Background()
+	start := time.Date(2026, 9, 28, 12, 0, 0, 0, time.UTC)
+	runs := postgres.NewFetchRunRepo(db)
+	for _, r := range []domain.FetchRun{
+		{ID: "44444444-4444-4444-8444-444444444444", Source: domain.SourceBills, RequestedFrom: start, RequestedTo: start, Found: 10, Stored: 9, Skipped: 1, StartedAt: start, FinishedAt: start.Add(time.Minute)},
+		{ID: "55555555-5555-4555-8555-555555555555", Source: domain.SourceBills, RequestedFrom: start, RequestedTo: start, Found: 3, Stored: 3, StartedAt: start.Add(time.Hour), FinishedAt: start.Add(time.Hour + time.Minute)},
+		{ID: "66666666-6666-4666-8666-666666666666", Source: domain.SourceNorms, RequestedFrom: start, RequestedTo: start, Found: 5, Stored: 5, StartedAt: start, FinishedAt: start.Add(time.Minute)},
+	} {
+		if err := runs.Save(ctx, r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	_, key := issueKey(t, srv.URL, "")
+	session, err := connect(t, srv.URL, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer session.Close()
+
+	type out struct {
+		Outras []struct {
+			Fonte  string `json:"fonte"`
+			Nome   string `json:"nome"`
+			Ultima struct {
+				Encontradas int `json:"encontradas"`
+			} `json:"ultima_coleta"`
+		} `json:"outras_fontes"`
+	}
+	got, _ := call[out](t, session, "fontes", map[string]any{})
+	byName := map[string]int{}
+	for _, o := range got.Outras {
+		byName[o.Fonte] = o.Ultima.Encontradas
+		if o.Nome == "" {
+			t.Errorf("%s sem nome", o.Fonte)
+		}
+	}
+	if len(got.Outras) != 2 || byName[domain.SourceBills] != 3 || byName[domain.SourceNorms] != 5 {
+		t.Fatalf("outras fontes: %+v", got.Outras)
+	}
+}

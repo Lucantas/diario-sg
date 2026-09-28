@@ -62,7 +62,7 @@ func run(l *slog.Logger) error {
 	webURL := strings.TrimRight(cfg.PublicWebURL, "/")
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
 		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
-		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Patterns: patterns, Norms: norms, Bills: bills,
+		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Patterns: patterns, Norms: norms, Bills: bills, Collections: usecase.NewLatestCollections(postgres.NewFetchRunRepo(db)),
 		Payments:    usecase.NewQueryPayments(postgres.NewMunicipalCommitmentRepo(db), postgres.NewFiscalRepo(db)),
 		Contracting: usecase.NewQueryProcurements(postgres.NewProcurementRepo(db), postgres.NewPNCPRepo(db)),
 		Keys:        keys, PublicWebURL: cfg.PublicWebURL,

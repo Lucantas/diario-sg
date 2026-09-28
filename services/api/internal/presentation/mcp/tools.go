@@ -154,8 +154,15 @@ type sourceCoverageDTO struct {
 	Gaps          []string    `json:"lacunas"`
 }
 
+type collectorDTO struct {
+	Source  string      `json:"fonte"`
+	Name    string      `json:"nome"`
+	LastRun *lastRunDTO `json:"ultima_coleta"`
+}
+
 type sourcesOutput struct {
-	Sources []sourceCoverageDTO `json:"fontes"`
+	Sources    []sourceCoverageDTO `json:"fontes"`
+	Collectors []collectorDTO      `json:"outras_fontes,omitempty"`
 }
 
 func (s *server) register(srv *sdk.Server) {
@@ -214,7 +221,8 @@ func (s *server) register(srv *sdk.Server) {
 	sdk.AddTool(srv, &sdk.Tool{Name: "pagina_original", Annotations: readOnly, Description: pageDescription},
 		recorded(s, "pagina_original", s.page))
 	sdk.AddTool(srv, &sdk.Tool{Name: "fontes", Annotations: readOnly, Description: "Fontes de dados do Diário SG, " +
-		"com o período coberto, a última coleta e as lacunas conhecidas. Consulte antes de concluir que algo não existe."},
+		"com o período coberto, a última coleta e as lacunas conhecidas dos dois Diários, e em outras_fontes a última coleta de cada fonte externa " +
+		"(SICAM, SIAPEGOV, TCE-RJ, PNCP, Receita, CGU…). Consulte antes de concluir que algo não existe."},
 		recorded(s, "fontes", s.sources))
 	if s.listPatterns != nil {
 		sdk.AddTool(srv, &sdk.Tool{Name: "padroes", Annotations: readOnly, Description: patternsDescription},
@@ -479,6 +487,16 @@ func (s *server) sources(ctx context.Context, _ *sdk.CallToolRequest, _ sourcesI
 			Diario: c.Source, Name: cov.Name, URL: sourceSites[c.Source], From: cov.From, To: cov.To, Gazettes: c.Gazettes, Acts: c.Acts,
 			LastCollected: cov.LastCollected, LastRun: lastRunOf(c.LastRun), Gaps: cov.Gaps,
 		})
+	}
+	if s.collections == nil {
+		return nil, out, nil
+	}
+	runs, err := s.collections.Execute(ctx)
+	if err != nil {
+		return nil, sourcesOutput{}, err
+	}
+	for _, r := range runs {
+		out.Collectors = append(out.Collectors, collectorDTO{Source: r.Collector.Source, Name: r.Collector.Name, LastRun: lastRunOf(r.Run)})
 	}
 	return nil, out, nil
 }

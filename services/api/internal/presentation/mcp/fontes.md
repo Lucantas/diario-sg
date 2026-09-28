@@ -1,7 +1,8 @@
 # Fontes do Diário SG
 
 O que o servidor sabe, de onde vem, que ferramenta devolve e o que falta.
-Para o período coberto e a última coleta de cada Diário, chame `fontes`.
+Para o período coberto e a última coleta de cada Diário e de cada fonte
+externa, chame `fontes`.
 
 ## Diários oficiais
 
@@ -52,6 +53,23 @@ Para o período coberto e a última coleta de cada Diário, chame `fontes`.
   parlamentar do SICAM. Ferramenta: `agentes_politicos`. Servidores não
   têm perfil: aparecem só nos atos.
 
+## Câmara Municipal
+
+- **Processo legislativo (área pública do SICAM)**: projetos de lei, de
+  resolução, de emenda à Lei Orgânica, mensagens do Executivo, emendas,
+  indicações e moções, com a tramitação inteira, os pareceres das
+  comissões e, quando virou lei, o número da lei. A fase (em comissão,
+  aprovado, virou lei, arquivado…) é deduzida da tramitação por regra.
+  Ferramenta: `proposicoes`; a `norma` traz o `projeto` que deu origem à
+  lei.
+
+## Tema
+
+- **Meio ambiente** (`tema` = meio_ambiente em `buscar_atos`, `agrupar`,
+  `norma` e `proposicoes`): regra escrita, sem IA, sobre os órgãos
+  ambientais, a comissão de meio ambiente da Câmara e termos da ementa.
+  `norma` e `proposicoes` trazem a regra por extenso em `regra_tema`.
+
 ## União
 
 - **Transferências da União, emendas com aplicação na cidade e
@@ -62,8 +80,9 @@ Para o período coberto e a última coleta de cada Diário, chame `fontes`.
 - **TSE** (candidatos, bens, doações): o CDN e a API de dados abertos
   negam acesso à máquina da coleta; o espelho da Base dos Dados pede conta
   na plataforma ou projeto com cobrança no BigQuery.
-- **SICAM** (proposições e votações da Câmara): a API recusa pedidos de
-  fora da página da Câmara.
+- **Voto de cada vereador** (SICAM): fica na API do SICAM, que recusa
+  pedidos de fora da página da Câmara. O placar aparece no texto da
+  tramitação.
 - **Portal antigo da Prefeitura (portaltp)**: o WAF recusa o robô; os
   mesmos anos estão no portal novo.
 

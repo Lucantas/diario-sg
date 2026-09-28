@@ -248,6 +248,10 @@ type BillRepository interface {
 	SaveBills(ctx context.Context, bills []domain.Bill) error
 }
 
+type LatestRunsReader interface {
+	LatestRuns(ctx context.Context, sources []string) (map[string]domain.FetchRun, error)
+}
+
 type BillReader interface {
 	CandidateBills(ctx context.Context, f domain.BillFilter) ([]domain.Bill, error)
 	BillByKey(ctx context.Context, key domain.BillKey) (domain.Bill, bool, error)
