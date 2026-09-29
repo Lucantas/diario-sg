@@ -25,6 +25,7 @@ const (
 	NormResolution        NormKind = "resolucao"
 	NormOrganicAmendment  NormKind = "emenda_lei_organica"
 	NormLegislativeDecree NormKind = "decreto_legislativo"
+	NormAct               NormKind = "ato"
 )
 
 var NormCategories = map[NormKind]string{NormLaw: "01", NormOrganic: "02", NormComplementary: "03", NormDecree: "05"}
@@ -33,7 +34,7 @@ var NormKindsInOrder = []NormKind{NormLaw, NormComplementary, NormOrganic, NormD
 
 var normKindNames = map[NormKind]string{
 	NormLaw: "Lei", NormComplementary: "Lei Complementar", NormOrganic: "Lei Orgânica", NormDecree: "Decreto",
-	NormResolution: "Resolução", NormOrganicAmendment: "Emenda à Lei Orgânica", NormLegislativeDecree: "Decreto Legislativo",
+	NormResolution: "Resolução", NormOrganicAmendment: "Emenda à Lei Orgânica", NormLegislativeDecree: "Decreto Legislativo", NormAct: "Ato",
 }
 
 func (k NormKind) Name() string { return normKindNames[k] }

@@ -122,7 +122,7 @@ func TestParseBillPageResolutionBadgeKeepsTheNormKind(t *testing.T) {
 func TestNormKindFromSICAMBadge(t *testing.T) {
 	cases := map[string]NormKind{
 		"Lei": NormLaw, "Lei Complementar": NormComplementary, "Resolução": NormResolution,
-		"Emenda à Lei Orgânica": NormOrganicAmendment, "Decreto Legislativo": NormLegislativeDecree, "Portaria": "",
+		"Emenda à Lei Orgânica": NormOrganicAmendment, "Decreto Legislativo": NormLegislativeDecree, "Ato": NormAct, "Portaria": "",
 	}
 	for label, want := range cases {
 		if got := NormKindFromSICAM(label); got != want {
