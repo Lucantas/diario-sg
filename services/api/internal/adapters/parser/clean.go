@@ -10,6 +10,8 @@ var pageNoiseRe = regexp.MustCompile(`^(?:DIÁRIO OFICIAL(?: ELETRÔNICO DO MUNI
 var (
 	siteURLRe    = regexp.MustCompile(`^https://do\.pmsg\.rj\.gov\.br/?$`)
 	pageNumberRe = regexp.MustCompile(`^\d{1,3}$`)
+	siteFooterRe = regexp.MustCompile(`^https://www\.(?:saogoncalo|pmsg)\.rj\.gov\.br/diario-oficial/?$`)
+	pageCountRe  = regexp.MustCompile(`^[1-9]/[1-9]$`)
 )
 
 type line struct {
@@ -80,8 +82,19 @@ func (r Regex) headerKind(text string) int {
 
 func stripPageNoise(lines []line) []line {
 	out := make([]line, 0, len(lines))
+	afterFooter := false
 	for _, l := range lines {
-		if pageNoiseRe.MatchString(l.text) {
+		if afterFooter && l.text != "" {
+			afterFooter = false
+			if pageNumberRe.MatchString(l.text) {
+				continue
+			}
+		}
+		if pageNoiseRe.MatchString(l.text) || pageCountRe.MatchString(l.text) {
+			continue
+		}
+		if siteFooterRe.MatchString(l.text) {
+			afterFooter = true
 			continue
 		}
 		if siteURLRe.MatchString(l.text) {

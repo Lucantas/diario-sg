@@ -302,6 +302,27 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
     linhas (o nome por extenso da secretaria entre a sigla e o primeiro ato)
     ou só nome e cargo ("RODRIGO … / Secretário Municipal de Administração")
     não vira ato.
+14. Aviso de licença ambiental: a empresa vem antes do título, em duas
+    linhas ("MICAL INVEST E PARTICIPAÇÕES LTDA / CNPJ: …") e depois
+    "CONCESSÃO DE LICENÇA / MICAL INVEST … torna público que recebeu…".
+    Quando o ato aberto termina com nome e CNPJ e o texto depois do
+    cabeçalho seguinte começa com o mesmo nome, as duas linhas passam para
+    o ato novo. Antes, 593 avisos deixavam o CNPJ no ato de cima (um
+    despacho da JARI, um extrato), e a página da empresa mostrava o ato
+    errado. Se o nome não se repete, o CNPJ fica onde está.
+15. Ato sem cabeçalho que começa numa sigla de órgão conhecida ("SEMAD /
+    Licença Prêmio: …") fica com esse órgão; antes ficava sem órgão.
+16. O rodapé com o endereço do Diário
+    (`https://www.saogoncalo.rj.gov.br/diario-oficial/` ou
+    `…pmsg.rj.gov.br/diario-oficial/`), seguido ou não do número da página,
+    e a contagem "1/1" do anexo de pessoal são ruído de página; antes
+    ficavam no corpo de cerca de 4.300 atos e davam o título de 89.
+
+O que foi olhado e ficou como está (29/09/2026): "PORTARIA … No. 009/…"
+dentro do corpo são citações de portarias anteriores (editais de citação,
+corrigendas), não cabeçalhos; aceitar "No." quebraria esses atos. O
+"TERMO DE FOMENTO" de 05/12/2025, com 430 páginas, é um documento só
+(planilhas das creches e o orçamento anexados), sem cabeçalho perdido.
 
 Os números do parser (atos por edição, % em `outro`, erros conhecidos) estão em
 `docs/fase-1-relatorio.md`.

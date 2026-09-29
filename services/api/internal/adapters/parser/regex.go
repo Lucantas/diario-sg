@@ -63,19 +63,24 @@ func (r Regex) Parse(text string) []domain.Act {
 		case r.joinRepeats && current.repeatsTitle(l.text):
 			current.add(l)
 		case isHeader(l.text):
-			flush()
 			title := []line{l}
 			for headerContinues(l.text) && i+1 < len(lines) && lines[i+1].text != "" {
 				i++
 				l = lines[i]
 				title = append(title, l)
 			}
+			party := current.takeParty(firstTextAfter(lines, i), l.page)
+			flush()
 			current = &segment{title: joinTexts(title, " "), organ: organ}
+			current.add(party...)
 			current.add(title...)
 		default:
 			if current == nil {
 				if l.text == "" {
 					continue
+				}
+				if acronym := sectionAcronym(l.text); !r.withoutOrgans && domain.IsKnownOrgan(acronym) {
+					organ = acronym
 				}
 				current = &segment{title: l.text, orphan: true, organ: organ}
 			}
