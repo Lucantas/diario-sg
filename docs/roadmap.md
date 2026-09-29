@@ -574,15 +574,31 @@ Achados no caminho (28/09/2026):
 - [x] O selo "?Lei/N" da página do processo também aponta para resoluções
   e emendas à Lei Orgânica; o tipo passou a vir do título do selo, e a
   fase `virou_lei` virou `virou_norma`.
-- [x] Parser: a seção `SG-PREVI` (sigla com hífen) não era reconhecida, e
-  as portarias do instituto ficavam com o órgão anterior; o expediente da
-  edição (lista de secretários) virava um ato em 391 edições desde 2025.
-  Base local reindexada.
+- [x] Parser: a seção `SG-PREVI` (também escrita `SG - PREVI`) não era
+  reconhecida, e 1.742 atos do instituto ficavam com o órgão anterior
+  (SEMAD, FMS, SEMSADC, FUNASG…); o expediente da edição (lista de
+  secretários) virava um ato em 391 edições desde 2025. Base local
+  reindexada em 29/09/2026: 162.441 atos, `outro` caiu de 7.704 para
+  7.213, os outros tipos mudaram menos de 25 cada.
+- [x] O sitemap do SICAM lista 8 processos duas vezes; os dois caíam no
+  mesmo lote e derrubavam a carga. A fila tira os repetidos.
+- [x] Quatro selos dizem só "Ato nº" (sem dizer se é lei); o tipo fica
+  `ato`, como o SICAM escreve.
 - [x] `make help` mostrava "Makefile" no lugar do nome do alvo.
 
 **Pronto quando:** dá para responder, com link para a página do processo,
 quais projetos ambientais estão parados, em qual comissão e há quantos
 dias, e quais viraram lei.
+
+Conferido em 29/09/2026 na base local, com a carga completa (49.981
+processos de 2014 a 2026; 170 números do sitemap sem página): 3.846
+proposições normativas, das quais 822 viraram norma, 597 estão em comissão
+e 2.107 foram arquivadas. Pelo tema ambiental, 246 proposições normativas:
+52 viraram norma (49 ligadas à lei pelo selo), 121 arquivadas, 36 em
+comissão. Das ativas, 27 estão em comissão há 180 dias ou mais (mediana de
+419 dias, a mais antiga com 1.662), 26 delas na Comissão de Justiça e
+Redação e uma na de Obras e Serviços Públicos; outras 11 foram enviadas ao
+Executivo e seguem sem selo de lei.
 
 Pendências:
 

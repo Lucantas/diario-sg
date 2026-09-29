@@ -270,7 +270,7 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
    anterior e não entram no próximo. A sigla pode ter hífen, com ou sem
    espaços (`SG-PREVI`, `SG - PREVI`), desde que seja um órgão conhecido:
    linhas como `CGF - FMMADS` ou `ISPTR - IMPOSTO` são texto. Antes de
-   28/09/2026 o hífen não era aceito, e 804 portarias do instituto de
+   28/09/2026 o hífen não era aceito, e 1.742 atos do instituto de
    previdência ficavam com o órgão da seção anterior (SEMAD, FMS,
    SEMMATRAN, FUNASG…).
 5. Juntar sequências de linhas de uma palavra em caixa alta que começam com uma
