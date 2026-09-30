@@ -24,7 +24,7 @@ type searchInput struct {
 	Name     string  `json:"nome,omitempty" jsonschema:"nome de pessoa ou empresa como aparece no texto; casa só com as palavras juntas, nessa ordem"`
 	Lists    bool    `json:"incluir_listas,omitempty" jsonschema:"com nome, incluir também atos que são listas longas de nomes (padrão: não)"`
 	Diario   string  `json:"diario,omitempty" jsonschema:"diario_prefeitura ou diario_camara; vazio busca nos dois"`
-	Type     string  `json:"tipo,omitempty" jsonschema:"tipo do ato: nomeacao, exoneracao, contrato, aditivo, licitacao, dispensa, decreto, lei, portaria, resolucao, despacho, edital, ata, corrigenda, prestacao_contas ou outro"`
+	Type     string  `json:"tipo,omitempty" jsonschema:"tipo do ato: nomeacao, exoneracao, contrato, aditivo, licitacao, dispensa, decreto, lei, portaria, resolucao, despacho, edital, ata, corrigenda, prestacao_contas, licenca_ambiental (concessão, renovação, suspensão ou cassação de licença ambiental) ou outro"`
 	Organ    string  `json:"orgao,omitempty" jsonschema:"sigla do órgão da Prefeitura, como SEMED"`
 	Theme    string  `json:"tema,omitempty" jsonschema:"meio_ambiente: atos dos órgãos ambientais ou com título do tema (a regra está na ferramenta proposicoes, em regra_tema)"`
 	From     string  `json:"de,omitempty" jsonschema:"data inicial da edição, AAAA-MM-DD"`

@@ -43,7 +43,7 @@ func TestParseRealFixtures(t *testing.T) {
 			{"AVISO DE LICITAÇÃO SRP", domain.ActLicitacao},
 			{"TERMO DE APREENSÃO ADMINISTRATIVA Nº 202/SEMMATRAN/MA/GERENCIARAGP/2026", domain.ActOutro},
 			{"NOTIFICAÇÃO Nº 191/SEMMATRAN/MA/GAB/2026", domain.ActOutro},
-			{"CONCESSÃO DE LICENÇA", domain.ActOutro},
+			{"CONCESSÃO DE LICENÇA", domain.ActLicencaAmbiental},
 		},
 	}
 	for file, wants := range cases {
