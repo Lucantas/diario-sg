@@ -23,7 +23,7 @@ describe("parseBRL", () => {
 describe("URL da busca", () => {
   it("vai e volta sem perder filtros", () => {
     const s: SearchState = {
-      q: "limpeza OU coleta", source: "diario_prefeitura", type: "contrato", organ: "SEMED", from: "2024-01-01",
+      q: "limpeza OU coleta", source: "diario_prefeitura", type: "contrato", organ: "SEMED", theme: "meio_ambiente", from: "2024-01-01",
       to: "2024-12-31", min: "1.000,00", max: "", page: 3,
     };
 
@@ -127,7 +127,7 @@ describe("alerta da busca", () => {
     const s = { ...EMPTY_STATE, type: "licenca_ambiental" as const, organ: "SEMMATRAN" };
 
     expect(canAlert(s)).toBe(true);
-    expect(alertFilters(s)).toEqual({ source: "", type: "licenca_ambiental", organ: "SEMMATRAN" });
+    expect(alertFilters(s)).toEqual({ source: "", type: "licenca_ambiental", organ: "SEMMATRAN", theme: "" });
     expect(alertFilterNames(s)).toBe("licença ambiental · SEMMATRAN");
   });
 
@@ -139,5 +139,22 @@ describe("alerta da busca", () => {
 
   it("descreve o diário", () => {
     expect(alertFilterNames({ ...EMPTY_STATE, source: "diario_camara" })).toBe("Diário da Câmara");
+  });
+});
+
+describe("tema", () => {
+  const s = { ...EMPTY_STATE, q: "loteamento", theme: "meio_ambiente" };
+
+  it("vai para a URL, a API, a exportação, o RSS e o alerta", () => {
+    expect(queryFromState(s)).toBe("?q=loteamento&tema=meio_ambiente");
+    expect(apiParams(s, 20)?.get("theme")).toBe("meio_ambiente");
+    expect(exportUrl(s, "csv")).toContain("theme=meio_ambiente");
+    expect(feedUrl(s)).toContain("theme=meio_ambiente");
+    expect(alertFilterNames(s)).toBe("meio ambiente");
+    expect(hasSearch({ ...EMPTY_STATE, theme: "meio_ambiente" })).toBe(true);
+  });
+
+  it("ignora tema desconhecido", () => {
+    expect(stateFromQuery("?tema=saude").theme).toBe("");
   });
 });

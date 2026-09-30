@@ -18,6 +18,7 @@ export interface AlertFilters {
   source: Source | "";
   type: ActType | "";
   organ: string;
+  theme: string;
 }
 
 export interface Subscription {
