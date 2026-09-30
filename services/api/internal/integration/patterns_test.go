@@ -69,18 +69,21 @@ de 1º de abril de 2021.`
 
 type patternsResponse struct {
 	Items []struct {
-		ID       string `json:"id"`
-		Rule     string `json:"rule"`
-		Findings []struct {
-			Title string `json:"title"`
-			Acts  []struct {
-				ID string `json:"id"`
-			} `json:"acts"`
-			Search *struct {
-				Type string `json:"type"`
-			} `json:"search"`
-		} `json:"findings"`
+		ID       string           `json:"id"`
+		Rule     string           `json:"rule"`
+		Findings []patternFinding `json:"findings"`
 	} `json:"items"`
+}
+
+type patternFinding struct {
+	Title string `json:"title"`
+	Acts  []struct {
+		ID    string `json:"id"`
+		Title string `json:"title"`
+	} `json:"acts"`
+	Search *struct {
+		Type string `json:"type"`
+	} `json:"search"`
 }
 
 func TestPatternsFlagSplitDispensasAndIgnoreRepublishedProcesses(t *testing.T) {
@@ -95,7 +98,7 @@ func TestPatternsFlagSplitDispensasAndIgnoreRepublishedProcesses(t *testing.T) {
 	var res patternsResponse
 	getJSON(t, srv.URL+"/v1/patterns", &res)
 
-	if len(res.Items) != 13 || res.Items[0].ID != "fracionamento_dispensa" || res.Items[1].ID != "aditivo_acima_do_limite" ||
+	if len(res.Items) != 14 || res.Items[0].ID != "fracionamento_dispensa" || res.Items[1].ID != "aditivo_acima_do_limite" ||
 		res.Items[2].ID != "emergencial_renovada" || res.Items[3].ID != "pico_pessoal_eleicao" {
 		t.Fatalf("padrões inesperados: %+v", res)
 	}

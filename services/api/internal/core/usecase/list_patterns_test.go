@@ -42,6 +42,11 @@ type fakeSupplierSource struct {
 	profiles  map[string]domain.SupplierProfile
 	sanctions []domain.Sanction
 	paid      []domain.CreditorPaid
+	licenses  []domain.LicenseAct
+}
+
+func (f *fakeSupplierSource) LicenseActs(context.Context) ([]domain.LicenseAct, error) {
+	return f.licenses, nil
 }
 
 func (f *fakeSupplierSource) PanelActs(context.Context, string) ([]domain.PanelAct, error) {
@@ -62,12 +67,13 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 			Title: "EXTRATO DO CONTRATO 1/SEMED/2025", Head: "EXTRATO DO CONTRATO 1/SEMED/2025", Refs: []string{"contrato:1/SEMED/2025"}}},
 		profiles: map[string]domain.SupplierProfile{"11222333000181": {CNPJ: "11222333000181", Name: "EMPRESA NOVA LTDA", Headquarters: true,
 			OpenedAt: &openedAt, CapitalCents: 100_000, LegalNature: "Sociedade Empresária Limitada"}},
+		licenses: []domain.LicenseAct{{ActID: "licenca", CNPJ: "11222333000181", PublishedAt: day, Title: "CONCESSÃO DE LICENÇA"}},
 	}
 	src := &fakePatternSource{}
 
 	reports, acts, err := NewListPatterns(src, suppliers).Execute(context.Background())
 
-	if err != nil || len(reports) != 13 {
+	if err != nil || len(reports) != 14 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	want := []domain.PatternID{domain.PatternNewCompany, domain.PatternUndercapitalized, domain.PatternSharedPartner, domain.PatternSharedAddress, domain.PatternSanctioned}
@@ -81,6 +87,9 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 	}
 	if reports[12].Pattern.ID != domain.PatternPNCPWithoutExtract || len(reports[12].Findings) != 1 || reports[12].Findings[0].Link == nil {
 		t.Fatalf("PNCP sem extrato: %+v", reports[12])
+	}
+	if reports[13].Pattern.ID != domain.PatternNewCompanyLicense || len(reports[13].Findings) != 1 || acts["licenca"].ID != "licenca" {
+		t.Fatalf("empresa nova licenciada: %+v", reports[13])
 	}
 	if len(reports[10].Findings) != 1 {
 		t.Errorf("contratação sem pagamento: %+v", reports[10].Findings)
@@ -102,7 +111,7 @@ func TestListPatternsReturnsEveryPatternWithItsFindingsAndActs(t *testing.T) {
 
 	reports, acts, err := NewListPatterns(src, &fakeSupplierSource{}).Execute(context.Background())
 
-	if err != nil || len(reports) != 13 {
+	if err != nil || len(reports) != 14 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	if reports[0].Pattern.ID != domain.PatternSplitDispensa || len(reports[0].Findings) != 1 || reports[1].Pattern.ID != domain.PatternExcessiveAddenda || len(reports[1].Findings) != 1 ||

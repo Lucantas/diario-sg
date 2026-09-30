@@ -101,13 +101,18 @@ func (uc *ListPatterns) supplierReports(ctx context.Context, catalog map[domain.
 	if err != nil {
 		return nil, err
 	}
+	licenses, err := uc.suppliers.LicenseActs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	newLicensed := reportOf(catalog[domain.PatternNewCompanyLicense], domain.FindNewCompanyLicenses(licenses, profiles), domain.NewCompanyLicenseFinding)
 	return append([]domain.PatternReport{
 		reportOf(catalog[domain.PatternNewCompany], domain.FindNewCompanyContracts(contracts, profiles), domain.NewCompanyFinding),
 		reportOf(catalog[domain.PatternUndercapitalized], domain.FindUndercapitalizedContracts(contracts, profiles), domain.UndercapitalizedFinding),
 		reportOf(catalog[domain.PatternSharedPartner], domain.FindSharedPartners(contracts, profiles), domain.SharedPartnerFinding),
 		reportOf(catalog[domain.PatternSharedAddress], domain.FindSharedAddresses(contracts, profiles), domain.SharedAddressFinding),
 		reportOf(catalog[domain.PatternSanctioned], domain.FindSanctionedContracts(contracts, profiles, sanctions), domain.SanctionedFinding),
-	}, append(payment, pncp)...), nil
+	}, append(payment, pncp, newLicensed)...), nil
 }
 
 func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, acts []domain.PanelAct,
