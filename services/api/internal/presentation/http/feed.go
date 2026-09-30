@@ -17,7 +17,7 @@ var typeLabel = map[domain.ActType]string{
 	domain.ActAditivo: "Aditivo", domain.ActLicitacao: "Licitação", domain.ActDispensa: "Sem licitação",
 	domain.ActDecreto: "Decreto", domain.ActLei: "Lei", domain.ActPortaria: "Portaria", domain.ActResolucao: "Resolução",
 	domain.ActDespacho: "Despacho", domain.ActEdital: "Edital", domain.ActAta: "Ata", domain.ActCorrigenda: "Corrigenda",
-	domain.ActPrestacaoContas: "Prestação de contas", domain.ActOutro: "Outro",
+	domain.ActPrestacaoContas: "Prestação de contas", domain.ActLicencaAmbiental: "Licença ambiental", domain.ActOutro: "Outro",
 }
 
 var saoPaulo = time.FixedZone("BRT", -3*60*60)

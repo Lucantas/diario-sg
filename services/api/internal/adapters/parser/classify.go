@@ -10,6 +10,35 @@ import (
 
 func classify(title, body string) domain.ActType {
 	t := withoutAccentTypos(strings.ToUpper(title))
+	if isEnvironmentalLicense(t, body) {
+		return domain.ActLicencaAmbiental
+	}
+	if typ := classifyByTitle(t, title, body); typ != domain.ActOutro || !isLicenseNotice(body) {
+		return typ
+	}
+	return domain.ActLicencaAmbiental
+}
+
+var (
+	licenseTitleRe         = regexp.MustCompile(`^(?:CONCESSÃO|RENOVAÇÃO|CANCELAMENTO|SUSPENSÃO|CASSAÇÃO) DE LICENÇA`)
+	environmentalLicenseRe = regexp.MustCompile(`(?i)licen[çc]a (?:municipal|ambiental|pr[ée]via|de instala[çc][ãa]o|de opera[çc][ãa]o)|meio ambiente`)
+	licenseNoticeRe        = regexp.MustCompile(`(?is)torna p[úu]blico que (?:recebeu|requereu|obteve).{0,300}licen[çc]a`)
+)
+
+const licenseNoticeRunes = 600
+
+func isEnvironmentalLicense(upperTitle, body string) bool {
+	return licenseTitleRe.MatchString(upperTitle) && environmentalLicenseRe.MatchString(body)
+}
+
+func isLicenseNotice(body string) bool {
+	if r := []rune(body); len(r) > licenseNoticeRunes {
+		body = string(r[:licenseNoticeRunes])
+	}
+	return licenseNoticeRe.MatchString(body)
+}
+
+func classifyByTitle(t, title, body string) domain.ActType {
 	switch {
 	case hasAnyPrefix(t, "CORRIGENDA", "ERRATA"):
 		return domain.ActCorrigenda

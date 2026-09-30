@@ -2,7 +2,7 @@
 export type ActType =
   | "nomeacao" | "exoneracao" | "contrato" | "aditivo" | "licitacao"
   | "dispensa" | "decreto" | "lei" | "portaria" | "resolucao"
-  | "despacho" | "edital" | "ata" | "corrigenda" | "prestacao_contas" | "outro";
+  | "despacho" | "edital" | "ata" | "corrigenda" | "prestacao_contas" | "licenca_ambiental" | "outro";
 
 export type Source = "diario_prefeitura" | "diario_camara";
 

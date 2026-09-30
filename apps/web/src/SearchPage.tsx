@@ -23,6 +23,7 @@ const TYPES: { value: ActType | ""; label: string }[] = [
   { value: "lei", label: "Leis" },
   { value: "resolucao", label: "Resoluções" },
   { value: "prestacao_contas", label: "Prestações de contas" },
+  { value: "licenca_ambiental", label: "Licenças ambientais" },
   { value: "despacho", label: "Despachos" },
   { value: "edital", label: "Editais" },
 ];

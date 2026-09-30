@@ -5,29 +5,30 @@ import "time"
 type ActType string
 
 const (
-	ActNomeacao        ActType = "nomeacao"
-	ActExoneracao      ActType = "exoneracao"
-	ActContrato        ActType = "contrato"
-	ActAditivo         ActType = "aditivo"
-	ActLicitacao       ActType = "licitacao"
-	ActDispensa        ActType = "dispensa"
-	ActDecreto         ActType = "decreto"
-	ActLei             ActType = "lei"
-	ActPortaria        ActType = "portaria"
-	ActResolucao       ActType = "resolucao"
-	ActDespacho        ActType = "despacho"
-	ActEdital          ActType = "edital"
-	ActAta             ActType = "ata"
-	ActCorrigenda      ActType = "corrigenda"
-	ActPrestacaoContas ActType = "prestacao_contas"
-	ActOutro           ActType = "outro"
+	ActNomeacao         ActType = "nomeacao"
+	ActExoneracao       ActType = "exoneracao"
+	ActContrato         ActType = "contrato"
+	ActAditivo          ActType = "aditivo"
+	ActLicitacao        ActType = "licitacao"
+	ActDispensa         ActType = "dispensa"
+	ActDecreto          ActType = "decreto"
+	ActLei              ActType = "lei"
+	ActPortaria         ActType = "portaria"
+	ActResolucao        ActType = "resolucao"
+	ActDespacho         ActType = "despacho"
+	ActEdital           ActType = "edital"
+	ActAta              ActType = "ata"
+	ActCorrigenda       ActType = "corrigenda"
+	ActPrestacaoContas  ActType = "prestacao_contas"
+	ActLicencaAmbiental ActType = "licenca_ambiental"
+	ActOutro            ActType = "outro"
 )
 
 var validActTypes = map[ActType]bool{
 	ActNomeacao: true, ActExoneracao: true, ActContrato: true, ActAditivo: true, ActLicitacao: true,
 	ActDispensa: true, ActDecreto: true, ActLei: true, ActPortaria: true, ActResolucao: true,
 	ActDespacho: true, ActEdital: true, ActAta: true, ActCorrigenda: true, ActPrestacaoContas: true,
-	ActOutro: true,
+	ActLicencaAmbiental: true, ActOutro: true,
 }
 
 func (t ActType) Valid() bool { return validActTypes[t] }
