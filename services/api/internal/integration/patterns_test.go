@@ -98,7 +98,7 @@ func TestPatternsFlagSplitDispensasAndIgnoreRepublishedProcesses(t *testing.T) {
 	var res patternsResponse
 	getJSON(t, srv.URL+"/v1/patterns", &res)
 
-	if len(res.Items) != 14 || res.Items[0].ID != "fracionamento_dispensa" || res.Items[1].ID != "aditivo_acima_do_limite" ||
+	if len(res.Items) != 15 || res.Items[0].ID != "fracionamento_dispensa" || res.Items[1].ID != "aditivo_acima_do_limite" ||
 		res.Items[2].ID != "emergencial_renovada" || res.Items[3].ID != "pico_pessoal_eleicao" {
 		t.Fatalf("padrões inesperados: %+v", res)
 	}

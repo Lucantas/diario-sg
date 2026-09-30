@@ -9,19 +9,20 @@ import (
 type PatternID string
 
 const (
-	PatternSplitDispensa     PatternID = "fracionamento_dispensa"
-	PatternElectionHiring    PatternID = "pico_pessoal_eleicao"
-	PatternExcessiveAddenda  PatternID = "aditivo_acima_do_limite"
-	PatternRenewedEmergency  PatternID = "emergencial_renovada"
-	PatternNewCompany        PatternID = "empresa_nova_contratada"
-	PatternUndercapitalized  PatternID = "capital_menor_que_contrato"
-	PatternSharedPartner     PatternID = "socio_em_comum"
-	PatternSharedAddress     PatternID = "endereco_em_comum"
-	PatternSanctioned        PatternID = "sancionado_contratado"
-	PatternPaidUnpublished   PatternID = "pago_sem_publicacao"
-	PatternUnpaidContract    PatternID = "contrato_sem_pagamento"
-	PatternPaidAbove         PatternID = "pago_acima_do_anunciado"
-	PatternNewCompanyLicense PatternID = "empresa_nova_licenciada"
+	PatternSplitDispensa      PatternID = "fracionamento_dispensa"
+	PatternElectionHiring     PatternID = "pico_pessoal_eleicao"
+	PatternExcessiveAddenda   PatternID = "aditivo_acima_do_limite"
+	PatternRenewedEmergency   PatternID = "emergencial_renovada"
+	PatternNewCompany         PatternID = "empresa_nova_contratada"
+	PatternUndercapitalized   PatternID = "capital_menor_que_contrato"
+	PatternSharedPartner      PatternID = "socio_em_comum"
+	PatternSharedAddress      PatternID = "endereco_em_comum"
+	PatternSanctioned         PatternID = "sancionado_contratado"
+	PatternPaidUnpublished    PatternID = "pago_sem_publicacao"
+	PatternUnpaidContract     PatternID = "contrato_sem_pagamento"
+	PatternPaidAbove          PatternID = "pago_acima_do_anunciado"
+	PatternNewCompanyLicense  PatternID = "empresa_nova_licenciada"
+	PatternPartnerPublicAgent PatternID = "socio_com_nome_de_agente_publico"
 )
 
 type Pattern struct {
@@ -98,6 +99,9 @@ func PatternCatalog() map[PatternID]Pattern {
 		catalog[id] = p
 	}
 	for id, p := range licensePatterns() {
+		catalog[id] = p
+	}
+	for id, p := range partnerAgentPatterns() {
 		catalog[id] = p
 	}
 	return catalog

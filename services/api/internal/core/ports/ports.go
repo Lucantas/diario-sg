@@ -50,6 +50,8 @@ type SupplierPatternSource interface {
 	CitedProcesses(ctx context.Context) (map[string]bool, error)
 	LatestGazetteDay(ctx context.Context, source string) (time.Time, error)
 	LicenseActs(ctx context.Context) ([]domain.LicenseAct, error)
+	PartnerAppointments(ctx context.Context) ([]domain.PartnerAppointment, error)
+	PoliticalAgentNames(ctx context.Context) ([]domain.PublicAgentName, error)
 }
 
 type PanelSource interface {

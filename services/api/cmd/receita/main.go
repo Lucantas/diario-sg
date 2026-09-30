@@ -48,4 +48,8 @@ func main() {
 		log.Error("carga falhou", "error", err)
 		os.Exit(1)
 	}
+	if err := postgres.RefreshPartnerAppointments(ctx, db); err != nil {
+		log.Error("atualização dos nomes de sócios em nomeações falhou", "error", err)
+		os.Exit(1)
+	}
 }

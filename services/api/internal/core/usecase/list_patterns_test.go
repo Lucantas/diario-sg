@@ -49,6 +49,14 @@ func (f *fakeSupplierSource) LicenseActs(context.Context) ([]domain.LicenseAct, 
 	return f.licenses, nil
 }
 
+func (f *fakeSupplierSource) PartnerAppointments(context.Context) ([]domain.PartnerAppointment, error) {
+	return []domain.PartnerAppointment{{Name: "JOÃO CARLOS PEREIRA", ActID: "nomeacao"}}, nil
+}
+
+func (f *fakeSupplierSource) PoliticalAgentNames(context.Context) ([]domain.PublicAgentName, error) {
+	return nil, nil
+}
+
 func (f *fakeSupplierSource) PanelActs(context.Context, string) ([]domain.PanelAct, error) {
 	return f.acts, nil
 }
@@ -66,14 +74,15 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 		acts: []domain.PanelAct{{ActID: "contrato", CNPJ: "11222333000181", PublishedAt: day, ValueCents: 50_000_000, Type: domain.ActContrato,
 			Title: "EXTRATO DO CONTRATO 1/SEMED/2025", Head: "EXTRATO DO CONTRATO 1/SEMED/2025", Refs: []string{"contrato:1/SEMED/2025"}}},
 		profiles: map[string]domain.SupplierProfile{"11222333000181": {CNPJ: "11222333000181", Name: "EMPRESA NOVA LTDA", Headquarters: true,
-			OpenedAt: &openedAt, CapitalCents: 100_000, LegalNature: "Sociedade Empresária Limitada"}},
+			OpenedAt: &openedAt, CapitalCents: 100_000, LegalNature: "Sociedade Empresária Limitada",
+			Partners: []domain.PartnerKey{{Kind: domain.PartnerPerson, Name: "JOAO CARLOS PEREIRA"}}}},
 		licenses: []domain.LicenseAct{{ActID: "licenca", CNPJ: "11222333000181", PublishedAt: day, Title: "CONCESSÃO DE LICENÇA"}},
 	}
 	src := &fakePatternSource{}
 
 	reports, acts, err := NewListPatterns(src, suppliers).Execute(context.Background())
 
-	if err != nil || len(reports) != 14 {
+	if err != nil || len(reports) != 15 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	want := []domain.PatternID{domain.PatternNewCompany, domain.PatternUndercapitalized, domain.PatternSharedPartner, domain.PatternSharedAddress, domain.PatternSanctioned}
@@ -90,6 +99,9 @@ func TestListPatternsAddsTheSupplierPatternsWithTheirActs(t *testing.T) {
 	}
 	if reports[13].Pattern.ID != domain.PatternNewCompanyLicense || len(reports[13].Findings) != 1 || acts["licenca"].ID != "licenca" {
 		t.Fatalf("empresa nova licenciada: %+v", reports[13])
+	}
+	if reports[14].Pattern.ID != domain.PatternPartnerPublicAgent || len(reports[14].Findings) != 1 || acts["nomeacao"].ID != "nomeacao" {
+		t.Fatalf("sócio com nome de agente público: %+v", reports[14])
 	}
 	if len(reports[10].Findings) != 1 {
 		t.Errorf("contratação sem pagamento: %+v", reports[10].Findings)
@@ -111,7 +123,7 @@ func TestListPatternsReturnsEveryPatternWithItsFindingsAndActs(t *testing.T) {
 
 	reports, acts, err := NewListPatterns(src, &fakeSupplierSource{}).Execute(context.Background())
 
-	if err != nil || len(reports) != 14 {
+	if err != nil || len(reports) != 15 {
 		t.Fatalf("veio %+v %v", reports, err)
 	}
 	if reports[0].Pattern.ID != domain.PatternSplitDispensa || len(reports[0].Findings) != 1 || reports[1].Pattern.ID != domain.PatternExcessiveAddenda || len(reports[1].Findings) != 1 ||

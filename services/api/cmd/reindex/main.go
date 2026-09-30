@@ -51,6 +51,10 @@ func main() {
 	start := time.Now()
 	res, err := uc.Execute(ctx, from, to)
 	log.Info("reindexação finalizada", "result", res, "duration_ms", time.Since(start).Milliseconds())
+	if err := postgres.RefreshPartnerAppointments(ctx, db); err != nil {
+		log.Error("atualização dos nomes de sócios em nomeações falhou", "error", err)
+		os.Exit(1)
+	}
 	if err != nil {
 		log.Error("edições com falha", "error", err)
 		os.Exit(1)
