@@ -239,12 +239,12 @@ func (a *API) subscribe(w http.ResponseWriter, r *http.Request) {
 	var s domain.Subscription
 	var err error
 	switch {
-	case req.Entity != nil && req.Query != "":
+	case req.Entity != nil && (req.Query != "" || req.Filters != alertFilterDTO{}):
 		err = domain.ErrInvalidInput
 	case req.Entity != nil:
 		s, err = a.Subscriptions.SubscribeEntity(r.Context(), req.Email, domain.EntityKind(req.Entity.Kind), req.Entity.Value)
 	default:
-		s, err = a.Subscriptions.Subscribe(r.Context(), req.Email, req.Query)
+		s, err = a.Subscriptions.Subscribe(r.Context(), req.Email, req.Query, req.Filters.toDomain())
 	}
 	if err != nil {
 		writeError(w, err, a.Log)

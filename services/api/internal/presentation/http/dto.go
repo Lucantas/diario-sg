@@ -149,9 +149,25 @@ type organsResponse struct {
 }
 
 type subscribeRequest struct {
-	Email  string       `json:"email"`
-	Query  string       `json:"query"`
-	Entity *entityInput `json:"entity"`
+	Email   string         `json:"email"`
+	Query   string         `json:"query"`
+	Entity  *entityInput   `json:"entity"`
+	Filters alertFilterDTO `json:"filters"`
+}
+
+type alertFilterDTO struct {
+	Source string `json:"source"`
+	Type   string `json:"type"`
+	Organ  string `json:"organ"`
+	Theme  string `json:"theme"`
+}
+
+func (f alertFilterDTO) toDomain() domain.AlertFilter {
+	return domain.AlertFilter{Source: f.Source, Type: domain.ActType(f.Type), Organ: f.Organ, Theme: f.Theme}
+}
+
+func toAlertFilterDTO(f domain.AlertFilter) alertFilterDTO {
+	return alertFilterDTO{Source: f.Source, Type: string(f.Type), Organ: f.Organ, Theme: f.Theme}
 }
 
 type entityInput struct {
@@ -173,11 +189,12 @@ type subscriptionDTO struct {
 	Query   string                 `json:"query"`
 	Subject string                 `json:"subject"`
 	Entity  *subscriptionEntityDTO `json:"entity"`
+	Filters alertFilterDTO         `json:"filters"`
 	Status  string                 `json:"status"`
 }
 
 func toSubscriptionDTO(s domain.Subscription) subscriptionDTO {
-	dto := subscriptionDTO{Query: s.Query, Subject: s.Subject(), Status: string(s.Status)}
+	dto := subscriptionDTO{Query: s.Query, Subject: s.Subject(), Filters: toAlertFilterDTO(s.Filter), Status: string(s.Status)}
 	if s.Entity != nil {
 		dto.Entity = &subscriptionEntityDTO{Kind: string(s.Entity.Kind), Key: s.Entity.Key, Label: s.Entity.Label}
 	}

@@ -1,4 +1,4 @@
-import { ActType, Source } from "./api";
+import { ActType, AlertFilters, Source } from "./api";
 import { SOURCE_LABEL, TYPE_LABEL } from "./types";
 
 export interface SearchState {
@@ -98,4 +98,24 @@ export function exportUrl(s: SearchState, format: "csv" | "json"): string | null
 export function feedUrl(s: SearchState): string | null {
   const p = unpagedParams(s);
   return p && `/api/v1/feeds/acts?${p}`;
+}
+
+const MIN_ALERT_QUERY = 3;
+
+export function alertFilters(s: SearchState): AlertFilters {
+  return { source: s.source, type: s.type, organ: s.organ };
+}
+
+export function canAlert(s: SearchState): boolean {
+  const hasFilter = Object.values(alertFilters(s)).some(Boolean);
+  return s.q.length >= MIN_ALERT_QUERY || (s.q === "" && hasFilter);
+}
+
+export function alertFilterNames(s: SearchState): string {
+  const f = alertFilters(s);
+  return [
+    f.type && TYPE_LABEL[f.type].toLowerCase(),
+    f.organ,
+    f.source && `Diário da ${SOURCE_LABEL[f.source]}`,
+  ].filter(Boolean).join(" · ");
 }

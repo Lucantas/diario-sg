@@ -17,6 +17,9 @@ func filterSQL(f domain.ActFilter, next int) (string, []any) {
 		args = append(args, v)
 		return "$" + strconv.Itoa(next+len(args)-1)
 	}
+	if f.GazetteID != "" {
+		b.WriteString(" AND a.gazette_id = " + param(f.GazetteID) + "::uuid")
+	}
 	if f.Source != "" {
 		b.WriteString(" AND g.source = " + param(f.Source))
 	}

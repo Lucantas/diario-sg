@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  EMPTY_STATE, SearchState, apiParams, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery, withSource,
+  EMPTY_STATE, SearchState, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery, withSource,
 } from "./searchState";
 
 describe("parseBRL", () => {
@@ -119,5 +119,25 @@ describe("withSource", () => {
     expect(withSource(s, "diario_camara")).toEqual({ ...EMPTY_STATE, source: "diario_camara" });
     expect(withSource(s, "diario_prefeitura")).toEqual({ ...EMPTY_STATE, source: "diario_prefeitura", organ: "SEMED" });
     expect(withSource(s, "")).toEqual({ ...EMPTY_STATE, organ: "SEMED" });
+  });
+});
+
+describe("alerta da busca", () => {
+  it("aceita só filtros, sem termo", () => {
+    const s = { ...EMPTY_STATE, type: "licenca_ambiental" as const, organ: "SEMMATRAN" };
+
+    expect(canAlert(s)).toBe(true);
+    expect(alertFilters(s)).toEqual({ source: "", type: "licenca_ambiental", organ: "SEMMATRAN" });
+    expect(alertFilterNames(s)).toBe("licença ambiental · SEMMATRAN");
+  });
+
+  it("recusa termo curto e busca sem termo nem filtro", () => {
+    expect(canAlert({ ...EMPTY_STATE, q: "ab", type: "contrato" })).toBe(false);
+    expect(canAlert({ ...EMPTY_STATE, from: "2024-01-01" })).toBe(false);
+    expect(canAlert({ ...EMPTY_STATE, q: "merenda" })).toBe(true);
+  });
+
+  it("descreve o diário", () => {
+    expect(alertFilterNames({ ...EMPTY_STATE, source: "diario_camara" })).toBe("Diário da Câmara");
   });
 });

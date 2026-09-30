@@ -22,6 +22,7 @@ type Subscription struct {
 	Email            string
 	Query            string
 	Entity           *EntityRef
+	Filter           AlertFilter
 	Status           SubscriptionStatus
 	ConfirmToken     string
 	UnsubscribeToken string
@@ -29,14 +30,17 @@ type Subscription struct {
 	ConfirmedAt      *time.Time
 }
 
-func NewSubscription(email, query string, now time.Time) (Subscription, error) {
+func NewSubscription(email, query string, filter AlertFilter, now time.Time) (Subscription, error) {
 	s, err := newPendingSubscription(email, now)
 	if err != nil {
 		return Subscription{}, err
 	}
 	s.Query = strings.Join(strings.Fields(query), " ")
-	if n := utf8.RuneCountInString(s.Query); n < 3 || n > 200 {
+	if n := utf8.RuneCountInString(s.Query); (n > 0 || filter.IsZero()) && (n < 3 || n > 200) {
 		return Subscription{}, ErrInvalidQuery
+	}
+	if s.Filter, err = filter.normalized(); err != nil {
+		return Subscription{}, err
 	}
 	return s, nil
 }
@@ -54,7 +58,14 @@ func (s Subscription) Subject() string {
 	if s.Entity != nil {
 		return s.Entity.Description()
 	}
-	return "“" + s.Query + "”"
+	var parts []string
+	if s.Query != "" {
+		parts = append(parts, "“"+s.Query+"”")
+	}
+	if d := s.Filter.Description(); d != "" {
+		parts = append(parts, d)
+	}
+	return strings.Join(parts, " · ")
 }
 
 func newPendingSubscription(email string, now time.Time) (Subscription, error) {
