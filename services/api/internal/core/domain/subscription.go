@@ -36,11 +36,11 @@ func NewSubscription(email, query string, filter AlertFilter, now time.Time) (Su
 		return Subscription{}, err
 	}
 	s.Query = strings.Join(strings.Fields(query), " ")
-	if n := utf8.RuneCountInString(s.Query); (n > 0 || filter.IsZero()) && (n < 3 || n > 200) {
-		return Subscription{}, ErrInvalidQuery
-	}
 	if s.Filter, err = filter.normalized(); err != nil {
 		return Subscription{}, err
+	}
+	if n := utf8.RuneCountInString(s.Query); (n > 0 || s.Filter.IsZero()) && (n < 3 || n > 200) {
+		return Subscription{}, ErrInvalidQuery
 	}
 	return s, nil
 }
@@ -58,11 +58,27 @@ func (s Subscription) Subject() string {
 	if s.Entity != nil {
 		return s.Entity.Description()
 	}
+	return s.describe(s.Filter)
+}
+
+func (s Subscription) EditionSubject() string {
+	if s.Entity != nil {
+		return s.Entity.Description()
+	}
+	withoutSource := s.Filter
+	withoutSource.Source = ""
+	if d := s.describe(withoutSource); d != "" {
+		return d
+	}
+	return "atos"
+}
+
+func (s Subscription) describe(f AlertFilter) string {
 	var parts []string
 	if s.Query != "" {
 		parts = append(parts, "“"+s.Query+"”")
 	}
-	if d := s.Filter.Description(); d != "" {
+	if d := f.Description(); d != "" {
 		parts = append(parts, d)
 	}
 	return strings.Join(parts, " · ")
