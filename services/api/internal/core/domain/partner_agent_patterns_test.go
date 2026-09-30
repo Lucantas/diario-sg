@@ -42,19 +42,19 @@ func TestPartnerPublicAgentsMatchPayrollAndAppointmentsByFullName(t *testing.T) 
 	if len(got) != 2 {
 		t.Fatalf("esperava 2 achados: %+v", got)
 	}
-	if got[0].Profile.CNPJ != "11111111000111" || got[0].Agent == nil || got[0].Agent.Role != RoleSecretario || len(got[0].AppointmentActIDs) != 0 {
+	if got[0].Profile.CNPJ != "11111111000111" || len(got[0].Agents) != 1 || got[0].Agents[0].Role != RoleSecretario || len(got[0].AppointmentActIDs) != 0 {
 		t.Errorf("agente da folha: %+v", got[0])
 	}
-	if got[1].Profile.CNPJ != "22222222000122" || got[1].Agent != nil || strings.Join(got[1].AppointmentActIDs, ",") != "nomeacao-1,nomeacao-2" {
+	if got[1].Profile.CNPJ != "22222222000122" || len(got[1].Agents) != 0 || strings.Join(got[1].AppointmentActIDs, ",") != "nomeacao-1,nomeacao-2" {
 		t.Errorf("nome em nomeação: %+v", got[1])
 	}
 }
 
 func TestPartnerPublicAgentFindingsSayTheLinkIsOnlyPossible(t *testing.T) {
 	agent := PartnerPublicAgent{Profile: SupplierProfile{CNPJ: "11111111000111", Name: "OBRAS LTDA"},
-		Agent: &PublicAgentName{Name: "JOAO CARLOS PEREIRA", Role: RoleSecretario, Office: "SEMOBI"}}
+		Agents: []PublicAgentName{{Name: "JOAO CARLOS PEREIRA", Role: RoleSecretario, Office: "SEMOBI"}}}
 	appointed := PartnerPublicAgent{Profile: SupplierProfile{CNPJ: "22222222000122", Name: "MICAL INVEST LTDA"},
-		AppointmentActIDs: []string{"a", "b"}, Appointments: 7}
+		AppointedPartners: 1, AppointmentActIDs: []string{"a", "b"}, Appointments: 7}
 
 	fa, fb := PartnerPublicAgentFinding(agent), PartnerPublicAgentFinding(appointed)
 
@@ -71,5 +71,23 @@ func TestPartnerPublicAgentFindingsSayTheLinkIsOnlyPossible(t *testing.T) {
 	}
 	if _, ok := PatternCatalog()[PatternPartnerPublicAgent]; !ok {
 		t.Error("padrão fora do catálogo")
+	}
+}
+
+func TestPartnerPublicAgentsGroupThePartnersOfTheSameCompany(t *testing.T) {
+	person := func(name string) PartnerKey { return PartnerKey{Kind: PartnerPerson, Name: name} }
+	profiles := map[string]SupplierProfile{"11111111000111": {CNPJ: "11111111000111", Name: "FARMA LTDA",
+		Partners: []PartnerKey{person("ANA PAULA RIBEIRO"), person("CARLOS ALBERTO NUNES")}}}
+	appointments := []PartnerAppointment{{Name: "ANA PAULA RIBEIRO", ActID: "a"}, {Name: "CARLOS ALBERTO NUNES", ActID: "b"}}
+
+	got := FindPartnerPublicAgents([]string{"11111111000111"}, profiles, nil, appointments)
+
+	if len(got) != 1 || got[0].AppointedPartners != 2 || got[0].Appointments != 2 {
+		t.Fatalf("esperava um achado com dois sócios: %+v", got)
+	}
+	f := PartnerPublicAgentFinding(got[0])
+	if f.Title != "FARMA LTDA (11.111.111/0001-11): 2 sócios com nomes de pessoas nomeadas ou exoneradas no Diário" ||
+		!strings.Contains(f.Detail, "2 atos de nomeação ou exoneração citam os nomes de 2 sócios.") {
+		t.Errorf("achado: %+v", f)
 	}
 }

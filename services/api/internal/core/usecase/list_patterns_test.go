@@ -53,6 +53,10 @@ func (f *fakeSupplierSource) PartnerAppointments(context.Context) ([]domain.Part
 	return []domain.PartnerAppointment{{Name: "JOÃO CARLOS PEREIRA", ActID: "nomeacao"}}, nil
 }
 
+func (f *fakeSupplierSource) ContractingCNPJs(context.Context) ([]string, error) {
+	return []string{"11222333000181"}, nil
+}
+
 func (f *fakeSupplierSource) PoliticalAgentNames(context.Context) ([]domain.PublicAgentName, error) {
 	return nil, nil
 }

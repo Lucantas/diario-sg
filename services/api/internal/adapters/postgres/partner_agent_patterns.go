@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -45,6 +47,35 @@ func (r *SupplierPatternRepo) PoliticalAgentNames(ctx context.Context) ([]domain
 			return nil, err
 		}
 		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
+var contractingActTypes = []domain.ActType{domain.ActContrato, domain.ActAditivo, domain.ActDispensa, domain.ActLicitacao, domain.ActLicencaAmbiental}
+
+func (r *SupplierPatternRepo) ContractingCNPJs(ctx context.Context) ([]string, error) {
+	types := make([]string, len(contractingActTypes))
+	for i, t := range contractingActTypes {
+		types[i] = string(t)
+	}
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT DISTINCT e.key
+		FROM entities e
+		JOIN entity_links l ON l.entity_id = e.id AND l.record_kind = $1
+		JOIN acts a ON a.id::text = l.record_id
+		WHERE e.kind = 'cnpj' AND a.type = ANY($2)
+		ORDER BY e.key`, domain.RecordAct, pq.Array(types))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var cnpj string
+		if err := rows.Scan(&cnpj); err != nil {
+			return nil, err
+		}
+		out = append(out, cnpj)
 	}
 	return out, rows.Err()
 }
