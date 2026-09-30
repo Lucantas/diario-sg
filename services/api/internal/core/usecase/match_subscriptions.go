@@ -65,5 +65,17 @@ func (uc *MatchSubscriptions) hitsFor(ctx context.Context, s domain.Subscription
 	if s.Entity != nil {
 		return uc.acts.EntityHitsInGazette(ctx, gazetteID, *s.Entity)
 	}
+	if !s.Filter.IsZero() {
+		return uc.filteredHits(ctx, s, gazetteID)
+	}
 	return uc.acts.SearchInGazette(ctx, gazetteID, domain.TranslateOperators(s.Query))
+}
+
+func (uc *MatchSubscriptions) filteredHits(ctx context.Context, s domain.Subscription, gazetteID string) ([]domain.ActHit, error) {
+	f := s.Filter.ActFilter(s.Query, gazetteID)
+	if err := f.Normalize(); err != nil {
+		return nil, fmt.Errorf("filtro do alerta %s: %w", s.ID, err)
+	}
+	hits, _, err := uc.acts.Search(ctx, f)
+	return hits, err
 }

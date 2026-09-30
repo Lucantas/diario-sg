@@ -8,7 +8,7 @@ import (
 
 func TestNewSubscription(t *testing.T) {
 	now := time.Now()
-	s, err := NewSubscription("  Jornalista@Exemplo.com ", "  secretaria   de saúde ", now)
+	s, err := NewSubscription("  Jornalista@Exemplo.com ", "  secretaria   de saúde ", AlertFilter{}, now)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -18,16 +18,16 @@ func TestNewSubscription(t *testing.T) {
 	if s.ConfirmToken == "" || s.ConfirmToken == s.UnsubscribeToken {
 		t.Error("tokens devem existir e ser diferentes")
 	}
-	if _, err := NewSubscription("nao-e-email", "abc", now); !errors.Is(err, ErrInvalidEmail) {
+	if _, err := NewSubscription("nao-e-email", "abc", AlertFilter{}, now); !errors.Is(err, ErrInvalidEmail) {
 		t.Errorf("esperava ErrInvalidEmail, veio %v", err)
 	}
-	if _, err := NewSubscription("a@b.com", "ab", now); !errors.Is(err, ErrInvalidQuery) {
+	if _, err := NewSubscription("a@b.com", "ab", AlertFilter{}, now); !errors.Is(err, ErrInvalidQuery) {
 		t.Errorf("esperava ErrInvalidQuery, veio %v", err)
 	}
 }
 
 func TestSubscriptionLifecycle(t *testing.T) {
-	s, _ := NewSubscription("a@b.com", "licitação", time.Now())
+	s, _ := NewSubscription("a@b.com", "licitação", AlertFilter{}, time.Now())
 	if err := s.Confirm(time.Now()); err != nil || s.Status != SubscriptionActive {
 		t.Fatalf("confirmação falhou: %v %s", err, s.Status)
 	}

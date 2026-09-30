@@ -14,8 +14,15 @@ export type EntityKind = "processo" | "contrato";
 
 export type AlertEntityKind = EntityKind | "cnpj";
 
+export interface AlertFilters {
+  source: Source | "";
+  type: ActType | "";
+  organ: string;
+}
+
 export interface Subscription {
   query: string;
+  filters: AlertFilters;
   subject: string;
   status: string;
 }
@@ -465,10 +472,10 @@ export function getEntity(kind: EntityKind, slug: string) {
   return request<EntityResponse>(`/v1/entities/${kind}/${encodeURIComponent(slug)}`);
 }
 
-export function subscribe(email: string, query: string) {
+export function subscribe(email: string, query: string, filters: AlertFilters) {
   return request<Subscription>("/v1/subscriptions", {
     method: "POST",
-    body: JSON.stringify({ email, query }),
+    body: JSON.stringify({ email, query, filters }),
   });
 }
 

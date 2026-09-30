@@ -96,6 +96,7 @@ type ActFilter struct {
 	Entity       *EntityRef
 	IncludeLists bool
 	Recent       bool
+	GazetteID    string
 	Limit        int
 	Offset       int
 }

@@ -2,7 +2,10 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ActType, Organ, SearchResponse, Source, listOrgans, searchActs, subscribe } from "./api";
 import { AlertForm } from "./AlertForm";
 import { Result } from "./components";
-import { SearchState, apiParams, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery, withSource } from "./searchState";
+import {
+  SearchState, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery,
+  withSource,
+} from "./searchState";
 import { SOURCE_LABEL } from "./types";
 
 const PAGE_SIZE = 20;
@@ -223,13 +226,7 @@ export function SearchPage() {
                 onClick={() => goToPage(state.page + 1)}>Próxima</button>
             </nav>
           )}
-          {state.q.length >= 3 && (
-            <AlertForm
-              title={`Avisar quando “${state.q}” aparecer de novo`}
-              description="Você recebe um e-mail no dia em que uma nova edição mencionar este termo. Os filtros não entram no alerta."
-              onSubscribe={(email) => subscribe(email, state.q)}
-            />
-          )}
+          {canAlert(state) && <SearchAlert state={state} />}
           <FeedLink state={state} />
         </section>
       )}
@@ -246,6 +243,20 @@ export function SearchPage() {
         <a href="/proposicoes">Proposições da Câmara</a>
       </footer>
     </main>
+  );
+}
+
+function SearchAlert({ state }: { state: SearchState }) {
+  const filters = alertFilterNames(state);
+  const title = state.q ? `Avisar quando “${state.q}” aparecer de novo` : "Avisar quando sair ato novo com estes filtros";
+  const scope = state.q ? "mencionar este termo" : "trouxer um ato assim";
+  const filterNote = filters ? ` Filtros do alerta: ${filters}.` : "";
+  return (
+    <AlertForm
+      title={title}
+      description={`Você recebe um e-mail no dia em que uma nova edição ${scope}.${filterNote} Período e valor não entram no alerta.`}
+      onSubscribe={(email) => subscribe(email, state.q, alertFilters(state))}
+    />
   );
 }
 

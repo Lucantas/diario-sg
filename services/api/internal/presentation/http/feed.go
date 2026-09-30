@@ -12,14 +12,6 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
-var typeLabel = map[domain.ActType]string{
-	domain.ActNomeacao: "Nomeação", domain.ActExoneracao: "Exoneração", domain.ActContrato: "Contrato",
-	domain.ActAditivo: "Aditivo", domain.ActLicitacao: "Licitação", domain.ActDispensa: "Sem licitação",
-	domain.ActDecreto: "Decreto", domain.ActLei: "Lei", domain.ActPortaria: "Portaria", domain.ActResolucao: "Resolução",
-	domain.ActDespacho: "Despacho", domain.ActEdital: "Edital", domain.ActAta: "Ata", domain.ActCorrigenda: "Corrigenda",
-	domain.ActPrestacaoContas: "Prestação de contas", domain.ActLicencaAmbiental: "Licença ambiental", domain.ActOutro: "Outro",
-}
-
 var saoPaulo = time.FixedZone("BRT", -3*60*60)
 
 type rss struct {
@@ -87,7 +79,7 @@ func feedItem(base string, h domain.ActHit) rssItem {
 		edition = "s/n"
 	}
 	return rssItem{
-		Title:       typeLabel[h.Type] + ": " + h.Title,
+		Title:       domain.ActTypeName(h.Type) + ": " + h.Title,
 		Link:        archivedURL(base, h),
 		GUID:        rssGUID{Value: "diario-sg:" + h.GazetteID + ":" + strconv.Itoa(h.Position), IsPermaLink: "false"},
 		PubDate:     time.Date(h.PublishedAt.Year(), h.PublishedAt.Month(), h.PublishedAt.Day(), 12, 0, 0, 0, saoPaulo).Format(time.RFC1123Z),

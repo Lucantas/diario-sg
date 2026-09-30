@@ -12,6 +12,12 @@ type matchActs struct {
 	ports.ActRepository
 	textQueries []string
 	entityRefs  []domain.EntityRef
+	filters     []domain.ActFilter
+}
+
+func (m *matchActs) Search(_ context.Context, f domain.ActFilter) ([]domain.ActHit, int, error) {
+	m.filters = append(m.filters, f)
+	return []domain.ActHit{{}}, 1, nil
 }
 
 func (m *matchActs) SearchInGazette(_ context.Context, _ string, q string) ([]domain.ActHit, error) {
@@ -61,5 +67,29 @@ func TestMatchSubscriptionsUsesEntityLinksForEntitySubscriptions(t *testing.T) {
 	}
 	if notifier.matches != 2 {
 		t.Errorf("esperava 2 e-mails, veio %d", notifier.matches)
+	}
+}
+
+func TestMatchSubscriptionsSearchesTheEditionWithTheAlertFilter(t *testing.T) {
+	gazettes := newMemGazettes()
+	gazettes.saved["g1"] = domain.Gazette{ID: "g1"}
+	filter := domain.AlertFilter{Type: domain.ActLicencaAmbiental, Theme: "meio_ambiente"}
+	subs := listSubs{active: []domain.Subscription{{ID: "s1", Query: "loteamento OU condomínio", Filter: filter}}}
+	acts, notifier := &matchActs{}, &recNotifier{}
+	uc := NewMatchSubscriptions(gazettes, acts, subs, &memLog{sent: map[string]bool{}}, notifier)
+
+	if err := uc.Execute(context.Background(), "g1"); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(acts.textQueries) != 0 || len(acts.filters) != 1 {
+		t.Fatalf("esperava só a busca filtrada: texto %v, filtros %v", acts.textQueries, acts.filters)
+	}
+	got := acts.filters[0]
+	if got.GazetteID != "g1" || got.Type != domain.ActLicencaAmbiental || got.Theme != "meio_ambiente" || got.Query != "loteamento or condomínio" {
+		t.Errorf("filtro inesperado: %+v", got)
+	}
+	if notifier.matches != 1 {
+		t.Errorf("esperava 1 e-mail, veio %d", notifier.matches)
 	}
 }

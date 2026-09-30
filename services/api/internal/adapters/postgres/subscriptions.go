@@ -11,7 +11,8 @@ type SubscriptionRepo struct{ db *sql.DB }
 
 func NewSubscriptionRepo(db *sql.DB) *SubscriptionRepo { return &SubscriptionRepo{db: db} }
 
-const subCols = `id, email, coalesce(query, ''), entity_kind, entity_key, entity_label, status, confirm_token, unsubscribe_token, created_at, confirmed_at`
+const subCols = `id, email, coalesce(query, ''), entity_kind, entity_key, entity_label, status, confirm_token, unsubscribe_token, created_at, confirmed_at,
+	filter_source, filter_type, filter_organ, filter_theme`
 
 func (r *SubscriptionRepo) Create(ctx context.Context, s *domain.Subscription) error {
 	var query, kind, key, label sql.NullString
@@ -23,9 +24,11 @@ func (r *SubscriptionRepo) Create(ctx context.Context, s *domain.Subscription) e
 		query = sql.NullString{String: s.Query, Valid: true}
 	}
 	return r.db.QueryRowContext(ctx, `
-		INSERT INTO subscriptions (email, query, entity_kind, entity_key, entity_label, status, confirm_token, unsubscribe_token, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		INSERT INTO subscriptions (email, query, entity_kind, entity_key, entity_label, status, confirm_token, unsubscribe_token, created_at,
+			filter_source, filter_type, filter_organ, filter_theme)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
 		s.Email, query, kind, key, label, string(s.Status), s.ConfirmToken, s.UnsubscribeToken, s.CreatedAt,
+		s.Filter.Source, string(s.Filter.Type), s.Filter.Organ, s.Filter.Theme,
 	).Scan(&s.ID)
 }
 
@@ -69,10 +72,12 @@ type scanner interface{ Scan(dest ...any) error }
 
 func scanSub(row scanner) (domain.Subscription, error) {
 	var s domain.Subscription
-	var status string
+	var status, filterType string
 	var kind, key, label sql.NullString
 	var confirmed sql.NullTime
-	err := row.Scan(&s.ID, &s.Email, &s.Query, &kind, &key, &label, &status, &s.ConfirmToken, &s.UnsubscribeToken, &s.CreatedAt, &confirmed)
+	err := row.Scan(&s.ID, &s.Email, &s.Query, &kind, &key, &label, &status, &s.ConfirmToken, &s.UnsubscribeToken, &s.CreatedAt, &confirmed,
+		&s.Filter.Source, &filterType, &s.Filter.Organ, &s.Filter.Theme)
+	s.Filter.Type = domain.ActType(filterType)
 	s.Status = domain.SubscriptionStatus(status)
 	if kind.Valid {
 		s.Entity = &domain.EntityRef{Kind: domain.EntityKind(kind.String), Key: key.String, Label: label.String}

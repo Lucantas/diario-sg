@@ -18,8 +18,8 @@ func NewSubscriptions(r ports.SubscriptionRepository, n ports.Notifier) *Subscri
 	return &Subscriptions{repo: r, notifier: n, now: time.Now}
 }
 
-func (uc *Subscriptions) Subscribe(ctx context.Context, email, query string) (domain.Subscription, error) {
-	s, err := domain.NewSubscription(email, query, uc.now())
+func (uc *Subscriptions) Subscribe(ctx context.Context, email, query string, filter domain.AlertFilter) (domain.Subscription, error) {
+	s, err := domain.NewSubscription(email, query, filter, uc.now())
 	if err != nil {
 		return domain.Subscription{}, err
 	}
