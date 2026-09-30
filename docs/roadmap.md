@@ -608,6 +608,42 @@ Pendências:
   `gcloud run jobs execute <prefixo>-sicam --args=-full,-max,0
   --task-timeout=86400s`), e reindexar a produção pelas mudanças do parser.
 
+## Entrega 7 — Licenças ambientais, alertas com filtro e vínculos de sócios
+
+Origem: o teste com a LMP nº 008/2026 da Mical Invest (Diário de
+12/06/2026), empresa de uma nora do prefeito. A busca achava o ato, mas
+como `outro`; o alerta não aceitava filtro, a busca do site não tinha tema
+e nenhum padrão olhava licença nem vínculo de sócio. Desenho em
+`docs/superpowers/specs/2026-09-29-licencas-alertas-e-vinculos-design.md`.
+
+- [x] 7.1 Tipo `licenca_ambiental` no parser (decisão 17 de
+  `docs/parser-findings.md`), no MCP e no site.
+- [x] 7.2 Alerta com filtros de tipo, órgão, tema e diário; o termo fica
+  opcional quando há filtro (migration 032).
+- [x] 7.3 Seletor de tema na busca do site, levado para a URL, a
+  exportação, o RSS e o alerta.
+- [x] 7.4 Padrão "Empresa nova recebe licença ambiental" (até 730 dias
+  depois da abertura da matriz).
+- [x] 7.5 Padrão "Sócio com o nome de agente público", com a view
+  materializada `partner_appointment_names` (migration 033) atualizada
+  pelos jobs `receita` e `reindex`.
+
+Conferido em 30/09/2026 na base local reindexada (5.286 edições, nenhuma
+falha, 7 h 35 min): 672 atos passaram de `outro` para `licenca_ambiental`
+(`outro` caiu para 6.538) e nenhum outro tipo mudou; com as correções do
+parser de 29/09, 495 atos ganharam órgão (489 na SEMAD) e 3 rodapés
+deixaram de ser ato (162.438 atos). O padrão de licença tem 76 achados,
+entre eles a Mical (546 dias), a maioria SPEs de condomínio e postos de
+combustível. O de sócios tem 206 empresas: 3 com sócio de nome igual ao de
+um secretário da folha e as demais com nome citado em nomeação ou
+exoneração. A sócia da Mical não aparece: não é agente político nem tem
+ato de nomeação, e parentesco não está em base aberta.
+
+Pendências:
+
+- [ ] Na nuvem: migrations 032 e 033 e reindexar a produção (o parser
+  mudou).
+
 ## Fechamento do plano de fontes
 
 Itens do `docs/plano-fontes-publicas.md` que não dependem de acesso de
