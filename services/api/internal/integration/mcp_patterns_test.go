@@ -48,7 +48,7 @@ func TestMCPPatternsFilterFindingsByEntity(t *testing.T) {
 	defer session.Close()
 
 	catalog, _ := call[mcpPatterns](t, session, "padroes", nil)
-	if len(catalog.Patterns) != 13 || catalog.Patterns[0].ID != "fracionamento_dispensa" || catalog.Patterns[0].Findings != 1 || catalog.Patterns[0].Rule == "" ||
+	if len(catalog.Patterns) != 14 || catalog.Patterns[0].ID != "fracionamento_dispensa" || catalog.Patterns[0].Findings != 1 || catalog.Patterns[0].Rule == "" ||
 		catalog.Total != 1 || len(catalog.Findings[0].Acts) != 0 {
 		t.Fatalf("catálogo: %+v", catalog.Patterns)
 	}

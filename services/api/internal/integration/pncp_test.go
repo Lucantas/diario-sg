@@ -98,10 +98,15 @@ func TestPNCPContractsShowInTheCompanyPageAndInThePattern(t *testing.T) {
 		} `json:"items"`
 	}
 	getJSON(t, srv.URL+"/v1/patterns", &patterns)
-	last := patterns.Items[len(patterns.Items)-1]
-	if last.ID != "pncp_sem_extrato" || len(last.Findings) != 1 || last.Findings[0].Link == nil ||
-		last.Findings[0].Link.URL != uncited.URL() {
-		t.Fatalf("padrão do PNCP: %+v", last)
+	pncp := patterns.Items[0]
+	for _, item := range patterns.Items {
+		if item.ID == "pncp_sem_extrato" {
+			pncp = item
+		}
+	}
+	if pncp.ID != "pncp_sem_extrato" || len(pncp.Findings) != 1 || pncp.Findings[0].Link == nil ||
+		pncp.Findings[0].Link.URL != uncited.URL() {
+		t.Fatalf("padrão do PNCP: %+v", pncp)
 	}
 }
 

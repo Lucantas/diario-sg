@@ -16,8 +16,24 @@ import (
 const fpVieira = "14180324000163"
 
 type registryShare struct {
-	month string
-	name  string
+	month   string
+	name    string
+	opened  string
+	partner string
+}
+
+func (s registryShare) openedAt() string {
+	if s.opened == "" {
+		return "20110815"
+	}
+	return s.opened
+}
+
+func (s registryShare) partnerName() string {
+	if s.partner == "" {
+		return "SÓCIA EXEMPLO"
+	}
+	return s.partner
 }
 
 func (s registryShare) LatestMonth(context.Context) (string, error) { return s.month, nil }
@@ -30,9 +46,9 @@ func (s registryShare) Codes(context.Context, string) (domain.RegistryCodes, err
 func (s registryShare) Rows(_ context.Context, _, file string, each func([]string) error) (string, error) {
 	rows := map[string][][]string{
 		"Empresas0.zip": {{"14180324", s.name, "2062", "49", "500000,00", "03", ""}},
-		"Estabelecimentos0.zip": {{"14180324", "0001", "63", "1", "FP VIEIRA", "02", "20110815", "00", "", "", "20110815", "4120400",
+		"Estabelecimentos0.zip": {{"14180324", "0001", "63", "1", "FP VIEIRA", "02", "20110815", "00", "", "", s.openedAt(), "4120400",
 			"7112000", "RUA", "EXEMPLO", "10", "", "CENTRO", "24000000", "RJ", "5869", "", "", "", "", "", "", "", "", ""}},
-		"Socios0.zip": {{"14180324", "2", "SÓCIA EXEMPLO", "***123456**", "49", "20110815", "", "", "", "00", "5"}},
+		"Socios0.zip": {{"14180324", "2", s.partnerName(), "***123456**", "49", "20110815", "", "", "", "00", "5"}},
 	}[file]
 	for _, r := range rows {
 		if err := each(r); err != nil {

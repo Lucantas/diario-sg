@@ -49,6 +49,7 @@ type SupplierPatternSource interface {
 	AllPNCPContracts(ctx context.Context) ([]domain.PNCPContract, error)
 	CitedProcesses(ctx context.Context) (map[string]bool, error)
 	LatestGazetteDay(ctx context.Context, source string) (time.Time, error)
+	LicenseActs(ctx context.Context) ([]domain.LicenseAct, error)
 }
 
 type PanelSource interface {
