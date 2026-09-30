@@ -22,7 +22,7 @@ const (
 
 const patternsDescription = "Padrões para verificar nos atos e nas fontes cruzadas (fracionamento de dispensa, aditivo acima do limite, " +
 	"emergencial renovada, pico de nomeações na eleição, empresa nova contratada, capital menor que o contrato, sócio ou endereço em comum, " +
-	"sancionado contratado, pago sem publicação, contrato sem pagamento, pago acima do anunciado, contrato do PNCP sem extrato). " +
+	"sancionado contratado, pago sem publicação, contrato sem pagamento, pago acima do anunciado, contrato do PNCP sem extrato, empresa nova licenciada, sócio com o nome de agente público, ligação só por nome). " +
 	"Padrão não é irregularidade: é pista para conferir, e cada padrão traz a regra e a ressalva. " +
 	"Sem argumentos: o catálogo, com o número de achados e os 3 primeiros de cada padrão, sem a lista de atos. " +
 	"padrao (o id) traz até 20 achados daquele padrão, e pular avança. " +

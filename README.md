@@ -121,7 +121,7 @@ make run-scraper LOOKBACK_DAYS=7   # outra janela: passe como variável do make,
                                    # não do shell (o .env incluído tem precedência)
 make run-scraper-camara FROM=2020-10-04   # Diário da Câmara (a URL por data só existe desde 2020-10-04;
                                           # é um pedido por dia, com 2 s entre eles)
-make reindex FROM=2020-01-01 TO=2026-12-31   # reprocessa edições já indexadas com o parser atual (não dispara alertas)
+make reindex FROM=2020-01-01 TO=2026-12-31   # reprocessa edições já indexadas com o parser atual (não dispara alertas; refaz partner_appointment_names)
 make dump DUMPS_BUCKET=diario-dumps          # publica o dump da base no emulador (página em /dados)
 make reports                                 # reportes de erro abertos (STATUS=resolvido|descartado para os fechados)
 make close-report ID=<id> AS=resolvido       # fecha um reporte (ou AS=descartado)
@@ -148,7 +148,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | GET | `/v1/entities/cnpj/{cnpj}` | Atos em que o CNPJ aparece (os 100 mais recentes), soma dos valores e contagem por tipo sobre todos; `registry` (Receita), `sanctions` (CGU), `payments` (TCE-RJ), `pncp_contracts` (contratos no PNCP, com `url`) `diario_sanctions` (punições publicadas no Diário contra a empresa: `kind`, que é `advertencia`, `multa`, `suspensao`, `impedimento` ou `inidoneidade`, e o ato), `municipal_commitments` (empenhos do portal da Prefeitura: `years`, com empenhos, empenhado e pago por ano, e `recent`, os 50 mais recentes com processo, modalidade e objeto) e `procurements` (linhas do mural de licitações com o processo de algum desses empenhos: `procurements`, com `url`, e `contracts`, com `document_url`) |
 | GET | `/v1/entities/processo/{n}` e `/v1/entities/contrato/{n}` | Atos ligados ao número (os 300 mais recentes), do mais recente ao mais antigo e, na mesma edição, na ordem da página; `n` aceita `-` no lugar de `/` (`30-FMS-2011`). Resposta com `label` (grafia mais frequente no Diário), `count_by_phase` (fase de cada ato, calculada na leitura), `organs` (contagem por órgão, com as variantes de sigla somadas na principal e `""` para os atos sem órgão) e `related` (citados junto, até 20 de cada tipo, pelos que têm mais atos: processo lista contratos e CNPJs, contrato lista processos e CNPJs); tipo desconhecido é 404, número inválido é 400 |
 | GET | `/v1/stats/acts?q=&type=&organ=&from=&to=&min_value=&max_value=&group=month` | Contagem de atos por mês |
-| GET | `/v1/patterns` | Padrões para verificar (os 13 de `/padroes`: os do Diário, como fracionamento de dispensa e aditivo acima do limite; os do fornecedor, com o cadastro da Receita e as sanções da CGU; os de anunciado × pago, com os empenhos do TCE-RJ; e o de contrato no PNCP sem extrato), calculados na leitura: cada padrão com `id`, `title`, `rule` (a regra por extenso), `caveat` e `findings` (`title`, `detail`, `acts` no formato da busca, `search`, com `type`, `from`, `to` e `source` quando os atos são muitos para listar, e `link`, com `label` e `url`, quando o caso aponta para fora, como um contrato no PNCP) |
+| GET | `/v1/patterns` | Padrões para verificar (os 15 de `/padroes`: os do Diário, como fracionamento de dispensa e aditivo acima do limite; os do fornecedor, com o cadastro da Receita e as sanções da CGU; os de anunciado × pago, com os empenhos do TCE-RJ; o de contrato no PNCP sem extrato; o de empresa nova que recebe licença ambiental; e o de sócio com o nome de agente público, ligação só por nome e sempre possível), calculados na leitura: cada padrão com `id`, `title`, `rule` (a regra por extenso), `caveat` e `findings` (`title`, `detail`, `acts` no formato da busca, `search`, com `type`, `from`, `to` e `source` quando os atos são muitos para listar, e `link`, com `label` e `url`, quando o caso aponta para fora, como um contrato no PNCP) |
 | GET | `/v1/panels/suppliers` | Maiores fornecedores pelo valor declarado nos extratos, calculados na leitura. `year`, `organ` e `source` (padrão `diario_prefeitura`) filtram. Cada contratação (atos do mesmo CNPJ ligados pelo processo ou pelo contrato) conta uma vez, pelo maior valor de contrato; ata de registro de preços sem contrato vai para `registered_cents`; aditivos, homologações, multas, sanções, notificações, cancelamentos e atos com mais de um fornecedor ficam de fora. Traz `items` (50 primeiros, com `largest`, o ato de maior valor no formato da busca), `years` (respeita `organ`) e `organs` (respeita `year`) |
 | GET | `/v1/panels/staff?unit=` | Vínculos e remuneração por mês e grupo de situação funcional, informados pelo município ao TCE-RJ (de 2024 em diante), com as nomeações e exonerações do Diário no mês (`diario_source` diz qual). Traz `units`, `groups` (na ordem das colunas) e `months` (do mais recente ao mais antigo); unidade desconhecida é 400 |
 | GET | `/v1/norms?kind=&number=` ou `?q=&theme=` | Normas da consulta de leis da Prefeitura: `kind` (`lei`, `lei_complementar`, `lei_organica`, `decreto`) e `number` (`1406/2022`) trazem a norma; `q` busca na ementa e no autor e `theme` (`meio_ambiente`) filtra pelo tema (até 50); cada norma com `author`, `summary`, `promulgated_on`, `text_url`, `diario_search` |
@@ -166,7 +166,7 @@ Com `NOTIFIER=log`, os e-mails aparecem no log do worker/API.
 | POST | `/oauth/register` | Registro dinâmico de cliente (RFC 7591): `{"redirect_uris","client_name"}` → `client_id`; só cliente público; 100 por hora por cliente; cliente que nunca trocou código some em 7 dias |
 | GET, POST | `/oauth/authorize` | Página de consentimento (código com PKCE `S256`); "Autorizar" volta ao `redirect_uri` com `code`, `state` e `iss`, 10 por hora por cliente; pedido malformado fica na página, sem redirecionar |
 | POST | `/oauth/token` | Troca o código por uma chave MCP (`access_token`), sem expiração nem refresh token; 60 por minuto por cliente |
-| POST | `/v1/subscriptions` | `{"email","query"}` (termo) ou `{"email","entity":{"kind","value"}}` (CNPJ, processo ou contrato; o alerta sai pelas ligações da edição, não pelo texto) → envia e-mail de confirmação; a resposta traz `subject` e `entity` |
+| POST | `/v1/subscriptions` | `{"email","query","filters":{"type","organ","theme","source"}}` (termo e filtros da busca; o termo pode faltar quando há filtro, e cada edição nova é comparada pela mesma busca do site) ou `{"email","entity":{"kind","value"}}` (CNPJ, processo ou contrato; o alerta sai pelas ligações da edição, não pelo texto) → envia e-mail de confirmação; a resposta traz `subject`, `filters` e `entity` |
 | POST | `/v1/subscriptions/confirm` | `{"token"}` |
 | POST | `/v1/subscriptions/unsubscribe` | `{"token"}` |
 
@@ -270,6 +270,13 @@ hora e troca o mês anterior numa transação. As linhas filtradas ficam em
 página da empresa, a ferramenta `entidade` do MCP e os painéis mostram o
 cadastro; sócios só aparecem dentro da empresa (ADR 0006) e não entram no
 dump.
+
+Ao fim da carga, e ao fim de `make reindex`, a view materializada
+`partner_appointment_names` é refeita: nomes de sócios pessoa física (três
+palavras ou mais) de empresas citadas em contratação ou licença, cruzados
+com os atos de nomeação e exoneração (cerca de 15 s na base local). O
+padrão "Sócio com o nome de agente público" lê a view; nomeação publicada
+depois da última carga só entra na seguinte. A view não entra no dump.
 
 ```bash
 make receita                 # mês mais recente publicado pela Receita
