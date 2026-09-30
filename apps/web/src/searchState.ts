@@ -6,6 +6,7 @@ export interface SearchState {
   source: Source | "";
   type: ActType | "";
   organ: string;
+  theme: string;
   from: string;
   to: string;
   min: string;
@@ -13,9 +14,9 @@ export interface SearchState {
   page: number;
 }
 
-export const EMPTY_STATE: SearchState = { q: "", source: "", type: "", organ: "", from: "", to: "", min: "", max: "", page: 1 };
+export const EMPTY_STATE: SearchState = { q: "", source: "", type: "", organ: "", theme: "", from: "", to: "", min: "", max: "", page: 1 };
 
-const KEYS = { q: "q", source: "fonte", type: "tipo", organ: "orgao", from: "de", to: "ate", min: "valor_min", max: "valor_max" } as const;
+const KEYS = { q: "q", source: "fonte", type: "tipo", organ: "orgao", theme: "tema", from: "de", to: "ate", min: "valor_min", max: "valor_max" } as const;
 
 export function stateFromQuery(search: string): SearchState {
   const p = new URLSearchParams(search);
@@ -27,6 +28,7 @@ export function stateFromQuery(search: string): SearchState {
     source,
     type: Object.prototype.hasOwnProperty.call(TYPE_LABEL, type) ? (type as ActType) : "",
     organ: source === "diario_camara" ? "" : p.get(KEYS.organ) ?? "",
+    theme: asTheme(p.get(KEYS.theme) ?? ""),
     from: p.get(KEYS.from) ?? "",
     to: p.get(KEYS.to) ?? "",
     min: p.get(KEYS.min) ?? "",
@@ -37,6 +39,12 @@ export function stateFromQuery(search: string): SearchState {
 
 function asSource(value: string): Source | "" {
   return Object.prototype.hasOwnProperty.call(SOURCE_LABEL, value) ? (value as Source) : "";
+}
+
+export const THEME_LABEL: Record<string, string> = { meio_ambiente: "Meio ambiente" };
+
+function asTheme(value: string): string {
+  return Object.prototype.hasOwnProperty.call(THEME_LABEL, value) ? value : "";
 }
 
 export function withSource(s: SearchState, value: string): SearchState {
@@ -61,7 +69,7 @@ export function parseBRL(text: string): string | null {
 }
 
 export function hasSearch(s: SearchState) {
-  return Boolean(s.q || s.source || s.type || s.organ || s.from || s.to || s.min || s.max);
+  return Boolean(s.q || s.source || s.type || s.organ || s.theme || s.from || s.to || s.min || s.max);
 }
 
 export function apiParams(s: SearchState, limit: number): URLSearchParams | null {
@@ -69,6 +77,7 @@ export function apiParams(s: SearchState, limit: number): URLSearchParams | null
   if (s.source) p.set("source", s.source);
   if (s.type) p.set("type", s.type);
   if (s.organ) p.set("organ", s.organ);
+  if (s.theme) p.set("theme", s.theme);
   if (s.from) p.set("from", s.from);
   if (s.to) p.set("to", s.to);
   for (const [field, key] of [["min", "min_value"], ["max", "max_value"]] as const) {
@@ -103,7 +112,7 @@ export function feedUrl(s: SearchState): string | null {
 const MIN_ALERT_QUERY = 3;
 
 export function alertFilters(s: SearchState): AlertFilters {
-  return { source: s.source, type: s.type, organ: s.organ };
+  return { source: s.source, type: s.type, organ: s.organ, theme: s.theme };
 }
 
 export function canAlert(s: SearchState): boolean {
@@ -116,6 +125,7 @@ export function alertFilterNames(s: SearchState): string {
   return [
     f.type && TYPE_LABEL[f.type].toLowerCase(),
     f.organ,
+    f.theme && THEME_LABEL[f.theme].toLowerCase(),
     f.source && `Diário da ${SOURCE_LABEL[f.source]}`,
   ].filter(Boolean).join(" · ");
 }

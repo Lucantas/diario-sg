@@ -3,7 +3,7 @@ import { ActType, Organ, SearchResponse, Source, listOrgans, searchActs, subscri
 import { AlertForm } from "./AlertForm";
 import { Result } from "./components";
 import {
-  SearchState, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery,
+  SearchState, THEME_LABEL, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery,
   withSource,
 } from "./searchState";
 import { SOURCE_LABEL } from "./types";
@@ -167,6 +167,14 @@ export function SearchPage() {
           </select>
         </div>
       )}
+
+      <div className="organ-filter">
+        <label htmlFor="theme">Tema</label>
+        <select id="theme" value={draft.theme} onChange={(e) => go({ ...draft, q: draft.q.trim(), theme: e.target.value, page: 1 })}>
+          <option value="">Todos os temas</option>
+          {Object.entries(THEME_LABEL).map(([slug, label]) => <option key={slug} value={slug}>{label}</option>)}
+        </select>
+      </div>
 
       <details className="more-filters" open={hasAdvancedFilters(state)}>
         <summary>Mais filtros: período e valor</summary>
