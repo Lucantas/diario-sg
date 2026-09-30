@@ -40,7 +40,8 @@ type PartnerAppointment struct {
 
 type PartnerPublicAgent struct {
 	Profile           SupplierProfile
-	Agent             *PublicAgentName
+	Agents            []PublicAgentName
+	AppointedPartners int
 	AppointmentActIDs []string
 	Appointments      int
 }
@@ -72,24 +73,29 @@ func FindPartnerPublicAgents(cnpjs []string, profiles map[string]SupplierProfile
 	}
 	var out []PartnerPublicAgent
 	for _, p := range companiesByBase(cnpjs, profiles) {
+		found := PartnerPublicAgent{Profile: p}
 		for _, partner := range p.Partners {
-			key := foldText(partner.Name)
 			if partner.Kind != PartnerPerson || !IsDistinctiveName(partner.Name) {
 				continue
 			}
-			found := PartnerPublicAgent{Profile: p, Appointments: len(actsByName[key])}
+			key := foldText(partner.Name)
 			if a, ok := agentByName[key]; ok {
-				found.Agent = &a
+				found.Agents = append(found.Agents, a)
 			}
-			found.AppointmentActIDs = actsByName[key][:min(len(actsByName[key]), maxAppointmentActs)]
-			if found.Agent != nil || found.Appointments > 0 {
-				out = append(out, found)
+			if acts := actsByName[key]; len(acts) > 0 {
+				found.AppointedPartners++
+				found.Appointments += len(acts)
+				found.AppointmentActIDs = append(found.AppointmentActIDs, acts...)
 			}
+		}
+		found.AppointmentActIDs = found.AppointmentActIDs[:min(len(found.AppointmentActIDs), maxAppointmentActs)]
+		if len(found.Agents) > 0 || found.Appointments > 0 {
+			out = append(out, found)
 		}
 	}
 	sort.SliceStable(out, func(i, j int) bool {
-		if (out[i].Agent != nil) != (out[j].Agent != nil) {
-			return out[i].Agent != nil
+		if (len(out[i].Agents) > 0) != (len(out[j].Agents) > 0) {
+			return len(out[i].Agents) > 0
 		}
 		return out[i].Profile.CNPJ < out[j].Profile.CNPJ
 	})
@@ -121,7 +127,8 @@ func partnerAgentPatterns() map[PatternID]Pattern {
 		PatternPartnerPublicAgent: {
 			ID:    PatternPartnerPublicAgent,
 			Title: "Sócio com o nome de agente público",
-			Rule: fmt.Sprintf("Sócio pessoa física de empresa contratada ou licenciada, com nome de pelo menos %d palavras além de "+
+			Rule: fmt.Sprintf("Sócio pessoa física de empresa citada no Diário em contrato, aditivo, dispensa, licitação ou licença "+
+				"ambiental, com nome de pelo menos %d palavras além de "+
 				"da, de, do, das, dos e e, igual (sem diferença de acento) ao de um agente político da folha da Prefeitura ou da "+
 				"Câmara, ou a um nome citado em ato de nomeação ou exoneração do Diário.", minDistinctiveNameWords),
 			Caveat: "Ligação possível, só pelo nome: homônimos são comuns e a Receita não publica o CPF inteiro do sócio. Quem " +
@@ -132,21 +139,39 @@ func partnerAgentPatterns() map[PatternID]Pattern {
 }
 
 func PartnerPublicAgentFinding(p PartnerPublicAgent) Finding {
-	title := fmt.Sprintf("%s: sócio com o nome de pessoa nomeada ou exonerada no Diário", supplierLabel(p.Profile))
-	if p.Agent != nil {
-		title = fmt.Sprintf("%s: sócio com o nome de %s, %s", supplierLabel(p.Profile), p.Agent.Name, AgentRoleName(p.Agent.Role))
-		if p.Agent.Office != "" {
-			title += " (" + p.Agent.Office + ")"
-		}
-	}
 	detail := "Ligação possível, só pelo nome: pode ser homônimo."
 	if p.Appointments > 0 {
-		detail += fmt.Sprintf(" %s cita%s o nome.", appointmentsCount(p.Appointments), pluralSuffix(p.Appointments))
+		detail += fmt.Sprintf(" %s cita%s %s.", appointmentsCount(p.Appointments), pluralSuffix(p.Appointments), appointedNames(p.AppointedPartners))
 	}
 	if p.Appointments > maxAppointmentActs {
-		detail += fmt.Sprintf(" Abaixo, os %d mais recentes.", maxAppointmentActs)
+		detail += fmt.Sprintf(" Abaixo, %d deles.", maxAppointmentActs)
 	}
-	return Finding{Title: title, Detail: detail, ActIDs: p.AppointmentActIDs, Entities: cnpjMentions(p.Profile.CNPJ)}
+	return Finding{Title: supplierLabel(p.Profile) + ": " + partnerAgentSubject(p), Detail: detail, ActIDs: p.AppointmentActIDs,
+		Entities: cnpjMentions(p.Profile.CNPJ)}
+}
+
+func partnerAgentSubject(p PartnerPublicAgent) string {
+	if len(p.Agents) > 0 {
+		names := make([]string, len(p.Agents))
+		for i, a := range p.Agents {
+			names[i] = a.Name + ", " + AgentRoleName(a.Role)
+			if a.Office != "" {
+				names[i] += " (" + a.Office + ")"
+			}
+		}
+		return "sócio com o nome de " + joinPortuguese(names)
+	}
+	if p.AppointedPartners > 1 {
+		return fmt.Sprintf("%d sócios com nomes de pessoas nomeadas ou exoneradas no Diário", p.AppointedPartners)
+	}
+	return "sócio com o nome de pessoa nomeada ou exonerada no Diário"
+}
+
+func appointedNames(partners int) string {
+	if partners > 1 {
+		return fmt.Sprintf("os nomes de %d sócios", partners)
+	}
+	return "o nome"
 }
 
 func appointmentsCount(n int) string {

@@ -51,6 +51,7 @@ type SupplierPatternSource interface {
 	LatestGazetteDay(ctx context.Context, source string) (time.Time, error)
 	LicenseActs(ctx context.Context) ([]domain.LicenseAct, error)
 	PartnerAppointments(ctx context.Context) ([]domain.PartnerAppointment, error)
+	ContractingCNPJs(ctx context.Context) ([]string, error)
 	PoliticalAgentNames(ctx context.Context) ([]domain.PublicAgentName, error)
 }
 
