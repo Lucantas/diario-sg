@@ -317,6 +317,15 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
     `…pmsg.rj.gov.br/diario-oficial/`), seguido ou não do número da página,
     e a contagem "1/1" do anexo de pessoal são ruído de página; antes
     ficavam no corpo de cerca de 4.300 atos e davam o título de 89.
+17. Tipo `licenca_ambiental`: título que começa com concessão, renovação,
+    cancelamento, suspensão ou cassação de licença e texto com marcador
+    ambiental ("licença municipal prévia/de instalação/de operação",
+    "licença ambiental", "meio ambiente"); ou ato que cairia em `outro` e
+    abre com "torna público que recebeu/requereu/obteve … licença" (aviso
+    cujo título virou o nome da empresa). Licença de servidor ("Licença
+    Prêmio", "sem vencimentos") não tem o marcador e fica como estava. O
+    padrão "Empresa nova recebe licença ambiental" tira do tipo os
+    pedidos, cancelamentos, suspensões e cassações.
 
 O que foi olhado e ficou como está (29/09/2026): "PORTARIA … No. 009/…"
 dentro do corpo são citações de portarias anteriores (editais de citação,
