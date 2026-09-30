@@ -28,6 +28,9 @@ func (f AlertFilter) normalized() (AlertFilter, error) {
 	if err := af.Normalize(); err != nil {
 		return AlertFilter{}, err
 	}
+	if af.Source == SourceDiarioCamara && af.Organ != "" {
+		return AlertFilter{}, ErrInvalidFilter
+	}
 	return AlertFilter{Source: af.Source, Type: af.Type, Organ: af.Organ, Theme: af.Theme}, nil
 }
 

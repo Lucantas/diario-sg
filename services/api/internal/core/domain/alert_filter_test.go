@@ -54,3 +54,35 @@ func TestAlertFilterBuildsTheSearchOfOneEdition(t *testing.T) {
 		t.Fatalf("filtro: %+v", f)
 	}
 }
+
+func TestAlertFilterThatNormalizesToNothingNeedsATerm(t *testing.T) {
+	for name, filter := range map[string]AlertFilter{
+		"órgão em branco": {Organ: " "},
+		"tema em branco":  {Theme: " "},
+	} {
+		if _, err := NewSubscription("a@b.com", "", filter, alertNow); !errors.Is(err, ErrInvalidQuery) {
+			t.Errorf("%s: esperava ErrInvalidQuery, veio %v", name, err)
+		}
+	}
+	if _, err := NewSubscription("a@b.com", "", AlertFilter{Source: SourceDiarioCamara, Organ: "SEMED"}, alertNow); !errors.Is(err, ErrInvalidFilter) {
+		t.Errorf("órgão da prefeitura no Diário da Câmara: %v", err)
+	}
+}
+
+func TestEditionSubjectLeavesTheDiarioToTheEdition(t *testing.T) {
+	onlySource, err := NewSubscription("a@b.com", "", AlertFilter{Source: SourceDiarioCamara}, alertNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	typed, err := NewSubscription("a@b.com", "", AlertFilter{Source: SourceDiarioPrefeitura, Type: ActLicencaAmbiental}, alertNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if onlySource.Subject() != "Diário da Câmara" || onlySource.EditionSubject() != "atos" {
+		t.Errorf("só o diário: %q / %q", onlySource.Subject(), onlySource.EditionSubject())
+	}
+	if typed.EditionSubject() != "licença ambiental" {
+		t.Errorf("tipo e diário: %q", typed.EditionSubject())
+	}
+}

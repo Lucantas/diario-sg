@@ -73,7 +73,7 @@ func (n *Notifier) SendMatches(ctx context.Context, s domain.Subscription, g dom
 	if err != nil {
 		return err
 	}
-	subject := fmt.Sprintf("%s no Diário da %s de %s", upperFirst(s.Subject()), domain.SourceLabel(g.Source), g.PublishedAt.Format("02/01"))
+	subject := fmt.Sprintf("%s no Diário da %s de %s", upperFirst(s.EditionSubject()), domain.SourceLabel(g.Source), g.PublishedAt.Format("02/01"))
 	return n.sender.Send(ctx, Message{To: s.Email, Subject: subject, HTML: b.String()})
 }
 

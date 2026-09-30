@@ -325,7 +325,11 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
     cujo título virou o nome da empresa). Licença de servidor ("Licença
     Prêmio", "sem vencimentos") não tem o marcador e fica como estava. O
     padrão "Empresa nova recebe licença ambiental" tira do tipo os
-    pedidos, cancelamentos, suspensões e cassações.
+    pedidos, cancelamentos, suspensões e cassações. Conferido em
+    30/09/2026: nenhum dos 665 atos com título de concessão, renovação,
+    cancelamento, suspensão ou cassação de licença é licença de servidor
+    (essas saem como "Licença Prêmio" e afins), então "meio ambiente" no
+    texto basta como marcador.
 
 O que foi olhado e ficou como está (29/09/2026): "PORTARIA … No. 009/…"
 dentro do corpo são citações de portarias anteriores (editais de citação,
