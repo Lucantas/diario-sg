@@ -106,13 +106,38 @@ func (uc *ListPatterns) supplierReports(ctx context.Context, catalog map[domain.
 		return nil, err
 	}
 	newLicensed := reportOf(catalog[domain.PatternNewCompanyLicense], domain.FindNewCompanyLicenses(licenses, profiles), domain.NewCompanyLicenseFinding)
+	partnerAgents, err := uc.partnerAgentReport(ctx, catalog, contracts, licenses, profiles)
+	if err != nil {
+		return nil, err
+	}
 	return append([]domain.PatternReport{
 		reportOf(catalog[domain.PatternNewCompany], domain.FindNewCompanyContracts(contracts, profiles), domain.NewCompanyFinding),
 		reportOf(catalog[domain.PatternUndercapitalized], domain.FindUndercapitalizedContracts(contracts, profiles), domain.UndercapitalizedFinding),
 		reportOf(catalog[domain.PatternSharedPartner], domain.FindSharedPartners(contracts, profiles), domain.SharedPartnerFinding),
 		reportOf(catalog[domain.PatternSharedAddress], domain.FindSharedAddresses(contracts, profiles), domain.SharedAddressFinding),
 		reportOf(catalog[domain.PatternSanctioned], domain.FindSanctionedContracts(contracts, profiles, sanctions), domain.SanctionedFinding),
-	}, append(payment, pncp, newLicensed)...), nil
+	}, append(payment, pncp, newLicensed, partnerAgents)...), nil
+}
+
+func (uc *ListPatterns) partnerAgentReport(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, contracts []domain.SupplierContract,
+	licenses []domain.LicenseAct, profiles map[string]domain.SupplierProfile) (domain.PatternReport, error) {
+	agents, err := uc.suppliers.PoliticalAgentNames(ctx)
+	if err != nil {
+		return domain.PatternReport{}, err
+	}
+	appointments, err := uc.suppliers.PartnerAppointments(ctx)
+	if err != nil {
+		return domain.PatternReport{}, err
+	}
+	cnpjs := make([]string, 0, len(contracts)+len(licenses))
+	for _, c := range contracts {
+		cnpjs = append(cnpjs, c.CNPJ)
+	}
+	for _, l := range licenses {
+		cnpjs = append(cnpjs, l.CNPJ)
+	}
+	return reportOf(catalog[domain.PatternPartnerPublicAgent], domain.FindPartnerPublicAgents(cnpjs, profiles, agents, appointments),
+		domain.PartnerPublicAgentFinding), nil
 }
 
 func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, acts []domain.PanelAct,
