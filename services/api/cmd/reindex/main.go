@@ -11,6 +11,7 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/entities"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/ocrcache"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/parser"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pdf"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
@@ -47,7 +48,7 @@ func main() {
 	defer db.Close()
 
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
-	uc := usecase.NewReindexGazettes(postgres.NewGazetteRepo(db), storage, pdf.PDFToText{Timeout: reindexTimeout}, parser.Set{}, entities.New())
+	uc := usecase.NewReindexGazettes(postgres.NewGazetteRepo(db), storage, pdf.PDFToText{Timeout: reindexTimeout}.WithCache(ocrcache.New(storage), log), parser.Set{}, entities.New())
 	start := time.Now()
 	res, err := uc.Execute(ctx, from, to)
 	log.Info("reindexação finalizada", "result", res, "duration_ms", time.Since(start).Milliseconds())

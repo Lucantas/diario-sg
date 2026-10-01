@@ -144,6 +144,17 @@ resource "google_storage_bucket_iam_member" "worker_reads" {
   member = "serviceAccount:${google_service_account.sa["worker"].email}"
 }
 
+resource "google_storage_bucket_iam_member" "worker_writes_ocr_cache" {
+  bucket = google_storage_bucket.gazettes.name
+  role   = "roles/storage.objectUser"
+  member = "serviceAccount:${google_service_account.sa["worker"].email}"
+
+  condition {
+    title      = "cache-do-ocr"
+    expression = "resource.name.startsWith(\"projects/_/buckets/${google_storage_bucket.gazettes.name}/objects/ocr/\")"
+  }
+}
+
 resource "google_storage_bucket_iam_member" "api_reads" {
   bucket = google_storage_bucket.gazettes.name
   role   = "roles/storage.objectViewer"

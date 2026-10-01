@@ -2,12 +2,15 @@ package gcp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
 )
+
+var ErrObjectNotFound = errors.New("objeto não encontrado no bucket")
 
 type Storage struct {
 	baseURL string
@@ -88,6 +91,9 @@ func (s *Storage) Get(ctx context.Context, name string) (io.ReadCloser, error) {
 	}
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, fmt.Errorf("storage get %q: %w", name, ErrObjectNotFound)
+		}
 		return nil, fmt.Errorf("storage get %q: status %d", name, resp.StatusCode)
 	}
 	return resp.Body, nil

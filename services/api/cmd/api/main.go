@@ -12,6 +12,7 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/ocrcache"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pdf"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
@@ -61,7 +62,7 @@ func run(l *slog.Logger) error {
 	bills := usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now)
 	webURL := strings.TrimRight(cfg.PublicWebURL, "/")
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
-		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New()),
+		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New().WithCache(ocrcache.New(storage).ReadOnly(), l)),
 		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Patterns: patterns, Norms: norms, Bills: bills, Collections: usecase.NewLatestCollections(postgres.NewFetchRunRepo(db)),
 		Payments:    usecase.NewQueryPayments(postgres.NewMunicipalCommitmentRepo(db), postgres.NewFiscalRepo(db)),
 		Contracting: usecase.NewQueryProcurements(postgres.NewProcurementRepo(db), postgres.NewPNCPRepo(db)),
