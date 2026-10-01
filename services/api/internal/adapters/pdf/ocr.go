@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,15 +24,18 @@ const (
 	ocrResolutionDPI = "300"
 	ocrLanguage      = "por"
 	ocrLayoutMode    = "1"
+
+	ocrSettingsVersion = "v1"
 )
 
 var pageSizeRe = regexp.MustCompile(`(?m)^Page\s+(\d+) size:\s+([\d.]+) x ([\d.]+)`)
 
-func (p PDFToText) readScannedPages(ctx context.Context, path, text string, firstPage int) (map[int]string, error) {
-	candidates, err := scannedPages(ctx, path, text, firstPage)
+func (p PDFToText) readScannedPages(ctx context.Context, f pdfFile, text string, firstPage int) (map[int]string, error) {
+	candidates, err := scannedPages(ctx, f.path, text, firstPage)
 	if err != nil || len(candidates) == 0 {
 		return nil, err
 	}
+	cached := p.loadOCR(ctx, f)
 	dir, err := os.MkdirTemp("", "ocr-*")
 	if err != nil {
 		return nil, err
@@ -39,17 +43,54 @@ func (p PDFToText) readScannedPages(ctx context.Context, path, text string, firs
 	defer os.RemoveAll(dir)
 	start := p.now()
 	out := make(map[int]string, len(candidates))
+	read := false
 	for _, page := range candidates {
+		if text, ok := cached[page]; ok {
+			out[page] = text
+			continue
+		}
 		if p.OCRBudget > 0 && p.now().Sub(start) >= p.OCRBudget {
 			break
 		}
-		read, err := ocrPage(ctx, path, dir, page)
+		text, err := p.readPage(ctx, f.path, dir, page)
 		if err != nil {
 			return nil, fmt.Errorf("OCR da página %d: %w", page, err)
 		}
-		out[page] = read
+		out[page] = text
+		read = true
+	}
+	if read {
+		p.saveOCR(ctx, f, cached, out)
 	}
 	return out, nil
+}
+
+func ocrCacheKey(f pdfFile) string { return ocrSettingsVersion + "/" + f.sha256 }
+
+func (p PDFToText) loadOCR(ctx context.Context, f pdfFile) map[int]string {
+	if p.cache == nil {
+		return nil
+	}
+	pages, err := p.cache.Load(ctx, ocrCacheKey(f))
+	if err != nil {
+		p.log.Warn("cache do OCR indisponível; lendo as páginas de novo", "pdf_sha256", f.sha256, "error", err)
+		return nil
+	}
+	return pages
+}
+
+func (p PDFToText) saveOCR(ctx context.Context, f pdfFile, cached, read map[int]string) {
+	if p.cache == nil {
+		return
+	}
+	pages := maps.Clone(cached)
+	if pages == nil {
+		pages = map[int]string{}
+	}
+	maps.Copy(pages, read)
+	if err := p.cache.Save(ctx, ocrCacheKey(f), pages); err != nil {
+		p.log.Warn("cache do OCR não gravado", "pdf_sha256", f.sha256, "error", err)
+	}
 }
 
 func scannedPages(ctx context.Context, path, text string, firstPage int) ([]int, error) {

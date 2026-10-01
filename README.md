@@ -506,8 +506,10 @@ em alertas nunca entram no dump.
 7. Mudou o parser? Rode o workflow **Reindex** (ambiente, `from` e `to`):
    ele executa o Cloud Run Job `diario-<ambiente>-reindex`, que relê os
    PDFs do bucket e troca os atos das edições do período, sem disparar
-   alertas. Uma reindexação completa leva horas; se passar do limite de
-   6 h, rode por períodos menores.
+   alertas. Quase todo o tempo é o OCR das edições escaneadas, e o texto
+   lido fica em `ocr/v1/` no bucket: a primeira reindexação depois do
+   deploy ainda faz o OCR de tudo (leva horas; se passar do limite de 6 h,
+   rode por períodos menores), e as seguintes reaproveitam o texto.
 
 O ideal é um projeto GCP por ambiente (isolamento de IAM e de custo). Se
 quiser economizar no começo, use só `prod`.

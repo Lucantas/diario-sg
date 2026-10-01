@@ -415,6 +415,21 @@ explica sozinho.
   pelo workflow Reindex. Não é passo do deploy: leva horas e é decisão de
   quem mudou o parser. Sem retry: a falha é registrada por edição e o
   período pode ser executado de novo, já que a reindexação é idempotente.
+- O texto lido pelo OCR fica no bucket, em `ocr/v1/<sha256 do PDF>.json`
+  (um objeto por edição, com o texto de cada página escaneada). O OCR é
+  quase todo o tempo de uma reindexação, e o texto de uma página escaneada
+  não muda quando o parser muda. A chave é o hash do PDF, não o id da
+  edição, então o cache não depende do banco; `v1` amarra o cache às
+  configurações do Tesseract (300 dpi, português, `--psm 1`): mudou alguma
+  delas, troque a versão em `ocrSettingsVersion` e o cache se refaz. O
+  worker e a reindexação leem e gravam (a conta do worker só escreve sob
+  `ocr/`, por condição de IAM); a API só lê. O worker tem 90 s de OCR por
+  edição e pode deixar páginas sem ler; a reindexação lê as que faltam e
+  completa o objeto. Falha ao ler ou gravar o cache vira aviso no log e o
+  OCR roda normalmente. A regra do bucket que manda objetos com mais de 30
+  dias para a classe ARCHIVE também vale para o cache: cada objeto tem
+  poucos KB, então a cobrança de leitura e de troca antecipada é
+  desprezível.
 - Os Dockerfiles são construídos a partir da raiz do repositório
   (`docker build -f services/api/Dockerfile .`): os `COPY` usam caminhos
   a partir dela, e os serviços Go copiam `pkg/`.
