@@ -14,6 +14,23 @@ export interface SearchState {
   page: number;
 }
 
+export const TYPE_OPTIONS: { value: ActType | ""; label: string }[] = [
+  { value: "", label: "Tudo" },
+  { value: "nomeacao", label: "Nomeações" },
+  { value: "exoneracao", label: "Exonerações" },
+  { value: "contrato", label: "Contratos" },
+  { value: "aditivo", label: "Aditivos" },
+  { value: "licitacao", label: "Licitações" },
+  { value: "dispensa", label: "Sem licitação" },
+  { value: "decreto", label: "Decretos" },
+  { value: "lei", label: "Leis" },
+  { value: "resolucao", label: "Resoluções" },
+  { value: "prestacao_contas", label: "Prestações de contas" },
+  { value: "licenca_ambiental", label: "Licenças ambientais" },
+  { value: "despacho", label: "Despachos" },
+  { value: "edital", label: "Editais" },
+];
+
 export const EMPTY_STATE: SearchState = { q: "", source: "", type: "", organ: "", theme: "", from: "", to: "", min: "", max: "", page: 1 };
 
 const KEYS = { q: "q", source: "fonte", type: "tipo", organ: "orgao", theme: "tema", from: "de", to: "ate", min: "valor_min", max: "valor_max" } as const;
@@ -128,4 +145,38 @@ export function alertFilterNames(s: SearchState): string {
     f.theme && THEME_LABEL[f.theme].toLowerCase(),
     f.source && `Diário da ${SOURCE_LABEL[f.source]}`,
   ].filter(Boolean).join(" · ");
+}
+
+export type FilterKey = "type" | "source" | "organ" | "theme" | "from" | "to" | "min" | "max";
+
+export interface ActiveFilter {
+  key: FilterKey;
+  label: string;
+}
+
+function brDate(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  return d && m && y ? `${d}/${m}/${y}` : iso;
+}
+
+export function activeFilters(s: SearchState): ActiveFilter[] {
+  const labels: [FilterKey, string][] = [
+    ["type", s.type && (TYPE_OPTIONS.find((t) => t.value === s.type)?.label ?? TYPE_LABEL[s.type])],
+    ["source", s.source && `Diário da ${SOURCE_LABEL[s.source]}`],
+    ["organ", s.organ],
+    ["theme", s.theme && THEME_LABEL[s.theme]],
+    ["from", s.from && `a partir de ${brDate(s.from)}`],
+    ["to", s.to && `até ${brDate(s.to)}`],
+    ["min", s.min && `valor a partir de R$ ${s.min}`],
+    ["max", s.max && `valor até R$ ${s.max}`],
+  ];
+  return labels.filter(([, label]) => label).map(([key, label]) => ({ key, label }));
+}
+
+export function withoutFilter(s: SearchState, key: FilterKey): SearchState {
+  return { ...s, [key]: "", page: 1 };
+}
+
+export function withoutFilters(s: SearchState): SearchState {
+  return { ...EMPTY_STATE, q: s.q };
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  EMPTY_STATE, SearchState, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery, withSource,
+  EMPTY_STATE, SearchState, activeFilters, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery, withSource, withoutFilter, withoutFilters,
 } from "./searchState";
 
 describe("parseBRL", () => {
@@ -156,5 +156,34 @@ describe("tema", () => {
 
   it("ignora tema desconhecido", () => {
     expect(stateFromQuery("?tema=saude").theme).toBe("");
+  });
+});
+
+describe("filtros ativos", () => {
+  const full: SearchState = {
+    q: "merenda", source: "diario_prefeitura", type: "contrato", organ: "SEMSA", theme: "meio_ambiente",
+    from: "2024-01-05", to: "2024-12-31", min: "1.000", max: "50.000,00", page: 3,
+  };
+
+  it("lista cada filtro com o rótulo do chip, sem a busca", () => {
+    expect(activeFilters(full).map((f) => f.label)).toEqual([
+      "Contratos", "Diário da Prefeitura", "SEMSA", "Meio ambiente",
+      "a partir de 05/01/2024", "até 31/12/2024", "valor a partir de R$ 1.000", "valor até R$ 50.000,00",
+    ]);
+  });
+
+  it("não lista nada sem filtro", () => {
+    expect(activeFilters({ ...EMPTY_STATE, q: "merenda" })).toEqual([]);
+  });
+
+  it("remove um filtro e volta para a primeira página", () => {
+    const next = withoutFilter(full, "organ");
+    expect(next.organ).toBe("");
+    expect(next.type).toBe("contrato");
+    expect(next.page).toBe(1);
+  });
+
+  it("limpa os filtros e mantém a busca", () => {
+    expect(withoutFilters(full)).toEqual({ ...EMPTY_STATE, q: "merenda" });
   });
 });

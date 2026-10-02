@@ -3,9 +3,10 @@ import { Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api"
 import { AlertForm } from "./AlertForm";
 import { Logo } from "./Brand";
 import { Result } from "./components";
-import { MoreFilters, ScopeSelects, SearchForm, TypeChips, TypeList } from "./SearchFilters";
+import { FilterBar, FiltersDialog, MoreFilters, ScopeSelects, SearchForm } from "./SearchFilters";
 import {
-  SearchState, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery,
+  FilterKey, SearchState, activeFilters, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch,
+  queryFromState, stateFromQuery, withoutFilter, withoutFilters,
 } from "./searchState";
 
 const PAGE_SIZE = 20;
@@ -25,6 +26,7 @@ export function SearchPage() {
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
 
   const load = useCallback(async (s: SearchState) => {
@@ -63,15 +65,16 @@ export function SearchPage() {
     return () => window.removeEventListener("popstate", onPop);
   }, [load]);
 
-  function go(next: SearchState) {
+  function go(next: SearchState): boolean {
     if (apiParams(next, PAGE_SIZE) === null) {
       setError(INVALID_VALUE);
-      return;
+      return false;
     }
     setState(next);
     setDraft(next);
     window.history.pushState(null, "", "/" + queryFromState(next));
     load(next);
+    return true;
   }
 
   function onSubmit(e: FormEvent) {
@@ -85,10 +88,51 @@ export function SearchPage() {
   }
 
   const totalPages = result ? Math.max(1, Math.ceil(result.total / PAGE_SIZE)) : 1;
-  const filters = { draft, setDraft, go, organs, loading, advancedOpen: hasAdvancedFilters(state) };
-  const searchForm = <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} size={hasSearch(state) ? "md" : "lg"} />;
+  const isHome = !hasSearch(state);
+  const searchForm = <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} size={isHome ? "lg" : "md"} />;
+  const errorNotice = error && <p className="notice notice-error" role="alert">{error}</p>;
+  const applied = isHome ? draft : state;
+  const chips = activeFilters(applied);
 
-  if (!hasSearch(state)) {
+  function removeFilter(key: FilterKey) {
+    if (isHome) setDraft(withoutFilter(draft, key));
+    else go(withoutFilter(state, key));
+  }
+
+  function closeFilters() {
+    setFiltersOpen(false);
+    if (!isHome) setDraft({ ...state, q: draft.q });
+  }
+
+  function applyFilters() {
+    const next = { ...draft, q: draft.q.trim(), page: 1 };
+    if (apiParams(next, PAGE_SIZE) === null) {
+      setError(INVALID_VALUE);
+      return;
+    }
+    setError("");
+    if (isHome || go(next)) setFiltersOpen(false);
+  }
+
+  const filterBar = (className?: string) => (
+    <FilterBar filters={chips} onOpen={() => setFiltersOpen(true)} onRemove={removeFilter} className={className} />
+  );
+  const dialog = (
+    <FiltersDialog
+      open={filtersOpen}
+      value={draft}
+      onChange={setDraft}
+      organs={organs}
+      onClose={closeFilters}
+      onClear={() => setDraft(withoutFilters(draft))}
+      onApply={applyFilters}
+      applyLabel={isHome ? "Aplicar filtros" : "Aplicar e buscar"}
+      canClear={activeFilters(draft).length > 0}
+      error={filtersOpen && errorNotice}
+    />
+  );
+
+  if (isHome) {
     return (
       <main className="page search-home">
         <Logo size="lg" href="/" />
@@ -99,10 +143,9 @@ export function SearchPage() {
         </p>
         {searchForm}
         <SyntaxHint />
-        <TypeChips draft={draft} go={go} />
-        <div className="scope-grid"><ScopeSelects {...filters} /></div>
-        <MoreFilters {...filters} />
-        {error && <p className="notice notice-error" role="alert">{error}</p>}
+        {filterBar()}
+        {!filtersOpen && errorNotice}
+        {dialog}
       </main>
     );
   }
@@ -114,15 +157,26 @@ export function SearchPage() {
         <Logo size="md" href="/" />
         {searchForm}
       </div>
+      {filterBar("filter-bar-mobile")}
       <div className="results-layout">
         <aside className="filters" aria-label="Filtros">
-          <TypeList draft={draft} go={go} />
-          <ScopeSelects {...filters} />
-          <MoreFilters {...filters} />
-          <SyntaxHint />
+          <div className="filters-head">
+            <h2>Filtros</h2>
+            {chips.length > 0 && (
+              <button type="button" className="link-button" onClick={() => go(withoutFilters(state))}>Limpar</button>
+            )}
+          </div>
+          <ScopeSelects value={state} onChange={(next) => go({ ...next, q: draft.q.trim() })} organs={organs} />
+          <MoreFilters
+            value={draft}
+            onChange={setDraft}
+            onApply={() => go({ ...draft, q: draft.q.trim(), page: 1 })}
+            loading={loading}
+            open={hasAdvancedFilters(state)}
+          />
         </aside>
         <section className="results" aria-live="polite" ref={resultsRef}>
-          {error && <p className="notice notice-error" role="alert">{error}</p>}
+          {!filtersOpen && errorNotice}
           {result === null && loading && <p className="count">Carregando…</p>}
           {result !== null && (
             <>
@@ -152,6 +206,7 @@ export function SearchPage() {
           )}
         </section>
       </div>
+      {dialog}
     </main>
   );
 }

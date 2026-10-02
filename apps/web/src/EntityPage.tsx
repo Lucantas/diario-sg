@@ -36,7 +36,7 @@ export function EntityPage({ kind, slug }: { kind: EntityKind; slug: string }) {
   }
 
   const groups = data ? groupByOrgan(data.acts, data.organs, organ) : [];
-  const pressedOrgan = data ? selectedOrgan(data.organs, organ) : "";
+  const selected = data ? selectedOrgan(data.organs, organ) : "";
 
   return (
     <main className="page">
@@ -73,21 +73,15 @@ export function EntityPage({ kind, slug }: { kind: EntityKind; slug: string }) {
           )}
 
           {data.organs.length > 1 && (
-            <div className="organ-filter" role="group" aria-label="Filtrar por órgão">
-              <button type="button" aria-pressed={pressedOrgan === ""} onClick={() => chooseOrgan("")}>
-                Todos
-              </button>
-              {data.organs.map((o) => (
-                <button
-                  key={o.organ || "sem-orgao"}
-                  type="button"
-                  aria-pressed={pressedOrgan === o.organ}
-                  onClick={() => chooseOrgan(o.organ)}
-                >
-                  {o.organ || "Sem órgão"} ({o.acts})
-                </button>
-              ))}
-            </div>
+            <label className="field entity-organ">
+              <span className="field-label">Órgão</span>
+              <select value={selected} onChange={(e) => chooseOrgan(e.target.value)}>
+                <option value="">Todos ({data.total_acts})</option>
+                {data.organs.filter((o) => o.organ).map((o) => (
+                  <option key={o.organ} value={o.organ}>{o.organ} ({o.acts})</option>
+                ))}
+              </select>
+            </label>
           )}
 
           {data.acts.length === 0 && (
