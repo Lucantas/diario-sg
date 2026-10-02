@@ -1,35 +1,18 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ActType, Organ, SearchResponse, Source, listOrgans, searchActs, subscribe } from "./api";
+import { Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api";
 import { AlertForm } from "./AlertForm";
+import { Logo } from "./Brand";
 import { Result } from "./components";
+import { MoreFilters, ScopeSelects, SearchForm, TypeChips, TypeList } from "./SearchFilters";
 import {
-  SearchState, THEME_LABEL, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery,
-  withSource,
+  SearchState, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, queryFromState, stateFromQuery,
 } from "./searchState";
-import { SOURCE_LABEL } from "./types";
 
 const PAGE_SIZE = 20;
 
 const EXPORT_LIMIT = 10000;
 
 const INVALID_VALUE = "Valor inválido. Escreva só números, como 1.500 ou 1.500,50.";
-
-const TYPES: { value: ActType | ""; label: string }[] = [
-  { value: "", label: "Tudo" },
-  { value: "nomeacao", label: "Nomeações" },
-  { value: "exoneracao", label: "Exonerações" },
-  { value: "contrato", label: "Contratos" },
-  { value: "aditivo", label: "Aditivos" },
-  { value: "licitacao", label: "Licitações" },
-  { value: "dispensa", label: "Sem licitação" },
-  { value: "decreto", label: "Decretos" },
-  { value: "lei", label: "Leis" },
-  { value: "resolucao", label: "Resoluções" },
-  { value: "prestacao_contas", label: "Prestações de contas" },
-  { value: "licenca_ambiental", label: "Licenças ambientais" },
-  { value: "despacho", label: "Despachos" },
-  { value: "edital", label: "Editais" },
-];
 
 function hasAdvancedFilters(s: SearchState) {
   return Boolean(s.from || s.to || s.min || s.max);
@@ -102,155 +85,83 @@ export function SearchPage() {
   }
 
   const totalPages = result ? Math.max(1, Math.ceil(result.total / PAGE_SIZE)) : 1;
+  const filters = { draft, setDraft, go, organs, loading, advancedOpen: hasAdvancedFilters(state) };
+  const searchForm = <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} size={hasSearch(state) ? "md" : "lg"} />;
 
-  return (
-    <main className="page">
-      <header className="masthead">
+  if (!hasSearch(state)) {
+    return (
+      <main className="page search-home">
+        <Logo size="lg" href="/" />
         <h1>Diários Oficiais de São Gonçalo, pesquisáveis.</h1>
         <p className="lede">
           Nomeações, contratos, licitações e decretos publicados pela prefeitura e pela
           Câmara Municipal, com busca por nome, empresa ou assunto.
         </p>
-      </header>
+        {searchForm}
+        <SyntaxHint />
+        <TypeChips draft={draft} go={go} />
+        <div className="scope-grid"><ScopeSelects {...filters} /></div>
+        <MoreFilters {...filters} />
+        {error && <p className="notice notice-error" role="alert">{error}</p>}
+      </main>
+    );
+  }
 
-      <form className="search" onSubmit={onSubmit} role="search">
-        <label htmlFor="q" className="visually-hidden">Buscar nos Diários Oficiais</label>
-        <input
-          id="q"
-          type="search"
-          value={draft.q}
-          onChange={(e) => setDraft({ ...draft, q: e.target.value })}
-          placeholder="Nome, CNPJ, empresa ou assunto"
-          autoComplete="off"
-        />
-        <button type="submit" disabled={loading}>{loading ? "Buscando" : "Buscar"}</button>
-      </form>
-      <p className="hint">
-        Entre aspas ("josé da silva") só a frase exata. OU junta termos (merenda OU alimentação);
-        -termo exclui (limpeza -urbana).
-      </p>
-
-      <div className="types" role="group" aria-label="Tipo de ato">
-        {TYPES.map((t) => (
-          <button
-            key={t.value || "all"}
-            type="button"
-            aria-pressed={draft.type === t.value}
-            onClick={() => go({ ...draft, q: draft.q.trim(), type: t.value, page: 1 })}
-          >
-            {t.label}
-          </button>
-        ))}
+  return (
+    <main className="page page-wide search-results">
+      <h1 className="visually-hidden">Resultados da busca nos Diários Oficiais</h1>
+      <div className="results-top">
+        <Logo size="md" href="/" />
+        {searchForm}
       </div>
-
-      <div className="organ-filter">
-        <label htmlFor="source">Diário</label>
-        <select id="source" value={draft.source}
-          onChange={(e) => go(withSource({ ...draft, q: draft.q.trim() }, e.target.value))}>
-          <option value="">Prefeitura e Câmara</option>
-          {(Object.keys(SOURCE_LABEL) as Source[]).map((src) => (
-            <option key={src} value={src}>{SOURCE_LABEL[src]}</option>
-          ))}
-        </select>
-      </div>
-
-      {organs.length > 0 && draft.source !== "diario_camara" && (
-        <div className="organ-filter">
-          <label htmlFor="organ">Órgão</label>
-          <select id="organ" value={draft.organ} onChange={(e) => go({ ...draft, q: draft.q.trim(), organ: e.target.value, page: 1 })}>
-            <option value="">Todos os órgãos</option>
-            {organs.map((o) => (
-              <option key={o.acronym} value={o.acronym}>
-                {o.name ? `${o.acronym} · ${o.name}` : o.acronym} ({o.acts.toLocaleString("pt-BR")})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      <div className="organ-filter">
-        <label htmlFor="theme">Tema</label>
-        <select id="theme" value={draft.theme} onChange={(e) => go({ ...draft, q: draft.q.trim(), theme: e.target.value, page: 1 })}>
-          <option value="">Todos os temas</option>
-          {Object.entries(THEME_LABEL).map(([slug, label]) => <option key={slug} value={slug}>{label}</option>)}
-        </select>
-      </div>
-
-      <details className="more-filters" open={hasAdvancedFilters(state)}>
-        <summary>Mais filtros: período e valor</summary>
-        <form onSubmit={(e) => { e.preventDefault(); go({ ...draft, q: draft.q.trim(), page: 1 }); }}>
-          <div className="filter-grid">
-            <label>
-              Publicado a partir de
-              <input type="date" value={draft.from} onChange={(e) => setDraft({ ...draft, from: e.target.value })} />
-            </label>
-            <label>
-              Publicado até
-              <input type="date" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} />
-            </label>
-            <label>
-              Cita valor a partir de (R$)
-              <input inputMode="decimal" placeholder="1.000,00" value={draft.min}
-                onChange={(e) => setDraft({ ...draft, min: e.target.value })} />
-            </label>
-            <label>
-              Cita valor até (R$)
-              <input inputMode="decimal" placeholder="500.000,00" value={draft.max}
-                onChange={(e) => setDraft({ ...draft, max: e.target.value })} />
-            </label>
-          </div>
-          <div className="filter-actions">
-            <button type="submit" disabled={loading}>Aplicar filtros</button>
-            <button type="button" className="secondary"
-              onClick={() => go({ ...draft, from: "", to: "", min: "", max: "", page: 1 })}>
-              Limpar
-            </button>
-          </div>
-          <p className="fineprint">
-            O filtro de valor acha atos que citam ao menos um valor na faixa (global, mensal ou unitário).
-          </p>
-        </form>
-      </details>
-
-      {error && <p className="notice notice-error">{error}</p>}
-
-      {result !== null && (
+      <div className="results-layout">
+        <aside className="filters" aria-label="Filtros">
+          <TypeList draft={draft} go={go} />
+          <ScopeSelects {...filters} />
+          <MoreFilters {...filters} />
+          <SyntaxHint />
+        </aside>
         <section className="results" aria-live="polite" ref={resultsRef}>
-          <p className="count">
-            {result.total === 0
-              ? "Nenhum ato encontrado. Tente outro termo ou remova filtros."
-              : `${result.total.toLocaleString("pt-BR")} ${result.total === 1 ? "ato encontrado" : "atos encontrados"}`}
-          </p>
-          {result.total > 0 && <ExportLinks state={state} total={result.total} />}
-          <ol>
-            {result.items.map((h) => <Result key={h.id} hit={h} />)}
-          </ol>
-          {totalPages > 1 && (
-            <nav className="pager" aria-label="Páginas">
-              <button type="button" className="secondary" disabled={loading || state.page <= 1}
-                onClick={() => goToPage(state.page - 1)}>Anterior</button>
-              <span>Página {state.page} de {totalPages.toLocaleString("pt-BR")}</span>
-              <button type="button" className="secondary" disabled={loading || state.page >= totalPages}
-                onClick={() => goToPage(state.page + 1)}>Próxima</button>
-            </nav>
+          {error && <p className="notice notice-error" role="alert">{error}</p>}
+          {result === null && loading && <p className="count">Carregando…</p>}
+          {result !== null && (
+            <>
+              <div className="results-heading">
+                <h2>
+                  {result.total === 0
+                    ? "Nenhum ato encontrado"
+                    : `${result.total.toLocaleString("pt-BR")} ${result.total === 1 ? "ato encontrado" : "atos encontrados"}`}
+                </h2>
+                {result.total > 0 && <ExportLinks state={state} total={result.total} />}
+              </div>
+              {result.total === 0 && <p className="count">Tente outro termo ou remova filtros.</p>}
+              <ol className="act-list">
+                {result.items.map((h) => <Result key={h.id} hit={h} />)}
+              </ol>
+              {totalPages > 1 && (
+                <nav className="pager" aria-label="Páginas">
+                  <button type="button" disabled={loading || state.page <= 1}
+                    onClick={() => goToPage(state.page - 1)}>Anterior</button>
+                  <span>Página {state.page.toLocaleString("pt-BR")} de {totalPages.toLocaleString("pt-BR")}</span>
+                  <button type="button" disabled={loading || state.page >= totalPages}
+                    onClick={() => goToPage(state.page + 1)}>Próxima</button>
+                </nav>
+              )}
+              {canAlert(state) ? <SearchAlert state={state} /> : <FeedLink state={state} />}
+            </>
           )}
-          {canAlert(state) && <SearchAlert state={state} />}
-          <FeedLink state={state} />
         </section>
-      )}
-
-      <footer className="site-footer">
-        <a href="/dados">Dados abertos: a base inteira para baixar</a>
-        <a href="/mcp">Pergunte pela sua IA (MCP)</a>
-        <a href="/padroes">Padrões para verificar</a>
-        <a href="/paineis">Maiores fornecedores</a>
-        <a href="/pessoal">Pessoal</a>
-        <a href="/tce">TCE-RJ</a>
-        <a href="/federal">Dinheiro federal</a>
-        <a href="/agentes">Agentes políticos</a>
-        <a href="/proposicoes">Proposições da Câmara</a>
-      </footer>
+      </div>
     </main>
+  );
+}
+
+function SyntaxHint() {
+  return (
+    <p className="hint">
+      Entre aspas ("josé da silva") só a frase exata. OU junta termos (merenda OU alimentação);{" "}
+      -termo exclui (limpeza -urbana).
+    </p>
   );
 }
 
@@ -264,7 +175,9 @@ function SearchAlert({ state }: { state: SearchState }) {
       title={title}
       description={`Você recebe um e-mail no dia em que uma nova edição ${scope}.${filterNote} Período e valor não entram no alerta.`}
       onSubscribe={(email) => subscribe(email, state.q, alertFilters(state))}
-    />
+    >
+      <FeedLink state={state} />
+    </AlertForm>
   );
 }
 

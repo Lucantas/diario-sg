@@ -1,0 +1,89 @@
+:root, [data-theme="light"] {
+  --bg: #ffffff;
+  --bg-sunken: #f1f4f4;
+  --bg-raised: #ffffff;
+  --line: #d3d9db;
+  --line-strong: #68767a;
+  --ink: #0e1517;
+  --ink-muted: #4a575b;
+  --bay: #0b5f73;
+  --bay-strong: #07485a;
+  --bay-soft: #e0eff2;
+  --on-bay: #ffffff;
+  --link: var(--bay);
+  --marker: #ffdd4a;
+  --on-marker: #0e1517;
+  --alert: #8a4a00;
+  --alert-soft: #fff0d1;
+  --critical: #a3271d;
+  --critical-soft: #fde9e6;
+  --data-1: var(--bay);
+  --data-2: #d06c0a;
+  --data-3: #6f7c80;
+  --data-4: var(--ink);
+  --focus-ring: 0 0 0 3px #ffdd4a, 0 0 0 5px #0e1517;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1416;
+    --bg-sunken: #0a0e10;
+    --bg-raised: #1a2226;
+    --line: #2c373c;
+    --line-strong: #7b8a8f;
+    --ink: #edf1f2;
+    --ink-muted: #a7b3b7;
+    --bay: #62c6d9;
+    --bay-strong: #93d9e6;
+    --bay-soft: #12313a;
+    --on-bay: #06181d;
+    --marker: #ffd84a;
+    --alert: #f3b352;
+    --alert-soft: #3a2a0b;
+    --critical: #ff9c91;
+    --critical-soft: #3e1613;
+    --data-2: #c26a17;
+    --data-3: #8b999d;
+  }
+}
+
+[data-theme="dark"] {
+  --bg: #0f1416;
+  --bg-sunken: #0a0e10;
+  --bg-raised: #1a2226;
+  --line: #2c373c;
+  --line-strong: #7b8a8f;
+  --ink: #edf1f2;
+  --ink-muted: #a7b3b7;
+  --bay: #62c6d9;
+  --bay-strong: #93d9e6;
+  --bay-soft: #12313a;
+  --on-bay: #06181d;
+  --marker: #ffd84a;
+  --alert: #f3b352;
+  --alert-soft: #3a2a0b;
+  --critical: #ff9c91;
+  --critical-soft: #3e1613;
+  --data-2: #c26a17;
+  --data-3: #8b999d;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-3: 8px;
+  --font-sans: "Public Sans Variable", "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --page: 1024px;
+  --page-wide: 1304px;
+  --gutter: var(--space-6);
+}

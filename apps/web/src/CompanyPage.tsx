@@ -12,6 +12,8 @@ import { StalledWorksSection } from "./StalledWorksSection";
 import { AmendmentsSection } from "./AmendmentsSection";
 import { SanctionsSection } from "./SanctionsSection";
 import { TYPE_LABEL, formatCents, formatCnpj } from "./types";
+import { YearBars } from "./YearBars";
+import { countByYear } from "./yearBars";
 
 export function CompanyPage({ cnpj }: { cnpj: string }) {
   const [data, setData] = useState<CompanyResponse | null>(null);
@@ -47,6 +49,7 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
           <PNCPSection contracts={data.pncp_contracts} />
           <StalledWorksSection works={data.stalled_works} />
           <AmendmentsSection payments={data.amendment_payments} />
+          <h2 className="panel-heading">Resumo nos Diários</h2>
           <dl className="summary">
             <div>
               <dt>Atos</dt>
@@ -68,7 +71,10 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
             unitário), sem distinguir o que cada um significa. Confira sempre a edição original.
           </p>
 
-          <section className="results" aria-label="Linha do tempo">
+          <ActsByYear dates={data.acts.map((a) => a.published_at)} />
+
+          <section className="results" aria-labelledby="timeline-heading">
+            <h2 id="timeline-heading" className="panel-heading">Linha do tempo</h2>
             {data.acts.length === 0 && (
               <p className="count">Nenhum ato indexado cita este CNPJ.</p>
             )}
@@ -81,5 +87,17 @@ export function CompanyPage({ cnpj }: { cnpj: string }) {
         </>
       )}
     </main>
+  );
+}
+
+function ActsByYear({ dates }: { dates: string[] }) {
+  const data = countByYear(dates);
+  if (data.length < 2) return null;
+  return (
+    <section aria-labelledby="years-heading">
+      <h2 id="years-heading" className="panel-heading">Atos que citam a empresa, por ano</h2>
+      <p className="fineprint">Fonte: Diários da Prefeitura e da Câmara. O ano corrente vai até a edição mais recente.</p>
+      <YearBars data={data} caption="Atos que citam a empresa, por ano" />
+    </section>
   );
 }

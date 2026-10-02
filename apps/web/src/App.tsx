@@ -5,6 +5,7 @@ import { DataPage } from "./DataPage";
 import { EntityPage } from "./EntityPage";
 import { AgentsPage } from "./AgentsPage";
 import { BillPage } from "./BillPage";
+import { SiteFooter, SiteHeader } from "./Brand";
 import { parseBillPath } from "./bills";
 import { BillsPage } from "./BillsPage";
 import { FederalPage } from "./FederalPage";
@@ -17,7 +18,17 @@ import { StaffPage } from "./StaffPage";
 import { TCEPage } from "./TCEPage";
 
 export function App() {
-  const path = window.location.pathname;
+  const page = routePage(window.location.pathname);
+  return (
+    <>
+      {page.type !== SearchPage && <SiteHeader />}
+      {page}
+      <SiteFooter />
+    </>
+  );
+}
+
+function routePage(path: string) {
   const token = new URLSearchParams(window.location.search).get("token") ?? "";
   if (path === "/confirmar") return <TokenPage kind="confirm" token={token} />;
   if (path === "/cancelar") return <TokenPage kind="cancel" token={token} />;

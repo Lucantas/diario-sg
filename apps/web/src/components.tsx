@@ -8,20 +8,26 @@ import { warningText } from "./warnings";
 
 type Panel = "cite" | "report" | null;
 
+const GAZETTE_NAME = { diario_prefeitura: "Diário da Prefeitura", diario_camara: "Diário da Câmara" } as const;
+
+export function formatLongDate(isoDate: string) {
+  return new Date(isoDate + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
+}
+
 export function Result({ hit }: { hit: ActHit }) {
   const [panel, setPanel] = useState<Panel>(null);
   const toggle = (p: Exclude<Panel, null>) => setPanel(panel === p ? null : p);
-  const date = new Date(hit.published_at + "T12:00:00").toLocaleDateString("pt-BR");
   const pages = pageLabel(hit);
+  const fromCamara = hit.source === "diario_camara";
   return (
     <li className="result">
       <p className="meta">
-        <span className={`tag tag-${hit.type}`}>{TYPE_LABEL[hit.type]}</span>
-        {hit.phase && <span className="phase">{PHASE_LABEL[hit.phase]}</span>}
-        {hit.source === "diario_camara" && <span className="source-badge">Câmara</span>}
+        <span className="tag">{TYPE_LABEL[hit.type]}</span>
+        {hit.phase && PHASE_LABEL[hit.phase] !== TYPE_LABEL[hit.type] && <span className="tag">{PHASE_LABEL[hit.phase]}</span>}
+        <span className={fromCamara ? "gazette gazette-camara" : "gazette"}>{GAZETTE_NAME[hit.source]}</span>
         <a href={hit.source_url + pageFragment(hit)} target="_blank" rel="noopener"
-          title={hit.source === "diario_camara" ? "Abrir o PDF no site da Câmara" : "Abrir o PDF no site da prefeitura"}>
-          Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {date}{pages && `, ${pages}`}
+          title={fromCamara ? "Abrir o PDF no site da Câmara" : "Abrir o PDF no site da prefeitura"}>
+          Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {formatLongDate(hit.published_at)}{pages && `, ${pages}`}
         </a>
         <a href={archivedPdfUrl("", hit)} target="_blank" rel="noopener" title="Abrir a cópia do PDF guardada pelo Diário SG">
           cópia arquivada
@@ -34,11 +40,11 @@ export function Result({ hit }: { hit: ActHit }) {
       </p>
       <h2>{hit.title}</h2>
       <Warnings hit={hit} />
-      <p className="snippet"><Highlighted text={hit.snippet} /></p>
+      {hit.snippet && <p className="snippet"><Highlighted text={hit.snippet} /></p>}
       {hit.values_cents.length > 0 && <Values cents={hit.values_cents} />}
       {hit.cnpjs.length > 0 && (
         <p className="cnpjs">
-          Empresas citadas:{" "}
+          <span>Empresas citadas</span>
           {hit.cnpjs.map((c) => (
             <a key={c} className="cnpj" href={`/empresa/${c}`} title="Ver todos os atos desta empresa">{formatCnpj(c)}</a>
           ))}
@@ -46,7 +52,7 @@ export function Result({ hit }: { hit: ActHit }) {
       )}
       {hit.mentions.length > 0 && (
         <p className="mentions">
-          Processos e contratos citados:{" "}
+          <span>Processos e contratos citados</span>
           {hit.mentions.map((m) => (
             <a key={`${m.kind}-${m.slug}`} className="mention" href={entityPath(m.kind, m.slug)}>{m.label}</a>
           ))}
@@ -82,8 +88,11 @@ function Values({ cents }: { cents: number[] }) {
   const hidden = cents.length - SHOWN_VALUES;
   return (
     <p className="values">
-      Valores citados: {cents.slice(0, SHOWN_VALUES).map(formatCents).join(" · ")}
-      {hidden > 0 && ` · +${hidden}`}
+      Valores citados:{" "}
+      <span className="values-list">
+        {cents.slice(0, SHOWN_VALUES).map(formatCents).join(" · ")}
+        {hidden > 0 && ` · +${hidden}`}
+      </span>
     </p>
   );
 }
