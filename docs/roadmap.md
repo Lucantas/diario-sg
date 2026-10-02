@@ -644,6 +644,15 @@ Pendências:
 - [ ] Na nuvem: migrations 032 e 033 e reindexar a produção (o parser
   mudou).
 
+Depois da entrega, o texto lido pelo OCR passou a ficar no bucket
+(`ocr/v1/`, ver `docs/decisoes-de-codigo.md`): na base local, agosto de
+2021 (39 edições, 27 com OCR) levou 589 s na primeira reindexação e 5,5 s
+na segunda.
+
+- [ ] Na nuvem: `terraform apply` da escrita da conta do worker em `ocr/`
+  antes da próxima reindexação; sem ela o cache não é gravado e a
+  reindexação faz o OCR inteiro de novo.
+
 ## Fechamento do plano de fontes
 
 Itens do `docs/plano-fontes-publicas.md` que não dependem de acesso de
@@ -717,7 +726,7 @@ com entrega ou com o bloqueio conferido e registrado.
 
 Todas as pendências abertas do roadmap num lugar só, com de quem
 dependem. Os detalhes ficam na seção de cada entrega. Atualizada em
-28/09/2026.
+01/10/2026.
 
 Dependem de acesso de fora ou de decisão do dono do projeto:
 
@@ -732,8 +741,6 @@ Dependem de acesso de fora ou de decisão do dono do projeto:
     scraper (Etapa B).
   - [ ] Job e agendamento do Diário da Câmara, migration 009 e o backfill
     desde 2020-10-04 (Etapa C1).
-  - [ ] Reindexar a produção depois das mudanças do parser (Etapa C1 e
-    Entrega 2, migration 013).
   - [ ] Migration 012 antes da imagem nova da API e do worker (Entrega 2).
   - [ ] Migrations 014, 015 e 021 e o Terraform dos jobs `receita` e
     `sancoes` (Entrega 3).
@@ -742,8 +749,16 @@ Dependem de acesso de fora ou de decisão do dono do projeto:
   - [ ] Migrations 019 a 029 e o Terraform dos jobs `federal` e `agentes`
     (Entrega 5).
   - [ ] Migrations 030 e 031, `terraform apply` do job `sicam` (já
-    escrito), a carga completa e a reindexação pelas correções do parser de
-    28/09/2026 (Entrega 6).
+    escrito) e a carga completa (Entrega 6).
+  - [ ] Migrations 032 e 033 (Entrega 7).
+  - [ ] `terraform apply` da escrita da conta do worker em `ocr/` (cache
+    do OCR), antes da reindexação.
+  - [ ] Uma reindexação só, de 2010 até hoje, com o parser atual: cobre as
+    mudanças da Etapa C1, da Entrega 2 (migration 013), as correções de 28
+    e 29/09/2026 e o tipo `licenca_ambiental` (Entrega 7). Esta primeira
+    ainda faz o OCR de todas as edições escaneadas e enche o cache; se
+    passar das 6 h do job, rode por períodos. As seguintes reaproveitam o
+    texto.
   - [ ] Limites por IP: conferir no Cloud Run qual posição do
     `X-Forwarded-For` é o IP de verdade, ou fechar a API ao tráfego que não
     vem do site (Etapa A).
