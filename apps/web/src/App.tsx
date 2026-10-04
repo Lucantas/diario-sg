@@ -5,7 +5,7 @@ import { DataPage } from "./DataPage";
 import { EntityPage } from "./EntityPage";
 import { AgentsPage } from "./AgentsPage";
 import { BillPage } from "./BillPage";
-import { SiteFooter, SiteHeader } from "./Brand";
+import { HeaderSearch, SiteFooter, SiteHeader } from "./Brand";
 import { parseBillPath } from "./bills";
 import { BillsPage } from "./BillsPage";
 import { FederalPage } from "./FederalPage";
@@ -17,14 +17,16 @@ import { SearchPage } from "./SearchPage";
 import { StaffPage } from "./StaffPage";
 import { TCEPage } from "./TCEPage";
 
+const SUNKEN_PAGES: unknown[] = [SearchPage, CompanyPage, EntityPage];
+
 export function App() {
   const page = routePage(window.location.pathname);
   return (
-    <>
-      {page.type !== SearchPage && <SiteHeader />}
+    <div className={SUNKEN_PAGES.includes(page.type) ? "shell shell-sunken" : "shell"}>
+      {page.type !== SearchPage && <SiteHeader search={<HeaderSearch />} />}
       {page}
       <SiteFooter />
-    </>
+    </div>
   );
 }
 

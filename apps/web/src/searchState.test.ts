@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  EMPTY_STATE, SearchState, activeFilters, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery, withSource, withoutFilter, withoutFilters,
+  EMPTY_STATE, SearchState, activeFilters, isRangeFilter, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch, parseBRL, queryFromState, stateFromQuery, withSource, withoutFilter, withoutFilters,
 } from "./searchState";
 
 describe("parseBRL", () => {
@@ -170,6 +170,10 @@ describe("filtros ativos", () => {
       "Contratos", "Diário da Prefeitura", "SEMSA", "Meio ambiente",
       "a partir de 05/01/2024", "até 31/12/2024", "valor a partir de R$ 1.000", "valor até R$ 50.000,00",
     ]);
+  });
+
+  it("separa período e valor dos filtros de escopo", () => {
+    expect(activeFilters(full).filter((f) => isRangeFilter(f.key)).map((f) => f.key)).toEqual(["from", "to", "min", "max"]);
   });
 
   it("não lista nada sem filtro", () => {

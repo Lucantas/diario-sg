@@ -1,12 +1,12 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api";
 import { AlertForm } from "./AlertForm";
-import { Logo } from "./Brand";
+import { HeaderSearch, SectionCards, SiteHeader } from "./Brand";
 import { Result } from "./components";
-import { FilterBar, FiltersDialog, MoreFilters, ScopeSelects, SearchForm } from "./SearchFilters";
+import { FilterBar, FilterPills, FiltersDialog, SearchForm } from "./SearchFilters";
 import {
   FilterKey, SearchState, activeFilters, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch,
-  queryFromState, stateFromQuery, withoutFilter, withoutFilters,
+  isRangeFilter, queryFromState, stateFromQuery, withoutFilter, withoutFilters,
 } from "./searchState";
 
 const PAGE_SIZE = 20;
@@ -14,10 +14,6 @@ const PAGE_SIZE = 20;
 const EXPORT_LIMIT = 10000;
 
 const INVALID_VALUE = "Valor inválido. Escreva só números, como 1.500 ou 1.500,50.";
-
-function hasAdvancedFilters(s: SearchState) {
-  return Boolean(s.from || s.to || s.min || s.max);
-}
 
 export function SearchPage() {
   const [state, setState] = useState<SearchState>(() => stateFromQuery(window.location.search));
@@ -89,10 +85,10 @@ export function SearchPage() {
 
   const totalPages = result ? Math.max(1, Math.ceil(result.total / PAGE_SIZE)) : 1;
   const isHome = !hasSearch(state);
-  const searchForm = <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} size={isHome ? "lg" : "md"} />;
   const errorNotice = error && <p className="notice notice-error" role="alert">{error}</p>;
   const applied = isHome ? draft : state;
   const chips = activeFilters(applied);
+  const rangeChips = chips.filter((c) => isRangeFilter(c.key));
 
   function removeFilter(key: FilterKey) {
     if (isHome) setDraft(withoutFilter(draft, key));
@@ -134,61 +130,64 @@ export function SearchPage() {
 
   if (isHome) {
     return (
-      <main className="page search-home">
-        <Logo size="lg" href="/" />
-        <h1>Diários Oficiais de São Gonçalo, pesquisáveis.</h1>
-        <p className="lede">
-          Nomeações, contratos, licitações e decretos publicados pela prefeitura e pela
-          Câmara Municipal, com busca por nome, empresa ou assunto.
-        </p>
-        {searchForm}
-        <SyntaxHint />
-        {filterBar()}
-        {!filtersOpen && errorNotice}
-        {dialog}
-      </main>
+      <>
+        <SiteHeader />
+        <main className="page page-wide search-home">
+          <h1>Diários Oficiais de São Gonçalo, pesquisáveis.</h1>
+          <p className="lede">
+            Nomeações, contratos, licitações e decretos publicados pela prefeitura e pela
+            Câmara Municipal, com busca por nome, empresa ou assunto.
+          </p>
+          <div className="search-home-form">
+            <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} />
+            {filterBar()}
+            {!filtersOpen && errorNotice}
+            <SyntaxHint />
+          </div>
+          <SectionCards />
+          {dialog}
+        </main>
+      </>
     );
   }
 
+  const headerSearch = (
+    <HeaderSearch controlled={{ value: draft.q, onChange: (q) => setDraft({ ...draft, q }), onSubmit, loading }} />
+  );
+
   return (
-    <main className="page page-wide search-results">
-      <h1 className="visually-hidden">Resultados da busca nos Diários Oficiais</h1>
-      <div className="results-top">
-        <Logo size="md" href="/" />
-        {searchForm}
-      </div>
-      {filterBar("filter-bar-mobile")}
-      <div className="results-layout">
-        <aside className="filters" aria-label="Filtros">
-          <div className="filters-head">
-            <h2>Filtros</h2>
-            {chips.length > 0 && (
-              <button type="button" className="link-button" onClick={() => go(withoutFilters(state))}>Limpar</button>
-            )}
-          </div>
-          <ScopeSelects value={state} onChange={(next) => go({ ...next, q: draft.q.trim() })} organs={organs} />
-          <MoreFilters
-            value={draft}
-            onChange={setDraft}
-            onApply={() => go({ ...draft, q: draft.q.trim(), page: 1 })}
-            loading={loading}
-            open={hasAdvancedFilters(state)}
-          />
-        </aside>
+    <>
+      <SiteHeader search={headerSearch} />
+      <main className="page page-wide search-results">
+        <h1 className="visually-hidden">Resultados da busca nos Diários Oficiais</h1>
+        <FilterPills
+          value={state}
+          onChange={(next) => go({ ...next, q: draft.q.trim() })}
+          organs={organs}
+          rangeCount={rangeChips.length}
+          onOpenDialog={() => setFiltersOpen(true)}
+          onClear={chips.length > 0 ? () => go(withoutFilters(state)) : null}
+        />
+        {rangeChips.length > 0 && <FilterBar filters={rangeChips} onRemove={removeFilter} className="filter-bar-desktop" />}
+        {filterBar("filter-bar-mobile")}
         <section className="results" aria-live="polite" ref={resultsRef}>
           {!filtersOpen && errorNotice}
           {result === null && loading && <p className="count">Carregando…</p>}
-          {result !== null && (
+          {result !== null && result.total === 0 && (
+            <div className="card empty-state">
+              <h2>Nenhum ato encontrado</h2>
+              <p>Tente outro termo ou remova filtros.</p>
+            </div>
+          )}
+          {result !== null && result.total > 0 && (
             <>
               <div className="results-heading">
                 <h2>
-                  {result.total === 0
-                    ? "Nenhum ato encontrado"
-                    : `${result.total.toLocaleString("pt-BR")} ${result.total === 1 ? "ato encontrado" : "atos encontrados"}`}
+                  {result.total.toLocaleString("pt-BR")} {result.total === 1 ? "ato encontrado" : "atos encontrados"}
+                  {state.q && <span className="results-heading-query"> para “{state.q}”</span>}
                 </h2>
-                {result.total > 0 && <ExportLinks state={state} total={result.total} />}
+                <ExportLinks state={state} total={result.total} />
               </div>
-              {result.total === 0 && <p className="count">Tente outro termo ou remova filtros.</p>}
               <ol className="act-list">
                 {result.items.map((h) => <Result key={h.id} hit={h} />)}
               </ol>
@@ -201,22 +200,32 @@ export function SearchPage() {
                     onClick={() => goToPage(state.page + 1)}>Próxima</button>
                 </nav>
               )}
-              {canAlert(state) ? <SearchAlert state={state} /> : <FeedLink state={state} />}
             </>
           )}
+          {result !== null && (canAlert(state) ? <SearchAlert state={state} /> : <FeedLink state={state} />)}
         </section>
-      </div>
-      {dialog}
-    </main>
+        {dialog}
+      </main>
+    </>
   );
 }
 
+const SYNTAX_TIPS: [string, string][] = [
+  ['"josé da silva"', "Entre aspas: encontra só essa frase exata, nessa ordem."],
+  ["merenda OU alimentação", "Com OU: encontra atos que tenham uma palavra ou a outra."],
+  ["limpeza -urbana", "Com um traço antes: deixa de fora os atos com essa palavra."],
+];
+
 function SyntaxHint() {
   return (
-    <p className="hint">
-      Entre aspas ("josé da silva") só a frase exata. OU junta termos (merenda OU alimentação);{" "}
-      -termo exclui (limpeza -urbana).
-    </p>
+    <div className="hint">
+      <p>Dicas para refinar a busca:</p>
+      <ul>
+        {SYNTAX_TIPS.map(([example, text]) => (
+          <li key={example}><code>{example}</code><span>{text}</span></li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -242,8 +251,10 @@ function ExportLinks({ state, total }: { state: SearchState; total: number }) {
   if (!csv || !json) return null;
   return (
     <p className="export">
-      Baixar o resultado: <a href={csv} download>CSV</a> · <a href={json} download>JSON</a>
-      {total > EXPORT_LIMIT && ` (só os ${EXPORT_LIMIT.toLocaleString("pt-BR")} primeiros atos)`}
+      <span>Baixar o resultado</span>
+      <a className="pill pill-sm" href={csv} download>CSV</a>
+      <a className="pill pill-sm" href={json} download>JSON</a>
+      {total > EXPORT_LIMIT && <span>(só os {EXPORT_LIMIT.toLocaleString("pt-BR")} primeiros atos)</span>}
     </p>
   );
 }

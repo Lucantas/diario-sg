@@ -84,6 +84,12 @@
   --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --page: 1024px;
-  --page-wide: 1304px;
-  --gutter: var(--space-6);
+  --gutter: clamp(16px, 4vw, 32px);
+  --page-wide: calc(1280px + 2 * var(--gutter));
+  --header-h: 64px;
+  --radius-control: 12px;
+  --radius-card: 16px;
+  --shadow-pop: 0 12px 32px -12px rgba(14, 21, 23, 0.3);
+  --shadow-hover: 0 8px 24px -16px rgba(14, 21, 23, 0.25);
+  --scrim: rgba(14, 21, 23, 0.5);
 }

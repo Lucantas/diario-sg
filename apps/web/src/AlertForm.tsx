@@ -25,7 +25,7 @@ export function AlertForm({ title, description, onSubscribe, children }: AlertFo
   }
 
   return (
-    <section className="alert" aria-label="Alerta por e-mail">
+    <section id="alerta" className="alert" aria-label="Alerta por e-mail">
       {status === "sent" ? (
         <div className="notice" role="status">
           <strong className="notice-title">Você vai receber um e-mail</strong>

@@ -1,5 +1,5 @@
 import { Registry } from "./api";
-import { formatAddress, formatIsoDate, formatRegistryMonth, isActive } from "./registry";
+import { formatAddress, formatIsoDate, formatRegistryMonth } from "./registry";
 import { formatCents } from "./types";
 
 const PARTNER_KIND = { pessoa_juridica: "Pessoa jurídica", pessoa_fisica: "Pessoa física", estrangeiro: "Estrangeiro" } as const;
@@ -17,11 +17,6 @@ export function RegistrySection({ registry, month }: { registry: Registry | null
   return (
     <section className="registry" aria-labelledby="registry-heading">
       <h2 id="registry-heading" className="panel-heading">Cadastro na Receita</h2>
-      {!isActive(registry.status) && (
-        <p className="notice notice-error">
-          Situação cadastral: {registry.status}{since && ` desde ${since}`}{registry.status_reason && ` (${registry.status_reason})`}.
-        </p>
-      )}
       <dl className="registry-facts">
         {registry.trade_name && <><dt>Nome fantasia</dt><dd>{registry.trade_name}</dd></>}
         <dt>Situação</dt><dd>{registry.status}{since && ` desde ${since}`}</dd>

@@ -21,54 +21,77 @@ export function Result({ hit }: { hit: ActHit }) {
   const fromCamara = hit.source === "diario_camara";
   return (
     <li className="result">
-      <p className="meta">
+      <p className="tags">
         <span className="tag">{TYPE_LABEL[hit.type]}</span>
-        {hit.phase && PHASE_LABEL[hit.phase] !== TYPE_LABEL[hit.type] && <span className="tag">{PHASE_LABEL[hit.phase]}</span>}
-        <span className={fromCamara ? "gazette gazette-camara" : "gazette"}>{GAZETTE_NAME[hit.source]}</span>
-        <a href={hit.source_url + pageFragment(hit)} target="_blank" rel="noopener"
-          title={fromCamara ? "Abrir o PDF no site da Câmara" : "Abrir o PDF no site da prefeitura"}>
-          Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {formatLongDate(hit.published_at)}{pages && `, ${pages}`}
-        </a>
-        <a href={archivedPdfUrl("", hit)} target="_blank" rel="noopener" title="Abrir a cópia do PDF guardada pelo Diário SG">
-          cópia arquivada
-        </a>
-        {hit.organ && (
-          <span className="organ" title={hit.organ_name || undefined}>
-            {hit.organ}{hit.organ_name && ` · ${hit.organ_name}`}
-          </span>
-        )}
+        {hit.phase && PHASE_LABEL[hit.phase] !== TYPE_LABEL[hit.type] && <span className="tag tag-outline">{PHASE_LABEL[hit.phase]}</span>}
+        {fromCamara && <span className="tag tag-bay">Câmara</span>}
       </p>
-      <h2>{hit.title}</h2>
+      <div className="result-head">
+        <h2>{hit.title}</h2>
+        <p className="meta">
+          {hit.organ && (
+            <span className="organ" title={hit.organ_name || undefined}>
+              {hit.organ}{hit.organ_name && ` · ${hit.organ_name}`}
+            </span>
+          )}
+          <span>{GAZETTE_NAME[hit.source]}</span>
+          <a href={hit.source_url + pageFragment(hit)} target="_blank" rel="noopener"
+            title={fromCamara ? "Abrir o PDF no site da Câmara" : "Abrir o PDF no site da prefeitura"}>
+            Edição {hit.edition_number || "s/n"}{hit.is_extra && " (extra)"}, {formatLongDate(hit.published_at)}{pages && `, ${pages}`}
+          </a>
+          <a href={archivedPdfUrl("", hit)} target="_blank" rel="noopener" title="Abrir a cópia do PDF guardada pelo Diário SG">
+            cópia arquivada
+          </a>
+        </p>
+      </div>
       <Warnings hit={hit} />
       {hit.snippet && <p className="snippet"><Highlighted text={hit.snippet} /></p>}
-      {hit.values_cents.length > 0 && <Values cents={hit.values_cents} />}
-      {hit.cnpjs.length > 0 && (
-        <p className="cnpjs">
-          <span>Empresas citadas</span>
-          {hit.cnpjs.map((c) => (
-            <a key={c} className="cnpj" href={`/empresa/${c}`} title="Ver todos os atos desta empresa">{formatCnpj(c)}</a>
-          ))}
-        </p>
-      )}
-      {hit.mentions.length > 0 && (
-        <p className="mentions">
-          <span>Processos e contratos citados</span>
-          {hit.mentions.map((m) => (
-            <a key={`${m.kind}-${m.slug}`} className="mention" href={entityPath(m.kind, m.slug)}>{m.label}</a>
-          ))}
-        </p>
-      )}
+      <Details hit={hit} />
       <p className="actions">
-        <button type="button" className="link-button" aria-expanded={panel === "cite"} onClick={() => toggle("cite")}>
+        <button type="button" className="pill" aria-expanded={panel === "cite"} onClick={() => toggle("cite")}>
           Citar este ato
         </button>
-        <button type="button" className="link-button" aria-expanded={panel === "report"} onClick={() => toggle("report")}>
+        <button type="button" className="pill" aria-expanded={panel === "report"} onClick={() => toggle("report")}>
           Reportar erro
         </button>
       </p>
       {panel === "cite" && <Citation hit={hit} />}
       {panel === "report" && <ReportForm hit={hit} />}
     </li>
+  );
+}
+
+function Details({ hit }: { hit: ActHit }) {
+  if (hit.values_cents.length === 0 && hit.cnpjs.length === 0 && hit.mentions.length === 0) return null;
+  return (
+    <dl className="act-details">
+      {hit.values_cents.length > 0 && (
+        <>
+          <dt>Valores citados</dt>
+          <dd><Values cents={hit.values_cents} /></dd>
+        </>
+      )}
+      {hit.cnpjs.length > 0 && (
+        <>
+          <dt>Empresas citadas</dt>
+          <dd>
+            {hit.cnpjs.map((c) => (
+              <a key={c} className="cnpj" href={`/empresa/${c}`} title="Ver todos os atos desta empresa">{formatCnpj(c)}</a>
+            ))}
+          </dd>
+        </>
+      )}
+      {hit.mentions.length > 0 && (
+        <>
+          <dt>Processos e contratos citados</dt>
+          <dd>
+            {hit.mentions.map((m) => (
+              <a key={`${m.kind}-${m.slug}`} className="mention" href={entityPath(m.kind, m.slug)}>{m.label}</a>
+            ))}
+          </dd>
+        </>
+      )}
+    </dl>
   );
 }
 
@@ -87,13 +110,10 @@ const SHOWN_VALUES = 3;
 function Values({ cents }: { cents: number[] }) {
   const hidden = cents.length - SHOWN_VALUES;
   return (
-    <p className="values">
-      Valores citados:{" "}
-      <span className="values-list">
-        {cents.slice(0, SHOWN_VALUES).map(formatCents).join(" · ")}
-        {hidden > 0 && ` · +${hidden}`}
-      </span>
-    </p>
+    <>
+      {cents.slice(0, SHOWN_VALUES).map((c, i) => <span key={i} className="value-pill">{formatCents(c)}</span>)}
+      {hidden > 0 && <span className="values-more">+{hidden}</span>}
+    </>
   );
 }
 
@@ -124,7 +144,7 @@ function Citation({ hit }: { hit: ActHit }) {
   return (
     <div className="cite">
       <p ref={ref}>{text}</p>
-      <button type="button" onClick={copy}>{copied ? "Copiado" : "Copiar citação"}</button>
+      <button type="button" className="primary" onClick={copy}>{copied ? "Copiado" : "Copiar citação"}</button>
     </div>
   );
 }

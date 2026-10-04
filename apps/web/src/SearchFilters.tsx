@@ -2,18 +2,19 @@ import { FormEvent, ReactNode, useEffect, useRef } from "react";
 import { Organ, Source } from "./api";
 import { ActiveFilter, FilterKey, SearchState, THEME_LABEL, TYPE_OPTIONS, withSource } from "./searchState";
 import { SOURCE_LABEL } from "./types";
+import { SearchIcon } from "./Brand";
 
-export function SearchForm({ draft, setDraft, onSubmit, loading, size }: {
+export function SearchForm({ draft, setDraft, onSubmit, loading }: {
   draft: SearchState;
   setDraft: (s: SearchState) => void;
   onSubmit: (e: FormEvent) => void;
   loading: boolean;
-  size: "md" | "lg";
 }) {
   return (
-    <form className={`search search-${size}`} onSubmit={onSubmit} role="search">
-      <label htmlFor="q" className="field-label">Buscar nos Diários Oficiais</label>
-      <div className="search-row">
+    <form className="search-hero" onSubmit={onSubmit} role="search">
+      <label htmlFor="q" className="visually-hidden">Buscar nos Diários Oficiais</label>
+      <div className="search-hero-box">
+        <SearchIcon size={22} />
         <input
           id="q"
           type="search"
@@ -33,28 +34,37 @@ interface FieldsProps {
   onChange: (s: SearchState) => void;
 }
 
-export function ScopeSelects({ value, onChange, organs }: FieldsProps & { organs: Organ[] }) {
+type FieldVariant = "field" | "pill";
+
+function ScopeField({ label, variant, children }: { label: [string, string]; variant: FieldVariant; children: ReactNode }) {
+  const [full, short] = label;
+  return (
+    <label className={variant === "pill" ? "pill-select" : "field"}>
+      <span className={variant === "pill" ? undefined : "field-label"}>{variant === "pill" ? short : full}</span>
+      {children}
+    </label>
+  );
+}
+
+export function ScopeSelects({ value, onChange, organs, variant = "field" }: FieldsProps & { organs: Organ[]; variant?: FieldVariant }) {
   const set = (patch: Partial<SearchState>) => onChange({ ...value, ...patch, page: 1 });
   return (
     <>
-      <label className="field">
-        <span className="field-label">Tipo de ato</span>
+      <ScopeField label={["Tipo de ato", "Tipo"]} variant={variant}>
         <select value={value.type} onChange={(e) => set({ type: e.target.value as SearchState["type"] })}>
           {TYPE_OPTIONS.map((t) => <option key={t.value || "all"} value={t.value}>{t.label}</option>)}
         </select>
-      </label>
-      <label className="field">
-        <span className="field-label">Diário</span>
+      </ScopeField>
+      <ScopeField label={["Diário", "Diário"]} variant={variant}>
         <select value={value.source} onChange={(e) => onChange(withSource(value, e.target.value))}>
           <option value="">Prefeitura e Câmara</option>
           {(Object.keys(SOURCE_LABEL) as Source[]).map((src) => (
             <option key={src} value={src}>{SOURCE_LABEL[src]}</option>
           ))}
         </select>
-      </label>
+      </ScopeField>
       {organs.length > 0 && value.source !== "diario_camara" && (
-        <label className="field">
-          <span className="field-label">Órgão</span>
+        <ScopeField label={["Órgão", "Órgão"]} variant={variant}>
           <select value={value.organ} onChange={(e) => set({ organ: e.target.value })}>
             <option value="">Todos os órgãos</option>
             {organs.map((o) => (
@@ -63,16 +73,32 @@ export function ScopeSelects({ value, onChange, organs }: FieldsProps & { organs
               </option>
             ))}
           </select>
-        </label>
+        </ScopeField>
       )}
-      <label className="field">
-        <span className="field-label">Tema</span>
+      <ScopeField label={["Tema", "Tema"]} variant={variant}>
         <select value={value.theme} onChange={(e) => set({ theme: e.target.value })}>
           <option value="">Todos os temas</option>
           {Object.entries(THEME_LABEL).map(([slug, label]) => <option key={slug} value={slug}>{label}</option>)}
         </select>
-      </label>
+      </ScopeField>
     </>
+  );
+}
+
+export function FilterPills({ value, onChange, organs, rangeCount, onOpenDialog, onClear }: FieldsProps & {
+  organs: Organ[];
+  rangeCount: number;
+  onOpenDialog: () => void;
+  onClear: (() => void) | null;
+}) {
+  return (
+    <div className="filter-pills" role="group" aria-label="Filtros">
+      <ScopeSelects value={value} onChange={onChange} organs={organs} variant="pill" />
+      <button type="button" className={rangeCount ? "pill pill-active" : "pill"} aria-haspopup="dialog" onClick={onOpenDialog}>
+        {rangeCount ? `Período e valor (${rangeCount})` : "Período e valor"}
+      </button>
+      {onClear && <button type="button" className="quiet pill-clear" onClick={onClear}>Limpar filtros</button>}
+    </div>
   );
 }
 
@@ -101,38 +127,20 @@ function ValueInput({ label, field, placeholder, value, onChange }: FieldsProps 
   );
 }
 
-export function MoreFilters({ value, onChange, onApply, loading, open }: FieldsProps & {
-  onApply: () => void;
-  loading: boolean;
-  open: boolean;
-}) {
-  return (
-    <details className="more-filters" open={open}>
-      <summary>Período e valor</summary>
-      <form onSubmit={(e) => { e.preventDefault(); onApply(); }}>
-        <DateInput label="Publicado a partir de" field="from" value={value} onChange={onChange} />
-        <DateInput label="Publicado até" field="to" value={value} onChange={onChange} />
-        <ValueInput label="Cita valor a partir de (R$)" field="min" placeholder="1.000,00" value={value} onChange={onChange} />
-        <ValueInput label="Cita valor até (R$)" field="max" placeholder="500.000,00" value={value} onChange={onChange} />
-        <button type="submit" disabled={loading}>Aplicar filtros</button>
-        <p className="fineprint">{VALUE_NOTE}</p>
-      </form>
-    </details>
-  );
-}
-
 export function FilterBar({ filters, onOpen, onRemove, className = "" }: {
   filters: ActiveFilter[];
-  onOpen: () => void;
+  onOpen?: () => void;
   onRemove: (key: FilterKey) => void;
   className?: string;
 }) {
   return (
     <div className={`filter-bar ${className}`.trim()}>
-      <button type="button" className="filters-button" aria-haspopup="dialog" onClick={onOpen}>
-        <span className="filters-icon" aria-hidden="true"><span /><span /><span /></span>
-        {filters.length ? `Filtros (${filters.length})` : "Filtros"}
-      </button>
+      {onOpen && (
+        <button type="button" className="pill filters-button" aria-haspopup="dialog" onClick={onOpen}>
+          <span className="filters-icon" aria-hidden="true"><span /><span /><span /></span>
+          {filters.length ? `Filtros (${filters.length})` : "Filtros"}
+        </button>
+      )}
       {filters.map((f) => (
         <button key={f.key} type="button" className="filter-chip" aria-label={`Remover filtro: ${f.label}`}
           onClick={() => onRemove(f.key)}>
@@ -174,8 +182,9 @@ export function FiltersDialog({ open, value, onChange, organs, onClose, onClear,
     >
       <form className="filters-dialog-body" onSubmit={(e) => { e.preventDefault(); onApply(); }}>
         <header className="filters-dialog-head">
+          <span className="sheet-handle" aria-hidden="true" />
           <h2 id="filters-title">Filtros</h2>
-          <button type="button" className="link-button" aria-label="Fechar filtros" onClick={onClose}>Fechar</button>
+          <button type="button" className="icon-button" aria-label="Fechar filtros" onClick={onClose}>×</button>
         </header>
         <div className="filters-dialog-fields">
           <ScopeSelects value={value} onChange={onChange} organs={organs} />

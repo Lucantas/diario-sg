@@ -149,6 +149,12 @@ export function alertFilterNames(s: SearchState): string {
 
 export type FilterKey = "type" | "source" | "organ" | "theme" | "from" | "to" | "min" | "max";
 
+const RANGE_FILTERS: FilterKey[] = ["from", "to", "min", "max"];
+
+export function isRangeFilter(key: FilterKey): boolean {
+  return RANGE_FILTERS.includes(key);
+}
+
 export interface ActiveFilter {
   key: FilterKey;
   label: string;
