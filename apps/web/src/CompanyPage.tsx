@@ -123,13 +123,13 @@ function CompanySummary({ data }: { data: CompanyResponse }) {
     <section aria-labelledby="summary-heading">
       <h2 id="summary-heading" className="panel-heading">Resumo nos Diários</h2>
       <dl className="summary">
+        <div className="summary-wide">
+          <dt>Valores citados</dt>
+          <dd>{formatCents(data.total_value_cents)}</dd>
+        </div>
         <div>
           <dt>Atos</dt>
           <dd>{data.acts.length}</dd>
-        </div>
-        <div>
-          <dt>Valores citados</dt>
-          <dd>{formatCents(data.total_value_cents)}</dd>
         </div>
         {(Object.keys(data.count_by_type) as ActType[]).sort().map((t) => (
           <div key={t}>

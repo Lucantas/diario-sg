@@ -67,10 +67,10 @@ export function PanelsPage() {
           <dl className="summary">
             <div><dt>Empresas</dt><dd>{panel.suppliers.toLocaleString("pt-BR")}</dd></div>
             <div><dt>Contratações</dt><dd>{panel.contracts.toLocaleString("pt-BR")}</dd></div>
-            <div><dt>Contratado</dt><dd>{formatCompactCents(panel.contracted_cents)}</dd></div>
-            <div><dt>Em atas</dt><dd>{formatCompactCents(panel.registered_cents)}</dd></div>
-            <div><dt>Aditivos e prorrogações</dt><dd>{formatCompactCents(panel.amended_cents)}</dd></div>
-            <div><dt>Pago (TCE-RJ)</dt><dd>{formatCompactCents(panel.paid_cents)}</dd></div>
+            <div className="summary-money"><dt>Contratado</dt><dd>{formatCompactCents(panel.contracted_cents)}</dd></div>
+            <div className="summary-money"><dt>Em atas</dt><dd>{formatCompactCents(panel.registered_cents)}</dd></div>
+            <div className="summary-money"><dt>Aditivos e prorrogações</dt><dd>{formatCompactCents(panel.amended_cents)}</dd></div>
+            <div className="summary-money"><dt>Pago (TCE-RJ)</dt><dd>{formatCompactCents(panel.paid_cents)}</dd></div>
           </dl>
 
           <section aria-labelledby="ranking">
