@@ -22,3 +22,5 @@ crash.log
 # Edições reais baixadas para testes (contêm dados pessoais)
 services/api/testdata/editions/*.pdf
 services/api/testdata/editions/*.txt
+
+*.dump
