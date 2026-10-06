@@ -33,6 +33,12 @@ O ✅ quer dizer entregue na base local; o que falta para a nuvem está nas
 pendências de cada entrega. Disponibilidade, formato e licença das fontes
 externas estão em `docs/fontes/README.md`, conferidos em setembro de 2026.
 
+**No ar desde 06/10/2026 em <https://diariosg.com.br/>**: site e API no
+Render (plano grátis), banco no Neon, alertas pelo Resend, pelo caminho de
+`docs/deploy-gratis.md`. A API responde em `https://diariosg.com.br/api/` e
+o MCP em `https://diariosg.com.br/api/mcp`. "Na nuvem" nas pendências
+abaixo continua querendo dizer o GCP (Terraform), que ainda não existe.
+
 ---
 
 ## Entrega 0 — Base completa
@@ -723,18 +729,69 @@ com entrega ou com o bloqueio conferido e registrado.
   dos Dados ou projeto do BigQuery. Fica com o TSE nas pendências da
   Entrega 5.
 
+## Segurança em produção
+
+Varredura de 06/10/2026 em <https://diariosg.com.br/>, só de leitura (sem
+teste de carga e sem disparar e-mail), mais leitura do código das rotas
+expostas.
+
+O que está certo: HTTP e `www` redirecionam com 301 para
+`https://diariosg.com.br/`; TLS 1.0 e 1.1 são recusados; `.git/` e `.env`
+não estão expostos (caem no `index.html` do SPA); o proxy `/dados/` não sai
+do repositório (`..%2f` volta para o próprio repo, e sair dele dá 400); o
+OAuth exige PKCE `S256` e `redirect_uri` exato, e a página de consentimento
+manda CSP com `frame-ancestors 'none'`, `X-Frame-Options: DENY` e recusa
+POST de outro site (`Sec-Fetch-Site`); `/api/mcp` sem chave dá 401; os
+erros da API não vazam SQL nem pilha; `limit` da busca fica em no máximo
+100; o corpo dos pedidos tem teto de 1 MB.
+
+Pendências, da mais séria para a menos:
+
+- [x] **Assinatura de alertas sem limite** (médio, resolvido em
+  06/10/2026): `POST /v1/subscriptions` aceita 10 inscrições por IP e 5
+  confirmações por e-mail por hora, com teto de 100 por hora na instância;
+  acima disso, 429 com `Retry-After`.
+- [x] **Leituras sem limite por IP** (médio, resolvido em 06/10/2026): as
+  rotas `/v1` de leitura aceitam 120 pedidos por IP por minuto e a
+  exportação 10. A busca `prefeitura` levou 9,3 s em produção (Render
+  grátis); o limite não deixa um só endereço segurar a API.
+- [x] **Cabeçalhos de segurança no site** (baixo, resolvido em 06/10/2026):
+  HSTS, `X-Frame-Options`, `Referrer-Policy` e `Permissions-Policy` em
+  `headers` do `diario-sg-web` no `render.yaml`; a CSP vai como `<meta>` no
+  `index.html` do build (ver `docs/decisoes-de-codigo.md`). Conferir ao vivo
+  depois do deploy se o Render também põe os cabeçalhos nas respostas de
+  `/api/*`.
+- [ ] **E-mail falsificável** (baixo, depende do painel da Hostinger): a
+  raiz `diariosg.com.br` não tem SPF e o DMARC está em `p=none`, então
+  qualquer um manda e-mail com remetente `@diariosg.com.br` sem ser
+  barrado. O Resend assina com DKIM da raiz e usa `send.diariosg.com.br` no
+  envelope, então dá para pôr TXT `v=spf1 -all` na raiz e trocar o
+  `_dmarc` para `v=DMARC1; p=quarantine;`.
+- [ ] **Teto por instância** (baixo, aceito por ora): a emissão de chave
+  MCP tem teto de 50 por hora na instância e o registro OAuth de 2000; quem
+  tiver muitos IPs esgota o teto e bloqueia gente legítima até a hora
+  virar. Sem o teto, o banco cresce sem limite. Rever se aparecer abuso.
+- [x] `robots.txt` (fora de `/api/`) e `/.well-known/security.txt`
+  (servido pela API, aponta para o relato privado de vulnerabilidade do
+  GitHub, ativado em 06/10/2026), resolvidos em 06/10/2026. Caminho
+  desconhecido devolver o SPA com 200 é o normal de SPA e fica.
+- [ ] DNSSEC e registro CAA (baixo, painel da Hostinger). O CAA precisa
+  listar as autoridades que o Render usa para o certificado; conferir com
+  o Render antes, ou a renovação falha e o site cai.
+
 ## Lista de controle das pendências
 
 Todas as pendências abertas do roadmap num lugar só, com de quem
 dependem. Os detalhes ficam na seção de cada entrega. Atualizada em
-01/10/2026.
+06/10/2026.
 
 Dependem de acesso de fora ou de decisão do dono do projeto:
 
-- [ ] Deploy grátis (GitHub Actions + Render + Neon), passo a passo em
-  `docs/deploy-gratis.md`: projeto no Neon, carga inicial, ambiente
-  `producao` no GitHub, blueprint no Render, domínio e Resend. Enquanto
-  não houver conta no GCP, este é o deploy ativo.
+- [x] Deploy grátis (GitHub Actions + Render + Neon), passo a passo em
+  `docs/deploy-gratis.md`: no ar em <https://diariosg.com.br/> desde
+  06/10/2026. Enquanto não houver conta no GCP, este é o deploy ativo.
+- [ ] DNS na Hostinger: SPF `-all` na raiz, DMARC `p=quarantine`, e
+  DNSSEC e CAA (ver Segurança em produção).
 - [ ] Nuvem: o environment `dev` do GitHub não tem as variáveis e os
   workflows de infra e deploy falham na autenticação (Entrega 1). Tudo o
   que diz "na nuvem" abaixo espera isso.
@@ -773,7 +830,7 @@ Dependem de acesso de fora ou de decisão do dono do projeto:
 - [ ] SICAM, voto nominal: pedir acesso à API à Câmara ou à DB Nova
   (Entrega 5).
 
-Podem ser feitas aqui: nenhuma (auditoria de 28/09/2026).
+Podem ser feitas aqui: nenhuma (auditoria de 06/10/2026).
 
 ---
 

@@ -396,6 +396,34 @@ explica sozinho.
 - Uma busca por inscrição a cada edição. Serve para milhares de inscrições;
   depois disso, busca reversa (ADR 0003).
 
+## Limites contra abuso
+
+- Os limites ficam em memória, por instância (`ratelimit`): o Render grátis
+  roda uma instância só, e perder a contagem num restart não importa.
+- O IP vem de `clientKey`, que pula os proxies de `TRUSTED_PROXIES`; sem
+  isso, todo mundo que chega pelo site contaria como o proxy do Render.
+- Inscrição em alerta tem dois limites: por IP (quem dispara) e por e-mail
+  (quem recebe). O por e-mail impede encher a caixa de alguém trocando de
+  IP; o teto da instância protege a cota diária do Resend.
+- Leitura tem limite por IP folgado (120 por minuto) e a exportação um
+  mais curto (10), porque uma busca ampla custa segundos no plano grátis.
+  Não há teto apertado na instância para leitura: ele deixaria qualquer um
+  tirar o site do ar para todos.
+
+## Cabeçalhos do site
+
+- A CSP vai como `<meta>` no `index.html`, injetada só no build
+  (`vite.config.ts`). Como cabeçalho do Render ela valeria também para
+  `/api/*`, que o site reescreve para a API, e quebraria a página de
+  autorização do OAuth (estilo inline e redirecionamento depois do
+  formulário). No `vite dev`, o React precisa de script inline.
+- Os outros cabeçalhos (HSTS, `X-Frame-Options`, `Referrer-Policy`,
+  `Permissions-Policy`) servem igual para o site e para a API, então ficam
+  no `render.yaml`.
+- `security.txt` é servido pela API porque o Render reescreve
+  `/.well-known/*` para ela; a validade é calculada a cada pedido para não
+  vencer sem ninguém ver.
+
 ## Infra e clientes
 
 - Clientes do Google Cloud em REST com a biblioteca padrão, sem os SDKs:
