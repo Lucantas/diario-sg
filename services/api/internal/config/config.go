@@ -104,7 +104,7 @@ func Load(role Role) (Config, error) {
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents || role == RoleSICAM {
+	if role == RoleReindex || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents || role == RoleSICAM {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
 	if role == RoleDump {

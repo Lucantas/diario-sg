@@ -39,3 +39,12 @@ func TestLoadRejectsInvalidTrustedProxyHops(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadAPIWithoutBucket(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://x")
+	t.Setenv("GAZETTE_BUCKET", "")
+
+	if _, err := Load(RoleAPI); err != nil {
+		t.Fatalf("a API sobe sem bucket e cai no PDF oficial: %v", err)
+	}
+}

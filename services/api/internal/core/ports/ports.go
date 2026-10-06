@@ -81,6 +81,10 @@ type FileStorage interface {
 	Get(ctx context.Context, path string) (io.ReadCloser, error)
 }
 
+type SourcePDF interface {
+	Open(ctx context.Context, url string) (io.ReadCloser, error)
+}
+
 type TextExtractor interface {
 	Extract(ctx context.Context, r io.Reader, source string) (domain.ExtractedText, error)
 }
