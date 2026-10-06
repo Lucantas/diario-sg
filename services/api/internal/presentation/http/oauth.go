@@ -103,7 +103,7 @@ func (a *API) authServerMetadata(w http.ResponseWriter, _ *http.Request) {
 
 func (a *API) registerClient(limiter *ratelimit.Limiter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !limiter.Allow(clientKey(r, a.ProxyHops)) {
+		if !limiter.Allow(clientKey(r, a.TrustedProxies)) {
 			writeJSON(w, http.StatusTooManyRequests, oauthErrorDTO{Error: "slow_down", Description: "muitos registros daqui; tente de novo em uma hora"})
 			return
 		}
@@ -125,7 +125,7 @@ func (a *API) registerClient(limiter *ratelimit.Limiter) http.Handler {
 func (a *API) exchangeToken(limiter *ratelimit.Limiter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
-		if !limiter.Allow(clientKey(r, a.ProxyHops)) {
+		if !limiter.Allow(clientKey(r, a.TrustedProxies)) {
 			writeJSON(w, http.StatusTooManyRequests, oauthErrorDTO{Error: "slow_down", Description: "muitas trocas seguidas; tente de novo em um minuto"})
 			return
 		}
@@ -188,7 +188,7 @@ func (a *API) authorizeDecision(limiter *ratelimit.Limiter) http.HandlerFunc {
 			a.redirectBack(w, r, req, url.Values{"error": {domain.OAuthAccessDenied}})
 			return
 		}
-		if !limiter.Allow(clientKey(r, a.ProxyHops)) {
+		if !limiter.Allow(clientKey(r, a.TrustedProxies)) {
 			a.renderConsent(w, http.StatusTooManyRequests, consentView{WebURL: a.issuer(), Problem: "Muitas autorizações seguidas daqui; tente de novo em uma hora."})
 			return
 		}

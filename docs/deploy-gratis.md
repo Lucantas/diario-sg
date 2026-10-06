@@ -113,21 +113,21 @@ cerca de um minuto.
 
 ## 6. Limite por IP
 
-A API conta os pedidos por IP lendo o `X-Forwarded-For` na posição
-`TRUSTED_PROXY_HOPS`, contada da direita (`render.yaml` começa com `1`).
-Com o site no ar, faça uma requisição pelo domínio, veja no log da API
-quais endereços chegam no cabeçalho e ajuste o número para a posição do
-IP do cliente. `0` volta ao comportamento antigo (primeiro endereço, que
-o cliente pode forjar).
+A API conta os pedidos por IP. Atrás do Render, o `X-Forwarded-For` chega
+com cadeias diferentes conforme o caminho (medido em 06/10/2026):
 
-A API tem dois caminhos públicos: pelo site (o rewrite do Render pode
-somar um proxy) e direto em `diario-sg-api.onrender.com`. Um número fixo
-só serve aos dois se ambos chegarem com a mesma quantidade de proxies.
-Meça os dois antes de mudar o valor: se o caminho pelo site pedir `2`,
-quem chama a API direto consegue forjar o IP com um `X-Forwarded-For`
-próprio e escapar dos limites de emissão de chave, registro OAuth e
-relatos. Nesse caso, fica pendente confiar em faixas de IP conhecidas do
-proxy em vez de contar posições.
+| Caminho | `X-Forwarded-For` |
+| --- | --- |
+| Direto em `diario-sg-api.onrender.com` | o que o cliente mandou, IP do cliente, Cloudflare, rede interna do Render |
+| Pelo site (rewrite do static site) | IP do cliente, Cloudflare, Cloudflare, proxy do site (`74.220.48.0/20`), Cloudflare, rede interna |
+
+Nenhuma posição fixa serve aos dois. Por isso a API percorre a lista da
+direita para a esquerda e fica com o primeiro endereço que não é privado,
+de loopback nem de uma faixa de `TRUSTED_PROXIES`. O `render.yaml` lista
+as faixas do Cloudflare (<https://www.cloudflare.com/ips/>) e o bloco do
+Render (`74.220.48.0/20`, RS-1125 no ARIN). Se o Cloudflare publicar
+faixas novas, atualize a variável. Sem `TRUSTED_PROXIES`, a API usa o
+primeiro endereço da lista, que o cliente pode forjar.
 
 ## 7. Rodar à mão
 
