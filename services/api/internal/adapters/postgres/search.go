@@ -35,7 +35,12 @@ func exactPhraseFor(likeParam string) string {
 }
 
 const matchClause = `(a.search @@ q
-		  OR ($Q ~ '[0-9]' AND a.numeric_terms ILIKE $LIKE))`
+		  OR ($Q ~ '[0-9]'
+		      AND a.numeric_terms ILIKE '%' || ` + longestNumber + ` || '%'
+		      AND unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE)))`
+
+const longestNumber = `(SELECT m[1] FROM regexp_matches($Q, '([0-9][0-9./-]*[0-9]|[0-9])', 'g') AS m
+		      ORDER BY length(m[1]) DESC LIMIT 1)`
 
 func matchFor(queryParam, likeParam string) string {
 	return strings.NewReplacer("$Q", queryParam, "$LIKE", likeParam).Replace(matchClause)

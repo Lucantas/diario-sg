@@ -25,6 +25,7 @@ func TestSearchFindsNumbersInsideTextAndDropsWordFragments(t *testing.T) {
 		{"percentual no meio do número é literal", "100%410", 0},
 		{"texto sem dígito pelo full-text", "construtora", 1},
 		{"trecho de palavra sem dígito não casa mais", "nstrutora alf", 0},
+		{"texto com número colado em barra", "Portaria nº 9", 1},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

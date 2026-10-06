@@ -20,6 +20,13 @@ decisões de arquitetura, em `adr/`.
   "28.636.579/0001-00" 5.289 → 5.289; "Construtora" 433 → 431;
   "secretaria municipal de saude" 14.026 → 14.022; "dispensa de licitacao"
   946 → 946. Trecho de palavra sem dígito ("nstrutora alf") deixa de casar.
+- O índice só filtra: casa a sequência numérica mais longa do termo em
+  `numeric_terms`, e o termo inteiro é reconferido no corpo com o mesmo
+  `ILIKE` de antes. Sem a reconferência, termos com palavra e número
+  ("Portaria nº 100", "15.000,00") perdiam atos: o full-text guarda
+  "100/2025" como um token só e a vírgula não entra em `numeric_terms`.
+  Medido: "Portaria nº 100" 2.268 → 2.213 sem a reconferência, 2.268 com
+  ela; "nº 123" 1.064 → 440 → 1.064.
   Os testes `numeric_search_test.go` e `e2e_test.go` cobrem isso.
 - Ordem: atos com a frase exata (sem acento, sem caixa) primeiro, do mais
   recente ao mais antigo; o resto pelo `ts_rank`, que sozinho favorece
