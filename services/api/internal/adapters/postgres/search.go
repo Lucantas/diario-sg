@@ -35,10 +35,7 @@ func exactPhraseFor(likeParam string) string {
 }
 
 const matchClause = `(a.search @@ q
-		  OR (($Q ~ '[0-9]' OR length($Q) >= ` + minSubstringRunes + `)
-		      AND unaccent_immutable(a.body) ILIKE unaccent_immutable($LIKE)))`
-
-const minSubstringRunes = "8"
+		  OR ($Q ~ '[0-9]' AND a.numeric_terms ILIKE $LIKE))`
 
 func matchFor(queryParam, likeParam string) string {
 	return strings.NewReplacer("$Q", queryParam, "$LIKE", likeParam).Replace(matchClause)

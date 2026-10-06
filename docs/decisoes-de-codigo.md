@@ -6,12 +6,21 @@ decisões de arquitetura, em `adr/`.
 
 ## Busca
 
-- Um ato casa pela busca textual (português, sem acento, com stemming) **ou**
-  pelo termo literal no corpo (`ILIKE` sem acento). O literal cobre CNPJ,
-  número de contrato ou processo e nomes longos que o tokenizador quebra.
-- O literal só vale para termos com dígito ou com 8 caracteres ou mais.
-  "sus" ou "lei" como substring casariam com quase tudo e inundariam os
-  alertas. O teste de integração `e2e_test.go` cobre isso.
+- Um ato casa pela busca textual (português, sem acento, com stemming) **ou**,
+  quando o termo tem dígito, pelo termo literal nos trechos numéricos do
+  corpo. O literal cobre CNPJ e número de contrato ou processo colados em
+  outro texto ("nº65/100410/2018"), que o tokenizador não separa.
+- Os trechos numéricos ficam na coluna gerada `acts.numeric_terms` (cada
+  sequência que começa e termina em dígito, com `.`, `/` e `-` no meio),
+  com índice trigram próprio de ~20 MB. Até a migration 034 o literal era
+  um `ILIKE` no corpo inteiro, também para termos sem dígito com 8
+  caracteres ou mais, e o índice trigram do corpo tinha 224 MB de uma base
+  de 1,1 GB: não cabia no Neon grátis (1 GB por projeto). Na base local,
+  as contagens quase não mudaram: "100410/2018" 1 → 1;
+  "28.636.579/0001-00" 5.289 → 5.289; "Construtora" 433 → 431;
+  "secretaria municipal de saude" 14.026 → 14.022; "dispensa de licitacao"
+  946 → 946. Trecho de palavra sem dígito ("nstrutora alf") deixa de casar.
+  Os testes `numeric_search_test.go` e `e2e_test.go` cobrem isso.
 - Ordem: atos com a frase exata (sem acento, sem caixa) primeiro, do mais
   recente ao mais antigo; o resto pelo `ts_rank`, que sozinho favorece
   listas longas de nomes com as palavras soltas.
