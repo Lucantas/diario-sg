@@ -183,8 +183,10 @@ decisões de arquitetura, em `adr/`.
 - Contra abuso, sem cadastro: campo-isca (quem preenche recebe 202 e nada
   é gravado), mensagem de até 2.000 caracteres e janela fixa de 5 reportes
   por minuto por cliente e 60 por instância. O cliente é o primeiro IP do
-  `X-Forwarded-For`, que dá para falsificar; o teto por instância segura
-  esse caso. O pior resultado é lixo na fila, que `make close-report
+  `X-Forwarded-For` que não é de um proxy de `TRUSTED_PROXIES`, lido da
+  direita para a esquerda (ver `docs/deploy-gratis.md`, passo 6); sem a
+  variável, é o primeiro da lista, que dá para falsificar, e o teto por
+  instância segura esse caso. O pior resultado é lixo na fila, que `make close-report
   AS=descartado` limpa.
 
 ## Servidor MCP

@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
+	"net/netip"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -39,7 +39,7 @@ type Config struct {
 	StorageEmulator    string
 	Events             string
 	PushBaseURL        string
-	TrustedProxyHops   int
+	TrustedProxies     []netip.Prefix
 	Notifier           string
 	ResendAPIKey       string
 	EmailFrom          string
@@ -94,11 +94,11 @@ func Load(role Role) (Config, error) {
 		SICAMSiteURL:    getenv("SICAM_SITE_URL", "https://sg.processolegislativo.com.br/"),
 	}
 
-	hops, err := strconv.Atoi(getenv("TRUSTED_PROXY_HOPS", "0"))
-	if err != nil || hops < 0 {
-		return c, fmt.Errorf("TRUSTED_PROXY_HOPS inválido: %q", os.Getenv("TRUSTED_PROXY_HOPS"))
+	proxies, err := parsePrefixes(os.Getenv("TRUSTED_PROXIES"))
+	if err != nil {
+		return c, err
 	}
-	c.TrustedProxyHops = hops
+	c.TrustedProxies = proxies
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
 	if role == RoleWorker {
@@ -134,4 +134,20 @@ func getenv(k, def string) string {
 		return v
 	}
 	return def
+}
+
+func parsePrefixes(raw string) ([]netip.Prefix, error) {
+	var out []netip.Prefix
+	for _, part := range strings.Split(raw, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		p, err := netip.ParsePrefix(part)
+		if err != nil {
+			return nil, fmt.Errorf("TRUSTED_PROXIES: faixa inválida %q", part)
+		}
+		out = append(out, p.Masked())
+	}
+	return out, nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/netip"
 	"strconv"
 	"time"
 
@@ -14,31 +15,31 @@ import (
 )
 
 type API struct {
-	ProxyHops     int
-	Search        *usecase.SearchActs
-	Gazette       *usecase.GetGazette
-	Company       *usecase.GetCompany
-	Entity        *usecase.GetEntity
-	Stats         *usecase.ActStats
-	Organs        *usecase.ListOrgans
-	PDF           *usecase.GetGazettePDF
-	Export        *usecase.ExportActs
-	Feed          *usecase.ActFeed
-	Reports       *usecase.ErrorReports
-	Keys          *usecase.APIKeys
-	OAuth         *usecase.OAuth
-	MCP           http.Handler
-	PublicWebURL  string
-	Subscriptions *usecase.Subscriptions
-	Patterns      *usecase.ListPatterns
-	Panels        *usecase.GetSupplierPanel
-	Staff         *usecase.GetStaffPanel
-	Oversight     *usecase.GetOversight
-	Norms         *usecase.FindNorms
-	Bills         *usecase.FindBills
-	Federal       *usecase.GetFederal
-	Agents        *usecase.GetPoliticalAgents
-	Log           *slog.Logger
+	TrustedProxies []netip.Prefix
+	Search         *usecase.SearchActs
+	Gazette        *usecase.GetGazette
+	Company        *usecase.GetCompany
+	Entity         *usecase.GetEntity
+	Stats          *usecase.ActStats
+	Organs         *usecase.ListOrgans
+	PDF            *usecase.GetGazettePDF
+	Export         *usecase.ExportActs
+	Feed           *usecase.ActFeed
+	Reports        *usecase.ErrorReports
+	Keys           *usecase.APIKeys
+	OAuth          *usecase.OAuth
+	MCP            http.Handler
+	PublicWebURL   string
+	Subscriptions  *usecase.Subscriptions
+	Patterns       *usecase.ListPatterns
+	Panels         *usecase.GetSupplierPanel
+	Staff          *usecase.GetStaffPanel
+	Oversight      *usecase.GetOversight
+	Norms          *usecase.FindNorms
+	Bills          *usecase.FindBills
+	Federal        *usecase.GetFederal
+	Agents         *usecase.GetPoliticalAgents
+	Log            *slog.Logger
 }
 
 const (

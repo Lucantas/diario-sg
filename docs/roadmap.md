@@ -188,10 +188,11 @@ Pendências:
   driver foi para a v1.12.3. Os testes de integração passam com `-race`.
 - [ ] Na nuvem: migration 024 e a imagem nova do web (o nginx passa a
   encaminhar `/.well-known/` para a API) antes de anunciar o conector.
-- [ ] Limites por IP: usam o primeiro valor de `X-Forwarded-For`, que quem
-  chama pode forjar, e a API também responde direto no endereço do Cloud
-  Run. Conferir no Cloud Run qual posição do cabeçalho é o IP de verdade
-  (ou fechar a API ao tráfego que não vem do site) e passar a usá-la.
+- [x] Limites por IP (resolvido em 06/10/2026 no Render): a API lê o
+  `X-Forwarded-For` da direita para a esquerda e pula os proxies de
+  `TRUSTED_PROXIES` (Cloudflare e o proxy do site do Render), então o
+  endereço forjado por quem chama é ignorado nos dois caminhos, direto e
+  pelo site. No Cloud Run, as faixas mudam: medir de novo antes de subir.
 - [x] Revogar chave por abuso (resolvido em 23/09/2026): `make keys` lista as
   chaves com o uso dos últimos 30 dias e `make revoke-key PREFIX=…` revoga
   pelo prefixo que aparece no log.
@@ -763,10 +764,8 @@ Dependem de acesso de fora ou de decisão do dono do projeto:
     ainda faz o OCR de todas as edições escaneadas e enche o cache; se
     passar das 6 h do job, rode por períodos. As seguintes reaproveitam o
     texto.
-  - [ ] Limites por IP: conferir qual posição do `X-Forwarded-For` é o
-    IP de verdade e ajustar `TRUSTED_PROXY_HOPS` (no Render, passo 6 de
-    `docs/deploy-gratis.md`), ou fechar a API ao tráfego que não vem do
-    site (Etapa A).
+  - [x] Limites por IP no Render: `TRUSTED_PROXIES` (passo 6 de
+    `docs/deploy-gratis.md`).
 - [ ] Diário da Câmara de 2018 a 2020-10-03: pedido pela LAI à Câmara com
   as URLs ou os PDFs (Etapa C1).
 - [ ] TSE: acesso negado a esta máquina; outra rede, ou conta na Base dos

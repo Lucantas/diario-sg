@@ -17,26 +17,23 @@ func TestLoadWorkerReadsEventsMode(t *testing.T) {
 	}
 }
 
-func TestLoadReadsTrustedProxyHops(t *testing.T) {
+func TestLoadReadsTrustedProxies(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://x")
-	t.Setenv("GAZETTE_BUCKET", "b")
-	t.Setenv("TRUSTED_PROXY_HOPS", "2")
+	t.Setenv("TRUSTED_PROXIES", " 172.64.0.0/13, 2606:4700::/32 ,")
 
 	c, err := Load(RoleAPI)
 
-	if err != nil || c.TrustedProxyHops != 2 {
-		t.Fatalf("%+v %v", c, err)
+	if err != nil || len(c.TrustedProxies) != 2 || c.TrustedProxies[1].String() != "2606:4700::/32" {
+		t.Fatalf("%+v %v", c.TrustedProxies, err)
 	}
 }
 
-func TestLoadRejectsInvalidTrustedProxyHops(t *testing.T) {
-	for _, v := range []string{"-1", "um"} {
-		t.Setenv("DATABASE_URL", "postgres://x")
-		t.Setenv("GAZETTE_BUCKET", "b")
-		t.Setenv("TRUSTED_PROXY_HOPS", v)
-		if _, err := Load(RoleAPI); err == nil {
-			t.Errorf("%q deveria ser recusado", v)
-		}
+func TestLoadRejectsInvalidTrustedProxies(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://x")
+	t.Setenv("TRUSTED_PROXIES", "172.64.0.0/13, 1.2.3.4")
+
+	if _, err := Load(RoleAPI); err == nil {
+		t.Fatal("endereço sem máscara deveria ser recusado")
 	}
 }
 
