@@ -9,6 +9,7 @@ import (
 
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
+	"github.com/seu-usuario/diario-sg/pkg/pushhttp"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/entities"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/ocrcache"
@@ -49,10 +50,12 @@ func run(l *slog.Logger) error {
 		return err
 	}
 	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
-	publisher := pubsub.NewEventPublisher(
-		gcp.NewPublisher(cfg.ProjectID, cfg.PubSubEmulatorHost, gcp.TokenSourceFor(cfg.PubSubEmulatorHost)),
-		cfg.TopicIndexed,
-	)
+	client, err := pushhttp.Choose(cfg.Events, cfg.PushBaseURL,
+		gcp.NewPublisher(cfg.ProjectID, cfg.PubSubEmulatorHost, gcp.TokenSourceFor(cfg.PubSubEmulatorHost)))
+	if err != nil {
+		return err
+	}
+	publisher := pubsub.NewEventPublisher(client, cfg.TopicIndexed)
 	gazettes := postgres.NewGazetteRepo(db)
 	acts := postgres.NewActRepo(db)
 

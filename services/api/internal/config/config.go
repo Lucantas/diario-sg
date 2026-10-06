@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -32,9 +33,13 @@ type Config struct {
 	ProjectID          string
 	Bucket             string
 	DumpsBucket        string
+	DumpDir            string
 	TopicIndexed       string
 	PubSubEmulatorHost string
 	StorageEmulator    string
+	Events             string
+	PushBaseURL        string
+	TrustedProxyHops   int
 	Notifier           string
 	ResendAPIKey       string
 	EmailFrom          string
@@ -62,9 +67,12 @@ func Load(role Role) (Config, error) {
 		ProjectID:          os.Getenv("GCP_PROJECT_ID"),
 		Bucket:             os.Getenv("GAZETTE_BUCKET"),
 		DumpsBucket:        os.Getenv("DUMPS_BUCKET"),
+		DumpDir:            os.Getenv("DUMP_DIR"),
 		TopicIndexed:       os.Getenv("TOPIC_GAZETTE_INDEXED"),
 		PubSubEmulatorHost: os.Getenv("PUBSUB_EMULATOR_HOST"),
 		StorageEmulator:    os.Getenv("STORAGE_EMULATOR_HOST"),
+		Events:             os.Getenv("EVENTS"),
+		PushBaseURL:        os.Getenv("PUSH_BASE_URL"),
 		Notifier:           getenv("NOTIFIER", "log"),
 		ResendAPIKey:       os.Getenv("RESEND_API_KEY"),
 		EmailFrom:          os.Getenv("EMAIL_FROM"),
@@ -86,17 +94,23 @@ func Load(role Role) (Config, error) {
 		SICAMSiteURL:    getenv("SICAM_SITE_URL", "https://sg.processolegislativo.com.br/"),
 	}
 
+	hops, err := strconv.Atoi(getenv("TRUSTED_PROXY_HOPS", "0"))
+	if err != nil || hops < 0 {
+		return c, fmt.Errorf("TRUSTED_PROXY_HOPS inválido: %q", os.Getenv("TRUSTED_PROXY_HOPS"))
+	}
+	c.TrustedProxyHops = hops
+
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
 	if role == RoleWorker {
 		required["GCP_PROJECT_ID"] = c.ProjectID
 		required["GAZETTE_BUCKET"] = c.Bucket
 		required["TOPIC_GAZETTE_INDEXED"] = c.TopicIndexed
 	}
-	if role == RoleReindex || role == RoleAPI || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents || role == RoleSICAM {
+	if role == RoleReindex || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents || role == RoleSICAM {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
-	if role == RoleDump {
-		required["DUMPS_BUCKET"] = c.DumpsBucket
+	if role == RoleDump && c.DumpsBucket == "" && c.DumpDir == "" {
+		return c, fmt.Errorf("variáveis obrigatórias ausentes: DUMPS_BUCKET ou DUMP_DIR")
 	}
 	if (role == RoleAPI || role == RoleWorker) && c.Notifier == "resend" {
 		required["RESEND_API_KEY"] = c.ResendAPIKey

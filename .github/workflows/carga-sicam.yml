@@ -1,0 +1,18 @@
+name: carga-sicam
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: carga-sicam
+
+jobs:
+  carga:
+    uses: ./.github/workflows/_carga.yml
+    with:
+      cmd: sicam
+      args: "-max 3000"
+      timeout: 60
+    secrets: inherit

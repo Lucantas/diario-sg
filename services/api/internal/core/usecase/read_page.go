@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
@@ -19,11 +18,12 @@ type PageText struct {
 type ReadPage struct {
 	gazettes ports.GazetteRepository
 	storage  ports.FileStorage
+	source   ports.SourcePDF
 	pages    ports.PageExtractor
 }
 
-func NewReadPage(g ports.GazetteRepository, s ports.FileStorage, p ports.PageExtractor) *ReadPage {
-	return &ReadPage{gazettes: g, storage: s, pages: p}
+func NewReadPage(g ports.GazetteRepository, s ports.FileStorage, src ports.SourcePDF, p ports.PageExtractor) *ReadPage {
+	return &ReadPage{gazettes: g, storage: s, source: src, pages: p}
 }
 
 func (uc *ReadPage) Execute(ctx context.Context, gazetteID string, page int) (PageText, error) {
@@ -34,9 +34,9 @@ func (uc *ReadPage) Execute(ctx context.Context, gazetteID string, page int) (Pa
 	if err != nil {
 		return PageText{}, err
 	}
-	body, err := uc.storage.Get(ctx, g.StoragePath)
+	body, err := openGazettePDF(ctx, uc.storage, uc.source, g)
 	if err != nil {
-		return PageText{}, fmt.Errorf("pdf da edição %s: %w", g.ID, err)
+		return PageText{}, err
 	}
 	defer body.Close()
 	extracted, pages, err := uc.pages.ExtractPage(ctx, body, domain.SourceOrDefault(g.Source), page)

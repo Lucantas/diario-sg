@@ -8,6 +8,7 @@ import (
 
 	gcpclient "github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
+	"github.com/seu-usuario/diario-sg/pkg/pushhttp"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/gcp"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/source/cmsg"
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/adapters/source/pmsg"
@@ -35,11 +36,13 @@ func main() {
 		os.Exit(2)
 	}
 	storage := gcpclient.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcpclient.TokenSourceFor(cfg.StorageEmulator))
-	publisher := gcp.NewEventPublisher(
-		gcpclient.NewPublisher(cfg.ProjectID, cfg.PubSubEmulatorHost, gcpclient.TokenSourceFor(cfg.PubSubEmulatorHost)),
-		cfg.TopicFetched,
-		cfg.TopicRuns,
-	)
+	client, err := pushhttp.Choose(cfg.Events, cfg.PushBaseURL,
+		gcpclient.NewPublisher(cfg.ProjectID, cfg.PubSubEmulatorHost, gcpclient.TokenSourceFor(cfg.PubSubEmulatorHost)))
+	if err != nil {
+		log.Error("configuração inválida", "error", err)
+		os.Exit(2)
+	}
+	publisher := gcp.NewEventPublisher(client, cfg.TopicFetched, cfg.TopicRuns)
 
 	uc := usecase.NewFetchEditions(source, storage, publisher)
 	os.Exit(cli.Run(ctx, os.Args[1:], uc, cfg.Lookback, log))

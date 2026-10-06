@@ -1,0 +1,18 @@
+name: carga-tce
+
+on:
+  schedule:
+    - cron: "0 8 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: carga-tce
+
+jobs:
+  carga:
+    uses: ./.github/workflows/_carga.yml
+    with:
+      cmd: tce
+      args: "-from 0 -to 0"
+      timeout: 60
+    secrets: inherit

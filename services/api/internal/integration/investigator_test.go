@@ -68,7 +68,7 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: usecase.NewSearchActs(acts), Read: usecase.NewReadAct(gaz, acts),
 		Entity: usecase.NewGetEntity(postgres.NewLinkRepo(db), companySources(db)), Group: usecase.NewGroupActs(acts),
-		Page: usecase.NewReadPage(gaz, stringStore(text), singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
+		Page: usecase.NewReadPage(gaz, stringStore(text), nil, singlePage{}), Coverage: usecase.NewSourceCoverage(gaz), Keys: keys,
 		Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Norms: usecase.NewFindNorms(postgres.NewNormRepo(db)),
 		Bills:        usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now),
 		Collections:  usecase.NewLatestCollections(postgres.NewFetchRunRepo(db)),

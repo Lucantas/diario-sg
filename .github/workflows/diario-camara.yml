@@ -1,0 +1,21 @@
+name: diario-camara
+
+on:
+  schedule:
+    - cron: "30 0 * * 0,2-6"
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: Dias para trás
+        default: "3"
+
+concurrency:
+  group: diario-camara
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline.yml
+    with:
+      source: diario_camara
+      lookback_days: ${{ inputs.lookback_days || '3' }}
+    secrets: inherit

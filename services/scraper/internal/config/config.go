@@ -22,6 +22,8 @@ type Config struct {
 	Lookback           time.Duration
 	PubSubEmulatorHost string
 	StorageEmulator    string
+	Events             string
+	PushBaseURL        string
 }
 
 func Load() (Config, error) {
@@ -38,6 +40,8 @@ func Load() (Config, error) {
 		Lookback:           time.Duration(days) * 24 * time.Hour,
 		PubSubEmulatorHost: os.Getenv("PUBSUB_EMULATOR_HOST"),
 		StorageEmulator:    os.Getenv("STORAGE_EMULATOR_HOST"),
+		Events:             os.Getenv("EVENTS"),
+		PushBaseURL:        os.Getenv("PUSH_BASE_URL"),
 	}
 	if !domain.ValidSource(c.Source) {
 		return c, fmt.Errorf("SOURCE desconhecida: %q", c.Source)

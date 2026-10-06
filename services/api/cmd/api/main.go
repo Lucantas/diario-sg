@@ -12,9 +12,11 @@ import (
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/email"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/nostore"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/ocrcache"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/pdf"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/sourcepdf"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 	httpapi "github.com/seu-usuario/diario-sg/services/api/internal/presentation/http"
@@ -49,7 +51,11 @@ func run(l *slog.Logger) error {
 	}
 	gazettes := postgres.NewGazetteRepo(db)
 	acts := postgres.NewActRepo(db)
-	storage := gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
+	var storage ocrcache.Objects = nostore.Store{}
+	if cfg.Bucket != "" {
+		storage = gcp.NewStorage(cfg.Bucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
+	}
+	source := sourcepdf.New()
 
 	registry, payments := postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)
 	sources := usecase.CompanySources{Registry: registry, Sanctions: postgres.NewSanctionRepo(db), Payments: payments, PNCP: postgres.NewPNCPRepo(db), Works: postgres.NewOversightRepo(db), Federal: postgres.NewFederalRepo(db), Municipal: postgres.NewMunicipalCommitmentRepo(db), Mural: postgres.NewProcurementRepo(db), Punished: postgres.NewDiarioSanctionRepo(db)}
@@ -62,7 +68,7 @@ func run(l *slog.Logger) error {
 	bills := usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now)
 	webURL := strings.TrimRight(cfg.PublicWebURL, "/")
 	mcpHandler := mcpapi.NewHandler(mcpapi.Deps{Search: search, Read: usecase.NewReadAct(gazettes, acts), Entity: entity,
-		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, pdf.New().WithCache(ocrcache.New(storage).ReadOnly(), l)),
+		Group: usecase.NewGroupActs(acts), Page: usecase.NewReadPage(gazettes, storage, source, pdf.New().WithCache(ocrcache.New(storage).ReadOnly(), l)),
 		Coverage: usecase.NewSourceCoverage(gazettes), Agents: usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)), Patterns: patterns, Norms: norms, Bills: bills, Collections: usecase.NewLatestCollections(postgres.NewFetchRunRepo(db)),
 		Payments:    usecase.NewQueryPayments(postgres.NewMunicipalCommitmentRepo(db), postgres.NewFiscalRepo(db)),
 		Contracting: usecase.NewQueryProcurements(postgres.NewProcurementRepo(db), postgres.NewPNCPRepo(db)),
@@ -70,6 +76,7 @@ func run(l *slog.Logger) error {
 		MetadataURL: webURL + "/.well-known/oauth-protected-resource/api/mcp", Log: l})
 
 	api := &httpapi.API{
+		ProxyHops:     cfg.TrustedProxyHops,
 		Search:        search,
 		Gazette:       usecase.NewGetGazette(gazettes, acts),
 		Company:       company,

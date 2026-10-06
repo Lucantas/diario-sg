@@ -730,6 +730,10 @@ dependem. Os detalhes ficam na seção de cada entrega. Atualizada em
 
 Dependem de acesso de fora ou de decisão do dono do projeto:
 
+- [ ] Deploy grátis (GitHub Actions + Render + Neon), passo a passo em
+  `docs/deploy-gratis.md`: projeto no Neon, carga inicial, ambiente
+  `producao` no GitHub, blueprint no Render, domínio e Resend. Enquanto
+  não houver conta no GCP, este é o deploy ativo.
 - [ ] Nuvem: o environment `dev` do GitHub não tem as variáveis e os
   workflows de infra e deploy falham na autenticação (Entrega 1). Tudo o
   que diz "na nuvem" abaixo espera isso.
@@ -759,9 +763,10 @@ Dependem de acesso de fora ou de decisão do dono do projeto:
     ainda faz o OCR de todas as edições escaneadas e enche o cache; se
     passar das 6 h do job, rode por períodos. As seguintes reaproveitam o
     texto.
-  - [ ] Limites por IP: conferir no Cloud Run qual posição do
-    `X-Forwarded-For` é o IP de verdade, ou fechar a API ao tráfego que não
-    vem do site (Etapa A).
+  - [ ] Limites por IP: conferir qual posição do `X-Forwarded-For` é o
+    IP de verdade e ajustar `TRUSTED_PROXY_HOPS` (no Render, passo 6 de
+    `docs/deploy-gratis.md`), ou fechar a API ao tráfego que não vem do
+    site (Etapa A).
 - [ ] Diário da Câmara de 2018 a 2020-10-03: pedido pela LAI à Câmara com
   as URLs ou os PDFs (Etapa C1).
 - [ ] TSE: acesso negado a esta máquina; outra rede, ou conta na Base dos

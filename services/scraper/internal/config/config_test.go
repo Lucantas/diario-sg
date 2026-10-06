@@ -52,3 +52,18 @@ func TestLoadRejectsTheURLOfTheOtherSource(t *testing.T) {
 		t.Fatal("a Câmara com a URL da Prefeitura deveria dar erro")
 	}
 }
+
+func TestLoadReadsEventsMode(t *testing.T) {
+	t.Setenv("GCP_PROJECT_ID", "p")
+	t.Setenv("GAZETTE_BUCKET", "b")
+	t.Setenv("TOPIC_GAZETTE_FETCHED", "gazette-fetched")
+	t.Setenv("TOPIC_FETCH_COMPLETED", "fetch-completed")
+	t.Setenv("EVENTS", "push-http")
+	t.Setenv("PUSH_BASE_URL", "http://localhost:8081")
+
+	c, err := Load()
+
+	if err != nil || c.Events != "push-http" || c.PushBaseURL != "http://localhost:8081" {
+		t.Fatalf("%+v %v", c, err)
+	}
+}

@@ -14,6 +14,11 @@ type GetGazettePDF struct {
 	storage  ports.FileStorage
 }
 
+type GazettePDF struct {
+	Body        io.ReadCloser
+	RedirectURL string
+}
+
 func NewGetGazettePDF(g ports.GazetteRepository, s ports.FileStorage) *GetGazettePDF {
 	return &GetGazettePDF{gazettes: g, storage: s}
 }
@@ -22,10 +27,13 @@ func (uc *GetGazettePDF) Gazette(ctx context.Context, id string) (domain.Gazette
 	return uc.gazettes.FindByID(ctx, id)
 }
 
-func (uc *GetGazettePDF) Open(ctx context.Context, g domain.Gazette) (io.ReadCloser, error) {
+func (uc *GetGazettePDF) Open(ctx context.Context, g domain.Gazette) (GazettePDF, error) {
 	body, err := uc.storage.Get(ctx, g.StoragePath)
-	if err != nil {
-		return nil, fmt.Errorf("pdf da edição %s: %w", g.ID, err)
+	if err == nil {
+		return GazettePDF{Body: body}, nil
 	}
-	return body, nil
+	if g.SourceURL != "" {
+		return GazettePDF{RedirectURL: g.SourceURL}, nil
+	}
+	return GazettePDF{}, fmt.Errorf("pdf da edição %s: %w", g.ID, err)
 }

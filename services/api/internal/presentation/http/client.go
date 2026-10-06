@@ -6,9 +6,15 @@ import (
 	"strings"
 )
 
-func clientKey(r *http.Request) string {
+func clientKey(r *http.Request, hops int) string {
 	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
-		return strings.TrimSpace(strings.Split(fwd, ",")[0])
+		parts := strings.Split(fwd, ",")
+		switch {
+		case hops == 0:
+			return strings.TrimSpace(parts[0])
+		case hops <= len(parts):
+			return strings.TrimSpace(parts[len(parts)-hops])
+		}
 	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {

@@ -1,11 +1,6 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
-    paths: ['pkg/**', 'services/**', 'apps/**', '.github/workflows/deploy.yml']
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       environment:

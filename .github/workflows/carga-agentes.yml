@@ -1,0 +1,18 @@
+name: carga-agentes
+
+on:
+  schedule:
+    - cron: "0 12 10 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: carga-agentes
+
+jobs:
+  carga:
+    uses: ./.github/workflows/_carga.yml
+    with:
+      cmd: agentes
+      args: ""
+      timeout: 30
+    secrets: inherit

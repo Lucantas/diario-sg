@@ -14,6 +14,7 @@ import (
 )
 
 type API struct {
+	ProxyHops     int
 	Search        *usecase.SearchActs
 	Gazette       *usecase.GetGazette
 	Company       *usecase.GetCompany
@@ -80,7 +81,7 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("POST /v1/mcp/keys", a.issueKey(ratelimit.New(keysPerClient, keysPerInstance, time.Hour, time.Now)))
 	mux.HandleFunc("DELETE /v1/mcp/keys", a.revokeKey(ratelimit.New(revokesPerClient, revokesPerInstance, time.Minute, time.Now)))
 	if a.MCP != nil {
-		mux.Handle("/mcp", perClient(ratelimit.New(mcpPerClient, mcpPerInstance, time.Minute, time.Now), a.MCP))
+		mux.Handle("/mcp", a.perClient(ratelimit.New(mcpPerClient, mcpPerInstance, time.Minute, time.Now), a.MCP))
 	}
 	a.oauthRoutes(mux)
 	mux.HandleFunc("POST /v1/subscriptions/confirm", a.confirm)

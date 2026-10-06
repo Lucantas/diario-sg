@@ -9,8 +9,10 @@ import (
 
 	"github.com/seu-usuario/diario-sg/pkg/gcp"
 	"github.com/seu-usuario/diario-sg/pkg/obs"
+	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/fsstore"
 	"github.com/seu-usuario/diario-sg/services/api/internal/adapters/postgres"
 	"github.com/seu-usuario/diario-sg/services/api/internal/config"
+	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/usecase"
 )
 
@@ -31,9 +33,12 @@ func main() {
 	}
 	defer db.Close()
 
-	storage := gcp.NewStorage(cfg.DumpsBucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
+	var objects ports.ObjectWriter = gcp.NewStorage(cfg.DumpsBucket, cfg.StorageEmulator, gcp.TokenSourceFor(cfg.StorageEmulator))
+	if cfg.DumpDir != "" {
+		objects = fsstore.New(cfg.DumpDir)
+	}
 	start := time.Now()
-	manifest, err := usecase.NewPublishDump(postgres.NewDumpSource(db), storage).Execute(ctx, start.UTC())
+	manifest, err := usecase.NewPublishDump(postgres.NewDumpSource(db), objects).Execute(ctx, start.UTC())
 	if err != nil {
 		log.Error("dump falhou", "error", err, "duration_ms", time.Since(start).Milliseconds())
 		os.Exit(1)

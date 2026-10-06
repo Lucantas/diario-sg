@@ -10,11 +10,11 @@ import (
 )
 
 type EventPublisher struct {
-	client       *gcp.Publisher
+	client       gcp.MessagePublisher
 	topicIndexed string
 }
 
-func NewEventPublisher(c *gcp.Publisher, topicIndexed string) *EventPublisher {
+func NewEventPublisher(c gcp.MessagePublisher, topicIndexed string) *EventPublisher {
 	return &EventPublisher{client: c, topicIndexed: topicIndexed}
 }
 

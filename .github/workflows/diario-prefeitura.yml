@@ -1,0 +1,21 @@
+name: diario-prefeitura
+
+on:
+  schedule:
+    - cron: "0 11,16,22 * * 1-6"
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: Dias para trás
+        default: "3"
+
+concurrency:
+  group: diario-prefeitura
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline.yml
+    with:
+      source: diario_prefeitura
+      lookback_days: ${{ inputs.lookback_days || '3' }}
+    secrets: inherit

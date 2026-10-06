@@ -27,7 +27,7 @@ func TestReadPageExtractsFromTheArchivedPDF(t *testing.T) {
 	_ = gaz.SaveWithActs(context.Background(), g, nil)
 	pages := &onePage{}
 
-	got, err := NewReadPage(gaz, memStorage{}, pages).Execute(context.Background(), g.ID, 3)
+	got, err := NewReadPage(gaz, memStorage{}, nil, pages).Execute(context.Background(), g.ID, 3)
 
 	if err != nil || got.Text != "PDF página" || got.Pages != 4 || got.Page != 3 || got.Gazette.Checksum != "abc" || !got.ReadByOCR {
 		t.Fatalf("veio %+v %v", got, err)
@@ -38,7 +38,7 @@ func TestReadPageExtractsFromTheArchivedPDF(t *testing.T) {
 }
 
 func TestReadPageRejectsPageZeroAndUnknownGazette(t *testing.T) {
-	uc := NewReadPage(newMemGazettes(), memStorage{}, &onePage{})
+	uc := NewReadPage(newMemGazettes(), memStorage{}, nil, &onePage{})
 
 	if _, err := uc.Execute(context.Background(), "x", 0); !errors.Is(err, domain.ErrInvalidInput) {
 		t.Errorf("página 0: %v", err)

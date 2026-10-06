@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: diario-sg-api
+    runtime: docker
+    plan: free
+    region: ohio
+    dockerfilePath: ./services/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true
+    branch: main
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PUBLIC_WEB_URL
+        sync: false
+      - key: NOTIFIER
+        value: log
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+
+  - type: web
+    name: diario-sg-web
+    runtime: static
+    rootDir: apps/web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    branch: main
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://diario-sg-api.onrender.com/*
+      - type: rewrite
+        source: /.well-known/*
+        destination: https://diario-sg-api.onrender.com/.well-known/*
+      - type: rewrite
+        source: /dados/*
+        destination: https://raw.githubusercontent.com/Lucantas/diario-sg/dados/*
+      - type: rewrite
+        source: /*
+        destination: /index.html

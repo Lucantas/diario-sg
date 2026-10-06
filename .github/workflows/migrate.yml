@@ -1,0 +1,30 @@
+name: migrate
+
+on:
+  push:
+    branches: [main]
+    paths: ['services/api/migrations/**']
+  workflow_dispatch:
+
+concurrency:
+  group: migrate
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: producao
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_DIRECT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/api/go.mod
+          cache-dependency-path: '**/go.sum'
+      - name: migrate
+        working-directory: services/api
+        run: go run ./cmd/migrate
