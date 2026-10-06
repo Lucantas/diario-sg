@@ -48,3 +48,19 @@ func TestLoadAPIWithoutBucket(t *testing.T) {
 		t.Fatalf("a API sobe sem bucket e cai no PDF oficial: %v", err)
 	}
 }
+
+func TestLoadDumpNeedsBucketOrDir(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://x")
+	t.Setenv("DUMPS_BUCKET", "")
+	t.Setenv("DUMP_DIR", "")
+	if _, err := Load(RoleDump); err == nil {
+		t.Error("sem DUMPS_BUCKET e sem DUMP_DIR deveria falhar")
+	}
+
+	t.Setenv("DUMP_DIR", "/tmp/dump")
+	c, err := Load(RoleDump)
+
+	if err != nil || c.DumpDir != "/tmp/dump" {
+		t.Fatalf("%+v %v", c, err)
+	}
+}

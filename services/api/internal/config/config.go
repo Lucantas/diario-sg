@@ -33,6 +33,7 @@ type Config struct {
 	ProjectID          string
 	Bucket             string
 	DumpsBucket        string
+	DumpDir            string
 	TopicIndexed       string
 	PubSubEmulatorHost string
 	StorageEmulator    string
@@ -66,6 +67,7 @@ func Load(role Role) (Config, error) {
 		ProjectID:          os.Getenv("GCP_PROJECT_ID"),
 		Bucket:             os.Getenv("GAZETTE_BUCKET"),
 		DumpsBucket:        os.Getenv("DUMPS_BUCKET"),
+		DumpDir:            os.Getenv("DUMP_DIR"),
 		TopicIndexed:       os.Getenv("TOPIC_GAZETTE_INDEXED"),
 		PubSubEmulatorHost: os.Getenv("PUBSUB_EMULATOR_HOST"),
 		StorageEmulator:    os.Getenv("STORAGE_EMULATOR_HOST"),
@@ -107,8 +109,8 @@ func Load(role Role) (Config, error) {
 	if role == RoleReindex || role == RoleReceita || role == RoleSanctions || role == RolePayments || role == RolePNCP || role == RoleFederal || role == RoleAgents || role == RoleSICAM {
 		required["GAZETTE_BUCKET"] = c.Bucket
 	}
-	if role == RoleDump {
-		required["DUMPS_BUCKET"] = c.DumpsBucket
+	if role == RoleDump && c.DumpsBucket == "" && c.DumpDir == "" {
+		return c, fmt.Errorf("variáveis obrigatórias ausentes: DUMPS_BUCKET ou DUMP_DIR")
 	}
 	if (role == RoleAPI || role == RoleWorker) && c.Notifier == "resend" {
 		required["RESEND_API_KEY"] = c.ResendAPIKey
