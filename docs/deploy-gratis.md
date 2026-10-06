@@ -31,16 +31,20 @@ cache do OCR da coleta fica no `actions/cache`.
 
 ## 2. Carga inicial
 
-Na máquina que tem a base local (precisa de `pg_restore` 16 ou mais novo):
+Na máquina que tem a base local. O `pg_restore` roda dentro do container
+do Postgres, então não precisa instalá-lo:
 
 ```bash
 make up && make migrate
 docker compose exec postgres psql -U postgres -d diario -c "VACUUM FULL ANALYZE"
 docker compose exec postgres psql -U postgres -d diario -Atc "select pg_size_pretty(pg_database_size('diario'))"
 docker compose exec postgres pg_dump -U postgres -d diario -Fc --no-owner --no-privileges -f /tmp/diario.dump
-docker compose cp postgres:/tmp/diario.dump ./diario.dump
-pg_restore --no-owner --no-privileges -d "$NEON_DATABASE_URL" ./diario.dump
+read -rs NEON_DATABASE_URL && export NEON_DATABASE_URL
+docker compose exec -e NEON_DATABASE_URL postgres sh -c 'pg_restore --no-owner --no-privileges -d "$NEON_DATABASE_URL" /tmp/diario.dump'
 ```
+
+Em 06/10/2026 a base local ficou com 715 MB depois da migration 034 e do
+`VACUUM FULL`, e o dump com 78 MB.
 
 O tamanho tem de ficar abaixo de 900 MB. Para a carga, use a connection
 string **direta** (sem `-pooler`): o pooler não aceita tudo o que o
