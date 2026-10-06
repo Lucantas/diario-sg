@@ -21,7 +21,7 @@ var reportAccepted = map[string]string{"status": "recebido"}
 
 func (a *API) reportError(limiter *ratelimit.Limiter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !limiter.Allow(clientKey(r)) {
+		if !limiter.Allow(clientKey(r, a.ProxyHops)) {
 			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitos reportes seguidos; tente de novo em um minuto"})
 			return
 		}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -37,6 +38,7 @@ type Config struct {
 	StorageEmulator    string
 	Events             string
 	PushBaseURL        string
+	TrustedProxyHops   int
 	Notifier           string
 	ResendAPIKey       string
 	EmailFrom          string
@@ -89,6 +91,12 @@ func Load(role Role) (Config, error) {
 		SIAPEGOVURL:     getenv("SIAPEGOV_URL", "https://sistema.pmsg.rj.gov.br/pmsaogoncalo/websis/siapegov/legislativo/leis/"),
 		SICAMSiteURL:    getenv("SICAM_SITE_URL", "https://sg.processolegislativo.com.br/"),
 	}
+
+	hops, err := strconv.Atoi(getenv("TRUSTED_PROXY_HOPS", "0"))
+	if err != nil || hops < 0 {
+		return c, fmt.Errorf("TRUSTED_PROXY_HOPS inválido: %q", os.Getenv("TRUSTED_PROXY_HOPS"))
+	}
+	c.TrustedProxyHops = hops
 
 	required := map[string]string{"DATABASE_URL": c.DatabaseURL}
 	if role == RoleWorker {

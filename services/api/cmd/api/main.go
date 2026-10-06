@@ -70,6 +70,7 @@ func run(l *slog.Logger) error {
 		MetadataURL: webURL + "/.well-known/oauth-protected-resource/api/mcp", Log: l})
 
 	api := &httpapi.API{
+		ProxyHops:     cfg.TrustedProxyHops,
 		Search:        search,
 		Gazette:       usecase.NewGetGazette(gazettes, acts),
 		Company:       company,

@@ -23,7 +23,7 @@ type issuedKeyDTO struct {
 
 func (a *API) issueKey(limiter *ratelimit.Limiter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !limiter.Allow(clientKey(r)) {
+		if !limiter.Allow(clientKey(r, a.ProxyHops)) {
 			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitas chaves geradas daqui; tente de novo em uma hora"})
 			return
 		}
@@ -56,7 +56,7 @@ func (a *API) issuedKey(secret string) issuedKeyDTO {
 
 func (a *API) revokeKey(limiter *ratelimit.Limiter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !limiter.Allow(clientKey(r)) {
+		if !limiter.Allow(clientKey(r, a.ProxyHops)) {
 			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitas tentativas seguidas; tente de novo em um minuto"})
 			return
 		}
@@ -76,9 +76,9 @@ func bearerToken(r *http.Request) string {
 	return fields[1]
 }
 
-func perClient(limiter *ratelimit.Limiter, next http.Handler) http.Handler {
+func (a *API) perClient(limiter *ratelimit.Limiter, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !limiter.Allow(clientKey(r)) {
+		if !limiter.Allow(clientKey(r, a.ProxyHops)) {
 			w.Header().Set("Retry-After", "60")
 			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitas chamadas seguidas; tente de novo em um minuto"})
 			return
