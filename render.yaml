@@ -15,7 +15,7 @@ services:
       - key: PUBLIC_WEB_URL
         sync: false
       - key: NOTIFIER
-        value: resend
+        value: log
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
