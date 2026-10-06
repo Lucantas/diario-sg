@@ -34,6 +34,10 @@ cache do OCR da coleta fica no `actions/cache`.
 
 ## 2. Carga inicial
 
+`scripts/neon-carga-inicial.sh` faz este passo inteiro: pede a connection
+string sem mostrá-la, restaura, mostra tamanho e contagem de atos e, se
+você quiser, cadastra os dois secrets do passo 3. O que ele roda:
+
 Na máquina que tem a base local. O `pg_restore` roda dentro do container
 do Postgres, então não precisa instalá-lo:
 
