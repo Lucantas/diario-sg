@@ -1,0 +1,72 @@
+name: pipeline
+
+on:
+  workflow_call:
+    inputs:
+      source:
+        required: true
+        type: string
+      lookback_days:
+        required: false
+        type: string
+        default: "3"
+
+permissions:
+  contents: read
+
+jobs:
+  coleta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: producao
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      NOTIFIER: ${{ secrets.RESEND_API_KEY != '' && 'resend' || 'log' }}
+      PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
+      GCP_PROJECT_ID: local
+      GAZETTE_BUCKET: diario-gazettes
+      STORAGE_EMULATOR_HOST: localhost:4443
+      TOPIC_GAZETTE_FETCHED: gazette-fetched
+      TOPIC_GAZETTE_INDEXED: gazette-indexed
+      TOPIC_FETCH_COMPLETED: fetch-completed
+      EVENTS: push-http
+      PUSH_BASE_URL: http://localhost:8081
+      SOURCE: ${{ inputs.source }}
+      LOOKBACK_DAYS: ${{ inputs.lookback_days }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/api/go.mod
+          cache-dependency-path: '**/go.sum'
+      - name: poppler e tesseract
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils tesseract-ocr tesseract-ocr-por tesseract-ocr-osd
+      - name: compila
+        run: |
+          mkdir -p bin
+          (cd services/api && go build -o ../../bin/worker ./cmd/worker)
+          (cd services/scraper && go build -o ../../bin/scraper ./cmd/scraper)
+      - name: cache do OCR
+        uses: actions/cache@v4
+        with:
+          path: gcs/diario-gazettes/ocr
+          key: ocr-${{ inputs.source }}-${{ github.run_id }}
+          restore-keys: ocr-${{ inputs.source }}-
+      - name: emulador GCS
+        run: scripts/ci-gcs.sh "$PWD/gcs"
+      - name: worker
+        run: |
+          PORT=8081 nohup bin/worker > worker.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -fsS localhost:8081/healthz && exit 0
+            sleep 1
+          done
+          cat worker.log
+          exit 1
+      - name: scraper
+        run: bin/scraper
+      - name: log do worker
+        if: always()
+        run: cat worker.log || true

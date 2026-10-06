@@ -1,0 +1,50 @@
+name: dump
+
+on:
+  schedule:
+    - cron: "0 7 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: dump
+
+permissions:
+  contents: write
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: producao
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DUMP_DIR: ${{ github.workspace }}/out
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/api/go.mod
+          cache-dependency-path: '**/go.sum'
+      - name: dump
+        working-directory: services/api
+        run: go run ./cmd/dump
+      - name: publica no branch dados
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd out/latest
+          git init -q -b dados
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "dados: dump de $(date -u +%F)"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" dados
+      - name: tamanho do banco
+        run: |
+          size=$(psql "$DATABASE_URL" -Atc "select pg_database_size(current_database())")
+          echo "banco: $((size / 1024 / 1024)) MB"
+          if [ "$size" -gt $((900 * 1024 * 1024)) ]; then
+            echo "::error::banco acima de 900 MB; o limite do Neon grátis é 1 GB"
+            exit 1
+          fi

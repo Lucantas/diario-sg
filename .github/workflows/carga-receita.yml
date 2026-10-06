@@ -1,0 +1,18 @@
+name: carga-receita
+
+on:
+  schedule:
+    - cron: "0 9 20 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: carga-receita
+
+jobs:
+  carga:
+    uses: ./.github/workflows/_carga.yml
+    with:
+      cmd: receita
+      args: ""
+      timeout: 360
+    secrets: inherit

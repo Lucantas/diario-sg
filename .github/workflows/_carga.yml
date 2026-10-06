@@ -1,0 +1,44 @@
+name: carga
+
+on:
+  workflow_call:
+    inputs:
+      cmd:
+        required: true
+        type: string
+      args:
+        required: false
+        type: string
+        default: ""
+      timeout:
+        required: false
+        type: number
+        default: 60
+
+permissions:
+  contents: read
+
+jobs:
+  carga:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout }}
+    environment: producao
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      GCP_PROJECT_ID: local
+      GAZETTE_BUCKET: diario-gazettes
+      STORAGE_EMULATOR_HOST: localhost:4443
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/api/go.mod
+          cache-dependency-path: '**/go.sum'
+      - name: emulador GCS
+        run: scripts/ci-gcs.sh "$PWD/gcs"
+      - name: carga
+        working-directory: services/api
+        env:
+          CMD: ${{ inputs.cmd }}
+          ARGS: ${{ inputs.args }}
+        run: go run "./cmd/$CMD" $ARGS
