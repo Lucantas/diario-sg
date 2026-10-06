@@ -91,7 +91,7 @@ func run(l *slog.Logger) error {
 		Norms:         norms,
 		Bills:         bills,
 		Organs:        usecase.NewListOrgans(acts),
-		PDF:           usecase.NewGetGazettePDF(gazettes, storage, source),
+		PDF:           usecase.NewGetGazettePDF(gazettes, storage),
 		Export:        usecase.NewExportActs(acts),
 		Feed:          usecase.NewActFeed(acts),
 		Reports:       usecase.NewErrorReports(postgres.NewErrorReportRepo(db)),

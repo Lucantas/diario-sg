@@ -21,13 +21,20 @@ func (a *API) gazettePDF(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
-	body, err := a.PDF.Open(r.Context(), g)
+	pdf, err := a.PDF.Open(r.Context(), g)
 	if err != nil {
 		w.Header().Del("ETag")
 		w.Header().Del("Cache-Control")
 		writeError(w, err, a.Log)
 		return
 	}
+	if pdf.RedirectURL != "" {
+		w.Header().Del("ETag")
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		http.Redirect(w, r, pdf.RedirectURL, http.StatusFound)
+		return
+	}
+	body := pdf.Body
 	defer body.Close()
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", `inline; filename="`+pdfFilename(g)+`"`)
