@@ -35,6 +35,8 @@ type Config struct {
 	TopicIndexed       string
 	PubSubEmulatorHost string
 	StorageEmulator    string
+	Events             string
+	PushBaseURL        string
 	Notifier           string
 	ResendAPIKey       string
 	EmailFrom          string
@@ -65,6 +67,8 @@ func Load(role Role) (Config, error) {
 		TopicIndexed:       os.Getenv("TOPIC_GAZETTE_INDEXED"),
 		PubSubEmulatorHost: os.Getenv("PUBSUB_EMULATOR_HOST"),
 		StorageEmulator:    os.Getenv("STORAGE_EMULATOR_HOST"),
+		Events:             os.Getenv("EVENTS"),
+		PushBaseURL:        os.Getenv("PUSH_BASE_URL"),
 		Notifier:           getenv("NOTIFIER", "log"),
 		ResendAPIKey:       os.Getenv("RESEND_API_KEY"),
 		EmailFrom:          os.Getenv("EMAIL_FROM"),
