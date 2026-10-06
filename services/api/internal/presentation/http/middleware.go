@@ -27,7 +27,10 @@ func withMiddleware(next http.Handler, log *slog.Logger) http.Handler {
 				http.Error(rec, `{"error":"erro interno"}`, http.StatusInternalServerError)
 			}
 			log.Info("request", "method", r.Method, "path", r.URL.Path, "status", rec.status,
-				"duration_ms", time.Since(start).Milliseconds())
+				"duration_ms", time.Since(start).Milliseconds(),
+				"xff", r.Header.Get("X-Forwarded-For"), "true_client_ip", r.Header.Get("True-Client-IP"),
+				"cf_connecting_ip", r.Header.Get("CF-Connecting-IP"), "x_real_ip", r.Header.Get("X-Real-IP"),
+				"remote_addr", r.RemoteAddr)
 		}()
 		next.ServeHTTP(rec, r)
 	})
