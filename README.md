@@ -483,6 +483,12 @@ em alertas nunca entram no dump.
 
 ## Deploy na nuvem (primeira vez)
 
+O deploy ativo é o grátis, sem cartão: coleta e cargas no GitHub Actions,
+API e site no Render, banco no Neon. O passo a passo está em
+[`docs/deploy-gratis.md`](docs/deploy-gratis.md). Os passos abaixo
+descrevem o deploy no Google Cloud, que o Terraform em `infra/` mantém
+pronto para quando houver conta.
+
 1. Crie um projeto no Google Cloud com faturamento ativo (o free tier exige
    cartão) e configure um **alerta de orçamento** no console.
 2. Crie uma conta no [Neon](https://neon.tech) e gere uma API key. Opcional:
