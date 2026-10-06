@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+type MessagePublisher interface {
+	Publish(ctx context.Context, topic string, data []byte, attrs map[string]string) (string, error)
+}
+
 type Publisher struct {
 	baseURL string
 	project string
