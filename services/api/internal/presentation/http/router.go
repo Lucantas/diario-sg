@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/netip"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
@@ -51,6 +52,14 @@ const (
 	revokesPerInstance = 100
 	mcpPerClient       = 120
 	mcpPerInstance     = 1200
+
+	readsPerClient           = 120
+	readsPerInstance         = 6000
+	exportsPerClient         = 10
+	exportsPerInstance       = 200
+	subscriptionsPerClient   = 10
+	confirmationsPerEmail    = 5
+	subscriptionsPerInstance = 100
 )
 
 func (a *API) Routes() http.Handler {
@@ -58,25 +67,29 @@ func (a *API) Routes() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
-	mux.HandleFunc("GET /v1/acts", a.searchActs)
-	mux.HandleFunc("GET /v1/acts/export", a.exportActs)
-	mux.HandleFunc("GET /v1/feeds/acts", a.actFeed)
-	mux.HandleFunc("GET /v1/gazettes/{id}", a.getGazette)
-	mux.HandleFunc("GET /v1/gazettes/{id}/pdf", a.gazettePDF)
-	mux.HandleFunc("GET /v1/entities/cnpj/{cnpj}", a.getCompany)
-	mux.HandleFunc("GET /v1/entities/{kind}/{key}", a.getEntity)
-	mux.HandleFunc("GET /v1/stats/acts", a.actStats)
-	mux.HandleFunc("GET /v1/organs", a.listOrgans)
-	mux.HandleFunc("GET /v1/patterns", a.listPatterns)
-	mux.HandleFunc("GET /v1/panels/suppliers", a.supplierPanel)
-	mux.HandleFunc("GET /v1/panels/staff", a.staffPanel)
-	mux.HandleFunc("GET /v1/tce", a.oversight)
-	mux.HandleFunc("GET /v1/norms", a.norms)
-	mux.HandleFunc("GET /v1/bills", a.bills)
-	mux.HandleFunc("GET /v1/bills/{process}", a.bill)
-	mux.HandleFunc("GET /v1/federal", a.federal)
-	mux.HandleFunc("GET /v1/agentes", a.politicalAgents)
-	mux.HandleFunc("POST /v1/subscriptions", a.subscribe)
+	mux.Handle("GET /.well-known/security.txt", a.securityTxt(time.Now))
+	reads := ratelimit.New(readsPerClient, readsPerInstance, time.Minute, time.Now)
+	read := func(path string, h http.Handler) { mux.Handle("GET "+path, a.perClient(reads, h)) }
+	read("/v1/acts", http.HandlerFunc(a.searchActs))
+	read("/v1/acts/export", a.perClient(ratelimit.New(exportsPerClient, exportsPerInstance, time.Minute, time.Now), http.HandlerFunc(a.exportActs)))
+	read("/v1/feeds/acts", http.HandlerFunc(a.actFeed))
+	read("/v1/gazettes/{id}", http.HandlerFunc(a.getGazette))
+	read("/v1/gazettes/{id}/pdf", http.HandlerFunc(a.gazettePDF))
+	read("/v1/entities/cnpj/{cnpj}", http.HandlerFunc(a.getCompany))
+	read("/v1/entities/{kind}/{key}", http.HandlerFunc(a.getEntity))
+	read("/v1/stats/acts", http.HandlerFunc(a.actStats))
+	read("/v1/organs", http.HandlerFunc(a.listOrgans))
+	read("/v1/patterns", http.HandlerFunc(a.listPatterns))
+	read("/v1/panels/suppliers", http.HandlerFunc(a.supplierPanel))
+	read("/v1/panels/staff", http.HandlerFunc(a.staffPanel))
+	read("/v1/tce", http.HandlerFunc(a.oversight))
+	read("/v1/norms", http.HandlerFunc(a.norms))
+	read("/v1/bills", http.HandlerFunc(a.bills))
+	read("/v1/bills/{process}", http.HandlerFunc(a.bill))
+	read("/v1/federal", http.HandlerFunc(a.federal))
+	read("/v1/agentes", http.HandlerFunc(a.politicalAgents))
+	mux.HandleFunc("POST /v1/subscriptions", a.subscribe(ratelimit.New(subscriptionsPerClient, subscriptionsPerInstance, time.Hour, time.Now),
+		ratelimit.New(confirmationsPerEmail, subscriptionsPerInstance, time.Hour, time.Now)))
 
 	mux.HandleFunc("POST /v1/reports", a.reportError(ratelimit.New(reportsPerClient, reportsPerInstance, time.Minute, time.Now)))
 	mux.HandleFunc("POST /v1/mcp/keys", a.issueKey(ratelimit.New(keysPerClient, keysPerInstance, time.Hour, time.Now)))
@@ -232,27 +245,42 @@ func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.Ac
 	return f, true
 }
 
-func (a *API) subscribe(w http.ResponseWriter, r *http.Request) {
-	var req subscribeRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, domain.ErrInvalidInput, a.Log)
-		return
+func (a *API) subscribe(perClient, perEmail *ratelimit.Limiter) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !perClient.Allow(clientKey(r, a.TrustedProxies)) {
+			writeTooManySubscriptions(w)
+			return
+		}
+		var req subscribeRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeError(w, domain.ErrInvalidInput, a.Log)
+			return
+		}
+		if !perEmail.Allow(strings.ToLower(strings.TrimSpace(req.Email))) {
+			writeTooManySubscriptions(w)
+			return
+		}
+		var s domain.Subscription
+		var err error
+		switch {
+		case req.Entity != nil && (req.Query != "" || req.Filters != alertFilterDTO{}):
+			err = domain.ErrInvalidInput
+		case req.Entity != nil:
+			s, err = a.Subscriptions.SubscribeEntity(r.Context(), req.Email, domain.EntityKind(req.Entity.Kind), req.Entity.Value)
+		default:
+			s, err = a.Subscriptions.Subscribe(r.Context(), req.Email, req.Query, req.Filters.toDomain())
+		}
+		if err != nil {
+			writeError(w, err, a.Log)
+			return
+		}
+		writeJSON(w, http.StatusAccepted, toSubscriptionDTO(s))
 	}
-	var s domain.Subscription
-	var err error
-	switch {
-	case req.Entity != nil && (req.Query != "" || req.Filters != alertFilterDTO{}):
-		err = domain.ErrInvalidInput
-	case req.Entity != nil:
-		s, err = a.Subscriptions.SubscribeEntity(r.Context(), req.Email, domain.EntityKind(req.Entity.Kind), req.Entity.Value)
-	default:
-		s, err = a.Subscriptions.Subscribe(r.Context(), req.Email, req.Query, req.Filters.toDomain())
-	}
-	if err != nil {
-		writeError(w, err, a.Log)
-		return
-	}
-	writeJSON(w, http.StatusAccepted, toSubscriptionDTO(s))
+}
+
+func writeTooManySubscriptions(w http.ResponseWriter) {
+	w.Header().Set("Retry-After", "3600")
+	writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "muitas inscrições seguidas; tente de novo em uma hora"})
 }
 
 func (a *API) confirm(w http.ResponseWriter, r *http.Request) {
