@@ -104,9 +104,10 @@ cerca de um minuto.
 2. No Resend, adicione o domínio e crie no DNS os registros que ele
    mostrar (SPF, DKIM). `EMAIL_FROM` passa a ser um endereço desse
    domínio, por exemplo `Diário SG <alertas@SEU-DOMINIO>`.
-3. No Render, troque `NOTIFIER` de `log` para `resend` (o blueprint começa
-   em `log` porque a API não sobe com `resend` sem `RESEND_API_KEY` e
-   `EMAIL_FROM`).
+3. Troque `NOTIFIER` de `log` para `resend` no `render.yaml` (o blueprint
+   começou em `log` porque a API não sobe com `resend` sem
+   `RESEND_API_KEY` e `EMAIL_FROM`; mudar só no painel seria desfeito na
+   próxima sincronização do blueprint).
 4. Atualize `PUBLIC_WEB_URL` no Render e no ambiente `producao` do
    GitHub. Os links dos e-mails e o OAuth do MCP usam essa URL.
 
