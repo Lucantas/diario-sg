@@ -26,8 +26,11 @@ cache do OCR da coleta fica no `actions/cache`.
    do Render, com Postgres 16.
 2. Em Branches → `main` → Compute: autoscaling de 0,25 a 0,25 CU e
    suspensão após 5 minutos. O plano grátis dá 100 CU-hora por mês.
-3. Em Connect, copie a connection string **pooled** (host com `-pooler`),
-   com `sslmode=require`. Ela é o `DATABASE_URL` do GitHub e do Render.
+3. Em Connect, copie as duas connection strings, com `sslmode=require`:
+   a **pooled** (host com `-pooler`) é o `DATABASE_URL` da coleta, das
+   cargas e do Render; a **direta** (sem `-pooler`) é o
+   `DATABASE_URL_DIRECT` do `migrate` e do `dump`. O `migrate` segura um
+   advisory lock de sessão, que o pooler em modo transação não garante.
 
 ## 2. Carga inicial
 
@@ -58,6 +61,7 @@ Neon (`CREATE EXTENSION pg_trgm; CREATE EXTENSION unaccent;`) e rode o
 1. Em Settings → Environments, crie o ambiente `producao`.
 2. Secrets do ambiente:
    - `DATABASE_URL` (pooled, do passo 1);
+   - `DATABASE_URL_DIRECT` (direta, do passo 1);
    - `RESEND_API_KEY` e `EMAIL_FROM` (sem eles, os alertas só vão para o
      log da coleta).
 3. Variável do ambiente: `PUBLIC_WEB_URL`, a URL final do site.
@@ -66,6 +70,7 @@ Pela linha de comando, o `gh` pede o valor sem mostrá-lo:
 
 ```bash
 gh secret set DATABASE_URL -R Lucantas/diario-sg -e producao
+gh secret set DATABASE_URL_DIRECT -R Lucantas/diario-sg -e producao
 gh secret set RESEND_API_KEY -R Lucantas/diario-sg -e producao
 gh secret set EMAIL_FROM -R Lucantas/diario-sg -e producao
 gh variable set PUBLIC_WEB_URL -R Lucantas/diario-sg -e producao --body https://SEU-DOMINIO
@@ -106,6 +111,15 @@ Com o site no ar, faça uma requisição pelo domínio, veja no log da API
 quais endereços chegam no cabeçalho e ajuste o número para a posição do
 IP do cliente. `0` volta ao comportamento antigo (primeiro endereço, que
 o cliente pode forjar).
+
+A API tem dois caminhos públicos: pelo site (o rewrite do Render pode
+somar um proxy) e direto em `diario-sg-api.onrender.com`. Um número fixo
+só serve aos dois se ambos chegarem com a mesma quantidade de proxies.
+Meça os dois antes de mudar o valor: se o caminho pelo site pedir `2`,
+quem chama a API direto consegue forjar o IP com um `X-Forwarded-For`
+próprio e escapar dos limites de emissão de chave, registro OAuth e
+relatos. Nesse caso, fica pendente confiar em faixas de IP conhecidas do
+proxy em vez de contar posições.
 
 ## 7. Rodar à mão
 

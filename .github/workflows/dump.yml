@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     environment: producao
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL_DIRECT }}
       DUMP_DIR: ${{ github.workspace }}/out
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +28,15 @@ jobs:
       - name: dump
         working-directory: services/api
         run: go run ./cmd/dump
+      - name: tamanho dos arquivos
+        run: |
+          for f in out/latest/*; do
+            size=$(stat -c %s "$f")
+            echo "$f: $((size / 1024 / 1024)) MB"
+            if [ "$size" -gt $((85 * 1024 * 1024)) ]; then
+              echo "::warning::$f passa de 85 MB; o GitHub recusa arquivos acima de 100 MB no push"
+            fi
+          done
       - name: publica no branch dados
         env:
           GH_TOKEN: ${{ github.token }}
@@ -41,6 +50,7 @@ jobs:
           git commit -q -m "dados: dump de $(date -u +%F)"
           git push -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" dados
       - name: tamanho do banco
+        if: always()
         run: |
           size=$(psql "$DATABASE_URL" -Atc "select pg_database_size(current_database())")
           echo "banco: $((size / 1024 / 1024)) MB"
