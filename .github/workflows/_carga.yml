@@ -41,4 +41,6 @@ jobs:
         env:
           CMD: ${{ inputs.cmd }}
           ARGS: ${{ inputs.args }}
-        run: go run "./cmd/$CMD" $ARGS
+        run: |
+          read -ra args <<< "$ARGS"
+          go run "./cmd/$CMD" "${args[@]}"

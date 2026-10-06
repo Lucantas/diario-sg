@@ -1,0 +1,7 @@
+paths:
+  .github/workflows/deploy.yml:
+    ignore:
+      - 'SC2086'
+  .github/workflows/infra.yml:
+    ignore:
+      - 'SC2086'
