@@ -164,3 +164,33 @@ func (f *fakeSupplierSource) CitedProcesses(context.Context) (map[string]bool, e
 func (f *fakeSupplierSource) LatestGazetteDay(context.Context, string) (time.Time, error) {
 	return time.Date(2026, 9, 25, 0, 0, 0, 0, time.UTC), nil
 }
+
+type countingPatternSource struct {
+	*fakePatternSource
+	calls int
+}
+
+func (c *countingPatternSource) DispensaActs(ctx context.Context) ([]domain.DispensaAct, error) {
+	c.calls++
+	return c.fakePatternSource.DispensaActs(ctx)
+}
+
+func TestListPatternsWithCacheRecomputesOnlyAfterTheTTL(t *testing.T) {
+	src := &countingPatternSource{fakePatternSource: &fakePatternSource{}}
+	now := time.Date(2026, 10, 7, 10, 0, 0, 0, time.UTC)
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, func() time.Time { return now })
+
+	for range 3 {
+		if _, _, err := uc.Execute(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	now = now.Add(time.Hour)
+	if _, _, err := uc.Execute(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	if src.calls != 2 {
+		t.Errorf("três leituras dentro da hora custam uma consulta, e a hora seguinte refaz: %d consultas", src.calls)
+	}
+}

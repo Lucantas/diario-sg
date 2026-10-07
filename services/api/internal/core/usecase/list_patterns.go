@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"sync"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
@@ -10,13 +12,42 @@ import (
 type ListPatterns struct {
 	src       ports.PatternSource
 	suppliers ports.SupplierPatternSource
+
+	ttl      time.Duration
+	now      func() time.Time
+	mu       sync.Mutex
+	cachedAt time.Time
+	reports  []domain.PatternReport
+	acts     map[string]domain.ActHit
 }
 
 func NewListPatterns(src ports.PatternSource, suppliers ports.SupplierPatternSource) *ListPatterns {
 	return &ListPatterns{src: src, suppliers: suppliers}
 }
 
+func (uc *ListPatterns) WithCache(ttl time.Duration, now func() time.Time) *ListPatterns {
+	uc.ttl, uc.now = ttl, now
+	return uc
+}
+
 func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, map[string]domain.ActHit, error) {
+	if uc.ttl <= 0 {
+		return uc.compute(ctx)
+	}
+	uc.mu.Lock()
+	defer uc.mu.Unlock()
+	if uc.reports != nil && uc.now().Sub(uc.cachedAt) < uc.ttl {
+		return uc.reports, uc.acts, nil
+	}
+	reports, acts, err := uc.compute(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	uc.reports, uc.acts, uc.cachedAt = reports, acts, uc.now()
+	return reports, acts, nil
+}
+
+func (uc *ListPatterns) compute(ctx context.Context) ([]domain.PatternReport, map[string]domain.ActHit, error) {
 	catalog := domain.PatternCatalog()
 	dispensas, err := uc.src.DispensaActs(ctx)
 	if err != nil {

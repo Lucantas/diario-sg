@@ -23,6 +23,8 @@ import (
 	mcpapi "github.com/seu-usuario/diario-sg/services/api/internal/presentation/mcp"
 )
 
+const patternsCacheTTL = time.Hour
+
 func main() {
 	log := obs.NewLogger("api")
 	if err := run(log); err != nil {
@@ -64,7 +66,7 @@ func run(l *slog.Logger) error {
 	discovery := postgres.NewDiscoveryRepo(db)
 	company := usecase.NewGetCompany(acts, sources)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
-	patterns := usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db))
+	patterns := usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)).WithCache(patternsCacheTTL, time.Now)
 	norms := usecase.NewFindNorms(postgres.NewNormRepo(db))
 	bills := usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now)
 	webURL := strings.TrimRight(cfg.PublicWebURL, "/")
