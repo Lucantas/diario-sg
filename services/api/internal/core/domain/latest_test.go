@@ -6,28 +6,38 @@ import (
 	"time"
 )
 
-func TestSortLatestDaysPutsPrefeituraFirstAndBusiestTypesFirst(t *testing.T) {
+func TestSortLatestEditionsPutsPrefeituraAndRegularEditionsFirst(t *testing.T) {
 	day := time.Date(2026, 10, 6, 0, 0, 0, 0, time.UTC)
-	days := []LatestDay{
-		{Source: SourceDiarioCamara, Day: day, Types: []TypeTotal{{Type: ActLei, Acts: 1}}},
-		{Source: SourceDiarioPrefeitura, Day: day, Types: []TypeTotal{
+	editions := []LatestEdition{
+		{Source: SourceDiarioCamara, Day: day, EditionNumber: "138"},
+		{Source: SourceDiarioPrefeitura, Day: day, EditionNumber: "1413", IsExtra: true},
+		{Source: SourceDiarioPrefeitura, Day: day, EditionNumber: "1412", Types: []TypeTotal{
 			{Type: ActContrato, Acts: 3, ValueCents: 210000000},
 			{Type: ActNomeacao, Acts: 14},
 			{Type: ActDecreto, Acts: 3},
 		}},
 	}
 
-	SortLatestDays(days)
+	SortLatestEditions(editions)
 
-	if days[0].Source != SourceDiarioPrefeitura || days[1].Source != SourceDiarioCamara {
-		t.Fatalf("Prefeitura vem antes da Câmara: %+v", days)
+	var order []string
+	for _, e := range editions {
+		order = append(order, e.EditionNumber)
 	}
-	want := []ActType{ActNomeacao, ActContrato, ActDecreto}
-	var got []ActType
-	for _, tt := range days[0].Types {
-		got = append(got, tt.Type)
+	if !reflect.DeepEqual(order, []string{"1412", "1413", "138"}) {
+		t.Fatalf("Prefeitura antes da Câmara, edição normal antes da extra: %v", order)
 	}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("tipos em ordem de quantidade, empate pelo nome do tipo: %v", got)
+	var types []ActType
+	for _, tt := range editions[0].Types {
+		types = append(types, tt.Type)
+	}
+	if !reflect.DeepEqual(types, []ActType{ActNomeacao, ActContrato, ActDecreto}) {
+		t.Errorf("tipos em ordem de quantidade, empate pelo nome do tipo: %v", types)
+	}
+}
+
+func TestValidGazetteID(t *testing.T) {
+	if !ValidGazetteID("3f2b8c1e-4d5a-4b6c-8d7e-9f0a1b2c3d4e") || ValidGazetteID("1412") || ValidGazetteID("'; DROP") {
+		t.Error("só UUID é id de edição")
 	}
 }

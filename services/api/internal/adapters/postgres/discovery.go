@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
 
@@ -70,60 +72,56 @@ func (r *DiscoveryRepo) EntityActs(ctx context.Context, kind domain.EntityKind, 
 	return acts, err
 }
 
-const latestDayCTE = `WITH last AS (SELECT source, max(published_at) AS day FROM gazettes GROUP BY source)`
-
-func (r *DiscoveryRepo) LatestDays(ctx context.Context) ([]domain.LatestDay, error) {
-	days, err := r.latestEditions(ctx)
-	if err != nil {
-		return nil, err
+func (r *DiscoveryRepo) LatestEditions(ctx context.Context) ([]domain.LatestEdition, error) {
+	editions, err := r.lastDayEditions(ctx)
+	if err != nil || len(editions) == 0 {
+		return editions, err
 	}
-	rows, err := r.db.QueryContext(ctx, latestDayCTE+`
-		SELECT g.source, a.type, count(*), coalesce(sum(a.main_value_cents), 0)
-		FROM acts a
-		JOIN gazettes g ON g.id = a.gazette_id
-		JOIN last ON last.source = g.source AND last.day = g.published_at
-		GROUP BY g.source, a.type`)
+	ids := make([]string, len(editions))
+	byID := make(map[string]*domain.LatestEdition, len(editions))
+	for i := range editions {
+		ids[i] = editions[i].GazetteID
+		byID[editions[i].GazetteID] = &editions[i]
+	}
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT gazette_id, type, count(*), coalesce(sum(main_value_cents), 0)
+		FROM acts WHERE gazette_id = ANY($1::uuid[])
+		GROUP BY gazette_id, type`, pq.Array(ids))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var source string
+		var id string
 		var t domain.TypeTotal
-		if err := rows.Scan(&source, &t.Type, &t.Acts, &t.ValueCents); err != nil {
+		if err := rows.Scan(&id, &t.Type, &t.Acts, &t.ValueCents); err != nil {
 			return nil, err
 		}
-		for i := range days {
-			if days[i].Source == source {
-				days[i].Types = append(days[i].Types, t)
-			}
-		}
+		byID[id].Types = append(byID[id].Types, t)
 	}
-	return days, rows.Err()
+	return editions, rows.Err()
 }
 
-func (r *DiscoveryRepo) latestEditions(ctx context.Context) ([]domain.LatestDay, error) {
-	rows, err := r.db.QueryContext(ctx, latestDayCTE+`
-		SELECT g.source, g.published_at, g.id, g.edition_number, g.is_extra
+func (r *DiscoveryRepo) lastDayEditions(ctx context.Context) ([]domain.LatestEdition, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		WITH last AS (SELECT source, max(published_at) AS day FROM gazettes GROUP BY source)
+		SELECT g.id, g.source, g.published_at, g.edition_number, g.is_extra
 		FROM gazettes g
 		JOIN last ON last.source = g.source AND last.day = g.published_at
-		ORDER BY g.source, g.is_extra, g.source_url`)
+		ORDER BY g.source_url`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var days []domain.LatestDay
+	var out []domain.LatestEdition
 	for rows.Next() {
-		var source string
-		var day time.Time
 		var e domain.LatestEdition
-		if err := rows.Scan(&source, &day, &e.GazetteID, &e.EditionNumber, &e.IsExtra); err != nil {
+		var day time.Time
+		if err := rows.Scan(&e.GazetteID, &e.Source, &day, &e.EditionNumber, &e.IsExtra); err != nil {
 			return nil, err
 		}
-		if n := len(days); n == 0 || days[n-1].Source != source {
-			days = append(days, domain.LatestDay{Source: source, Day: day})
-		}
-		days[len(days)-1].Editions = append(days[len(days)-1].Editions, e)
+		e.Day = day
+		out = append(out, e)
 	}
-	return days, rows.Err()
+	return out, rows.Err()
 }

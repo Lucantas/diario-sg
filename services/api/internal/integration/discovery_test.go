@@ -4,6 +4,7 @@ package integration
 
 import (
 	"database/sql"
+	"net/http"
 	"net/url"
 	"testing"
 	"time"
@@ -24,14 +25,14 @@ type suggestions struct {
 	} `json:"items"`
 }
 
-type latestDays struct {
+type latestEditions struct {
 	Items []struct {
-		Source      string `json:"source"`
-		PublishedAt string `json:"published_at"`
-		Editions    []struct {
-			EditionNumber string `json:"edition_number"`
-		} `json:"editions"`
-		Types []struct {
+		GazetteID     string `json:"gazette_id"`
+		Source        string `json:"source"`
+		PublishedAt   string `json:"published_at"`
+		EditionNumber string `json:"edition_number"`
+		TotalActs     int    `json:"total_acts"`
+		Types         []struct {
 			Type       string `json:"type"`
 			Acts       int    `json:"acts"`
 			ValueCents int64  `json:"value_cents"`
@@ -89,18 +90,28 @@ func TestSuggestRecognizesCitedCompaniesAndNumbers(t *testing.T) {
 	}
 }
 
-func TestLatestGazettesSummarizesTheLastDay(t *testing.T) {
+func TestLatestGazettesSummarizesEachEditionOfTheLastDay(t *testing.T) {
 	srv, db := newServerFor(t, discoveryGazette)
 	indexAt(t, db, time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC), "DECRETO Nº 1/2026\nDispõe sobre o horário.")
 
-	var got latestDays
+	var got latestEditions
 	getJSON(t, srv.URL+"/v1/gazettes/latest", &got)
 
-	if len(got.Items) != 1 || got.Items[0].PublishedAt != "2026-09-18" || len(got.Items[0].Editions) != 1 || got.Items[0].Editions[0].EditionNumber != "9" {
-		t.Fatalf("só o último dia com edição entra: %+v", got)
+	if len(got.Items) != 1 || got.Items[0].PublishedAt != "2026-09-18" || got.Items[0].EditionNumber != "9" || got.Items[0].TotalActs != 3 {
+		t.Fatalf("só a edição do último dia entra, com o total de atos: %+v", got)
 	}
 	types := got.Items[0].Types
 	if len(types) != 2 || types[0].Type != "nomeacao" || types[0].Acts != 2 || types[1].Type != "contrato" || types[1].ValueCents != 5000000 {
 		t.Errorf("nomeações primeiro; contrato com a soma do valor: %+v", types)
+	}
+
+	var inEdition organHits
+	getJSON(t, srv.URL+"/v1/acts?type=nomeacao&gazette="+got.Items[0].GazetteID, &inEdition)
+	if inEdition.Total != 2 {
+		t.Errorf("a busca filtra pela edição: %+v", inEdition)
+	}
+	resp, body := fetch(t, srv.URL+"/v1/acts?gazette=1412")
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("id de edição que não é UUID é filtro inválido: %d %s", resp.StatusCode, body)
 	}
 }

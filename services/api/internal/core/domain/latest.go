@@ -1,21 +1,18 @@
 package domain
 
 import (
+	"regexp"
 	"sort"
 	"time"
 )
 
-type LatestDay struct {
-	Source   string
-	Day      time.Time
-	Editions []LatestEdition
-	Types    []TypeTotal
-}
-
 type LatestEdition struct {
 	GazetteID     string
+	Source        string
+	Day           time.Time
 	EditionNumber string
 	IsExtra       bool
+	Types         []TypeTotal
 }
 
 type TypeTotal struct {
@@ -24,14 +21,24 @@ type TypeTotal struct {
 	ValueCents int64
 }
 
-func SortLatestDays(days []LatestDay) {
-	sort.SliceStable(days, func(i, j int) bool { return sourceOrder(days[i].Source) < sourceOrder(days[j].Source) })
-	for _, d := range days {
-		sort.SliceStable(d.Types, func(i, j int) bool {
-			if d.Types[i].Acts != d.Types[j].Acts {
-				return d.Types[i].Acts > d.Types[j].Acts
+var gazetteIDRe = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+
+func ValidGazetteID(id string) bool { return gazetteIDRe.MatchString(id) }
+
+func SortLatestEditions(editions []LatestEdition) {
+	sort.SliceStable(editions, func(i, j int) bool {
+		a, b := editions[i], editions[j]
+		if sourceOrder(a.Source) != sourceOrder(b.Source) {
+			return sourceOrder(a.Source) < sourceOrder(b.Source)
+		}
+		return !a.IsExtra && b.IsExtra
+	})
+	for _, e := range editions {
+		sort.SliceStable(e.Types, func(i, j int) bool {
+			if e.Types[i].Acts != e.Types[j].Acts {
+				return e.Types[i].Acts > e.Types[j].Acts
 			}
-			return ActTypeName(d.Types[i].Type) < ActTypeName(d.Types[j].Type)
+			return ActTypeName(e.Types[i].Type) < ActTypeName(e.Types[j].Type)
 		})
 	}
 }

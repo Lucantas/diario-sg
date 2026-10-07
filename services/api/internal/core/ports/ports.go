@@ -418,8 +418,8 @@ type PoliticalAgentReader interface {
 	Councillors(ctx context.Context) ([]domain.Councillor, error)
 }
 
-type LatestDaysReader interface {
-	LatestDays(ctx context.Context) ([]domain.LatestDay, error)
+type LatestEditionsReader interface {
+	LatestEditions(ctx context.Context) ([]domain.LatestEdition, error)
 }
 
 type SuggestionSource interface {

@@ -246,6 +246,10 @@ func (a *API) filterFromQuery(w http.ResponseWriter, r *http.Request) (domain.Ac
 		writeError(w, err, a.Log)
 		return f, false
 	}
+	if f.GazetteID = q.Get("gazette"); f.GazetteID != "" && !domain.ValidGazetteID(f.GazetteID) {
+		writeError(w, domain.ErrInvalidFilter, a.Log)
+		return f, false
+	}
 	return f, true
 }
 
