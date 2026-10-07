@@ -11,6 +11,7 @@ export interface SearchState {
   to: string;
   min: string;
   max: string;
+  edition: string;
   page: number;
 }
 
@@ -31,9 +32,11 @@ export const TYPE_OPTIONS: { value: ActType | ""; label: string }[] = [
   { value: "edital", label: "Editais" },
 ];
 
-export const EMPTY_STATE: SearchState = { q: "", source: "", type: "", organ: "", theme: "", from: "", to: "", min: "", max: "", page: 1 };
+export const EMPTY_STATE: SearchState = { q: "", source: "", type: "", organ: "", theme: "", from: "", to: "", min: "", max: "", edition: "", page: 1 };
 
-const KEYS = { q: "q", source: "fonte", type: "tipo", organ: "orgao", theme: "tema", from: "de", to: "ate", min: "valor_min", max: "valor_max" } as const;
+const KEYS = { q: "q", source: "fonte", type: "tipo", organ: "orgao", theme: "tema", from: "de", to: "ate", min: "valor_min", max: "valor_max", edition: "edicao" } as const;
+
+const EDITION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function stateFromQuery(search: string): SearchState {
   const p = new URLSearchParams(search);
@@ -50,6 +53,7 @@ export function stateFromQuery(search: string): SearchState {
     to: p.get(KEYS.to) ?? "",
     min: p.get(KEYS.min) ?? "",
     max: p.get(KEYS.max) ?? "",
+    edition: EDITION_ID.test(p.get(KEYS.edition) ?? "") ? p.get(KEYS.edition) ?? "" : "",
     page: Number.isInteger(page) && page > 1 ? page : 1,
   };
 }
@@ -86,7 +90,7 @@ export function parseBRL(text: string): string | null {
 }
 
 export function hasSearch(s: SearchState) {
-  return Boolean(s.q || s.source || s.type || s.organ || s.theme || s.from || s.to || s.min || s.max);
+  return Boolean(s.q || s.source || s.type || s.organ || s.theme || s.from || s.to || s.min || s.max || s.edition);
 }
 
 export function apiParams(s: SearchState, limit: number): URLSearchParams | null {
@@ -97,6 +101,7 @@ export function apiParams(s: SearchState, limit: number): URLSearchParams | null
   if (s.theme) p.set("theme", s.theme);
   if (s.from) p.set("from", s.from);
   if (s.to) p.set("to", s.to);
+  if (s.edition) p.set("gazette", s.edition);
   for (const [field, key] of [["min", "min_value"], ["max", "max_value"]] as const) {
     if (!s[field]) continue;
     const value = parseBRL(s[field]);
@@ -134,6 +139,7 @@ export function alertFilters(s: SearchState): AlertFilters {
 
 export function canAlert(s: SearchState): boolean {
   const hasFilter = Object.values(alertFilters(s)).some(Boolean);
+  if (s.edition) return false;
   return s.q.length >= MIN_ALERT_QUERY || (s.q === "" && hasFilter);
 }
 
@@ -147,12 +153,16 @@ export function alertFilterNames(s: SearchState): string {
   ].filter(Boolean).join(" · ");
 }
 
-export type FilterKey = "type" | "source" | "organ" | "theme" | "from" | "to" | "min" | "max";
+export type FilterKey = "type" | "source" | "organ" | "theme" | "from" | "to" | "min" | "max" | "edition";
 
 const RANGE_FILTERS: FilterKey[] = ["from", "to", "min", "max"];
 
 export function isRangeFilter(key: FilterKey): boolean {
   return RANGE_FILTERS.includes(key);
+}
+
+export function showsAsChip(key: FilterKey): boolean {
+  return isRangeFilter(key) || key === "edition";
 }
 
 export interface ActiveFilter {
@@ -165,8 +175,9 @@ function brDate(iso: string): string {
   return d && m && y ? `${d}/${m}/${y}` : iso;
 }
 
-export function activeFilters(s: SearchState): ActiveFilter[] {
+export function activeFilters(s: SearchState, editionLabel = "Uma edição"): ActiveFilter[] {
   const labels: [FilterKey, string][] = [
+    ["edition", s.edition && editionLabel],
     ["type", s.type && (TYPE_OPTIONS.find((t) => t.value === s.type)?.label ?? TYPE_LABEL[s.type])],
     ["source", s.source && `Diário da ${SOURCE_LABEL[s.source]}`],
     ["organ", s.organ],

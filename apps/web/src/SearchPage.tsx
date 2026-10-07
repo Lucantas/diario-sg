@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api";
 import { AlertForm } from "./AlertForm";
+import { LatestEditionSection, VerifySection } from "./HomeSections";
 import { HeaderSearch, SectionCards, SiteHeader } from "./Brand";
 import { Result } from "./components";
 import { FilterBar, FilterPills, FiltersDialog, SearchForm } from "./SearchFilters";
@@ -142,8 +143,9 @@ export function SearchPage() {
             <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} />
             {filterBar()}
             {!filtersOpen && errorNotice}
-            <SyntaxHint />
           </div>
+          <LatestEditionSection />
+          <VerifySection />
           <SectionCards />
           {dialog}
         </main>
@@ -207,25 +209,6 @@ export function SearchPage() {
         {dialog}
       </main>
     </>
-  );
-}
-
-const SYNTAX_TIPS: [string, string][] = [
-  ['"josé da silva"', "Entre aspas: encontra só essa frase exata, nessa ordem."],
-  ["merenda OU alimentação", "Com OU: encontra atos que tenham uma palavra ou a outra."],
-  ["limpeza -urbana", "Com um traço antes: deixa de fora os atos com essa palavra."],
-];
-
-function SyntaxHint() {
-  return (
-    <div className="hint">
-      <p>Dicas para refinar a busca:</p>
-      <ul>
-        {SYNTAX_TIPS.map(([example, text]) => (
-          <li key={example}><code>{example}</code><span>{text}</span></li>
-        ))}
-      </ul>
-    </div>
   );
 }
 

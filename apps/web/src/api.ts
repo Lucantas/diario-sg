@@ -461,6 +461,41 @@ export function getStaffPanel(path: string) {
   return request<StaffPanel>(path);
 }
 
+export interface TypeTotal {
+  type: ActType;
+  acts: number;
+  value_cents: number;
+}
+
+export interface LatestEdition {
+  gazette_id: string;
+  source: Source;
+  source_name: string;
+  published_at: string;
+  edition_number: string;
+  is_extra: boolean;
+  total_acts: number;
+  types: TypeTotal[];
+}
+
+export function listLatestEditions() {
+  return request<{ items: LatestEdition[] }>("/v1/gazettes/latest");
+}
+
+export type SuggestionKind = "cnpj" | "processo" | "contrato";
+
+export interface Suggestion {
+  kind: SuggestionKind;
+  key: string;
+  label: string;
+  name: string;
+  acts: number;
+}
+
+export function suggest(q: string, signal?: AbortSignal) {
+  return request<{ items: Suggestion[] }>(`/v1/suggest?${new URLSearchParams({ q })}`, { signal });
+}
+
 export function listOrgans() {
   return request<{ items: Organ[] }>("/v1/organs");
 }

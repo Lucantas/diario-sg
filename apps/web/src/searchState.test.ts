@@ -24,7 +24,7 @@ describe("URL da busca", () => {
   it("vai e volta sem perder filtros", () => {
     const s: SearchState = {
       q: "limpeza OU coleta", source: "diario_prefeitura", type: "contrato", organ: "SEMED", theme: "meio_ambiente", from: "2024-01-01",
-      to: "2024-12-31", min: "1.000,00", max: "", page: 3,
+      to: "2024-12-31", min: "1.000,00", max: "", edition: "3f2b8c1e-4d5a-4b6c-8d7e-9f0a1b2c3d4e", page: 3,
     };
 
     expect(stateFromQuery(queryFromState(s))).toEqual(s);
@@ -162,7 +162,7 @@ describe("tema", () => {
 describe("filtros ativos", () => {
   const full: SearchState = {
     q: "merenda", source: "diario_prefeitura", type: "contrato", organ: "SEMSA", theme: "meio_ambiente",
-    from: "2024-01-05", to: "2024-12-31", min: "1.000", max: "50.000,00", page: 3,
+    from: "2024-01-05", to: "2024-12-31", min: "1.000", max: "50.000,00", edition: "", page: 3,
   };
 
   it("lista cada filtro com o rótulo do chip, sem a busca", () => {
@@ -189,5 +189,32 @@ describe("filtros ativos", () => {
 
   it("limpa os filtros e mantém a busca", () => {
     expect(withoutFilters(full)).toEqual({ ...EMPTY_STATE, q: "merenda" });
+  });
+});
+
+describe("busca dentro de uma edição", () => {
+  const edition = "3f2b8c1e-4d5a-4b6c-8d7e-9f0a1b2c3d4e";
+
+  it("lê a edição da URL só quando ela é um id válido", () => {
+    expect(stateFromQuery(`?edicao=${edition}&tipo=nomeacao`)).toEqual({ ...EMPTY_STATE, edition, type: "nomeacao" });
+    expect(stateFromQuery("?edicao=1612").edition).toBe("");
+  });
+
+  it("conta como busca e manda o id para a API", () => {
+    const s = { ...EMPTY_STATE, edition };
+
+    expect(hasSearch(s)).toBe(true);
+    expect(apiParams(s, 20)!.get("gazette")).toBe(edition);
+  });
+
+  it("vira um chip com o rótulo da edição e some ao limpar filtros", () => {
+    const s = { ...EMPTY_STATE, q: "merenda", edition };
+
+    expect(activeFilters(s, "Edição 1.612")).toEqual([{ key: "edition", label: "Edição 1.612" }]);
+    expect(withoutFilters(s).edition).toBe("");
+  });
+
+  it("não oferece alerta para uma edição que já saiu", () => {
+    expect(canAlert({ ...EMPTY_STATE, q: "merenda", edition })).toBe(false);
   });
 });
