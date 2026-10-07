@@ -37,7 +37,7 @@ func New(baseURL string, client *http.Client) *Source {
 func (s *Source) BaseURL() string { return strings.TrimRight(s.baseURL, "/") }
 
 func (s *Source) ProcessKeys(ctx context.Context) ([]domain.BillKey, error) {
-	index, err := s.get(ctx, s.baseURL+sitemapIndex)
+	index, indexURL, err := s.fetch(ctx, s.baseURL+sitemapIndex)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (s *Source) ProcessKeys(ctx context.Context) ([]domain.BillKey, error) {
 	}
 	var keys []domain.BillKey
 	for _, u := range sitemaps {
-		if !s.sameHost(u) {
+		if !sameHost(u, indexURL) {
 			continue
 		}
 		page, err := s.get(ctx, u)
@@ -70,37 +70,41 @@ func (s *Source) ProcessPage(ctx context.Context, key domain.BillKey) ([]byte, e
 	return s.get(ctx, s.baseURL+"areapublica/processo/"+key.Slug())
 }
 
-func (s *Source) sameHost(raw string) bool {
+func sameHost(raw string, site *url.URL) bool {
 	u, err := url.Parse(raw)
-	base, baseErr := url.Parse(s.baseURL)
-	return err == nil && baseErr == nil && u.Host == base.Host
+	return err == nil && u.Host == site.Host
 }
 
 func (s *Source) get(ctx context.Context, u string) ([]byte, error) {
+	body, _, err := s.fetch(ctx, u)
+	return body, err
+}
+
+func (s *Source) fetch(ctx context.Context, u string) ([]byte, *url.URL, error) {
 	if err := s.wait(ctx); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	req.Header.Set("User-Agent", userAgent)
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("SICAM %s: %w", u, err)
+		return nil, nil, fmt.Errorf("SICAM %s: %w", u, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("SICAM %s: status %d", u, resp.StatusCode)
+		return nil, nil, fmt.Errorf("SICAM %s: status %d", u, resp.StatusCode)
 	}
 	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
 	if err != nil {
-		return nil, fmt.Errorf("SICAM %s: %w", u, err)
+		return nil, nil, fmt.Errorf("SICAM %s: %w", u, err)
 	}
 	if len(body) > maxResponseBytes {
-		return nil, fmt.Errorf("SICAM %s: resposta maior que %d bytes", u, maxResponseBytes)
+		return nil, nil, fmt.Errorf("SICAM %s: resposta maior que %d bytes", u, maxResponseBytes)
 	}
-	return body, nil
+	return body, resp.Request.URL, nil
 }
 
 func (s *Source) wait(ctx context.Context) error {

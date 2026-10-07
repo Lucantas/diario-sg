@@ -75,3 +75,20 @@ func TestProcessPageWaitsBetweenRequestsAndReportsStatus(t *testing.T) {
 		t.Fatal("o segundo pedido deveria esperar a pausa")
 	}
 }
+
+func TestProcessKeysFollowsTheSiteToItsNewAddress(t *testing.T) {
+	var agents []string
+	moved := sitemapServer(t, &agents)
+	old := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, moved.URL+r.URL.Path, http.StatusMovedPermanently)
+	}))
+	t.Cleanup(old.Close)
+	src := New(old.URL+"/", http.DefaultClient)
+	src.pause = 0
+
+	keys, err := src.ProcessKeys(context.Background())
+
+	if err != nil || len(keys) != 2 {
+		t.Fatalf("o sitemap redirecionado lista processos no endereço novo, e eles valem: %v %v", keys, err)
+	}
+}

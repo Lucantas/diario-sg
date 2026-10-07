@@ -85,13 +85,13 @@ func Load(role Role) (Config, error) {
 		PrefeituraPayURL: getenv("PREFEITURA_PAY_URL",
 			"https://sistema.pmsg.rj.gov.br/pmsaogoncalo/websis/portal_transparencia/financeiro/contas_publicas/lai_remuneracoes_api.php"),
 		CamaraPayURL:    getenv("CAMARA_PAY_URL", "https://cmsaogoncalo-rj.portaltp.com.br/api/pessoal/api-servidores.aspx"),
-		SICAMURL:        getenv("SICAM_URL", "https://sg.processolegislativo.com.br/integracao/"),
+		SICAMURL:        getenv("SICAM_URL", "https://sg.sicam.app/integracao/"),
 		SiconfiURL:      getenv("SICONFI_URL", "https://apidatalake.tesouro.gov.br/ords/siconfi/tt/"),
 		TransferegovURL: getenv("TRANSFEREGOV_URL", "https://api.transferegov.gestao.gov.br/transferenciasespeciais/"),
 		PMSGPortalURL:   getenv("PMSG_PORTAL_URL", "https://sistema.pmsg.rj.gov.br/portal-transparencia/api/"),
 		PMSGMuralURL:    getenv("PMSG_MURAL_URL", "https://licitacao.pmsg.rj.gov.br/"),
 		SIAPEGOVURL:     getenv("SIAPEGOV_URL", "https://sistema.pmsg.rj.gov.br/pmsaogoncalo/websis/siapegov/legislativo/leis/"),
-		SICAMSiteURL:    getenv("SICAM_SITE_URL", "https://sg.processolegislativo.com.br/"),
+		SICAMSiteURL:    getenv("SICAM_SITE_URL", "https://sg.sicam.app/"),
 	}
 
 	proxies, err := parsePrefixes(os.Getenv("TRUSTED_PROXIES"))
