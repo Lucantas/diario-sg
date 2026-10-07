@@ -3,6 +3,7 @@ import { Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api"
 import { AlertForm } from "./AlertForm";
 import { LatestEditionSection, VerifySection } from "./HomeSections";
 import { EmptyResults } from "./EmptyResults";
+import { FichaCard, useFicha } from "./FichaCard";
 import { canToggleExact, editionLabel, isExactPhrase, relaxations, resultsHeading, toggleExact, unquoted } from "./results";
 import { HeaderSearch, SectionCards, SiteHeader } from "./Brand";
 import { Result } from "./components";
@@ -27,6 +28,7 @@ export function SearchPage() {
   const [error, setError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
+  const ficha = useFicha(hasSearch(state) ? state.q : "", organs);
 
   const load = useCallback(async (s: SearchState) => {
     const params = apiParams(s, PAGE_SIZE);
@@ -144,7 +146,7 @@ export function SearchPage() {
             Câmara Municipal, com busca por nome, empresa ou assunto.
           </p>
           <div className="search-home-form">
-            <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} />
+            <SearchForm draft={draft} setDraft={setDraft} onSubmit={onSubmit} loading={loading} organs={organs} />
             {filterBar()}
             {!filtersOpen && errorNotice}
           </div>
@@ -158,6 +160,7 @@ export function SearchPage() {
   }
 
   const heading = resultsHeading(state, result?.total ?? 0, result?.items[0]);
+  const showExact = canToggleExact(state.q) && !ficha && !state.edition;
 
   const headerSearch = (
     <HeaderSearch controlled={{ value: draft.q, onChange: (q) => setDraft({ ...draft, q }), onSubmit, loading }} />
@@ -180,6 +183,7 @@ export function SearchPage() {
         {filterBar("filter-bar-mobile")}
         <section className="results" aria-live="polite" ref={resultsRef}>
           {!filtersOpen && errorNotice}
+          {ficha && <FichaCard ficha={ficha} />}
           {result === null && loading && <p className="count">Carregando…</p>}
           {result !== null && result.total === 0 && (
             <EmptyResults heading={heading} relaxed={relaxations(state, editionName)} onGo={go} />
@@ -191,7 +195,7 @@ export function SearchPage() {
                   {heading.count} <span className="results-heading-query">{heading.scope}</span>
                 </h2>
                 <div className="results-actions">
-                  {canToggleExact(state.q) && (
+                  {showExact && (
                     <button type="button" className="pill pill-sm" aria-pressed={isExactPhrase(state.q)}
                       onClick={() => go({ ...state, q: toggleExact(state.q), page: 1 })}>
                       Só a frase exata

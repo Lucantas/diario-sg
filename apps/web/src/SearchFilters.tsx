@@ -1,29 +1,42 @@
-import { FormEvent, ReactNode, useEffect, useRef } from "react";
+import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { Organ, Source } from "./api";
 import { ActiveFilter, FilterKey, SearchState, THEME_LABEL, TYPE_OPTIONS, withSource } from "./searchState";
 import { SOURCE_LABEL } from "./types";
 import { SearchIcon } from "./Brand";
+import { SuggestionsPanel, useSuggestions } from "./Suggestions";
 
-export function SearchForm({ draft, setDraft, onSubmit, loading }: {
+export function SearchForm({ draft, setDraft, onSubmit, loading, organs }: {
   draft: SearchState;
   setDraft: (s: SearchState) => void;
   onSubmit: (e: FormEvent) => void;
   loading: boolean;
+  organs: Organ[];
 }) {
+  const [open, setOpen] = useState(false);
+  const groups = useSuggestions(draft.q, organs);
+  const showing = open && groups.length > 0;
   return (
-    <form className="search-hero" onSubmit={onSubmit} role="search">
+    <form className="search-hero" onSubmit={onSubmit} role="search"
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false); }}
+      onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}>
       <label htmlFor="q" className="visually-hidden">Buscar nos Diários Oficiais</label>
-      <div className="search-hero-box">
-        <SearchIcon size={22} />
-        <input
-          id="q"
-          type="search"
-          value={draft.q}
-          onChange={(e) => setDraft({ ...draft, q: e.target.value })}
-          placeholder="Nome, CNPJ, empresa ou assunto"
-          autoComplete="off"
-        />
-        <button type="submit" className="primary" disabled={loading}>{loading ? "Buscando" : "Buscar"}</button>
+      <div className="search-hero-field">
+        <div className="search-hero-box">
+          <SearchIcon size={22} />
+          <input
+            id="q"
+            type="search"
+            value={draft.q}
+            onChange={(e) => { setDraft({ ...draft, q: e.target.value }); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            placeholder="Nome, CNPJ, empresa ou assunto"
+            autoComplete="off"
+            aria-expanded={showing}
+            aria-controls={showing ? "sugestoes" : undefined}
+          />
+          <button type="submit" className="primary" disabled={loading}>{loading ? "Buscando" : "Buscar"}</button>
+        </div>
+        {showing && <SuggestionsPanel id="sugestoes" groups={groups} />}
       </div>
     </form>
   );
