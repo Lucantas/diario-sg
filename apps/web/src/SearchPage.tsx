@@ -2,12 +2,14 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Organ, SearchResponse, listOrgans, searchActs, subscribe } from "./api";
 import { AlertForm } from "./AlertForm";
 import { LatestEditionSection, VerifySection } from "./HomeSections";
+import { EmptyResults } from "./EmptyResults";
+import { canToggleExact, editionLabel, isExactPhrase, relaxations, resultsHeading, toggleExact, unquoted } from "./results";
 import { HeaderSearch, SectionCards, SiteHeader } from "./Brand";
 import { Result } from "./components";
 import { FilterBar, FilterPills, FiltersDialog, SearchForm } from "./SearchFilters";
 import {
   FilterKey, SearchState, activeFilters, alertFilterNames, alertFilters, apiParams, canAlert, exportUrl, feedUrl, hasSearch,
-  isRangeFilter, queryFromState, stateFromQuery, withoutFilter, withoutFilters,
+  isRangeFilter, queryFromState, showsAsChip, stateFromQuery, withoutFilter, withoutFilters,
 } from "./searchState";
 
 const PAGE_SIZE = 20;
@@ -88,8 +90,10 @@ export function SearchPage() {
   const isHome = !hasSearch(state);
   const errorNotice = error && <p className="notice notice-error" role="alert">{error}</p>;
   const applied = isHome ? draft : state;
-  const chips = activeFilters(applied);
+  const editionName = editionLabel(result?.items[0]);
+  const chips = activeFilters(applied, editionName);
   const rangeChips = chips.filter((c) => isRangeFilter(c.key));
+  const barChips = chips.filter((c) => showsAsChip(c.key));
 
   function removeFilter(key: FilterKey) {
     if (isHome) setDraft(withoutFilter(draft, key));
@@ -153,6 +157,8 @@ export function SearchPage() {
     );
   }
 
+  const heading = resultsHeading(state, result?.total ?? 0, result?.items[0]);
+
   const headerSearch = (
     <HeaderSearch controlled={{ value: draft.q, onChange: (q) => setDraft({ ...draft, q }), onSubmit, loading }} />
   );
@@ -170,25 +176,29 @@ export function SearchPage() {
           onOpenDialog={() => setFiltersOpen(true)}
           onClear={chips.length > 0 ? () => go(withoutFilters(state)) : null}
         />
-        {rangeChips.length > 0 && <FilterBar filters={rangeChips} onRemove={removeFilter} className="filter-bar-desktop" />}
+        {barChips.length > 0 && <FilterBar filters={barChips} onRemove={removeFilter} className="filter-bar-desktop" />}
         {filterBar("filter-bar-mobile")}
         <section className="results" aria-live="polite" ref={resultsRef}>
           {!filtersOpen && errorNotice}
           {result === null && loading && <p className="count">Carregando…</p>}
           {result !== null && result.total === 0 && (
-            <div className="card empty-state">
-              <h2>Nenhum ato encontrado</h2>
-              <p>Tente outro termo ou remova filtros.</p>
-            </div>
+            <EmptyResults heading={heading} relaxed={relaxations(state, editionName)} onGo={go} />
           )}
           {result !== null && result.total > 0 && (
             <>
               <div className="results-heading">
                 <h2>
-                  {result.total.toLocaleString("pt-BR")} {result.total === 1 ? "ato encontrado" : "atos encontrados"}
-                  {state.q && <span className="results-heading-query"> para “{state.q}”</span>}
+                  {heading.count} <span className="results-heading-query">{heading.scope}</span>
                 </h2>
-                <ExportLinks state={state} total={result.total} />
+                <div className="results-actions">
+                  {canToggleExact(state.q) && (
+                    <button type="button" className="pill pill-sm" aria-pressed={isExactPhrase(state.q)}
+                      onClick={() => go({ ...state, q: toggleExact(state.q), page: 1 })}>
+                      Só a frase exata
+                    </button>
+                  )}
+                  <ExportLinks state={state} total={result.total} />
+                </div>
               </div>
               <ol className="act-list">
                 {result.items.map((h) => <Result key={h.id} hit={h} />)}
@@ -214,7 +224,7 @@ export function SearchPage() {
 
 function SearchAlert({ state }: { state: SearchState }) {
   const filters = alertFilterNames(state);
-  const title = state.q ? `Avisar quando “${state.q}” aparecer de novo` : "Avisar quando sair ato novo com estes filtros";
+  const title = state.q ? `Avisar quando “${unquoted(state.q)}” aparecer de novo` : "Avisar quando sair ato novo com estes filtros";
   const scope = state.q ? "mencionar este termo" : "trouxer um ato assim";
   const filterNote = filters ? ` Filtros do alerta: ${filters}.` : "";
   return (
