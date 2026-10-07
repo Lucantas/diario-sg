@@ -1,5 +1,5 @@
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
-import { SECTION_GROUPS, SectionLink, isCurrentSection } from "./sections";
+import { DEV_GROUP, SECTION_GROUPS, SectionGroup, SectionLink, isCurrentSection } from "./sections";
 
 type LogoSize = "sm" | "md" | "lg";
 
@@ -73,15 +73,6 @@ export function SiteHeader({ search }: { search?: ReactNode }) {
   );
 }
 
-const [PANELS, ...OTHER_GROUPS] = SECTION_GROUPS;
-
-const SHORT_LABEL: Record<string, string> = {
-  "/proposicoes": "Proposições",
-  "/dados": "Dados abertos",
-  "/mcp": "MCP",
-  "/padroes": "Padrões",
-};
-
 function currentProps(href: string) {
   return isCurrentSection(href, window.location.pathname) ? { "aria-current": "page" as const } : {};
 }
@@ -89,15 +80,12 @@ function currentProps(href: string) {
 function HeaderNav() {
   return (
     <nav className="header-nav" aria-label="Seções">
-      <PanelsDropdown />
-      {OTHER_GROUPS.flatMap((g) => g.links).map((l) => (
-        <a key={l.href} href={l.href} className="header-link" {...currentProps(l.href)}>{SHORT_LABEL[l.href] ?? l.label}</a>
-      ))}
+      {SECTION_GROUPS.map((g, i) => <GroupDropdown key={g.title} group={g} id={`nav-menu-${i}`} />)}
     </nav>
   );
 }
 
-function PanelsDropdown() {
+function GroupDropdown({ group, id }: { group: SectionGroup; id: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -118,26 +106,26 @@ function PanelsDropdown() {
   }, [open]);
 
   return (
-    <div className="panels-dropdown" ref={ref}>
-      <button type="button" className="header-link" aria-expanded={open} aria-controls="panels-menu"
+    <div className="nav-dropdown" ref={ref}>
+      <button type="button" className="header-link" aria-expanded={open} aria-controls={id}
         onClick={() => setOpen(!open)}>
-        {PANELS.title}
+        {group.title}
         <span className="chevron" aria-hidden="true" />
       </button>
       {open && (
-        <ul id="panels-menu" className="panels-menu">
-          {PANELS.links.map((l) => <li key={l.href}><DescribedLink link={l} /></li>)}
+        <ul id={id} className="nav-menu">
+          {group.links.map((l) => <li key={l.href}><NavLink link={l} /></li>)}
         </ul>
       )}
     </div>
   );
 }
 
-function DescribedLink({ link }: { link: SectionLink }) {
+function NavLink({ link }: { link: SectionLink }) {
   return (
-    <a href={link.href} className="described-link" {...currentProps(link.href)}>
-      <span className="described-link-label">{link.label}</span>
-      <span className="described-link-desc">{link.description}</span>
+    <a href={link.href} className="nav-link" {...currentProps(link.href)}>
+      <span>{link.label}</span>
+      <span aria-hidden="true" className="arrow">→</span>
     </a>
   );
 }
@@ -164,10 +152,10 @@ function MenuDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
           <SearchIcon />
           Buscar nos Diários
         </a>
-        {SECTION_GROUPS.map((g) => (
+        {[...SECTION_GROUPS, DEV_GROUP].map((g) => (
           <div key={g.title} className="menu-drawer-group">
             <p className="group-title">{g.title}</p>
-            {g.links.map((l) => <DescribedLink key={l.href} link={l} />)}
+            {g.links.map((l) => <NavLink key={l.href} link={l} />)}
           </div>
         ))}
       </nav>
@@ -177,7 +165,7 @@ function MenuDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
 
 export function SectionCards() {
   return (
-    <section className="section-cards" aria-label="Seções">
+    <nav className="section-cards" aria-label="Seções">
       {SECTION_GROUPS.map((g) => (
         <div key={g.title} className="card section-card">
           <h2 className="group-title">{g.title}</h2>
@@ -185,10 +173,7 @@ export function SectionCards() {
             {g.links.map((l) => (
               <li key={l.href}>
                 <a href={l.href}>
-                  <span className="described-link-text">
-                    <span className="described-link-label">{l.label}</span>
-                    <span className="described-link-desc">{l.description}</span>
-                  </span>
+                  <span>{l.label}</span>
                   <span aria-hidden="true" className="arrow">→</span>
                 </a>
               </li>
@@ -196,7 +181,7 @@ export function SectionCards() {
           </ul>
         </div>
       ))}
-    </section>
+    </nav>
   );
 }
 
@@ -209,7 +194,7 @@ export function SiteFooter() {
           <p>Diários Oficiais da Prefeitura e da Câmara Municipal de São Gonçalo. Confira sempre a edição original.</p>
           <p className="fineprint">Projeto independente, sem ligação com a Prefeitura nem com a Câmara de São Gonçalo.</p>
         </div>
-        {SECTION_GROUPS.map((g) => (
+        {[...SECTION_GROUPS, DEV_GROUP].map((g) => (
           <nav key={g.title} aria-label={g.title}>
             <p className="group-title">{g.title}</p>
             {g.links.map((l) => <a key={l.href} href={l.href} {...currentProps(l.href)}>{l.label}</a>)}

@@ -1,7 +1,6 @@
 export interface SectionLink {
   href: string;
   label: string;
-  description: string;
 }
 
 export interface SectionGroup {
@@ -11,29 +10,48 @@ export interface SectionGroup {
 
 export const SECTION_GROUPS: SectionGroup[] = [
   {
-    title: "Painéis",
+    title: "Pessoas",
     links: [
-      { href: "/paineis", label: "Maiores fornecedores", description: "Ranking das empresas mais contratadas" },
-      { href: "/pessoal", label: "Pessoal", description: "Vínculos e remuneração por mês" },
-      { href: "/tce", label: "TCE-RJ", description: "Contas, obras paralisadas, débitos e multas" },
-      { href: "/federal", label: "Dinheiro federal", description: "Transferências e emendas para São Gonçalo" },
-      { href: "/agentes", label: "Agentes políticos", description: "Subsídios fixados e quem recebeu" },
+      { href: "/?tipo=nomeacao", label: "Quem foi nomeado ou exonerado" },
+      { href: "/pessoal", label: "Quantos servidores a prefeitura tem e quanto custam" },
+      { href: "/agentes", label: "Quanto ganham prefeito, secretários e vereadores" },
     ],
   },
   {
-    title: "Câmara",
-    links: [{ href: "/proposicoes", label: "Proposições da Câmara", description: "Projetos, fase e andamento das leis" }],
+    title: "Dinheiro",
+    links: [
+      { href: "/paineis", label: "Quem a prefeitura mais contrata" },
+      { href: "/federal", label: "Quanto dinheiro federal chega a São Gonçalo" },
+      { href: "/tce", label: "O que o TCE-RJ diz das contas da prefeitura" },
+    ],
   },
   {
-    title: "Dados e ferramentas",
+    title: "Leis",
     links: [
-      { href: "/dados", label: "Dados abertos", description: "A base inteira para baixar" },
-      { href: "/mcp", label: "Pergunte pela sua IA (MCP)", description: "Conecte o Diário à sua IA" },
-      { href: "/padroes", label: "Padrões para verificar", description: "Casos que seguem regras descritas" },
+      { href: "/proposicoes", label: "Que projetos tramitam na Câmara" },
+      { href: "/?tipo=decreto", label: "Que decretos a prefeitura publicou" },
+      { href: "/?tipo=lei", label: "Que leis foram sancionadas" },
+    ],
+  },
+  {
+    title: "Para verificar",
+    links: [
+      { href: "/padroes#padrao-fracionamento_dispensa", label: "Dispensas que, somadas, passam do limite" },
+      { href: "/padroes#padrao-aditivo_acima_do_limite", label: "Aditivos acima de 25% do contrato" },
+      { href: "/padroes#padrao-empresa_nova_contratada", label: "Empresas contratadas logo depois de abertas" },
     ],
   },
 ];
 
+export const DEV_GROUP: SectionGroup = {
+  title: "Para quem programa",
+  links: [
+    { href: "/dados", label: "Dados abertos" },
+    { href: "/mcp", label: "Servidor MCP" },
+  ],
+};
+
 export function isCurrentSection(href: string, path: string): boolean {
+  if (href.includes("?") || href.includes("#")) return false;
   return path === href || path.startsWith(href + "/");
 }

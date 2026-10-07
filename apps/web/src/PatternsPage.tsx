@@ -15,6 +15,10 @@ export function PatternsPage() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (patterns && window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+  }, [patterns]);
+
   return (
     <main className="page">
       <p className="crumb"><a href="/">← Voltar para a busca</a></p>
