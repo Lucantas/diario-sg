@@ -164,3 +164,14 @@ export function suggestGroups(q: string, remote: Suggestion[], organs: Organ[], 
   ];
   return groups.map((g) => ({ ...g, items: g.items.slice(0, PER_GROUP) })).filter((g) => g.items.length > 0);
 }
+
+export function moveFocus(current: number, delta: number, count: number): number {
+  if (count === 0) return -1;
+  return Math.max(-1, Math.min(count - 1, current + delta));
+}
+
+export function suggestionsStatus(groups: SuggestGroup[]): string {
+  const n = groups.reduce((sum, g) => sum + g.items.length, 0);
+  if (n === 0) return "";
+  return `${n} ${n === 1 ? "sugestão" : "sugestões"}. Use a seta para baixo para chegar a elas.`;
+}

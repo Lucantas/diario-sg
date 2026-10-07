@@ -26,8 +26,8 @@ async function fichaFor(term: string, signal: AbortSignal): Promise<Ficha | null
   const { items } = await suggest(term, signal);
   const match = exactMatch(term, items);
   if (!match) return null;
-  if (match.kind === "cnpj") return companyFicha(match, await getCompany(match.key).catch(() => null));
-  const entity = await getEntity(match.kind, match.label.replace(/\//g, "-")).catch(() => null);
+  if (match.kind === "cnpj") return companyFicha(match, await getCompany(match.key, signal).catch(() => null));
+  const entity = await getEntity(match.kind, match.label.replace(/\//g, "-"), signal).catch(() => null);
   return entityFicha(match, entity);
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ActHit, Bill, CompanyResponse, EntityResponse, Organ, Suggestion } from "./api";
 import {
-  cnpjDigits, companyFicha, entityFicha, exactMatch, looksLikeNumber, matchOrgan, organFicha, suggestGroups,
+  cnpjDigits, companyFicha, entityFicha, exactMatch, looksLikeNumber, matchOrgan, moveFocus, organFicha, suggestGroups, suggestionsStatus,
 } from "./discovery";
 
 const plain = (s: string) => s.replace(/\s/g, " ");
@@ -109,5 +109,21 @@ describe("sugestões enquanto digita", () => {
 
   it("não sugere nada com menos de duas letras", () => {
     expect(suggestGroups("s", [company], organs, [])).toEqual([]);
+  });
+});
+
+describe("teclado nas sugestões", () => {
+  it("anda entre as sugestões e volta ao campo, que é o índice -1", () => {
+    expect(moveFocus(-1, 1, 3)).toBe(0);
+    expect(moveFocus(2, 1, 3)).toBe(2);
+    expect(moveFocus(0, -1, 3)).toBe(-1);
+    expect(moveFocus(-1, 1, 0)).toBe(-1);
+  });
+
+  it("anuncia quantas sugestões há", () => {
+    const groups = [{ title: "Órgãos", items: [{ label: "a", meta: "", href: "/a" }, { label: "b", meta: "", href: "/b" }] }];
+
+    expect(suggestionsStatus(groups)).toBe("2 sugestões. Use a seta para baixo para chegar a elas.");
+    expect(suggestionsStatus([])).toBe("");
   });
 });

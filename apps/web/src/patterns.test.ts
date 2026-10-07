@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { Pattern } from "./api";
 import { highlights, patternSearchHref } from "./patterns";
 
 describe("patternSearchHref", () => {
@@ -10,17 +9,15 @@ describe("patternSearchHref", () => {
 });
 
 describe("casos em destaque na home", () => {
-  const finding = (title: string) => ({ title, detail: `detalhe de ${title}`, acts: [], search: null, link: null });
-  const pattern = (id: string, n: number): Pattern => ({
-    id, title: `padrão ${id}`, rule: "", caveat: "", findings: Array.from({ length: n }, (_, i) => finding(`${id}-${i}`)),
-  });
-
-  it("pega o primeiro caso de cada padrão que tem caso, até o limite", () => {
-    const got = highlights([pattern("vazio", 0), pattern("a", 3), pattern("b", 1), pattern("c", 2)], 2);
+  it("conta os casos e leva ao padrão na página de padrões", () => {
+    const got = highlights([
+      { pattern_id: "a", pattern_title: "padrão a", title: "a-0", detail: "detalhe", findings: 3 },
+      { pattern_id: "b", pattern_title: "padrão b", title: "b-0", detail: "detalhe", findings: 1 },
+    ]);
 
     expect(got).toEqual([
-      { pattern: "padrão a", title: "a-0", detail: "detalhe de a-0", count: "3 casos na base", href: "/padroes#padrao-a" },
-      { pattern: "padrão b", title: "b-0", detail: "detalhe de b-0", count: "1 caso na base", href: "/padroes#padrao-b" },
+      { pattern: "padrão a", title: "a-0", detail: "detalhe", count: "3 casos na base", href: "/padroes#padrao-a" },
+      { pattern: "padrão b", title: "b-0", detail: "detalhe", count: "1 caso na base", href: "/padroes#padrao-b" },
     ]);
   });
 });

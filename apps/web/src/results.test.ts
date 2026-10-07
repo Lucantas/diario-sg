@@ -35,6 +35,8 @@ describe("frase exata", () => {
     expect(canToggleExact("merenda")).toBe(false);
     expect(canToggleExact("merenda OU alimentação")).toBe(false);
     expect(canToggleExact("limpeza -urbana")).toBe(false);
+    expect(canToggleExact("merenda or alimentação")).toBe(false);
+    expect(canToggleExact("merenda ou alimentação")).toBe(true);
   });
 
   it("põe e tira as aspas", () => {
@@ -45,16 +47,16 @@ describe("frase exata", () => {
 });
 
 describe("alternativas para a busca vazia", () => {
-  it("tira um filtro por vez, começando pela frase exata", () => {
+  it("sugere no máximo três saídas: frase exata, qualquer palavra e um filtro por vez", () => {
     const s = { ...EMPTY_STATE, q: "\"locação de veículos\"", type: "contrato" as const, organ: "SEMSA" };
 
     const got = relaxations(s, "Uma edição");
 
     expect(got.map((r) => r.label)).toEqual([
-      "Sem exigir a frase exata", "Sem o filtro Contratos", "Sem o filtro SEMSA", "Com qualquer uma das palavras: locação OU veículos",
+      "Sem exigir a frase exata", "Com qualquer uma das palavras: locação OU veículos", "Sem o filtro Contratos",
     ]);
     expect(got[0].state.q).toBe("locação de veículos");
-    expect(got[1].state).toEqual({ ...s, type: "" });
+    expect(got[2].state).toEqual({ ...s, type: "" });
   });
 
   it("com duas palavras ou mais, sugere qualquer uma delas", () => {

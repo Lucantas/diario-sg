@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActHit, LatestEdition, listLatestEditions, listPatterns, searchActs } from "./api";
+import { ActHit, LatestEdition, listLatestEditions, listPatternHighlights, searchActs } from "./api";
 import { Result } from "./components";
 import { actsLabel, editionHref, editionTitle, homeEdition, relativeDay, typeCountLabel } from "./latest";
 import { PatternHighlight, highlights } from "./patterns";
@@ -55,8 +55,8 @@ export function VerifySection() {
 
   useEffect(() => {
     let cancelled = false;
-    listPatterns()
-      .then((res) => { if (!cancelled) setItems(highlights(res.items, HIGHLIGHTS)); })
+    listPatternHighlights(HIGHLIGHTS)
+      .then((res) => { if (!cancelled) setItems(highlights(res.items)); })
       .catch(() => { if (!cancelled) setItems([]); });
     return () => { cancelled = true; };
   }, []);

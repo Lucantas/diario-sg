@@ -16,15 +16,15 @@ export function EmptyResults({ heading, relaxed, onGo }: {
   const key = relaxed.map((r) => queryFromState(r.state)).join("|");
 
   useEffect(() => {
-    let cancelled = false;
+    const ctrl = new AbortController();
     setCounted([]);
     Promise.all(relaxed.map(async (r) => {
       const params = apiParams(r.state, 1);
       if (!params) return { ...r, total: 0 };
-      const res = await searchActs(params).catch(() => ({ total: 0 }));
+      const res = await searchActs(params, ctrl.signal).catch(() => ({ total: 0 }));
       return { ...r, total: res.total };
-    })).then((all) => { if (!cancelled) setCounted(all.filter((r) => r.total > 0)); });
-    return () => { cancelled = true; };
+    })).then((all) => { if (!ctrl.signal.aborted) setCounted(all.filter((r) => r.total > 0)); });
+    return () => ctrl.abort();
   }, [key]);
 
   return (

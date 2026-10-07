@@ -1,8 +1,9 @@
-import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { Organ, Source } from "./api";
 import { ActiveFilter, FilterKey, SearchState, THEME_LABEL, TYPE_OPTIONS, withSource } from "./searchState";
 import { SOURCE_LABEL } from "./types";
 import { SearchIcon } from "./Brand";
+import { suggestionsStatus } from "./discovery";
 import { SuggestionsPanel, useSuggestions } from "./Suggestions";
 
 export function SearchForm({ draft, setDraft, onSubmit, loading, organs }: {
@@ -13,30 +14,46 @@ export function SearchForm({ draft, setDraft, onSubmit, loading, organs }: {
   organs: Organ[];
 }) {
   const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const groups = useSuggestions(draft.q, organs);
   const showing = open && groups.length > 0;
+
+  function onKeyDown(e: KeyboardEvent<HTMLFormElement>) {
+    if (e.key === "Escape" && showing) {
+      setOpen(false);
+      inputRef.current?.focus();
+    }
+  }
+
+  function onInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "ArrowDown" || !showing) return;
+    e.preventDefault();
+    document.querySelector<HTMLAnchorElement>("#sugestoes a")?.focus();
+  }
+
   return (
-    <form className="search-hero" onSubmit={onSubmit} role="search"
-      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false); }}
-      onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}>
+    <form className="search-hero" onSubmit={onSubmit} role="search" onKeyDown={onKeyDown}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false); }}>
       <label htmlFor="q" className="visually-hidden">Buscar nos Diários Oficiais</label>
       <div className="search-hero-field">
         <div className="search-hero-box">
           <SearchIcon size={22} />
           <input
             id="q"
+            ref={inputRef}
             type="search"
             value={draft.q}
             onChange={(e) => { setDraft({ ...draft, q: e.target.value }); setOpen(true); }}
             onFocus={() => setOpen(true)}
+            onKeyDown={onInputKeyDown}
             placeholder="Nome, CNPJ, empresa ou assunto"
             autoComplete="off"
-            aria-expanded={showing}
-            aria-controls={showing ? "sugestoes" : undefined}
+            aria-describedby="sugestoes-status"
           />
           <button type="submit" className="primary" disabled={loading}>{loading ? "Buscando" : "Buscar"}</button>
         </div>
-        {showing && <SuggestionsPanel id="sugestoes" groups={groups} />}
+        <p id="sugestoes-status" className="visually-hidden" aria-live="polite">{showing ? suggestionsStatus(groups) : ""}</p>
+        {showing && <SuggestionsPanel id="sugestoes" groups={groups} inputRef={inputRef} />}
       </div>
     </form>
   );

@@ -425,8 +425,20 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-export function searchActs(params: URLSearchParams) {
-  return request<SearchResponse>(`/v1/acts?${params}`);
+export function searchActs(params: URLSearchParams, signal?: AbortSignal) {
+  return request<SearchResponse>(`/v1/acts?${params}`, { signal });
+}
+
+export interface PatternHighlightResponse {
+  pattern_id: string;
+  pattern_title: string;
+  title: string;
+  detail: string;
+  findings: number;
+}
+
+export function listPatternHighlights(limit: number) {
+  return request<{ items: PatternHighlightResponse[] }>(`/v1/patterns/highlights?limit=${limit}`);
 }
 
 export function listPatterns() {
@@ -500,12 +512,12 @@ export function listOrgans() {
   return request<{ items: Organ[] }>("/v1/organs");
 }
 
-export function getCompany(cnpj: string) {
-  return request<CompanyResponse>(`/v1/entities/cnpj/${encodeURIComponent(cnpj)}`);
+export function getCompany(cnpj: string, signal?: AbortSignal) {
+  return request<CompanyResponse>(`/v1/entities/cnpj/${encodeURIComponent(cnpj)}`, { signal });
 }
 
-export function getEntity(kind: EntityKind, slug: string) {
-  return request<EntityResponse>(`/v1/entities/${kind}/${encodeURIComponent(slug)}`);
+export function getEntity(kind: EntityKind, slug: string, signal?: AbortSignal) {
+  return request<EntityResponse>(`/v1/entities/${kind}/${encodeURIComponent(slug)}`, { signal });
 }
 
 export function subscribe(email: string, query: string, filters: AlertFilters) {
@@ -621,8 +633,8 @@ export interface BillsResponse {
   items: Bill[];
 }
 
-export function listBills(params: URLSearchParams) {
-  return request<BillsResponse>(`/v1/bills?${params}`);
+export function listBills(params: URLSearchParams, signal?: AbortSignal) {
+  return request<BillsResponse>(`/v1/bills?${params}`, { signal });
 }
 
 export function getBill(process: string) {

@@ -10,6 +10,7 @@ export interface ResultsHeading {
 const PHRASE = /^"([^"]+)"$/;
 
 const MIN_ANY_WORD = 3;
+const MAX_RELAXATIONS = 3;
 
 export function editionLabel(first: ActHit | undefined): string {
   return first ? editionTitle(first) : "Uma edição";
@@ -36,7 +37,7 @@ export function unquoted(q: string): string {
 
 function plainWords(q: string): string[] | null {
   const text = unquoted(q);
-  if (/["]|(^|\s)-|\bOU\b/.test(text)) return null;
+  if (/["]|(^|\s)-|(^|\s)(OU|[oO][rR])(\s|$)/.test(text)) return null;
   return text.split(/\s+/).filter(Boolean);
 }
 
@@ -55,17 +56,18 @@ export interface Relaxation {
 }
 
 export function relaxations(s: SearchState, editionName: string): Relaxation[] {
-  const out: Relaxation[] = activeFilters(s, editionName).map((f) => ({
-    label: `Sem o filtro ${f.label}`,
-    state: withoutFilter(s, f.key),
-  }));
+  const out: Relaxation[] = [];
   if (isExactPhrase(s.q)) {
-    out.unshift({ label: "Sem exigir a frase exata", state: { ...s, q: unquoted(s.q), page: 1 } });
+    out.push({ label: "Sem exigir a frase exata", state: { ...s, q: unquoted(s.q), page: 1 } });
   }
   const words = (plainWords(s.q) ?? []).filter((w) => w.length >= MIN_ANY_WORD);
   if (words.length >= 2) {
     const any = words.join(" OU ");
     out.push({ label: `Com qualquer uma das palavras: ${any}`, state: { ...s, q: any, page: 1 } });
   }
-  return out;
+  const filters = activeFilters(s, editionName).map((f) => ({
+    label: `Sem o filtro ${f.label}`,
+    state: withoutFilter(s, f.key),
+  }));
+  return [...out, ...filters].slice(0, MAX_RELAXATIONS);
 }

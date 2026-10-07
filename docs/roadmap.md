@@ -779,6 +779,36 @@ Pendências, da mais séria para a menos:
   listar as autoridades que o Render usa para o certificado; conferir com
   o Render antes, ou a renovação falha e o site cai.
 
+## Pontos de partida para quem chega
+
+A base é grande, mas quem chega não sabia o que buscar: a home ensinava a
+sintaxe da busca e listava páginas pela fonte do dado (TCE-RJ, CGU, MCP).
+O desenho (projeto "Diário SG v3" no Claude Design) troca explicação por
+conteúdo real, sem tooltip nem descrição embaixo de link.
+
+- [x] Navegação pelo que a pessoa quer saber: Pessoas, Dinheiro, Leis e
+  Para verificar, com o rótulo sendo a pergunta. Dados abertos e MCP vão
+  para o rodapé, em Para quem programa.
+- [x] Home com a última edição (`GET /v1/gazettes/latest`): quantos atos
+  de cada tipo, com o valor somado, cada contagem levando à busca dentro da
+  edição (`?edicao=`, `gazette` na API), e os quatro primeiros atos.
+- [x] Faixa Para verificar na home, com o primeiro caso de dois padrões
+  (`GET /v1/patterns/highlights`, sem os 1,2 MB de atos de
+  `/v1/patterns`). Os padrões levavam uns 7 s por chamada; agora são
+  calculados uma vez só, em segundo plano, e ficam uma hora em memória.
+- [x] Resultados dizem o escopo (termo, frase exata, todas as edições ou
+  uma edição) e oferecem Só a frase exata, que põe e tira as aspas.
+- [x] Busca vazia mostra, com a contagem, até três saídas: sem a frase
+  exata, com qualquer uma das palavras e sem um filtro.
+- [x] Ficha acima dos resultados para CNPJ, processo, contrato e órgão, e
+  sugestões enquanto se digita na home (`GET /v1/suggest`, órgãos, tipos
+  de ato e proposições), com seta para baixo para chegar a elas e aviso
+  para leitor de tela.
+- [ ] O design previa um padrão "nomeado e exonerado em menos de 30
+  dias", que não existe; o link do grupo Para verificar aponta para
+  empresa contratada logo depois de aberta. Criar o padrão é outra
+  entrega.
+
 ## Lista de controle das pendências
 
 Todas as pendências abertas do roadmap num lugar só, com de quem
