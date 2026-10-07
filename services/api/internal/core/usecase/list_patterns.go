@@ -39,15 +39,11 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 		return uc.compute(ctx)
 	}
 	uc.mu.Lock()
-	if uc.reports != nil && uc.now().Sub(uc.cachedAt) < uc.ttl {
+	if uc.freshLocked() {
 		defer uc.mu.Unlock()
 		return uc.reports, uc.acts, nil
 	}
-	if uc.running == nil {
-		uc.running = make(chan struct{})
-		go uc.refresh(context.WithoutCancel(ctx), uc.running)
-	}
-	running := uc.running
+	running := uc.startLocked(ctx)
 	uc.mu.Unlock()
 
 	select {
@@ -61,6 +57,29 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 		return nil, nil, uc.lastErr
 	}
 	return uc.reports, uc.acts, nil
+}
+
+func (uc *ListPatterns) Warm(ctx context.Context) {
+	if uc.ttl <= 0 {
+		return
+	}
+	uc.mu.Lock()
+	defer uc.mu.Unlock()
+	if !uc.freshLocked() {
+		uc.startLocked(ctx)
+	}
+}
+
+func (uc *ListPatterns) freshLocked() bool {
+	return uc.reports != nil && uc.now().Sub(uc.cachedAt) < uc.ttl
+}
+
+func (uc *ListPatterns) startLocked(ctx context.Context) chan struct{} {
+	if uc.running == nil {
+		uc.running = make(chan struct{})
+		go uc.refresh(context.WithoutCancel(ctx), uc.running)
+	}
+	return uc.running
 }
 
 func (uc *ListPatterns) refresh(ctx context.Context, done chan struct{}) {

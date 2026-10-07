@@ -259,3 +259,19 @@ func TestListPatternsWithCacheComputesOnceForConcurrentCallers(t *testing.T) {
 		t.Errorf("cinco leituras ao mesmo tempo esperam o mesmo cálculo: %d cálculos", src.calls)
 	}
 }
+
+func TestListPatternsWarmComputesInTheBackgroundForTheFirstReader(t *testing.T) {
+	src := &blockingPatternSource{fakePatternSource: &fakePatternSource{}, release: make(chan struct{})}
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, time.Now)
+
+	uc.Warm(context.Background())
+	uc.Warm(context.Background())
+	close(src.release)
+	if _, _, err := uc.Execute(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	if src.calls != 1 {
+		t.Errorf("aquecer duas vezes e ler depois custa um cálculo só: %d cálculos", src.calls)
+	}
+}

@@ -107,5 +107,6 @@ func run(l *slog.Logger) error {
 		Subscriptions:  usecase.NewSubscriptions(postgres.NewSubscriptionRepo(db), notifier),
 		Log:            l,
 	}
+	patterns.Warm(ctx)
 	return httpapi.Serve(ctx, ":"+cfg.Port, api.Routes(), l)
 }
