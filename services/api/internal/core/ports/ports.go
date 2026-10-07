@@ -417,3 +417,13 @@ type PoliticalAgentReader interface {
 	AgentPay(ctx context.Context) ([]domain.AgentPay, error)
 	Councillors(ctx context.Context) ([]domain.Councillor, error)
 }
+
+type LatestDaysReader interface {
+	LatestDays(ctx context.Context) ([]domain.LatestDay, error)
+}
+
+type SuggestionSource interface {
+	CompanyByCNPJ(ctx context.Context, cnpj string) (s domain.Suggestion, found bool, err error)
+	EntityActs(ctx context.Context, kind domain.EntityKind, key string) (int, error)
+	CompaniesByName(ctx context.Context, text string, limit int) ([]domain.Suggestion, error)
+}

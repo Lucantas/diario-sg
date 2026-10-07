@@ -61,6 +61,7 @@ func run(l *slog.Logger) error {
 	sources := usecase.CompanySources{Registry: registry, Sanctions: postgres.NewSanctionRepo(db), Payments: payments, PNCP: postgres.NewPNCPRepo(db), Works: postgres.NewOversightRepo(db), Federal: postgres.NewFederalRepo(db), Municipal: postgres.NewMunicipalCommitmentRepo(db), Mural: postgres.NewProcurementRepo(db), Punished: postgres.NewDiarioSanctionRepo(db)}
 	entity := usecase.NewGetEntity(postgres.NewLinkRepo(db), sources)
 	search := usecase.NewSearchActs(acts)
+	discovery := postgres.NewDiscoveryRepo(db)
 	company := usecase.NewGetCompany(acts, sources)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
 	patterns := usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db))
@@ -91,6 +92,8 @@ func run(l *slog.Logger) error {
 		Norms:          norms,
 		Bills:          bills,
 		Organs:         usecase.NewListOrgans(acts),
+		Latest:         usecase.NewLatestGazettes(discovery),
+		Suggest:        usecase.NewSuggest(discovery),
 		PDF:            usecase.NewGetGazettePDF(gazettes, storage),
 		Export:         usecase.NewExportActs(acts),
 		Feed:           usecase.NewActFeed(acts),

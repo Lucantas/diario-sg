@@ -40,6 +40,8 @@ type API struct {
 	Bills          *usecase.FindBills
 	Federal        *usecase.GetFederal
 	Agents         *usecase.GetPoliticalAgents
+	Latest         *usecase.LatestGazettes
+	Suggest        *usecase.Suggest
 	Log            *slog.Logger
 }
 
@@ -73,7 +75,9 @@ func (a *API) Routes() http.Handler {
 	read("/v1/acts", http.HandlerFunc(a.searchActs))
 	read("/v1/acts/export", a.perClient(ratelimit.New(exportsPerClient, exportsPerInstance, time.Minute, time.Now), http.HandlerFunc(a.exportActs)))
 	read("/v1/feeds/acts", http.HandlerFunc(a.actFeed))
+	read("/v1/gazettes/latest", http.HandlerFunc(a.latestGazettes))
 	read("/v1/gazettes/{id}", http.HandlerFunc(a.getGazette))
+	read("/v1/suggest", http.HandlerFunc(a.suggest))
 	read("/v1/gazettes/{id}/pdf", http.HandlerFunc(a.gazettePDF))
 	read("/v1/entities/cnpj/{cnpj}", http.HandlerFunc(a.getCompany))
 	read("/v1/entities/{kind}/{key}", http.HandlerFunc(a.getEntity))

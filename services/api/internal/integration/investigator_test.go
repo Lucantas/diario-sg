@@ -88,6 +88,8 @@ func newServerFor(t *testing.T, text string) (*httptest.Server, *sql.DB) {
 		Oversight:     usecase.NewGetOversight(postgres.NewOversightRepo(db), postgres.NewFiscalRepo(db), postgres.NewMunicipalCommitmentRepo(db)),
 		Federal:       usecase.NewGetFederal(postgres.NewFederalRepo(db), postgres.NewSpecialTransferRepo(db)),
 		Agents:        usecase.NewGetPoliticalAgents(postgres.NewPoliticalAgentRepo(db)),
+		Latest:        usecase.NewLatestGazettes(postgres.NewDiscoveryRepo(db)),
+		Suggest:       usecase.NewSuggest(postgres.NewDiscoveryRepo(db)),
 		Norms:         usecase.NewFindNorms(postgres.NewNormRepo(db)),
 		Bills:         usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now),
 		Panels:        usecase.NewGetSupplierPanel(postgres.NewPanelRepo(db), postgres.NewRegistryRepo(db), postgres.NewPaymentRepo(db)),
