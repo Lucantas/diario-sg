@@ -9,6 +9,8 @@ import (
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/ports"
 )
 
+const patternsComputeTimeout = 2 * time.Minute
+
 type ListPatterns struct {
 	src       ports.PatternSource
 	suppliers ports.SupplierPatternSource
@@ -19,6 +21,8 @@ type ListPatterns struct {
 	cachedAt time.Time
 	reports  []domain.PatternReport
 	acts     map[string]domain.ActHit
+	lastErr  error
+	running  chan struct{}
 }
 
 func NewListPatterns(src ports.PatternSource, suppliers ports.SupplierPatternSource) *ListPatterns {
@@ -35,16 +39,42 @@ func (uc *ListPatterns) Execute(ctx context.Context) ([]domain.PatternReport, ma
 		return uc.compute(ctx)
 	}
 	uc.mu.Lock()
-	defer uc.mu.Unlock()
 	if uc.reports != nil && uc.now().Sub(uc.cachedAt) < uc.ttl {
+		defer uc.mu.Unlock()
 		return uc.reports, uc.acts, nil
 	}
-	reports, acts, err := uc.compute(ctx)
-	if err != nil {
-		return nil, nil, err
+	if uc.running == nil {
+		uc.running = make(chan struct{})
+		go uc.refresh(context.WithoutCancel(ctx), uc.running)
 	}
-	uc.reports, uc.acts, uc.cachedAt = reports, acts, uc.now()
-	return reports, acts, nil
+	running := uc.running
+	uc.mu.Unlock()
+
+	select {
+	case <-running:
+	case <-ctx.Done():
+		return nil, nil, ctx.Err()
+	}
+	uc.mu.Lock()
+	defer uc.mu.Unlock()
+	if uc.reports == nil {
+		return nil, nil, uc.lastErr
+	}
+	return uc.reports, uc.acts, nil
+}
+
+func (uc *ListPatterns) refresh(ctx context.Context, done chan struct{}) {
+	ctx, cancel := context.WithTimeout(ctx, patternsComputeTimeout)
+	defer cancel()
+	reports, acts, err := uc.compute(ctx)
+	uc.mu.Lock()
+	defer uc.mu.Unlock()
+	uc.lastErr = err
+	if err == nil {
+		uc.reports, uc.acts, uc.cachedAt = reports, acts, uc.now()
+	}
+	uc.running = nil
+	close(done)
 }
 
 func (uc *ListPatterns) compute(ctx context.Context) ([]domain.PatternReport, map[string]domain.ActHit, error) {

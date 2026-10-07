@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -192,5 +194,68 @@ func TestListPatternsWithCacheRecomputesOnlyAfterTheTTL(t *testing.T) {
 
 	if src.calls != 2 {
 		t.Errorf("três leituras dentro da hora custam uma consulta, e a hora seguinte refaz: %d consultas", src.calls)
+	}
+}
+
+type blockingPatternSource struct {
+	*fakePatternSource
+	mu      sync.Mutex
+	calls   int
+	release chan struct{}
+}
+
+func (b *blockingPatternSource) DispensaActs(ctx context.Context) ([]domain.DispensaAct, error) {
+	b.mu.Lock()
+	b.calls++
+	b.mu.Unlock()
+	select {
+	case <-b.release:
+		return nil, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+
+func TestListPatternsWithCacheSurvivesTheFirstCallerGivingUp(t *testing.T) {
+	src := &blockingPatternSource{fakePatternSource: &fakePatternSource{}, release: make(chan struct{})}
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, time.Now)
+	impatient, cancel := context.WithCancel(context.Background())
+
+	done := make(chan error)
+	go func() { _, _, err := uc.Execute(impatient); done <- err }()
+	cancel()
+	if err := <-done; !errors.Is(err, context.Canceled) {
+		t.Fatalf("quem desiste recebe o próprio cancelamento: %v", err)
+	}
+	close(src.release)
+	if _, _, err := uc.Execute(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	if src.calls != 1 {
+		t.Errorf("o cálculo continua depois que o primeiro desiste e serve o seguinte: %d cálculos", src.calls)
+	}
+}
+
+func TestListPatternsWithCacheComputesOnceForConcurrentCallers(t *testing.T) {
+	src := &blockingPatternSource{fakePatternSource: &fakePatternSource{}, release: make(chan struct{})}
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, time.Now)
+
+	var wg sync.WaitGroup
+	for range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if _, _, err := uc.Execute(context.Background()); err != nil {
+				t.Error(err)
+			}
+		}()
+	}
+	time.Sleep(50 * time.Millisecond)
+	close(src.release)
+	wg.Wait()
+
+	if src.calls != 1 {
+		t.Errorf("cinco leituras ao mesmo tempo esperam o mesmo cálculo: %d cálculos", src.calls)
 	}
 }

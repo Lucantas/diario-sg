@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -114,6 +115,22 @@ func TestPatternsFlagSplitDispensasAndIgnoreRepublishedProcesses(t *testing.T) {
 	}
 	if res.Items[3].Findings == nil || len(res.Items[3].Findings) != 0 {
 		t.Fatalf("sem nomeações não há pico: %+v", res.Items[3])
+	}
+
+	var highlights struct {
+		Items []struct {
+			PatternID string `json:"pattern_id"`
+			Title     string `json:"title"`
+			Findings  int    `json:"findings"`
+		} `json:"items"`
+	}
+	getJSON(t, srv.URL+"/v1/patterns/highlights?limit=1", &highlights)
+	if len(highlights.Items) != 1 || highlights.Items[0].PatternID != "fracionamento_dispensa" || highlights.Items[0].Title != split[0].Title ||
+		highlights.Items[0].Findings != 1 {
+		t.Errorf("o destaque é o primeiro caso do primeiro padrão com caso, sem os atos: %+v", highlights)
+	}
+	if resp, _ := fetch(t, srv.URL+"/v1/patterns/highlights?limit=99"); resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("limite fora da faixa é filtro inválido: %d", resp.StatusCode)
 	}
 }
 

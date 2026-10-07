@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
@@ -69,4 +70,41 @@ func toPatternDTO(rep domain.PatternReport, acts map[string]domain.ActHit) patte
 		dto.Findings = append(dto.Findings, fd)
 	}
 	return dto
+}
+
+const (
+	defaultHighlights = 2
+	maxHighlights     = 5
+)
+
+type patternHighlightDTO struct {
+	PatternID    string `json:"pattern_id"`
+	PatternTitle string `json:"pattern_title"`
+	Title        string `json:"title"`
+	Detail       string `json:"detail"`
+	Findings     int    `json:"findings"`
+}
+
+func (a *API) patternHighlights(w http.ResponseWriter, r *http.Request) {
+	limit := defaultHighlights
+	if v := r.URL.Query().Get("limit"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 1 || n > maxHighlights {
+			writeError(w, domain.ErrInvalidFilter, a.Log)
+			return
+		}
+		limit = n
+	}
+	reports, _, err := a.Patterns.Execute(r.Context())
+	if err != nil {
+		writeError(w, err, a.Log)
+		return
+	}
+	items := []patternHighlightDTO{}
+	for _, h := range domain.PatternHighlights(reports, limit) {
+		items = append(items, patternHighlightDTO{PatternID: string(h.Pattern.ID), PatternTitle: h.Pattern.Title,
+			Title: h.Finding.Title, Detail: h.Finding.Detail, Findings: h.Findings})
+	}
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	writeJSON(w, http.StatusOK, map[string]any{"items": items})
 }

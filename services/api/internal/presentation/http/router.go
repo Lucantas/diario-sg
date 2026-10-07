@@ -84,6 +84,7 @@ func (a *API) Routes() http.Handler {
 	read("/v1/stats/acts", http.HandlerFunc(a.actStats))
 	read("/v1/organs", http.HandlerFunc(a.listOrgans))
 	read("/v1/patterns", http.HandlerFunc(a.listPatterns))
+	read("/v1/patterns/highlights", http.HandlerFunc(a.patternHighlights))
 	read("/v1/panels/suppliers", http.HandlerFunc(a.supplierPanel))
 	read("/v1/panels/staff", http.HandlerFunc(a.staffPanel))
 	read("/v1/tce", http.HandlerFunc(a.oversight))
