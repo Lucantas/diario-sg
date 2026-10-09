@@ -15,6 +15,7 @@ import { PanelsPage } from "./PanelsPage";
 import { PatternsPage } from "./PatternsPage";
 import { SearchPage } from "./SearchPage";
 import { StaffPage } from "./StaffPage";
+import { SupportPage } from "./SupportPage";
 import { TCEPage } from "./TCEPage";
 
 const SUNKEN_PAGES: unknown[] = [SearchPage, CompanyPage, EntityPage];
@@ -36,6 +37,7 @@ function routePage(path: string) {
   if (path === "/cancelar") return <TokenPage kind="cancel" token={token} />;
   if (path === "/dados") return <DataPage />;
   if (path === "/mcp") return <McpPage />;
+  if (path === "/apoie") return <SupportPage />;
   if (path === "/padroes") return <PatternsPage />;
   if (path === "/paineis") return <PanelsPage />;
   if (path === "/pessoal") return <StaffPage />;
