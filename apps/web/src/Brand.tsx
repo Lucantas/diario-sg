@@ -193,6 +193,7 @@ export function SiteFooter() {
           <Logo size="sm" />
           <p>Diários Oficiais da Prefeitura e da Câmara Municipal de São Gonçalo. Confira sempre a edição original.</p>
           <p className="fineprint">Projeto independente, sem ligação com a Prefeitura nem com a Câmara de São Gonçalo.</p>
+          <p className="fineprint">Mantido por uma pessoa, no tempo livre. <a href="/apoie">Apoie o projeto</a>.</p>
         </div>
         {[...SECTION_GROUPS, DEV_GROUP].map((g) => (
           <nav key={g.title} aria-label={g.title}>

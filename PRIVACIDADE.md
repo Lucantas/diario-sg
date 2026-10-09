@@ -1,6 +1,6 @@
 # Política de privacidade
 
-Última atualização: 22 de setembro de 2026.
+Última atualização: 9 de outubro de 2026.
 
 Vale para as instâncias do Diário SG publicadas pelo autor deste repositório.
 Leia junto com os [Termos de uso](TERMOS-DE-USO.md).
@@ -16,6 +16,13 @@ nem ferramentas de analytics.
 inscrição (pendente, ativa ou cancelada), as datas de criação e confirmação e
 quais edições já geraram alerta para você, para não mandar o mesmo alerta duas
 vezes.
+
+**Se você doa pelo PIX:** o site não registra nada. O pagamento sai do seu
+banco direto para a conta do autor, e o banco mostra a ele o que todo PIX
+mostra ao recebedor (nome de quem pagou, parte do CPF ou do CNPJ e a
+instituição). Esses dados não são publicados nem usados para outra coisa
+além de conferir a origem da doação e devolvê-la quando ela vier de quem os
+[Termos de uso](TERMOS-DE-USO.md) excluem.
 
 ## Para que é usado
 
