@@ -72,6 +72,9 @@ func (r Regex) Parse(text string) []domain.Act {
 			party := current.takeParty(firstTextAfter(lines, i), l.page)
 			flush()
 			current = &segment{title: joinTexts(title, " "), organ: organ}
+			if isTransfersTable(current.title) {
+				current.organ = r.organOf(transfersOrgan)
+			}
 			current.add(party...)
 			current.add(title...)
 		default:

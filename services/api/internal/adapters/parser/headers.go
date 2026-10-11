@@ -28,7 +28,14 @@ var headerRes = []*regexp.Regexp{
 	regexp.MustCompile(`^(?:DISPENSA DE LICITAÇÃO|INEXIGIBILIDADE DE LICITAÇÃO|RATIFICAÇÃO|HOMOLOGAÇÃO|ADJUDICAÇÃO)\b`),
 	regexp.MustCompile(`^PREGÃO ELETRÔNICO\b`),
 	regexp.MustCompile(`^(?:CONCESSÃO DE LICENÇA|CONVOCAÇÃO|ERRATA|CORRIGENDA|RETIFICAÇÃO|REPUBLICAÇÃO|COMUNICADO|APOSTILA)\b`),
+	transfersTableRe,
 }
+
+var transfersTableRe = regexp.MustCompile(`^REPASSES (?:FEDERAIS|ESTADUAIS)(?:\s*[-–]\s*[A-ZÇ]+(?:\s*[-–/]?\s*\d{4})?)?$`)
+
+const transfersOrgan = "SEMFA"
+
+func isTransfersTable(title string) bool { return transfersTableRe.MatchString(title) }
 
 var notAnActExtractRe = regexp.MustCompile(`^EXTRATO\s+(?:DE\s+)?(?:TOMATE|MALTE|ALOE|BANCÁRIO)\b`)
 
