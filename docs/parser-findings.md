@@ -343,6 +343,23 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
     (essas saem como "Licença Prêmio" e afins), então "meio ambiente" no
     texto basta como marcador.
 
+18. Anexo de decreto trocado pelas colunas. Em edições com vários decretos
+    de crédito, o modo de leitura às vezes entrega o texto e o anexo de um
+    decreto dentro do anterior (na 1.738, de 03/08/2026, o 359 saiu com o
+    preâmbulo, os R$ 3.898.000,00 e o anexo do 361, e o 361 com o anexo do
+    359; o 361 aparecia com valor zero). Depois de separar os atos, o
+    parser divide o corpo de cada decreto em trechos: um "ANEXO DECRETO Nº
+    N/AAAA" abre um trecho daquele número, e um segundo preâmbulo ("O
+    PREFEITO MUNICIPAL…") abre um trecho que pertence ao decreto cujo anexo
+    vem logo depois. Trecho de outro decreto da mesma edição vai para o fim
+    dele; anexo de decreto que não está na edição fica onde está. Em
+    11/10/2026, nas edições de 2023 em diante, os decretos com anexo de
+    outro número caíram de 174 para 16, sem mudar tipo, órgão ou título de
+    nenhum ato. Os 16 que sobram são edições em que pedaços do articulado
+    ("Art. 3º…") também trocaram de lugar sem preâmbulo nem anexo para
+    marcar (17/04/2026, 08/05/2026) ou em que o cabeçalho do decreto não
+    saiu no texto (2024-03-15).
+
 O que foi olhado e ficou como está (29/09/2026): "PORTARIA … No. 009/…"
 dentro do corpo são citações de portarias anteriores (editais de citação,
 corrigendas), não cabeçalhos; aceitar "No." quebraria esses atos. O

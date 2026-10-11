@@ -91,7 +91,7 @@ func (r Regex) Parse(text string) []domain.Act {
 		}
 	}
 	flush()
-	return acts
+	return relocateDecreeAnnexes(acts)
 }
 
 type segment struct {
