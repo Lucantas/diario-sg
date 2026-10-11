@@ -160,6 +160,18 @@ podem ficar no fim do ato anterior.
   dispensa da SMTC (processos 7405/2026 e 07537/2026, fornecedores
   diferentes) ficavam coladas no edital 023/2026 da SEMHAB, que ganhava o
   CNPJ, o valor e a modalidade delas.
+- `REPASSES FEDERAIS` (e `REPASSES ESTADUAIS`), a tabela mensal da SEMFA,
+  abre ato quando ocupa a linha sozinha ou com o mês (`REPASSES FEDERAIS –
+  MAIO 2025`). Depois do título vêm só linhas curtas em caixa alta (mês,
+  `DATA`, datas, `GOVERNO`, `FPM`), então a sigla `SEMFA` não passava no
+  teste de prosa da seção e a tabela ficava no ato anterior. Desde meados
+  de 2025 isso acontecia quase todo mês: na edição 1784 (07/10/2026), um
+  despacho de licença da SEMAD ganhou R$ 9.877.551,58 de FPM. A frase
+  "REPASSES FEDERAIS DO FUNDO…" dentro de um título continua sem abrir ato.
+  O órgão da tabela é sempre `SEMFA`, que a assina: em 12/01/2024 e
+  07/04/2025 a sigla não vem antes dela, e a tabela herdava o órgão da
+  seção anterior (vazio e `FAELSG`). Em 13/05/2024 a coluna da tabela sai
+  intercalada com a ata do CMAS que vem depois, e os valores ficam na ata.
 
 ### Edições até abril de 2021
 
