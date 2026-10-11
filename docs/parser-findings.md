@@ -413,8 +413,18 @@ Amostra: 88 edições de 2020-11 a 2026-09, baixadas de
   em imagem (cerca de 170 caracteres por página). Até 26/09/2026 ficavam
   com zero atos; agora a página com menos de 200 letras e imagem cobrindo
   ao menos 25% dela é lida pelo Tesseract. Das 73 escaneadas, todas
-  ganharam atos. O OCR põe ruído no cabeçalho ("D.0O.E"), e um decreto
-  legislativo que vem logo depois dele pode cair em `outro`.
+  ganharam atos. O OCR põe ruído no cabeçalho: sujeira antes ou depois
+  de "PODER LEGISLATIVO" ("arara PODER LEGISLATIVO", "PODER LEGISLATIVO
+  º"), "D.0.E"/"D.0O.E" no lugar de "D.O.E" e "CAMARA MUNICIPAL DE SÃO
+  GONÇALO" sem acento. Essas variantes contam como
+  cabeçalho de página; antes viravam atos `outro` com o cabeçalho como
+  título.
+- **Decreto legislativo em caixa mista.** A Câmara escreve "Decreto
+  Legislativo nº 2/2023", às vezes com a data na mesma linha. Como o
+  cabeçalho de ato exige caixa alta, o decreto ficava colado no corpo da
+  portaria ou do aviso anterior. Na Câmara, a linha que é só o decreto
+  legislativo (com ou sem a data de assinatura) vira o título "DECRETO
+  LEGISLATIVO Nº N/AAAA". Citação no meio de frase não abre ato.
 - **Backfill local (2020-10-04 a 2026-09-23):**
   - 984 edições, 4.824 atos e 1.896 ligações de entidades; nenhuma falha
     de coleta;

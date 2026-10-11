@@ -9,17 +9,22 @@ import (
 )
 
 type Regex struct {
-	pageHeader    []*regexp.Regexp
-	lineNoise     *regexp.Regexp
-	editionRes    []*regexp.Regexp
-	withoutOrgans bool
-	joinRepeats   bool
+	pageHeader        []*regexp.Regexp
+	lineNoise         *regexp.Regexp
+	editionRes        []*regexp.Regexp
+	withoutOrgans     bool
+	joinRepeats       bool
+	splitDecreeTitles bool
 }
 
 func New() Regex { return Regex{editionRes: editionNumberRes} }
 
 func (r Regex) Parse(text string) []domain.Act {
-	lines := dropPreamble(joinSplitHeaders(stripPageNoise(r.stripSourceNoise(splitLines(text)))))
+	lines := r.stripSourceNoise(splitLines(text))
+	if r.splitDecreeTitles {
+		lines = splitLegislativeDecreeTitles(lines)
+	}
+	lines = dropPreamble(joinSplitHeaders(stripPageNoise(lines)))
 
 	var acts []domain.Act
 	var current *segment

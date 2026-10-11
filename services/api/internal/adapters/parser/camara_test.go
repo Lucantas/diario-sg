@@ -153,3 +153,45 @@ func TestCamaraTermsWithTheSameTitleStaySeparate(t *testing.T) {
 		t.Fatalf("termos de vereadores diferentes deveriam ser dois atos: %v", pageSpans(got))
 	}
 }
+
+func TestCamaraLegislativeDecreeInMixedCaseOpensItsOwnAct(t *testing.T) {
+	acts := ForSource(domain.SourceDiarioCamara).Parse(camaraHeader +
+		"PORTARIA Nº 094/2026\nO PRESIDENTE DA CÂMARA MUNICIPAL DE SÃO GONÇALO, NO USO DE SUAS ATRIBUIÇÕES LEGAIS, RESOLVE:\n" +
+		"NOMEAR A CONTAR DE 15 DE SETEMBRO DE 2026 o assessor do gabinete.\n" +
+		"PIERO DE MATOS CABRAL\n\n" +
+		"Decreto Legislativo nº 24/2026 São Gonçalo, 14 de setembro de 2026.\n\n" +
+		"O PRESIDENTE DA CÂMARA MUNICIPAL DE SÃO GONÇALO, NO USO DAS\nATRIBUIÇÕES QUE LHE CONFERE O CARGO E,\n" +
+		"DECRETA\nArt.1º - Fica anulado e alterado no Orçamento da Câmara a importância de R$ 1.606,68.\n")
+
+	if len(acts) != 2 {
+		t.Fatalf("esperava a portaria e o decreto legislativo, veio: %s", titles(acts))
+	}
+	if strings.Contains(acts[0].Body, "R$ 1.606,68") {
+		t.Errorf("a portaria engoliu o decreto legislativo: %q", acts[0].Body)
+	}
+	if acts[1].Title != "DECRETO LEGISLATIVO Nº 24/2026" || acts[1].Type != domain.ActDecreto {
+		t.Errorf("esperava DECRETO LEGISLATIVO Nº 24/2026 (decreto), veio %q (%s)", acts[1].Title, acts[1].Type)
+	}
+	if !strings.Contains(acts[1].Body, "São Gonçalo, 14 de setembro de 2026.") {
+		t.Errorf("a data da linha do título sumiu: %q", acts[1].Body)
+	}
+}
+
+func TestCamaraHeaderReadWithOCRNoiseIsDropped(t *testing.T) {
+	noisy := "arara PODER LEGISLATIVO\nCÂMARA MUNICIPAL DE SÃO GONÇALO\nSão Gonçalo, 22 de dezembro de 2025\n" +
+		"DIÁRIO OFICIAL ELETRÔNICO - D.0.E\nLEI MUNICIPAL 855/2018 DE 05/07/2018.\n"
+	acts := ForSource(domain.SourceDiarioCamara).Parse(noisy +
+		"PORTARIA Nº 167/2025\nO PRESIDENTE DA CÂMARA MUNICIPAL DE SÃO GONÇALO, NO USO DE SUAS ATRIBUIÇÕES LEGAIS, RESOLVE:\n" +
+		"EXONERAR A CONTAR DE 1º DE DEZEMBRO DE 2025 o servidor do gabinete.\n\f" +
+		strings.NewReplacer("arara PODER LEGISLATIVO", "PODER LEGISLATIVO º", "CÂMARA MUNICIPAL DE SÃO", "CAMARA MUNICIPAL DE SÃO").Replace(noisy) +
+		"TERMO DE HOMOLOGAÇÃO\nHomologo o pregão eletrônico nº 4/2025 da Câmara.\n")
+
+	if got := titles(acts); strings.Contains(got, "PODER LEGISLATIVO") || strings.Contains(got, "D.0.E") || len(acts) != 2 {
+		t.Fatalf("cabeçalho com sujeira de OCR virou ato: %s", got)
+	}
+	for _, a := range acts {
+		if strings.Contains(a.Body, "D.0.E") || strings.Contains(a.Body, "PODER LEGISLATIVO") {
+			t.Errorf("%s ficou com o cabeçalho no corpo: %q", a.Title, a.Body)
+		}
+	}
+}
