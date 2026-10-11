@@ -139,6 +139,14 @@ gh workflow run carga-tce -R Lucantas/diario-sg
 gh workflow run dump -R Lucantas/diario-sg
 ```
 
+A coleta agendada olha 10 dias para trás. Cada execução sobe um emulador
+de GCS vazio, então o marcador de "edição já baixada" não sobrevive e a
+janela inteira é baixada de novo; o worker reconhece pelo checksum o que
+já está no banco e não reindexa. Com a janela de 3 dias, as edições entre
+a carga inicial (até 23/09/2026) e a primeira coleta agendada (06/10)
+ficaram de fora. Depois de qualquer parada maior que a janela, rode as
+duas coletas com `lookback_days` cobrindo a parada.
+
 ## 8. Quando o banco passar de 900 MB
 
 O workflow `dump` mede o banco toda semana e falha acima de 900 MB.

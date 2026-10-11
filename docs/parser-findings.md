@@ -343,6 +343,23 @@ migration 013) porque um regex no corpo, na hora da consulta, leva cerca de
     (essas saem como "Licença Prêmio" e afins), então "meio ambiente" no
     texto basta como marcador.
 
+18. Anexo de decreto trocado pelas colunas. Em edições com vários decretos
+    de crédito, o modo de leitura às vezes entrega o texto e o anexo de um
+    decreto dentro do anterior (na 1.738, de 03/08/2026, o 359 saiu com o
+    preâmbulo, os R$ 3.898.000,00 e o anexo do 361, e o 361 com o anexo do
+    359; o 361 aparecia com valor zero). Depois de separar os atos, o
+    parser divide o corpo de cada decreto em trechos: um "ANEXO DECRETO Nº
+    N/AAAA" abre um trecho daquele número, e um segundo preâmbulo ("O
+    PREFEITO MUNICIPAL…") abre um trecho que pertence ao decreto cujo anexo
+    vem logo depois. Trecho de outro decreto da mesma edição vai para o fim
+    dele; anexo de decreto que não está na edição fica onde está. Em
+    11/10/2026, nas edições de 2023 em diante, os decretos com anexo de
+    outro número caíram de 174 para 16, sem mudar tipo, órgão ou título de
+    nenhum ato. Os 16 que sobram são edições em que pedaços do articulado
+    ("Art. 3º…") também trocaram de lugar sem preâmbulo nem anexo para
+    marcar (17/04/2026, 08/05/2026) ou em que o cabeçalho do decreto não
+    saiu no texto (2024-03-15).
+
 O que foi olhado e ficou como está (29/09/2026): "PORTARIA … No. 009/…"
 dentro do corpo são citações de portarias anteriores (editais de citação,
 corrigendas), não cabeçalhos; aceitar "No." quebraria esses atos. O
@@ -396,8 +413,18 @@ Amostra: 88 edições de 2020-11 a 2026-09, baixadas de
   em imagem (cerca de 170 caracteres por página). Até 26/09/2026 ficavam
   com zero atos; agora a página com menos de 200 letras e imagem cobrindo
   ao menos 25% dela é lida pelo Tesseract. Das 73 escaneadas, todas
-  ganharam atos. O OCR põe ruído no cabeçalho ("D.0O.E"), e um decreto
-  legislativo que vem logo depois dele pode cair em `outro`.
+  ganharam atos. O OCR põe ruído no cabeçalho: sujeira antes ou depois
+  de "PODER LEGISLATIVO" ("arara PODER LEGISLATIVO", "PODER LEGISLATIVO
+  º"), "D.0.E"/"D.0O.E" no lugar de "D.O.E" e "CAMARA MUNICIPAL DE SÃO
+  GONÇALO" sem acento. Essas variantes contam como
+  cabeçalho de página; antes viravam atos `outro` com o cabeçalho como
+  título.
+- **Decreto legislativo em caixa mista.** A Câmara escreve "Decreto
+  Legislativo nº 2/2023", às vezes com a data na mesma linha. Como o
+  cabeçalho de ato exige caixa alta, o decreto ficava colado no corpo da
+  portaria ou do aviso anterior. Na Câmara, a linha que é só o decreto
+  legislativo (com ou sem a data de assinatura) vira o título "DECRETO
+  LEGISLATIVO Nº N/AAAA". Citação no meio de frase não abre ato.
 - **Backfill local (2020-10-04 a 2026-09-23):**
   - 984 edições, 4.824 atos e 1.896 ligações de entidades; nenhuma falha
     de coleta;

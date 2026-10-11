@@ -7,7 +7,7 @@ on:
     inputs:
       lookback_days:
         description: Dias para trás
-        default: "3"
+        default: "10"
 
 concurrency:
   group: diario-prefeitura
@@ -17,5 +17,5 @@ jobs:
     uses: ./.github/workflows/_pipeline.yml
     with:
       source: diario_prefeitura
-      lookback_days: ${{ inputs.lookback_days || '3' }}
+      lookback_days: ${{ inputs.lookback_days || '10' }}
     secrets: inherit
