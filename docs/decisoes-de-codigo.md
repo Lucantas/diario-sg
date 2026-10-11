@@ -28,6 +28,17 @@ decisões de arquitetura, em `adr/`.
   Medido: "Portaria nº 100" 2.268 → 2.213 sem a reconferência, 2.268 com
   ela; "nº 123" 1.064 → 440 → 1.064.
   Os testes `numeric_search_test.go` e `e2e_test.go` cobrem isso.
+- Sequência numérica com menos de 3 caracteres ("0", o "25" de "R$ 25,74",
+  o "9" de "Portaria nº 9") não usa o índice trigram, que precisa de 3, e
+  virava varredura da tabela: 10 a 21 s em produção, às vezes erro 500.
+  Nesse caso o filtro é o full-text das palavras do termo com 3 letras ou
+  mais, sem os números, e o termo inteiro continua reconferido no corpo;
+  termo só com número curto fica só com o full-text. A sequência e as
+  palavras saem de `search_number` e `search_words` (migration 035), que
+  são `IMMUTABLE` para o planner resolver com o parâmetro e descartar o
+  ramo que não serve; numa subconsulta ele lia os dois. Base local: "0"
+  3,2 s → 40 ms; "R$ 25,74" 2,7 s → 7 ms; "Portaria nº 9" 2,6 s → 1,5 s.
+  Um dígito sozinho ("9") deixa de casar como trecho de outro número.
 - Ordem: atos com a frase exata (sem acento, sem caixa) primeiro, do mais
   recente ao mais antigo; o resto pelo `ts_rank`, que sozinho favorece
   listas longas de nomes com as palavras soltas.

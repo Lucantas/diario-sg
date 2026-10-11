@@ -11,6 +11,7 @@ import (
 
 const numericGazette = `EXTRATO DO CONTRATO Nº 55/2026
 Processo nº65/100410/2018. Contratada: Construtora Alfa LTDA, CNPJ 28.636.579/0001-00.
+Preço unitário de R$ 25,74 por quilo.
 PORTARIA Nº 9/2026
 Nomeia servidor da Secretaria de Obras.`
 
@@ -26,6 +27,8 @@ func TestSearchFindsNumbersInsideTextAndDropsWordFragments(t *testing.T) {
 		{"texto sem dígito pelo full-text", "construtora", 1},
 		{"trecho de palavra sem dígito não casa mais", "nstrutora alf", 0},
 		{"texto com número colado em barra", "Portaria nº 9", 1},
+		{"valor com centavos", "R$ 25,74", 1},
+		{"número curto sozinho pelo full-text", "9", 0},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
