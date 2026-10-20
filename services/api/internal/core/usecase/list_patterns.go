@@ -23,6 +23,11 @@ type ListPatterns struct {
 	acts     map[string]domain.ActHit
 	lastErr  error
 	running  chan struct{}
+
+	snapshots    ports.PatternSnapshotStore
+	version      string
+	onStoreError func(error)
+	fingerprint  string
 }
 
 func NewListPatterns(src ports.PatternSource, suppliers ports.SupplierPatternSource) *ListPatterns {
@@ -31,6 +36,14 @@ func NewListPatterns(src ports.PatternSource, suppliers ports.SupplierPatternSou
 
 func (uc *ListPatterns) WithCache(ttl time.Duration, now func() time.Time) *ListPatterns {
 	uc.ttl, uc.now = ttl, now
+	return uc
+}
+
+func (uc *ListPatterns) WithSnapshots(store ports.PatternSnapshotStore, version string, onStoreError func(error)) *ListPatterns {
+	if onStoreError == nil {
+		onStoreError = func(error) {}
+	}
+	uc.snapshots, uc.version, uc.onStoreError = store, version, onStoreError
 	return uc
 }
 
@@ -85,15 +98,52 @@ func (uc *ListPatterns) startLocked(ctx context.Context) chan struct{} {
 func (uc *ListPatterns) refresh(ctx context.Context, done chan struct{}) {
 	ctx, cancel := context.WithTimeout(ctx, patternsComputeTimeout)
 	defer cancel()
-	reports, acts, err := uc.compute(ctx)
+	uc.mu.Lock()
+	known := uc.fingerprint
+	uc.mu.Unlock()
+	snap, unchanged, err := uc.load(ctx, known)
 	uc.mu.Lock()
 	defer uc.mu.Unlock()
 	uc.lastErr = err
 	if err == nil {
-		uc.reports, uc.acts, uc.cachedAt = reports, acts, uc.now()
+		if !unchanged {
+			uc.reports, uc.acts = snap.Reports, snap.Acts
+		}
+		uc.fingerprint, uc.cachedAt = snap.Fingerprint, uc.now()
 	}
 	uc.running = nil
 	close(done)
+}
+
+func (uc *ListPatterns) load(ctx context.Context, known string) (domain.PatternSnapshot, bool, error) {
+	if uc.snapshots == nil {
+		reports, acts, err := uc.compute(ctx)
+		return domain.PatternSnapshot{Reports: reports, Acts: acts}, false, err
+	}
+	inputs, err := uc.snapshots.PatternInputsFingerprint(ctx)
+	if err != nil {
+		return domain.PatternSnapshot{}, false, err
+	}
+	fingerprint := uc.version + "|" + inputs
+	if fingerprint == known {
+		return domain.PatternSnapshot{Fingerprint: fingerprint}, true, nil
+	}
+	stored, ok, err := uc.snapshots.LoadPatternSnapshot(ctx, fingerprint)
+	if err != nil {
+		uc.onStoreError(err)
+	}
+	if ok {
+		return stored, false, nil
+	}
+	reports, acts, err := uc.compute(ctx)
+	if err != nil {
+		return domain.PatternSnapshot{}, false, err
+	}
+	snap := domain.PatternSnapshot{Fingerprint: fingerprint, Reports: reports, Acts: acts}
+	if err := uc.snapshots.SavePatternSnapshot(ctx, snap); err != nil {
+		uc.onStoreError(err)
+	}
+	return snap, false, nil
 }
 
 func (uc *ListPatterns) compute(ctx context.Context) ([]domain.PatternReport, map[string]domain.ActHit, error) {
@@ -173,11 +223,15 @@ func (uc *ListPatterns) supplierReports(ctx context.Context, catalog map[domain.
 		return nil, err
 	}
 	contracts := domain.SupplierContracts(acts)
-	payment, err := uc.paymentReports(ctx, catalog, acts, contracts, profiles)
+	unnamed, err := uc.panelActsWithoutCNPJ(ctx)
 	if err != nil {
 		return nil, err
 	}
-	pncp, err := uc.pncpReport(ctx, catalog, profiles)
+	payment, err := uc.paymentReports(ctx, catalog, acts, unnamed[domain.SourceDiarioPrefeitura], contracts, profiles)
+	if err != nil {
+		return nil, err
+	}
+	pncp, err := uc.pncpReport(ctx, catalog, profiles, unnamed)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +271,21 @@ func (uc *ListPatterns) partnerAgentReport(ctx context.Context, catalog map[doma
 		domain.PartnerPublicAgentFinding), nil
 }
 
-func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, acts []domain.PanelAct,
+var unnamedActSources = []string{domain.SourceDiarioPrefeitura, domain.SourceDiarioCamara}
+
+func (uc *ListPatterns) panelActsWithoutCNPJ(ctx context.Context) (map[string][]domain.PanelAct, error) {
+	bySource := map[string][]domain.PanelAct{}
+	for _, source := range unnamedActSources {
+		acts, err := uc.suppliers.PanelActsWithoutCNPJ(ctx, source)
+		if err != nil {
+			return nil, err
+		}
+		bySource[source] = acts
+	}
+	return bySource, nil
+}
+
+func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, acts, unnamed []domain.PanelAct,
 	contracts []domain.SupplierContract, profiles map[string]domain.SupplierProfile) ([]domain.PatternReport, error) {
 	paid, err := uc.suppliers.PaidCreditors(ctx)
 	if err != nil {
@@ -231,10 +299,6 @@ func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.P
 	if err != nil {
 		return nil, err
 	}
-	unnamed, err := uc.suppliers.PanelActsWithoutCNPJ(ctx, domain.SourceDiarioPrefeitura)
-	if err != nil {
-		return nil, err
-	}
 	announced := append(append([]domain.PanelAct{}, acts...), domain.AttributeByName(unnamed, paid, profiles)...)
 	return []domain.PatternReport{
 		reportOf(catalog[domain.PatternPaidUnpublished], domain.FindPaidWithoutPublication(paid, cited, profiles), domain.PaidWithoutPublicationFinding),
@@ -244,7 +308,8 @@ func (uc *ListPatterns) paymentReports(ctx context.Context, catalog map[domain.P
 	}, nil
 }
 
-func (uc *ListPatterns) pncpReport(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, profiles map[string]domain.SupplierProfile) (domain.PatternReport, error) {
+func (uc *ListPatterns) pncpReport(ctx context.Context, catalog map[domain.PatternID]domain.Pattern, profiles map[string]domain.SupplierProfile,
+	unnamedBySource map[string][]domain.PanelAct) (domain.PatternReport, error) {
 	contracts, err := uc.suppliers.AllPNCPContracts(ctx)
 	if err != nil {
 		return domain.PatternReport{}, err
@@ -262,12 +327,8 @@ func (uc *ListPatterns) pncpReport(ctx context.Context, catalog map[domain.Patte
 		return domain.PatternReport{}, err
 	}
 	var unnamed []domain.PanelAct
-	for _, source := range []string{domain.SourceDiarioPrefeitura, domain.SourceDiarioCamara} {
-		acts, err := uc.suppliers.PanelActsWithoutCNPJ(ctx, source)
-		if err != nil {
-			return domain.PatternReport{}, err
-		}
-		unnamed = append(unnamed, acts...)
+	for _, source := range unnamedActSources {
+		unnamed = append(unnamed, unnamedBySource[source]...)
 	}
 	citations := domain.PNCPCitations{CNPJs: cited, Processes: processes, Names: domain.PNCPCitedNames(unnamed)}
 	return reportOf(catalog[domain.PatternPNCPWithoutExtract], domain.FindPNCPWithoutExtract(contracts, citations, last, profiles),

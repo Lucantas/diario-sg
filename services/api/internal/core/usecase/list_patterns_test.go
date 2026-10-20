@@ -275,3 +275,146 @@ func TestListPatternsWarmComputesInTheBackgroundForTheFirstReader(t *testing.T) 
 		t.Errorf("aquecer duas vezes e ler depois custa um cálculo só: %d cálculos", src.calls)
 	}
 }
+
+type fakeSnapshotStore struct {
+	fingerprint  string
+	saved        map[string]domain.PatternSnapshot
+	loadErr      error
+	fingerprints int
+	loads        int
+	saves        int
+}
+
+func (f *fakeSnapshotStore) PatternInputsFingerprint(context.Context) (string, error) {
+	f.fingerprints++
+	return f.fingerprint, nil
+}
+
+func (f *fakeSnapshotStore) LoadPatternSnapshot(_ context.Context, fingerprint string) (domain.PatternSnapshot, bool, error) {
+	f.loads++
+	if f.loadErr != nil {
+		return domain.PatternSnapshot{}, false, f.loadErr
+	}
+	snap, ok := f.saved[fingerprint]
+	return snap, ok, nil
+}
+
+func (f *fakeSnapshotStore) SavePatternSnapshot(_ context.Context, snap domain.PatternSnapshot) error {
+	f.saves++
+	if f.saved == nil {
+		f.saved = map[string]domain.PatternSnapshot{}
+	}
+	f.saved[snap.Fingerprint] = snap
+	return nil
+}
+
+func TestListPatternsWithSnapshotsServesTheStoredResultWithoutComputing(t *testing.T) {
+	src := &countingPatternSource{fakePatternSource: &fakePatternSource{}}
+	stored := domain.PatternSnapshot{Fingerprint: "v1|dados-1", Reports: []domain.PatternReport{{Pattern: domain.Pattern{ID: "guardado"}}},
+		Acts: map[string]domain.ActHit{"a": {Act: domain.Act{ID: "a"}}}}
+	store := &fakeSnapshotStore{fingerprint: "dados-1", saved: map[string]domain.PatternSnapshot{stored.Fingerprint: stored}}
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, time.Now).WithSnapshots(store, "v1", nil)
+
+	reports, acts, err := uc.Execute(context.Background())
+
+	if err != nil || len(reports) != 1 || reports[0].Pattern.ID != "guardado" || acts["a"].ID != "a" {
+		t.Fatalf("esperava o resultado guardado, veio %+v %v %v", reports, acts, err)
+	}
+	if src.calls != 0 || store.saves != 0 {
+		t.Errorf("com o resultado guardado para os mesmos dados não se calcula nada: %d cálculos, %d gravações", src.calls, store.saves)
+	}
+}
+
+func TestListPatternsWithSnapshotsComputesAndSavesWhenTheDataChanged(t *testing.T) {
+	src := &countingPatternSource{fakePatternSource: &fakePatternSource{}}
+	old := domain.PatternSnapshot{Fingerprint: "v1|dados-1", Reports: []domain.PatternReport{{Pattern: domain.Pattern{ID: "velho"}}}}
+	store := &fakeSnapshotStore{fingerprint: "dados-2", saved: map[string]domain.PatternSnapshot{old.Fingerprint: old}}
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, time.Now).WithSnapshots(store, "v1", nil)
+
+	reports, _, err := uc.Execute(context.Background())
+
+	if err != nil || len(reports) != 15 {
+		t.Fatalf("esperava os 15 padrões recalculados, veio %d %v", len(reports), err)
+	}
+	if src.calls != 1 || store.saves != 1 || len(store.saved["v1|dados-2"].Reports) != 15 {
+		t.Errorf("dados novos pedem um cálculo e uma gravação: %d cálculos, %d gravações", src.calls, store.saves)
+	}
+}
+
+func TestListPatternsWithSnapshotsRecomputesWhenTheCodeChanged(t *testing.T) {
+	src := &countingPatternSource{fakePatternSource: &fakePatternSource{}}
+	old := domain.PatternSnapshot{Fingerprint: "v1|dados-1", Reports: []domain.PatternReport{{Pattern: domain.Pattern{ID: "velho"}}}}
+	store := &fakeSnapshotStore{fingerprint: "dados-1", saved: map[string]domain.PatternSnapshot{old.Fingerprint: old}}
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, time.Now).WithSnapshots(store, "v2", nil)
+
+	if _, _, err := uc.Execute(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	if src.calls != 1 || store.saved["v2|dados-1"].Fingerprint == "" {
+		t.Errorf("outra versão do código recalcula mesmo com os mesmos dados: %d cálculos", src.calls)
+	}
+}
+
+func TestListPatternsWithSnapshotsOnlyChecksTheDataAfterTheTTL(t *testing.T) {
+	src := &countingPatternSource{fakePatternSource: &fakePatternSource{}}
+	store := &fakeSnapshotStore{fingerprint: "dados-1"}
+	now := time.Date(2026, 10, 15, 10, 0, 0, 0, time.UTC)
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, func() time.Time { return now }).WithSnapshots(store, "v1", nil)
+
+	if _, _, err := uc.Execute(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	now = now.Add(time.Hour)
+	if _, _, err := uc.Execute(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	if src.calls != 1 || store.loads != 1 || store.fingerprints != 2 {
+		t.Errorf("passada a hora, dados iguais custam só a conferência: %d cálculos, %d leituras, %d conferências",
+			src.calls, store.loads, store.fingerprints)
+	}
+}
+
+func TestListPatternsWithSnapshotsComputesWhenTheStoredResultCannotBeRead(t *testing.T) {
+	src := &countingPatternSource{fakePatternSource: &fakePatternSource{}}
+	store := &fakeSnapshotStore{fingerprint: "dados-1", loadErr: errors.New("gzip corrompido")}
+	var reported []error
+	uc := NewListPatterns(src, &fakeSupplierSource{}).WithCache(time.Hour, time.Now).
+		WithSnapshots(store, "v1", func(err error) { reported = append(reported, err) })
+
+	reports, _, err := uc.Execute(context.Background())
+
+	if err != nil || len(reports) != 15 || src.calls != 1 {
+		t.Fatalf("sem conseguir ler o guardado, calcula: %d padrões, %d cálculos, %v", len(reports), src.calls, err)
+	}
+	if len(reported) != 1 || reported[0].Error() != "gzip corrompido" {
+		t.Errorf("a falha de leitura é avisada: %v", reported)
+	}
+}
+
+type unnamedCountingSupplierSource struct {
+	*fakeSupplierSource
+	mu    sync.Mutex
+	calls map[string]int
+}
+
+func (u *unnamedCountingSupplierSource) PanelActsWithoutCNPJ(_ context.Context, source string) ([]domain.PanelAct, error) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.calls[source]++
+	return nil, nil
+}
+
+func TestListPatternsReadsTheActsWithoutCNPJOncePerSource(t *testing.T) {
+	suppliers := &unnamedCountingSupplierSource{fakeSupplierSource: &fakeSupplierSource{}, calls: map[string]int{}}
+
+	if _, _, err := NewListPatterns(&fakePatternSource{}, suppliers).Execute(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	want := map[string]int{domain.SourceDiarioPrefeitura: 1, domain.SourceDiarioCamara: 1}
+	if len(suppliers.calls) != len(want) || suppliers.calls[domain.SourceDiarioPrefeitura] != 1 || suppliers.calls[domain.SourceDiarioCamara] != 1 {
+		t.Errorf("os atos sem CNPJ de cada fonte vêm do banco uma vez por cálculo: %v", suppliers.calls)
+	}
+}

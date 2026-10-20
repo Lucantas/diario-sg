@@ -81,6 +81,12 @@ type PatternReport struct {
 	Findings []Finding
 }
 
+type PatternSnapshot struct {
+	Fingerprint string
+	Reports     []PatternReport
+	Acts        map[string]ActHit
+}
+
 var monthNames = [...]string{"", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"}
 
 var dispensaCategoryLabel = map[DispensaCategory]string{DispensaGoods: "compras e serviços", DispensaWorks: "obras e serviços de engenharia"}
