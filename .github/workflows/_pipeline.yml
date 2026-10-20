@@ -9,7 +9,7 @@ on:
       lookback_days:
         required: false
         type: string
-        default: "3"
+        default: "10"
 
 permissions:
   contents: read
