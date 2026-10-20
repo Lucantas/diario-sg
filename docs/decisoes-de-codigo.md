@@ -165,6 +165,30 @@ decisões de arquitetura, em `adr/`.
   devolve a página do front: sem ele, o prefixo com `proxy_pass`
   redirecionaria `/dados` para `/dados/`.
 
+## Padrões guardados no banco
+
+- O Neon free cobra a transferência pública de rede (5 GB/mês). Calcular
+  os padrões puxa cerca de 18 MB do banco, e a API no Render free dorme
+  quando fica sem uso: cada vez que acordava, ou que o cache de uma hora
+  expirava, eram mais 18 MB. Em outubro de 2026 isso levou o projeto a
+  80% da cota.
+- O resultado vai para `pattern_snapshots` como JSON com gzip (cerca de
+  280 KB), junto com uma impressão digital. Na partida, a API confere a
+  impressão e lê o resultado pronto. Só recalcula quando ela muda.
+- A impressão é a versão do binário, o mês corrente (o pico de nomeações
+  ignora o mês em curso) e `count(*)` e `max(xmin)` de cada tabela que os
+  padrões leem. `xmin` muda em todo INSERT e UPDATE, e a
+  contagem pega o DELETE. Assim nenhum coletor precisa avisar a API de que
+  escreveu algo. A conferência lê as tabelas dentro do banco, mas devolve
+  só uma linha. Quem criar um padrão que lê outra tabela deve incluí-la em
+  `patternInputTables`.
+- A versão é o hash do próprio executável. A imagem da Render é montada
+  sem `.git`, então não há commit no binário. Com `-trimpath` o build é
+  reprodutível: um deploy sem mudança de código reaproveita o resultado,
+  e qualquer mudança de código recalcula.
+- Se o guardado não puder ser lido ou gravado, a API avisa no log e
+  calcula do jeito antigo. A falha no cache nunca derruba a página.
+
 ## Qualidade visível
 
 - Os avisos de extração (`sem_numero`, `so_titulo`, `muitas_paginas`,

@@ -66,7 +66,10 @@ func run(l *slog.Logger) error {
 	discovery := postgres.NewDiscoveryRepo(db)
 	company := usecase.NewGetCompany(acts, sources)
 	keys := usecase.NewAPIKeys(postgres.NewAPIKeyRepo(db))
-	patterns := usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)).WithCache(patternsCacheTTL, time.Now)
+	patterns := usecase.NewListPatterns(postgres.NewPatternRepo(db), postgres.NewSupplierPatternRepo(db)).WithCache(patternsCacheTTL, time.Now).
+		WithSnapshots(postgres.NewPatternSnapshotRepo(db), binaryVersion(l), func(err error) {
+			l.Warn("padrões guardados no banco indisponíveis", "error", err)
+		})
 	norms := usecase.NewFindNorms(postgres.NewNormRepo(db))
 	bills := usecase.NewFindBills(postgres.NewBillRepo(db), postgres.NewNormRepo(db), time.Now)
 	webURL := strings.TrimRight(cfg.PublicWebURL, "/")

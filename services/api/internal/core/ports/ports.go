@@ -55,6 +55,12 @@ type SupplierPatternSource interface {
 	PoliticalAgentNames(ctx context.Context) ([]domain.PublicAgentName, error)
 }
 
+type PatternSnapshotStore interface {
+	PatternInputsFingerprint(ctx context.Context) (string, error)
+	LoadPatternSnapshot(ctx context.Context, fingerprint string) (domain.PatternSnapshot, bool, error)
+	SavePatternSnapshot(ctx context.Context, snap domain.PatternSnapshot) error
+}
+
 type PanelSource interface {
 	PanelActs(ctx context.Context, source string) ([]domain.PanelAct, error)
 	HitsByIDs(ctx context.Context, ids []string) ([]domain.ActHit, error)
