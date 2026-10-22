@@ -9,15 +9,13 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/seu-usuario/diario-sg/services/scraper/internal/core/domain"
 )
 
 const (
-	userAgent   = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
-	listingTerm = "a"
+	userAgent = "diario-sg-bot/0.1 (+https://github.com/seu-usuario/diario-sg)"
 
 	maxPages     = 200
 	maxHTMLBytes = 10 << 20
@@ -48,8 +46,8 @@ func newClient() *http.Client {
 }
 
 var (
-	editionLinkRe = regexp.MustCompile(`href="(diario/(\d{4})_(\d{2})_(\d{2})(?:_\d+)?\.pdf)"`)
-	pageLinkRe    = regexp.MustCompile(`NumeroPagina=(\d+)`)
+	editionLinkRe = regexp.MustCompile(`href="/(diario/download/pdf/(\d{4})_(\d{2})_(\d{2})(?:_\d+)?\.pdf)"`)
+	pageLinkRe    = regexp.MustCompile(`[?&;]page=(\d+)`)
 )
 
 type listedEdition struct {
@@ -106,25 +104,14 @@ func (s *Source) ListEditions(ctx context.Context, from, to time.Time) ([]domain
 }
 
 func (s *Source) listingPage(ctx context.Context, from, to time.Time, page int) (string, error) {
-	form := url.Values{
-		"DataInicial":    {from.Format(time.DateOnly)},
-		"DataFinal":      {to.Format(time.DateOnly)},
-		"Termo":          {listingTerm},
-		"PesquisarTermo": {"Pesquisar"},
-	}
-	var req *http.Request
-	var err error
-	target := s.baseURL.ResolveReference(&url.URL{Path: "index"})
-	if page == 1 {
-		req, err = http.NewRequestWithContext(ctx, http.MethodPost, target.String(), strings.NewReader(form.Encode()))
-		if err == nil {
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		}
-	} else {
-		form.Set("NumeroPagina", strconv.Itoa(page))
-		target.RawQuery = form.Encode()
-		req, err = http.NewRequestWithContext(ctx, http.MethodGet, target.String(), nil)
-	}
+	target := *s.baseURL
+	target.RawQuery = url.Values{
+		"start_date": {from.Format(time.DateOnly)},
+		"end_date":   {to.Format(time.DateOnly)},
+		"q":          {""},
+		"page":       {strconv.Itoa(page)},
+	}.Encode()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target.String(), nil)
 	if err != nil {
 		return "", err
 	}
