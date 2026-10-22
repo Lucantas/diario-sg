@@ -10,7 +10,7 @@ mkdir -p "$OUT"
 dates=("${@:-${DEFAULT_DATES[@]}}")
 for d in "${dates[@]}"; do
   name="${d//-/_}"
-  url="${BASE_URL%/}/diario/${name}.pdf"
+  url="${BASE_URL%/}/diario/download/pdf/${name}.pdf"
   if [[ -f "$OUT/$name.pdf" ]]; then
     echo "$name.pdf já existe, pulando download"
   else

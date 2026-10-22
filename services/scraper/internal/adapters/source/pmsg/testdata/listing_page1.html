@@ -1,148 +1,1174 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transational//EN" 
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http//www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br" class="h-100" >
+<!DOCTYPE html>
+<html class="h-100" lang="pt-br">
 <head>
-	<meta http-equiv="Content-Type:" Content="text/html; charset=utf-8"/>
-	<link href="./imagens/brasao.png" type="image/x-icon" rel="shortcut icon"/>
-	<title>PMSG - Diario Oficial</title>
-	<link type="text/css" href="css/pmsg.css" rel="stylesheet">
-	<link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>D.O. - Pesquisa - Diário Oficial</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/templates/images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/templates/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/templates/images/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/templates/images/favicon/site.webmanifest">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/estilo/css/estilo.css" id="main-style-link">
+
+            <link rel="stylesheet" href="/build/app.0c662fc4.css">
+        <link rel="stylesheet" href="/estilo/css/portal.css">
+    
+            <script src="/build/runtime.b4b8cdb3.js" defer></script><script src="/build/336.aceccb50.js" defer></script><script src="/build/app.9c8c2e3c.js" defer></script>
+    
+
+
+
 </head>
-<body class="d-flex flex-column h-100">
-
-<main class="flex-shrink-0">
-<div class="container">
-<div class="d-flex justify-content-center">
-    <a link href="https://do.pmsg.rj.gov.br">
-	<div class="d-flex justify-content-center" >
-        <img src="imagens/brasao-rodape.png" width="160">
-    </div>
-    <img src="imagens/pmsg.png" width="300"/>
-	</a>
-</div>
-
-<div class="d-flex justify-content-center mt-5">
-	<h1 class="text-titulo">Diário Oficial</h1>
-</div>
-<div class="container mt-2">
-   <div class="row align-items-start">
-        <div class="col-md-3" >
-            <div class="card">
-                <div class="card-body ">
-                <form method="post" action="#">
-                    <div class="border-bottom fw-bold mb-3">Busca Rápida</div>
-                    <div>Data</div>
-                    <input type="date" value="2026-09-21" name="BuscaRapida" class="form-control mb-2">
-                    <input type="submit" name="Pesquisar" class="btn btn-primary" value="Pesquisar">
+<body class="d-flex flex-column min-vh-100 portal-body">
+    <header class="sg-header">
+        <div class="sg-topbar">
+            <div class="container sg-topbar-inner">
+                <nav class="sg-quick-links" aria-label="Links institucionais">
+                    <a href="https://www.saogoncalo.rj.gov.br/transparencia/">Transparência</a>
+                    <a href="https://ouvidoria.pmsg.rj.gov.br/">Ouvidoria</a>
+                    <a href="https://webmail.pmsg.rj.gov.br/">Webmail</a>
+                </nav>
+                <div class="sg-social-area">
+                    <span>Quinta-feira, 22 de outubro de 2026</span>
+                    <span class="sg-divider">|</span>
+                    <a href="https://www.instagram.com/prefeiturasaogoncalo/" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://www.facebook.com/PrefeituraMunicipalDeSaoGoncalo/" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.youtube.com/@PrefeituraSaoGoncalo" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
                 </div>
             </div>
-            </form>
         </div>
-        <div class="col-md-9" >
-            <div class="card">
-                <div class="card-body">
-                <form method="post" action="index">
-                    <div class="border-bottom fw-bold mb-3">Busca Específica</div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label>Data Inicial</label>
-                                <input type="date" value="2026-09-08" name="DataInicial" class="form-control mb-2">
-                            </div>    
-                            <div class="col-md-3">
-                                <label>Data Final</label>
-                                <input type="date" value="2026-09-21" name="DataFinal" class="form-control mb-2">
-                            </div>          
-                            <div class="col-md-6">
-                                <label>Termo / Palavra</label>
-                                <input type="text" name="Termo" placeholder="Infome o termo/palavra desejada" class="form-control mb-2" value="Gonçalo" >
-                            </div>        
-                        </div>    
-                        <input type="submit" class="btn btn-primary" value="Pesquisar" name="PesquisarTermo">
+
+        <div class="sg-mainbar">
+            <div class="container sg-mainbar-inner">
+                <a class="sg-logo" href="https://www.saogoncalo.rj.gov.br/" aria-label="Prefeitura Municipal de São Gonçalo">
+                    <img src="/portal-assets/logos/logo-prefeitura-sao-goncalo.png" alt="Prefeitura Municipal de São Gonçalo">
+                </a>
+
+                <nav class="sg-service-links" aria-label="Serviços principais">
+                    <a href="https://nfe.pmsg.rj.gov.br/">
+                        <span class="sg-service-icon sg-service-yellow"><i class="bi bi-receipt"></i></span>
+                        NFS-e
+                    </a>
+                    <a href="https://www.saogoncalo.rj.gov.br/noticias/">
+                        <span class="sg-service-icon sg-service-blue"><i class="bi bi-newspaper"></i></span>
+                        Notícias
+                    </a>
+                    <a href="/" aria-current="page">
+                        <span class="sg-service-icon sg-service-red"><i class="bi bi-list-ul"></i></span>
+                        Diário Oficial
+                    </a>
+                    <a href="https://www.saogoncalo.rj.gov.br/fale-conosco/">
+                        <span class="sg-service-icon sg-service-green"><i class="bi bi-chat-dots"></i></span>
+                        Fale Conosco
+                    </a>
+                                            <a href="/login" class="sg-login-link"><i class="bi bi-lock"></i> Acesso Restrito</a>
+                                    </nav>
+            </div>
+        </div>
+        <div class="sg-blue-line"></div>
+    </header>
+
+    <main class="flex-shrink-0 portal-main">
+        <section class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="do-numbers-row">
+                <h2>Diário Oficial em números</h2>
+                <div class="do-pill-list mt-3">
+                    <div class="do-pill">
+                        <i class="bi bi-journal-text"></i>
+                        <div><strong>5.951</strong><span>edições</span></div>
                     </div>
-                </div>    
+                    <div class="do-pill">
+                        <i class="bi bi-stars"></i>
+                        <div><strong>119</strong><span>extras</span></div>
+                    </div>
+                    <div class="do-pill">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <div><strong>49.598</strong><span>páginas</span></div>
+                    </div>
+                    <div class="do-pill">
+                        <i class="bi bi-download"></i>
+                        <div><strong>47</strong><span>downloads</span></div>
+                    </div>
+                    <div class="do-pill">
+                        <i class="bi bi-calendar-week"></i>
+                        <div><strong>5</strong><span>últimos 7 dias</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-5">
+                <div class="card-body">
+                    <div class="do-section-title">
+                        <i class="bi bi-clock-history"></i>
+                        <h2>Última Edição</h2>
+                    </div>
+
+                                            <div class="do-latest-content">
+                            <div class="do-thumb">
+                                <span class="do-thumb-bar">
+                                    <i class="bi bi-newspaper"></i> DiárioOficial
+                                </span>
+                                <img src="/portal-assets/logos/brasao.png" alt="">
+                            </div>
+                            <div class="do-latest-info">
+                                <dl>
+                                    <div>
+                                        <dt>Data de Publicação</dt>
+                                        <dd class="do-latest-number">22/10/2026</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Postagem</dt>
+                                        <dd>22/10/2026 às 12h15</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Tamanho</dt>
+                                        <dd>
+                                            1,63 MB                                             | 10 páginas                                        </dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="do-actions mt-4">
+                            <a class="btn btn-primary" href="/diario/ver/2026_10_22.pdf" target="_blank">
+                                <i class="bi bi-eye"></i> Ler online
+                            </a>
+                            <a class="btn btn-outline-primary" href="/diario/download/pdf/2026_10_22.pdf">
+                                <i class="bi bi-download"></i> Baixar
+                            </a>
+                        </div>
+                                    </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <aside class="do-calendar-card">
+                <div class="do-calendar-head">
+                    <select id="calMonth" class="form-select form-select-sm" aria-label="Mês"></select>
+                    <select id="calYear" class="form-select form-select-sm" aria-label="Ano"></select>
+                </div>
+                <div class="do-calendar-weekdays">
+                    <span>DOM</span><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span class="do-cal-sat">SÁB</span>
+                </div>
+                <div class="do-calendar-grid" id="calGrid" aria-live="polite"></div>
+            </aside>
+        </div>
+    </div>
+</section>
+
+<section class="container do-search-area">
+    <button type="button" class="do-search-toggle" data-bs-toggle="collapse" data-bs-target="#searchPanel" aria-expanded="true" aria-controls="searchPanel">
+        <span>BUSCAR EDIÇÕES</span>
+        <i class="bi bi-chevron-up"></i>
+    </button>
+
+    <div class="collapse show do-search-panel" id="searchPanel">
+        <div class="do-search-split">
+            <div class="do-search-box">
+                <h3>Busca Rápida</h3>
+                <form method="get" action="/#resultados" class="do-search-form">
+                    <label for="edition_date">Data</label>
+                    <input type="date" id="edition_date" name="edition_date" value="2026-10-22" class="form-control">
+                    <div class="do-quick-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Pesquisar
+                        </button>
+                        <button type="submit" formaction="/search" class="btn btn-outline-primary">
+                            <i class="bi bi-download"></i> Baixar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="do-search-box">
+                <h3>Busca Específica</h3>
+                <form method="get" action="/#resultados" class="do-search-form">
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="start_date">Data Inicial</label>
+                            <input type="date" id="start_date" name="start_date" value="2026-09-01" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date">Data Final</label>
+                            <input type="date" id="end_date" name="end_date" value="2026-10-22" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="q">Termo / Palavra</label>
+                            <input type="text" id="q" name="q" value="" placeholder="Informe o termo/palavra desejada" class="form-control">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">
+                        <i class="bi bi-search"></i> Pesquisar
+                    </button>
                 </form>
             </div>
         </div>
     </div>
+</section>
+
+<section class="container do-content-area" id="resultados">
+
+    
+
+            <div class="do-list-heading">
+            <span class="badge text-bg-danger do-label">35 resultados encontrados</span>
+                    </div>
+
+        <div class="do-edition-list">
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
+                    </div>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 22/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                            <span class="badge bg-success">Hoje</span>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 1,63 MB | 10 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 48</span>
+                                                    </div>
+                                                    <p>CIDADE ILUSTRADA CONCLUI PAINEL EM 
+HOMENAGEM À TRADIÇÃO DAS PIPAS E 
+CAFIFAS DE SÃO GONÇALO
+SÃO GONÇALO OFERECE TARDE DE 
+DIVERSÃO PARA CRIANÇAS DO ESPAÇO AZUL
+SÃO GONÇALO PROMOVE CAPACITAÇÃO 
+PARA PROFISSIONAIS DA ASSI...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
 </div>
+                        </div>
+                    </div>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_22.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_22.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_22.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_22.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2022%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_22.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
 
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
+                    </div>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 21/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 1,51 MB | 16 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 1</span>
+                                                    </div>
+                                                    <p>SÃO GONÇALO REFORÇA IMPORTÂNCIA DAS 
+VACINAS PARA CRIANÇAS, ADOLESCENTES E 
+ADULTOS
+SÃO GONÇALO OFERECE CURSO DE 
+ORATÓRIA E COMUNICAÇÃO PARA 
+SERVIDORES
+HEMONÚCLEO DE SÃO GONÇALO REALIZA 
+AÇÃO EM ALUSÃO AO OUTUBRO ROSA
+...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
 
-<div class="container mt-1">
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <b>
-                            &nbsp                            73 Palavra(s) <font color="red">Gonçalo</font> encontrada(s) no Diário Oficial em <a href="diario/2026_09_18.pdf" underline="none" target="_blank">18/09/2026</a>.
-                            
-                            
-                        </b>    
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <p>[trecho removido: contém dados pessoais]</p>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_21.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_21.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_21.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_21.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2021%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_21.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
                     </div>
-                </div>
-                                <div class="card mb-3">
-                    <div class="card-header">
-                        <b>
-                            &nbsp                            58 Palavra(s) <font color="red">Gonçalo</font> encontrada(s) no Diário Oficial em <a href="diario/2026_09_17.pdf" underline="none" target="_blank">17/09/2026</a>.
-                            
-                            
-                        </b>    
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
                     </div>
-                    <div class="card-body">
-                        <p>[trecho removido: contém dados pessoais]</p>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 20/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 1,54 MB | 11 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 0</span>
+                                                    </div>
+                                                    <p>PARQUE RJ NOSSO SONHO RECEBE 
+PRIMEIRA EDIÇÃO DO IMPACTO EM 4 RODAS
+OPORTUNIDADES REÚNE DEZENAS DE 
+GONÇALENSES NO PARTAGE SHOPPING
+ALUNOS DE QUATRO ESCOLAS DE SÃO 
+GONÇALO CONHECEM O TEATRO MUNICIPAL
+O
+s grandes times c...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
                     </div>
-                </div>
-                                <div class="card mb-3">
-                    <div class="card-header">
-                        <b>
-                            &nbsp                            85 Palavra(s) <font color="red">Gonçalo</font> encontrada(s) no Diário Oficial em <a href="diario/2026_09_16.pdf" underline="none" target="_blank">16/09/2026</a>.
-                            
-                            
-                        </b>    
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_20.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_20.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_20.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_20.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2020%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_20.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <p>[trecho removido: contém dados pessoais]</p>
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
                     </div>
-                </div>
-                                <div class="card mb-3">
-                    <div class="card-header">
-                        <b>
-                            &nbsp                            54 Palavra(s) <font color="red">Gonçalo</font> encontrada(s) no Diário Oficial em <a href="diario/2026_09_15.pdf" underline="none" target="_blank">15/09/2026</a>.
-                            
-                            
-                        </b>    
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 19/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 1,21 MB | 7 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 0</span>
+                                                    </div>
+                                                    <p>JESG REALIZA PARTIDAS FINAIS DE 
+BASQUETE MASCULINO E FEMININO NO 
+COLUBANDÊ
+GONÇALENSES SÃO CHAMADOS PARA 
+EXAMES NA CARRETA DA TOMOGRAFIA
+SÃO GONÇALO FAZ ALERTA SOBRE TAXA DE 
+INSCRIÇÃO PARA CONCURSO DA GUARDA 
+MUNICIP...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <p>[trecho removido: contém dados pessoais]</p>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_19.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_19.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_19.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_19.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2019%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_19.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
                     </div>
-                </div>
-                                <div class="card mb-3">
-                    <div class="card-header">
-                        <b>
-                            &nbsp                            34 Palavra(s) <font color="red">Gonçalo</font> encontrada(s) no Diário Oficial em <a href="diario/2026_09_14.pdf" underline="none" target="_blank">14/09/2026</a>.
-                            
-                            
-                        </b>    
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
                     </div>
-                    <div class="card-body">
-                        <p>[trecho removido: contém dados pessoais]</p>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 16/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 3,23 MB | 24 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 1</span>
+                                                    </div>
+                                                    <p>SÃO GONÇALO TEM PROGRAMAÇÃO 
+CULTURAL NO TEATRO MUNICIPAL E NO 
+CENTRO DE TRADIÇÕES NORDESTINAS
+AULÃO DO OUTUBRO ROSA REÚNE 
+CENTENAS DE PESSOAS EM SÃO GONÇALO
+SÃO GONÇALO REALIZA PALESTRA 
+GRATUITA SOBRE REFORMA TRIBUTÁ...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
                     </div>
-                </div>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_16.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_16.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_16.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_16.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2016%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_16.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
+                    </div>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 15/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 2,10 MB | 31 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 0</span>
+                                                    </div>
+                                                    <p>CRIANÇAS E JOVENS GONÇALENSES 
+PARTICIPAM DE AULAS DE FUTEBOL NO 
+BOAÇU
+SÃO GONÇALO OFERECE TESTAGEM RÁPIDA 
+E GRATUITA PARA DETECÇÃO DA SÍFILIS
+SÃO GONÇALO OFERECE 58 VAGAS DE 
+EMPREGO EM MAIS UMA EDIÇÃO DO 
+OPORTUNIDAD...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_15.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_15.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_15.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_15.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2015%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_15.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
+                    </div>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 14/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 1,49 MB | 17 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 0</span>
+                                                    </div>
+                                                    <p>DIA DAS CRIANÇAS COM MUITA 
+BRINCADEIRA NA PRAÇA ZÉ GAROTO
+EQUIPES DO ODETE SÃO PAIO LEVAM 
+TÍTULO DO JESG NO HANDEBOL
+ PARQUE RJ NOSSO SONHO LOTA COM 
+CARAVANA DE ARTE E LAZER NO DIA DAS 
+CRIANÇAS
+A 
+Secretaria de Assis...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_14.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_14.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_14.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_14.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2014%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_14.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
+                    </div>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 13/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 2,32 MB | 38 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 0</span>
+                                                    </div>
+                                                    <p>VESTIBULAR CEDERJ DESTINA 440 VAGAS 
+PARA SÃO GONÇALO
+FUNASG PROMOVE PASSEIO AO PLANETÁRIO 
+DO RIO A SERVIDORES APOSENTADOS
+SÃO GONÇALO AMPLIA PROGRAMA 
+VOLTADO A PORTADORES DE OBESIDADE 
+GRAVE
+S
+ão Gonçalo segue buscand...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_13.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_13.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_13.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_13.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2013%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_13.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
+                    </div>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 09/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 1,91 MB | 10 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 0</span>
+                                                    </div>
+                                                    <p>CIDADE ILUSTRADA PREPARA NOVO PAINEL 
+EM HOMENAGEM AOS TRABALHADORES DO 
+MUVI
+SÃO GONÇALO OFERECE 141 VAGAS PARA 
+FORMAÇÃO GRATUITA COM FOCO EM MODA 
+SUSTENTÁVEL
+ESTUDO VIVO LEVA AÇÕES DE PROTEÇÃO À 
+FAUNA PARA ALUNOS DA...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_09.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_09.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_09.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_09.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2009%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_09.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                </article>
+                            <article class="do-edition-card">
+                    <div class="do-thumb do-thumb-sm">
+                        <span class="do-thumb-bar"><i class="bi bi-newspaper"></i></span>
+                        <img src="/portal-assets/logos/brasao.png" alt="">
+                    </div>
+                    <div class="do-edition-body">
+                        <h3>
+                            <i class="bi bi-calendar-event"></i> Publicado em 08/10/2026
+                            <i class="bi bi-patch-check-fill text-primary small" title="Documento Oficial"></i>
+                                                    </h3>
+                        <div class="do-edition-meta">
+                                                        <span><i class="bi bi-hdd"></i> Tamanho: 1,25 MB | 6 páginas</span>                            <span><i class="bi bi-eye"></i> Visualizações: 0</span>
+                                                    </div>
+                                                    <p>PAISAGISMO DÁ NOVO VISUAL À PRAÇA DA 
+TRINDADE
+SÃO GONÇALO INICIA CAMPANHA OUTUBRO 
+ROSA COM PALESTRAS E SERVIÇOS DE 
+CUIDADOS A PACIENTES ONCOLÓGICAS
+SÃO GONÇALO TEM PROGRAMAÇÃO DA 
+CULTURA DIVERSIFICADA NESTE MÊS DE 
+O...</p>
+                                                <div class="do-mobile-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                    <div class="do-card-actions do-card-actions-row">
+                        <a href="/diario/ver/2026_10_08.pdf" class="btn btn-sm btn-primary" target="_blank" title="Ler online">
+                            <i class="bi bi-eye"></i> Ler online
+                        </a>
+                        <a href="/diario/download/pdf/2026_10_08.pdf" class="btn btn-sm btn-dark" title="Baixar PDF">
+                            <i class="bi bi-download"></i> Baixar
+                        </a>
+                        <a href="/diario/download/xml/2026_10_08.pdf" class="btn btn-sm btn-outline-secondary" target="_blank" title="Baixar XML">
+                            <i class="bi bi-filetype-xml"></i> XML
+                        </a>
+                        <a href="/diario/download/json/2026_10_08.pdf" class="btn btn-sm btn-outline-info" target="_blank" title="Baixar JSON">
+                            <i class="bi bi-filetype-json"></i> JSON
+                        </a>
+                                                <a href="https://api.whatsapp.com/send?text=Confira%20a%20publica%C3%A7%C3%A3o%20do%20Di%C3%A1rio%20Oficial%20de%2008%2F10%2F2026%3A%20https%3A%2F%2Fdo.pmsg.rj.gov.br%2Fdiario%2Fdownload%2Fpdf%2F2026_10_08.pdf" class="btn btn-sm btn-outline-success" target="_blank" title="Compartilhar no WhatsApp">
+                            <i class="bi bi-whatsapp"></i> Whatsapp
+                        </a>
+                        <div class="do-desktop-audio">
+                            <div class="audio-player mt-3 p-2 border rounded">
+    <div class="controls d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success play-btn" data-summary="">
+            <i class="bi bi-play-fill"></i> Play
+        </button>
+        <button class="btn btn-sm btn-warning pause-btn d-none">
+            <i class="bi bi-pause-fill"></i> Pausar
+        </button>
+        <button class="btn btn-sm btn-danger stop-btn d-none">
+            <i class="bi bi-stop-fill"></i> Parar
+        </button>
+        <span class="ms-1 small status-label">Parado</span>
+    </div>
+
+    <div class="progress mt-2 progress-container" style="height: 6px; cursor: pointer; position: relative;">
+        <div class="progress-bar bg-primary progress-fill" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                </article>
+                    </div>
+
+        <div class="navigation d-flex justify-content-center mt-4">
+                <nav>
+                        <ul class="pagination">
+
+                            <li class="page-item disabled">
+                    <span class="page-link">&laquo;&nbsp;Anterior</span>
+                </li>
+            
+            
+                                                <li class="page-item active">
+                        <span class="page-link">1</span>
+                    </li>
                 
-            <!-- EXIBE O PAGINADOR AO FINAL DOS RESULTADOS -->
-            <div class="d-flex justify-content-center mt-1">
-                <ul class="pagination pagination-sm">
-                <font color='red' face='arial' size='4'><b>1</b></font>&nbsp;&nbsp;<a href=index?NumeroPagina=2&Termo=Gonçalo&DataInicial=2026-09-08&DataFinal=2026-09-21&PesquisarTermo=Pesquisar><font color='#030f3d' size='2'>2</font></a>&nbsp;&nbsp;            </div>
-            <!-- FIM DO EXIBE O PAGINADOR AO FINAL DOS RESULTADOS -->
+                                                <li class="page-item">
+                        <a class="page-link" href="/?start_date=2026-09-01&amp;end_date=2026-10-22&amp;q=&amp;page=2">2</a>
+                    </li>
+                
+                                                <li class="page-item">
+                        <a class="page-link" href="/?start_date=2026-09-01&amp;end_date=2026-10-22&amp;q=&amp;page=3">3</a>
+                    </li>
+                
+                                                <li class="page-item">
+                        <a class="page-link" href="/?start_date=2026-09-01&amp;end_date=2026-10-22&amp;q=&amp;page=4">4</a>
+                    </li>
+                
+            
+            
+                            <li class="page-item">
+                    <a class="page-link" rel="next" href="/?start_date=2026-09-01&amp;end_date=2026-10-22&amp;q=&amp;page=2">Próximo&nbsp;&raquo;</a>
+                </li>
+                    </ul>
+    </nav>
+
+        </div>
+    </section>
+
+<section class="container do-most-accessed">
+    <h2>Edições mais acessadas</h2>
+    <div id="mostAccessedCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                    <div class="row g-4 justify-content-center">
+                                                                                    <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="do-access-card">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        <h3>Publicado em 22/10/2026</h3>
+                                        <span>19 download(s)</span>
+                                        <a href="/diario/download/pdf/2026_10_22.pdf" class="btn btn-outline-primary btn-sm" target="_blank">Ver publicação</a>
+                                    </div>
+                                </div>
+                                                                                                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="do-access-card">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        <h3>Publicado em 14/07/2026</h3>
+                                        <span>11 download(s)</span>
+                                        <a href="/diario/download/pdf/2026_07_14.pdf" class="btn btn-outline-primary btn-sm" target="_blank">Ver publicação</a>
+                                    </div>
+                                </div>
+                                                                                                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="do-access-card">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        <h3>Publicado em 21/10/2026</h3>
+                                        <span>5 download(s)</span>
+                                        <a href="/diario/download/pdf/2026_10_21.pdf" class="btn btn-outline-primary btn-sm" target="_blank">Ver publicação</a>
+                                    </div>
+                                </div>
+                                                                                                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="do-access-card">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        <h3>Publicado em 20/10/2026</h3>
+                                        <span>4 download(s)</span>
+                                        <a href="/diario/download/pdf/2026_10_20.pdf" class="btn btn-outline-primary btn-sm" target="_blank">Ver publicação</a>
+                                    </div>
+                                </div>
+                                                                        </div>
+                </div>
+                            <div class="carousel-item ">
+                    <div class="row g-4 justify-content-center">
+                                                                                    <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="do-access-card">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        <h3>Publicado em 16/10/2026</h3>
+                                        <span>2 download(s)</span>
+                                        <a href="/diario/download/pdf/2026_10_16.pdf" class="btn btn-outline-primary btn-sm" target="_blank">Ver publicação</a>
+                                    </div>
+                                </div>
+                                                                                                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="do-access-card">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        <h3>Publicado em 19/10/2026</h3>
+                                        <span>1 download(s)</span>
+                                        <a href="/diario/download/pdf/2026_10_19.pdf" class="btn btn-outline-primary btn-sm" target="_blank">Ver publicação</a>
+                                    </div>
+                                </div>
+                                                                                                                                                                                </div>
+                </div>
+                    </div>
+        <div class="d-flex justify-content-center mt-3 gap-2">
+            <button class="btn btn-primary rounded-circle" type="button" data-bs-target="#mostAccessedCarousel" data-bs-slide="prev" aria-label="Anterior">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn btn-primary rounded-circle" type="button" data-bs-target="#mostAccessedCarousel" data-bs-slide="next" aria-label="Próximo">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</section>
+    </main>
+
+    <footer class="sg-footer mt-auto">
+        <div class="sg-footer-links">
+            <div class="container">
+                <nav aria-label="Rodapé" class="sg-footer-nav">
+                    <a href="https://www.saogoncalo.rj.gov.br/cidade/historia/">São Gonçalo</a>
+                    <a href="https://www.saogoncalo.rj.gov.br/secretarias-e-fundacoes/">Secretarias</a>
+                    <a href="https://www.saogoncalo.rj.gov.br/concursos/">Concursos</a>
+                    <a href="https://www.saogoncalo.rj.gov.br/noticias/">Notícias</a>
+                    <a href="https://www.saogoncalo.rj.gov.br/servicos/">Serviços</a>
+                    <a href="https://www.saogoncalo.rj.gov.br/transparencia/">Portal Transparência</a>
+                    <a href="https://www.saogoncalo.rj.gov.br/servidor/">Portal do Servidor</a>
+                    <a href="https://ouvidoria.pmsg.rj.gov.br/">Ouvidoria</a>
+                    <a href="/">Diário Oficial</a>
+                    <a href="https://www.saogoncalo.rj.gov.br/fale-conosco/">Fale Conosco</a>
+                </nav>
             </div>
-<!-- FIM CONTAINER COM OS RESULTADOS DA BUSCA -->
+        </div>
+        <div class="sg-footer-info">
+            <div class="container sg-footer-info-inner">
+                <img src="/portal-assets/logos/brasao.png" alt="Brasão da Prefeitura de São Gonçalo">
+                <div>
+                    <p>© 2026 Prefeitura Municipal de São Gonçalo - Todos os direitos reservados.</p>
+                    <p>Conteúdo protegido pela Lei nº 9.610 de 19/02/1998</p>
+                    <p>Av. Presidente Kennedy, nº 765 - Estrela do Norte/SG - Tel.: (21) 2199-6374 | (21) 2199-6420</p>
+                    <p>CNPJ: 28.636.579/0001-00</p>
+                    <p>Horário de Atendimento: 9h às 16h30min</p>
+                    <p class="sg-system-note">Diário Oficial - SUBINFO | Versão 2.0.0</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-</main>
+    <button type="button" class="btn btn-primary rounded-circle position-fixed d-none shadow sg-go-top" id="goToTopBtn" title="Voltar ao topo" aria-label="Voltar ao topo">
+        <i class="bi bi-arrow-up"></i>
+    </button>
 
-<footer class="footer mt-auto py-4 bg-blue">
-<div align="left">
-    <img src="./imagens/brasao-rodape.png" width="40px" align="left" title="Diário Oficial - Versão: 2.2.1">
-    <div class="text-white py-2">Prefeitura Municipal de São Gonçalo</div>
- </div>
-</footer>
+    
 </body>
+</html>

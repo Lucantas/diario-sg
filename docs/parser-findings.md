@@ -2,29 +2,37 @@
 
 Achados de 7 edições reais (2024-03-15, 2026-03-31, 2026-06-30, 2026-08-31,
 2026-09-16, 2026-09-17, 2026-09-18; 8 a 23 páginas cada), baixadas de
-`https://do.pmsg.rj.gov.br/diario/AAAA_MM_DD.pdf` e extraídas com
+`https://do.pmsg.rj.gov.br/diario/download/pdf/AAAA_MM_DD.pdf` e extraídas com
 `pdftotext` (poppler 26.05). Reproduza com `./scripts/fetch-editions.sh`.
 Os textos ficam em `services/api/testdata/editions/` e não são versionados
 (contêm nomes de pessoas físicas).
 
 ## O site
 
-- Home (`/`) tem dois formulários POST. "Busca Rápida" (`BuscaRapida=AAAA-MM-DD`)
-  responde com um `<script>window.open('diario/AAAA_MM_DD.pdf','_blank')</script>`
-  quando existe edição e com nada quando não existe. "Busca Específica"
-  (`DataInicial`, `DataFinal`, `Termo`, `PesquisarTermo=Pesquisar`, action `index`)
-  exige um termo e devolve um card por edição com o link
-  `href="diario/AAAA_MM_DD.pdf"` e o texto `DD/MM/AAAA`; 5 por página, paginação
-  via `GET index?NumeroPagina=N&Termo=...&DataInicial=...&DataFinal=...&PesquisarTermo=Pesquisar`.
-- A URL do PDF é determinística por data. `HEAD` responde 200 com
-  `Content-Length` quando há edição e **500** (não 404) quando não há
-  (sábados, domingos, feriados).
+- Em 22/10/2026 a prefeitura trocou o portal. A rota antiga `POST index`
+  (`DataInicial`, `DataFinal`, `Termo`, paginação `NumeroPagina`) e a URL
+  `diario/AAAA_MM_DD.pdf` passaram a responder 404.
+- A listagem agora é `GET /?start_date=AAAA-MM-DD&end_date=AAAA-MM-DD&q=&page=N`.
+  O termo pode ficar vazio. Cada edição traz links para
+  `/diario/ver/`, `/diario/download/pdf/`, `/xml/` e `/json/` com o mesmo nome
+  de arquivo (`AAAA_MM_DD.pdf`, com `_N` na edição extra do mesmo dia).
+  O scraper usa o de `download/pdf`. As páginas linkam umas às outras por
+  `page=N`.
+- Toda página repete a edição em destaque e as cinco mais recentes, mesmo fora
+  do período pedido. O filtro por data do scraper descarta essas edições.
+- A página pesa 1 a 2 MB por causa dos resumos para áudio embutidos no HTML.
+  O primeiro byte chega em menos de 1 s, mas o corpo pode levar 40 s.
+- O PDF baixado pela URL nova tem o mesmo SHA-256 do baixado pela antiga, por
+  isso o worker reconhece as edições já indexadas. A migration 037 reescreveu o
+  `source_url` das edições antigas para o formato novo.
+- A URL do PDF é determinística por data. Dia sem edição (sábado, domingo,
+  feriado) responde 404.
 - Não há número de edição na URL nem na listagem; ele só aparece dentro do PDF
   (`EDIÇÃO N°1.771`).
 - `https://servicos.pmsg.rj.gov.br/diario_oficial.php` apenas redireciona para o
   portal WordPress `www.pmsg.rj.gov.br`, que linka para `do.pmsg.rj.gov.br`.
   O certificado desse host não envia a cadeia completa (curl falha sem `-k`).
-- Nada exige JavaScript. Sem `robots.txt` restritivo observado; sem bloqueio ao
+- A listagem não exige JavaScript. Sem `robots.txt` restritivo observado; sem bloqueio ao
   User-Agent identificado.
 
 ## pdftotext: `-layout` quebra as colunas
