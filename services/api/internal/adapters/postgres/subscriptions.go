@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/seu-usuario/diario-sg/services/api/internal/core/domain"
 )
@@ -92,15 +93,45 @@ type NotificationLog struct{ db *sql.DB }
 
 func NewNotificationLog(db *sql.DB) *NotificationLog { return &NotificationLog{db: db} }
 
-func (n *NotificationLog) WasSent(ctx context.Context, subID, gazetteID string) (bool, error) {
-	var ok bool
-	err := n.db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM notifications_sent
-		WHERE subscription_id = $1 AND gazette_id = $2)`, subID, gazetteID).Scan(&ok)
-	return ok, err
+const notificationClaimLease = 2 * time.Minute
+
+func (n *NotificationLog) Claim(ctx context.Context, subID, gazetteID string) (domain.NotificationClaim, error) {
+	var claimed bool
+	var status sql.NullString
+	err := n.db.QueryRowContext(ctx, `
+		WITH claimed AS (
+			INSERT INTO notifications_sent (subscription_id, gazette_id, status, claimed_at, sent_at)
+			VALUES ($1, $2, 'pending', now(), NULL)
+			ON CONFLICT (subscription_id, gazette_id) DO UPDATE SET claimed_at = now()
+			WHERE notifications_sent.status = 'pending'
+			  AND notifications_sent.claimed_at < now() - $3 * interval '1 second'
+			RETURNING 1
+		)
+		SELECT EXISTS (SELECT 1 FROM claimed),
+		       (SELECT status FROM notifications_sent WHERE subscription_id = $1 AND gazette_id = $2)`,
+		subID, gazetteID, notificationClaimLease.Seconds()).Scan(&claimed, &status)
+	switch {
+	case err != nil:
+		return 0, err
+	case claimed:
+		return domain.ClaimAcquired, nil
+	case status.String == "sent":
+		return domain.ClaimAlreadySent, nil
+	default:
+		return domain.ClaimInProgress, nil
+	}
 }
 
 func (n *NotificationLog) MarkSent(ctx context.Context, subID, gazetteID string) error {
-	_, err := n.db.ExecContext(ctx, `INSERT INTO notifications_sent (subscription_id, gazette_id)
-		VALUES ($1, $2) ON CONFLICT DO NOTHING`, subID, gazetteID)
+	_, err := n.db.ExecContext(ctx, `
+		INSERT INTO notifications_sent (subscription_id, gazette_id, status, claimed_at, sent_at)
+		VALUES ($1, $2, 'sent', now(), now())
+		ON CONFLICT (subscription_id, gazette_id) DO UPDATE SET status = 'sent', sent_at = now()`, subID, gazetteID)
+	return err
+}
+
+func (n *NotificationLog) Release(ctx context.Context, subID, gazetteID string) error {
+	_, err := n.db.ExecContext(ctx, `DELETE FROM notifications_sent
+		WHERE subscription_id = $1 AND gazette_id = $2 AND status = 'pending'`, subID, gazetteID)
 	return err
 }

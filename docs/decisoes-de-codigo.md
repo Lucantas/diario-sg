@@ -432,6 +432,31 @@ explica sozinho.
   consumidor ignora a repetição pelo checksum.
 - `notifications_sent` garante no máximo um alerta por inscrição e edição.
   Por isso o caso de uso pode devolver erro e deixar o Pub/Sub reentregar.
+- A linha é reservada antes do envio (`status = 'pending'`, migration
+  038). O `INSERT … ON CONFLICT` só devolve linha para quem reservou, e
+  só esse envia. Antes era "consulta se já foi, envia, grava": duas
+  entregas do mesmo evento em paralelo passavam juntas pela consulta e
+  mandavam dois e-mails.
+- Quem perde a reserva devolve `ErrNotificationInProgress`, e o evento
+  volta. Não dá para confirmar o evento, porque o envio do outro pode
+  falhar. Na reentrega, ou o alerta já está `sent`, ou foi liberado e é
+  reenviado.
+- Falha no envio apaga a reserva (`Release`), e a reentrega tenta de novo.
+  Se nem o `Release` gravar, a reserva vence em 2 minutos e a próxima
+  reentrega reserva de novo. O prazo cobre uma busca e um envio, que tem
+  timeout de 15 s.
+- O e-mail pode sair e a gravação de `sent` falhar (banco caiu, processo
+  morreu). Por isso todo alerta vai ao Resend com
+  `Idempotency-Key: alerta/<inscrição>/<edição>`. A reentrega depois do
+  prazo da reserva manda a mesma chave, e o Resend devolve a resposta
+  original sem mandar outro e-mail.
+- O Resend guarda a chave por 24 h e compara o corpo. Se uma reindexação
+  mudou os resultados, o corpo muda e o Resend responde 409
+  `invalid_idempotent_request`. Isso quer dizer que um e-mail com essa
+  chave já foi aceito, então o alerta é gravado como enviado
+  (`ErrAlreadyNotified`) em vez de mandar a versão nova. A pessoa recebe
+  um aviso por edição, mesmo que seja o da primeira versão.
+  `concurrent_idempotent_requests` é erro comum, e o evento volta.
 - Resposta ao push: 2xx confirma (inclusive mensagem inválida de forma
   permanente, que não adianta repetir); 5xx faz o Pub/Sub reentregar com
   backoff e, depois de N tentativas, mandar para a DLQ.
