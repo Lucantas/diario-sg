@@ -19,10 +19,29 @@ import (
 )
 
 type fakeSnapshot struct {
-	tables map[string]string
-	order  []string
-	failOn string
-	closed bool
+	tables       map[string]string
+	order        []string
+	failOn       string
+	closed       bool
+	headers      map[string][]string
+	fingerprints []domain.GazetteFingerprint
+	records      map[string][]domain.DumpRecord
+	asked        map[string][]string
+	wrote        []string
+}
+
+func (f *fakeSnapshot) Header(table string) ([]string, error) { return f.headers[table], nil }
+
+func (f *fakeSnapshot) Fingerprints(context.Context) ([]domain.GazetteFingerprint, error) {
+	return f.fingerprints, nil
+}
+
+func (f *fakeSnapshot) Records(_ context.Context, table string, ids []string) ([]domain.DumpRecord, error) {
+	if f.asked == nil {
+		f.asked = map[string][]string{}
+	}
+	f.asked[table] = ids
+	return f.records[table], nil
 }
 
 func (f *fakeSnapshot) Snapshot(context.Context) (ports.DumpSnapshot, error) { return f, nil }
@@ -32,6 +51,7 @@ func (f *fakeSnapshot) Close() error {
 	return nil
 }
 func (f *fakeSnapshot) WriteTable(_ context.Context, table string, w io.Writer) (int, error) {
+	f.wrote = append(f.wrote, table)
 	if table == f.failOn {
 		return 0, errors.New("consulta falhou")
 	}
@@ -78,10 +98,14 @@ func TestPublishDumpUploadsTablesThenReadmeThenManifest(t *testing.T) {
 	objects := &memObjects{}
 	now := time.Date(2026, 9, 27, 7, 0, 0, 0, time.UTC)
 
-	manifest, err := NewPublishDump(src, objects).Execute(context.Background(), now)
+	report, err := NewPublishDump(src, objects, nil).Execute(context.Background(), now)
 
 	if err != nil {
 		t.Fatal(err)
+	}
+	manifest := report.Manifest
+	if report.Incremental {
+		t.Fatal("sem dump anterior o dump deve ser completo")
 	}
 	wantOrder := []string{"latest/a.csv.gz", "latest/b.csv.gz", "latest/LEIAME.txt", "latest/manifest.json"}
 	if !reflect.DeepEqual(objects.names, wantOrder) {
@@ -112,7 +136,7 @@ func TestPublishDumpDoesNotPublishManifestWhenATableFails(t *testing.T) {
 	src := &fakeSnapshot{tables: map[string]string{"a": "x\n1\n"}, order: []string{"a", "b"}, failOn: "b"}
 	objects := &memObjects{}
 
-	_, err := NewPublishDump(src, objects).Execute(context.Background(), time.Now())
+	_, err := NewPublishDump(src, objects, nil).Execute(context.Background(), time.Now())
 
 	if err == nil || !strings.Contains(err.Error(), "tabela b") {
 		t.Fatalf("esperava erro da tabela b, veio %v", err)
@@ -134,7 +158,7 @@ func TestPublishDumpReportsUploadFailureWithoutHanging(t *testing.T) {
 	big := "x\n" + strings.Repeat("linha longa de texto\n", 100000)
 	src := &fakeSnapshot{tables: map[string]string{"a": big}, order: []string{"a"}}
 
-	_, err := NewPublishDump(src, failingObjects{}).Execute(context.Background(), time.Now())
+	_, err := NewPublishDump(src, failingObjects{}, nil).Execute(context.Background(), time.Now())
 
 	if err == nil {
 		t.Fatal("esperava erro do upload")

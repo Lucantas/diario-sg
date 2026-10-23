@@ -23,36 +23,45 @@ var leiame string
 const dumpPrefix = "latest/"
 
 type PublishDump struct {
-	source  ports.DumpSource
-	objects ports.ObjectWriter
+	source   ports.DumpSource
+	objects  ports.ObjectWriter
+	previous ports.PreviousDump
 }
 
-func NewPublishDump(s ports.DumpSource, o ports.ObjectWriter) *PublishDump {
-	return &PublishDump{source: s, objects: o}
+func NewPublishDump(s ports.DumpSource, o ports.ObjectWriter, previous ports.PreviousDump) *PublishDump {
+	return &PublishDump{source: s, objects: o, previous: previous}
 }
 
-func (uc *PublishDump) Execute(ctx context.Context, now time.Time) (domain.DumpManifest, error) {
+func (uc *PublishDump) Execute(ctx context.Context, now time.Time) (domain.DumpReport, error) {
 	snap, err := uc.source.Snapshot(ctx)
 	if err != nil {
-		return domain.DumpManifest{}, err
+		return domain.DumpReport{}, err
 	}
 	defer snap.Close()
-	manifest := domain.DumpManifest{GeneratedAt: now}
+	reused, report, err := uc.reuse(ctx, snap)
+	if err != nil {
+		return domain.DumpReport{}, err
+	}
+	report.Manifest = domain.DumpManifest{GeneratedAt: now}
 	for _, table := range snap.Tables() {
-		file, err := uc.publishTable(ctx, snap, table)
-		if err != nil {
-			return domain.DumpManifest{}, fmt.Errorf("tabela %s: %w", table, err)
+		write := func(w io.Writer) (int, error) { return snap.WriteTable(ctx, table, w) }
+		if merged, ok := reused[table]; ok {
+			write = merged.writeCSV
 		}
-		manifest.Files = append(manifest.Files, file)
+		file, err := uc.publishTable(ctx, table, write)
+		if err != nil {
+			return domain.DumpReport{}, fmt.Errorf("tabela %s: %w", table, err)
+		}
+		report.Manifest.Files = append(report.Manifest.Files, file)
 	}
 	if err := uc.objects.Put(ctx, dumpPrefix+"LEIAME.txt", "text/plain; charset=utf-8", strings.NewReader(leiame)); err != nil {
-		return domain.DumpManifest{}, err
+		return domain.DumpReport{}, err
 	}
-	body, err := json.MarshalIndent(manifest, "", "  ")
+	body, err := json.MarshalIndent(report.Manifest, "", "  ")
 	if err != nil {
-		return domain.DumpManifest{}, err
+		return domain.DumpReport{}, err
 	}
-	return manifest, uc.objects.Put(ctx, dumpPrefix+"manifest.json", "application/json", bytes.NewReader(body))
+	return report, uc.objects.Put(ctx, dumpPrefix+"manifest.json", "application/json", bytes.NewReader(body))
 }
 
 type tableResult struct {
@@ -67,7 +76,7 @@ func (c *byteCounter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func (uc *PublishDump) publishTable(ctx context.Context, snap ports.DumpSnapshot, table string) (domain.DumpFile, error) {
+func (uc *PublishDump) publishTable(ctx context.Context, table string, write func(io.Writer) (int, error)) (domain.DumpFile, error) {
 	name := table + ".csv.gz"
 	pr, pw := io.Pipe()
 	hash := sha256.New()
@@ -75,7 +84,7 @@ func (uc *PublishDump) publishTable(ctx context.Context, snap ports.DumpSnapshot
 	done := make(chan tableResult, 1)
 	go func() {
 		gz := gzip.NewWriter(io.MultiWriter(pw, hash, counter))
-		rows, err := snap.WriteTable(ctx, table, gz)
+		rows, err := write(gz)
 		if cerr := gz.Close(); err == nil {
 			err = cerr
 		}
