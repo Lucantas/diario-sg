@@ -37,11 +37,17 @@ func main() {
 	if cfg.DumpDir != "" {
 		objects = fsstore.New(cfg.DumpDir)
 	}
+	var previous ports.PreviousDump
+	if cfg.PreviousDumpDir != "" {
+		previous = fsstore.NewPreviousDump(cfg.PreviousDumpDir)
+	}
 	start := time.Now()
-	manifest, err := usecase.NewPublishDump(postgres.NewDumpSource(db), objects).Execute(ctx, start.UTC())
+	report, err := usecase.NewPublishDump(postgres.NewDumpSource(db), objects, previous).Execute(ctx, start.UTC())
 	if err != nil {
 		log.Error("dump falhou", "error", err, "duration_ms", time.Since(start).Milliseconds())
 		os.Exit(1)
 	}
-	log.Info("dump publicado", "manifest", manifest, "duration_ms", time.Since(start).Milliseconds())
+	log.Info("dump publicado", "manifest", report.Manifest, "incremental", report.Incremental,
+		"gazettes", report.Gazettes, "fetched_again", report.FetchedAgain, "fallback_cause", report.FallbackCause,
+		"duration_ms", time.Since(start).Milliseconds())
 }

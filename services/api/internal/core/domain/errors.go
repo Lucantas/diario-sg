@@ -12,4 +12,6 @@ var (
 	ErrUnauthorized          = errors.New("chave de acesso ausente, inválida ou revogada")
 
 	ErrInvalidInput = errors.New("entrada inválida")
+
+	ErrNoPreviousDump = errors.New("sem dump anterior")
 )

@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 7 * * 0"
   workflow_dispatch:
+    inputs:
+      completo:
+        description: Lê a base inteira do Neon em vez de reaproveitar o dump anterior
+        type: boolean
+        default: false
 
 concurrency:
   group: dump
@@ -19,8 +24,20 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL_DIRECT }}
       DUMP_DIR: ${{ github.workspace }}/out
+      PREVIOUS_DUMP_DIR: ${{ !inputs.completo && format('{0}/anterior', github.workspace) || '' }}
     steps:
       - uses: actions/checkout@v4
+      - name: dump anterior
+        id: anterior
+        if: ${{ !inputs.completo }}
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: dados
+          path: anterior
+      - name: aviso de dump completo
+        if: ${{ steps.anterior.outcome == 'failure' }}
+        run: echo "::warning::branch dados não baixou; o dump vai ler a base inteira do Neon (~250 MB da cota)"
       - uses: actions/setup-go@v5
         with:
           go-version-file: services/api/go.mod

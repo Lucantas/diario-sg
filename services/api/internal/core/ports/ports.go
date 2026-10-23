@@ -124,8 +124,15 @@ type DumpSource interface {
 
 type DumpSnapshot interface {
 	Tables() []string
+	Header(table string) ([]string, error)
 	WriteTable(ctx context.Context, table string, w io.Writer) (rows int, err error)
+	Fingerprints(ctx context.Context) ([]domain.GazetteFingerprint, error)
+	Records(ctx context.Context, table string, gazetteIDs []string) ([]domain.DumpRecord, error)
 	Close() error
+}
+
+type PreviousDump interface {
+	Table(ctx context.Context, name string) (header []string, rows [][]string, err error)
 }
 
 type ObjectWriter interface {

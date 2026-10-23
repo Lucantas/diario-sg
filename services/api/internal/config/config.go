@@ -34,6 +34,7 @@ type Config struct {
 	Bucket             string
 	DumpsBucket        string
 	DumpDir            string
+	PreviousDumpDir    string
 	TopicIndexed       string
 	PubSubEmulatorHost string
 	StorageEmulator    string
@@ -68,6 +69,7 @@ func Load(role Role) (Config, error) {
 		Bucket:             os.Getenv("GAZETTE_BUCKET"),
 		DumpsBucket:        os.Getenv("DUMPS_BUCKET"),
 		DumpDir:            os.Getenv("DUMP_DIR"),
+		PreviousDumpDir:    os.Getenv("PREVIOUS_DUMP_DIR"),
 		TopicIndexed:       os.Getenv("TOPIC_GAZETTE_INDEXED"),
 		PubSubEmulatorHost: os.Getenv("PUBSUB_EMULATOR_HOST"),
 		StorageEmulator:    os.Getenv("STORAGE_EMULATOR_HOST"),
