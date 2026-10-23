@@ -116,13 +116,27 @@ func (r *recPublisher) GazetteIndexed(_ context.Context, id string, _ int) error
 type recNotifier struct {
 	confirmations int
 	matches       int
+	keys          []string
+	delivered     map[string]bool
+	sendErr       error
 }
 
 func (r *recNotifier) SendConfirmation(context.Context, domain.Subscription) error {
 	r.confirmations++
 	return nil
 }
-func (r *recNotifier) SendMatches(context.Context, domain.Subscription, domain.Gazette, []domain.ActHit) error {
+func (r *recNotifier) SendMatches(_ context.Context, _ domain.Subscription, _ domain.Gazette, _ []domain.ActHit, key string) error {
+	r.keys = append(r.keys, key)
+	if r.sendErr != nil {
+		return r.sendErr
+	}
+	if r.delivered[key] {
+		return nil
+	}
+	if r.delivered == nil {
+		r.delivered = map[string]bool{}
+	}
+	r.delivered[key] = true
 	r.matches++
 	return nil
 }

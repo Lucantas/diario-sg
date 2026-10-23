@@ -79,8 +79,9 @@ type SubscriptionRepository interface {
 }
 
 type NotificationLog interface {
-	WasSent(ctx context.Context, subscriptionID, gazetteID string) (bool, error)
+	Claim(ctx context.Context, subscriptionID, gazetteID string) (domain.NotificationClaim, error)
 	MarkSent(ctx context.Context, subscriptionID, gazetteID string) error
+	Release(ctx context.Context, subscriptionID, gazetteID string) error
 }
 
 type FileStorage interface {
@@ -115,7 +116,7 @@ type EventPublisher interface {
 
 type Notifier interface {
 	SendConfirmation(ctx context.Context, s domain.Subscription) error
-	SendMatches(ctx context.Context, s domain.Subscription, g domain.Gazette, hits []domain.ActHit) error
+	SendMatches(ctx context.Context, s domain.Subscription, g domain.Gazette, hits []domain.ActHit, idempotencyKey string) error
 }
 
 type DumpSource interface {

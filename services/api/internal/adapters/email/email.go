@@ -21,6 +21,7 @@ import (
 
 type Message struct {
 	To, Subject, HTML string
+	IdempotencyKey    string
 }
 
 type Sender interface {
@@ -64,7 +65,7 @@ var matchesTmpl = template.Must(template.New("m").Funcs(template.FuncMap{
 <p><a href="{{.Source}}">Abrir a edição original</a></p>
 <p style="font-size:12px"><a href="{{.Unsub}}">Cancelar este alerta</a></p>`))
 
-func (n *Notifier) SendMatches(ctx context.Context, s domain.Subscription, g domain.Gazette, hits []domain.ActHit) error {
+func (n *Notifier) SendMatches(ctx context.Context, s domain.Subscription, g domain.Gazette, hits []domain.ActHit, idempotencyKey string) error {
 	var b bytes.Buffer
 	err := matchesTmpl.Execute(&b, map[string]any{
 		"Edition": g.EditionNumber, "SourceName": domain.SourceName(g.Source), "Date": g.PublishedAt.Format("02/01/2006"), "Hits": hits,
@@ -74,7 +75,7 @@ func (n *Notifier) SendMatches(ctx context.Context, s domain.Subscription, g dom
 		return err
 	}
 	subject := fmt.Sprintf("%s no Diário da %s de %s", upperFirst(s.EditionSubject()), domain.SourceLabel(g.Source), g.PublishedAt.Format("02/01"))
-	return n.sender.Send(ctx, Message{To: s.Email, Subject: subject, HTML: b.String()})
+	return n.sender.Send(ctx, Message{To: s.Email, Subject: subject, HTML: b.String(), IdempotencyKey: idempotencyKey})
 }
 
 func upperFirst(s string) string {
@@ -107,6 +108,9 @@ func (r *ResendSender) Send(ctx context.Context, m Message) error {
 	}
 	req.Header.Set("Authorization", "Bearer "+r.APIKey)
 	req.Header.Set("Content-Type", "application/json")
+	if m.IdempotencyKey != "" {
+		req.Header.Set("Idempotency-Key", m.IdempotencyKey)
+	}
 	resp, err := r.HTTP.Do(req)
 	if err != nil {
 		return err
@@ -114,7 +118,18 @@ func (r *ResendSender) Send(ctx context.Context, m Message) error {
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		msg, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+		if resp.StatusCode == http.StatusConflict && resendErrorName(msg) == "invalid_idempotent_request" {
+			return fmt.Errorf("resend: %w: %s", domain.ErrAlreadyNotified, msg)
+		}
 		return fmt.Errorf("resend: status %d: %s", resp.StatusCode, msg)
 	}
 	return nil
+}
+
+func resendErrorName(body []byte) string {
+	var e struct {
+		Name string `json:"name"`
+	}
+	_ = json.Unmarshal(body, &e)
+	return e.Name
 }

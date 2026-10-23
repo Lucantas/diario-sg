@@ -27,7 +27,7 @@ func TestSendMatchesNamesTheSource(t *testing.T) {
 		{EditionNumber: "138", PublishedAt: day, Source: domain.SourceDiarioCamara},
 		{EditionNumber: "1771", PublishedAt: day},
 	} {
-		if err := n.SendMatches(context.Background(), sub, g, hits); err != nil {
+		if err := n.SendMatches(context.Background(), sub, g, hits, ""); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -54,7 +54,7 @@ func TestEntityAlertEmails(t *testing.T) {
 	if err := n.SendConfirmation(context.Background(), sub); err != nil {
 		t.Fatal(err)
 	}
-	if err := n.SendMatches(context.Background(), sub, g, hits); err != nil {
+	if err := n.SendMatches(context.Background(), sub, g, hits, ""); err != nil {
 		t.Fatal(err)
 	}
 

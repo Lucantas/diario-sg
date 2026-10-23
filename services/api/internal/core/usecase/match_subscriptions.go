@@ -33,32 +33,34 @@ func (uc *MatchSubscriptions) Execute(ctx context.Context, gazetteID string) err
 
 	var errs []error
 	for _, s := range subs {
-		sent, err := uc.log.WasSent(ctx, s.ID, g.ID)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		if sent {
-			continue
-		}
-		hits, err := uc.hitsFor(ctx, s, g.ID)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		if len(hits) == 0 {
-			continue
-		}
-		if err := uc.notifier.SendMatches(ctx, s, g, hits); err != nil {
-			errs = append(errs, fmt.Errorf("notificar %s: %w", s.ID, err))
-			continue
-		}
-		if err := uc.log.MarkSent(ctx, s.ID, g.ID); err != nil {
-			errs = append(errs, err)
+		if err := uc.notify(ctx, s, g); err != nil {
+			errs = append(errs, fmt.Errorf("alerta %s: %w", s.ID, err))
 		}
 	}
 
 	return errors.Join(errs...)
+}
+
+func (uc *MatchSubscriptions) notify(ctx context.Context, s domain.Subscription, g domain.Gazette) error {
+	claim, err := uc.log.Claim(ctx, s.ID, g.ID)
+	if err != nil {
+		return err
+	}
+	switch claim {
+	case domain.ClaimAlreadySent:
+		return nil
+	case domain.ClaimInProgress:
+		return domain.ErrNotificationInProgress
+	}
+	hits, err := uc.hitsFor(ctx, s, g.ID)
+	if err != nil || len(hits) == 0 {
+		return errors.Join(err, uc.log.Release(ctx, s.ID, g.ID))
+	}
+	err = uc.notifier.SendMatches(ctx, s, g, hits, domain.AlertIdempotencyKey(s.ID, g.ID))
+	if err != nil && !errors.Is(err, domain.ErrAlreadyNotified) {
+		return errors.Join(fmt.Errorf("notificar: %w", err), uc.log.Release(ctx, s.ID, g.ID))
+	}
+	return uc.log.MarkSent(ctx, s.ID, g.ID)
 }
 
 func (uc *MatchSubscriptions) hitsFor(ctx context.Context, s domain.Subscription, gazetteID string) ([]domain.ActHit, error) {
