@@ -137,7 +137,15 @@ gh workflow run diario-prefeitura -R Lucantas/diario-sg -f lookback_days=7
 gh workflow run diario-camara -R Lucantas/diario-sg -f lookback_days=7
 gh workflow run carga-tce -R Lucantas/diario-sg
 gh workflow run dump -R Lucantas/diario-sg
+gh workflow run dump -R Lucantas/diario-sg -f completo=true
 ```
+
+O `dump` baixa o branch `dados` e reaproveita as edições que não mudaram,
+pedindo ao Neon só as novas e as alteradas. Com `completo=true` ele lê a
+base inteira, cerca de 250 MB da cota de 5 GB/mês de transferência do
+Neon. Use para recuperar um branch `dados` corrompido. O log do passo
+`dump` mostra `incremental`, `fetched_again` (edições lidas de novo) e,
+quando não deu para reaproveitar, `fallback_cause`.
 
 A coleta agendada olha 10 dias para trás. Cada execução sobe um emulador
 de GCS vazio, então o marcador de "edição já baixada" não sobrevive e a

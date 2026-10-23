@@ -164,6 +164,23 @@ decisões de arquitetura, em `adr/`.
 - O nginx serve `/dados/` por proxy do bucket, e `location = /dados`
   devolve a página do front: sem ele, o prefixo com `proxy_pass`
   redirecionaria `/dados` para `/dados/`.
+- Dump incremental (`PREVIOUS_DUMP_DIR`): o plano grátis do Neon dá 5 GB
+  por mês de transferência, e o dump completo lia uns 250 MB por semana.
+  Em outubro de 2026 a cota chegou a 92%. Agora o banco devolve um md5
+  por edição, calculado sobre as mesmas colunas do CSV. O dump calcula o
+  mesmo md5 sobre o dump anterior e só pede ao banco os atos e entidades
+  das edições cujo md5 mudou. A tabela de edições continua saindo
+  inteira, porque é pequena.
+- O md5 cobre os atos e as entidades, não o `indexed_at` da edição: o
+  `ReplaceActs` do reindex troca os atos sem mexer na linha da edição.
+- Qualquer divergência entre o CSV anterior e o banco (um `\r\n` que o
+  leitor de CSV troca por `\n`, uma ordem diferente) só faz a edição ser
+  baixada de novo. O pior caso gasta rede, nunca publica dado velho.
+- O dump volta a ser completo quando não acha o dump anterior ou quando o
+  cabeçalho de `acts` ou `act_entities` mudou. Um arquivo que não confere
+  com o SHA-256 do `manifest.json` derruba o dump em vez de cair no
+  completo sem ninguém ver: no Neon grátis, o completo custa um vigésimo
+  da cota do mês.
 
 ## Padrões guardados no banco
 
