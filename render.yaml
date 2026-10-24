@@ -29,6 +29,9 @@ services:
     rootDir: apps/web
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
+    envVars:
+      - key: VITE_PIX_KEY
+        sync: false
     autoDeploy: true
     branch: main
     headers:

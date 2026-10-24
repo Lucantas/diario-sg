@@ -1,6 +1,6 @@
 # Termos de uso
 
-Última atualização: 22 de setembro de 2026.
+Última atualização: 9 de outubro de 2026.
 
 Estes termos valem para qualquer instância do Diário SG publicada pelo autor
 deste repositório (site, API e alertas por e-mail). Quem subir a própria cópia
@@ -53,14 +53,27 @@ Você só recebe alertas depois de confirmar a inscrição pelo link enviado ao
 seu e-mail, e todo alerta traz um link de cancelamento. O tratamento do seu
 e-mail está descrito na [Política de privacidade](PRIVACIDADE.md).
 
-## 6. Sem garantias
+## 6. Doações
+
+O projeto aceita doações voluntárias por PIX, descritas em
+<https://diariosg.com.br/apoie>. Elas vão para a conta pessoal do autor e
+pagam a hospedagem e a manutenção. Doar não dá acesso, prioridade nem
+tratamento diferente: o site, a API e os alertas são os mesmos para quem doa
+e para quem não doa, e nenhuma doação muda o que é publicado ou retirado.
+Doações não são dedutíveis do imposto de renda.
+
+Não são aceitas doações da Prefeitura, da Câmara, de partidos, de mandatos,
+de candidatos nem de empresas com contrato com o município. Uma doação dessas
+que chegar é devolvida.
+
+## 7. Sem garantias
 
 O serviço é oferecido como está. Ele pode ficar fora do ar, atrasar alertas,
 deixar de encontrar um ato ou ser desativado a qualquer momento. Na extensão
 permitida pela lei, o autor não responde por danos decorrentes do uso ou da
 falta de uso das informações exibidas aqui.
 
-## 7. Correções e contato
+## 8. Correções e contato
 
 Encontrou um ato mal extraído, um dado que não deveria estar aqui ou um
 problema de segurança? Abra uma issue em
@@ -68,7 +81,7 @@ problema de segurança? Abra uma issue em
 ser públicos (dados pessoais, vulnerabilidades), abra a issue pedindo um canal
 privado, sem incluir os detalhes.
 
-## 8. Mudanças
+## 9. Mudanças
 
 Estes termos podem mudar. A versão vigente é sempre a deste arquivo, e o
 histórico fica no Git.

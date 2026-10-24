@@ -153,6 +153,9 @@ export function SearchPage() {
           <LatestEditionSection />
           <VerifySection />
           <SectionCards />
+          <p className="support-nudge">
+            O Diário SG é mantido por uma pessoa e roda em servidores gratuitos. <a href="/apoie">Veja como ajudar</a>.
+          </p>
           {dialog}
         </main>
       </>

@@ -4,7 +4,7 @@ export
 
 GO_MODULES := pkg services/api services/scraper
 
-.PHONY: help up down setup migrate reindex receita sancoes tce pncp federal agentes sicam dump reports close-report keys revoke-key ingest run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
+.PHONY: help up down setup migrate reindex receita sancoes tce pncp federal agentes sicam dump reports close-report keys revoke-key ingest doacao run-api run-worker run-scraper run-scraper-camara run-web test test-integration lint fmt tf-fmt
 
 help: ## Lista os comandos
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-18s %s\n", $$1, $$2}'
@@ -66,6 +66,9 @@ revoke-key: ## Revoga uma chave do MCP pelo prefixo que aparece no log: make rev
 ingest: ## Ingere um PDF baixado manualmente: make ingest FILE=edicao.pdf DATE=AAAA-MM-DD [EDITION=n]
 	@test -n "$(FILE)" -a -n "$(DATE)" || (echo "uso: make ingest FILE=caminho.pdf DATE=AAAA-MM-DD [EDITION=n]"; exit 2)
 	cd services/scraper && go run ./cmd/ingest -file "$(abspath $(FILE))" -date "$(DATE)" -edition "$(EDITION)"
+
+doacao: ## Atualiza o total doado no mês, mostrado na página /apoie: make doacao TOTAL=85,50
+	node apps/web/scripts/doacao.mjs "$(TOTAL)"
 
 run-api: ## API pública em :8080
 	cd services/api && PORT=8080 go run ./cmd/api
