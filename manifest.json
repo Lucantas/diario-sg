@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-11-15T14:34:51.861288029Z",
+  "files": [
+    {
+      "name": "gazettes.csv.gz",
+      "rows": 5335,
+      "bytes": 369365,
+      "sha256": "8d2da4abc2f4599ba5d6cbf4127ff13b5662a150f4fae374c4bdc477b02d488a"
+    },
+    {
+      "name": "acts.csv.gz",
+      "rows": 163897,
+      "bytes": 59134992,
+      "sha256": "31db3a074107f227b9108cc585a06070c6e62eb4e247e758d75eb1d061b173df"
+    },
+    {
+      "name": "act_entities.csv.gz",
+      "rows": 150972,
+      "bytes": 2996416,
+      "sha256": "b220f2e4454f477d0f5fe16b4ce41c4c3d1882f59ed8ba01495dcb849cdf4b41"
+    }
+  ]
+}
